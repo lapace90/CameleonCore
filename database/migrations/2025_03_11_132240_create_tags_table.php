@@ -18,12 +18,12 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Créez la table pivot pour la relation polymorphique
+        // Table pivot pour la relation polymorphique
         Schema::create('taggables', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('tag_id');
-            $table->unsignedBigInteger('taggable_id');
-            $table->string('taggable_type');
+            $table->unsignedBigInteger('taggable_id')->index();
+            $table->string('taggable_type')->index();
             $table->timestamps();
 
             $table->foreign('tag_id')->references('id')->on('tags')->onDelete('cascade');

@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Models\Menu;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Menu>
@@ -14,7 +15,7 @@ class MenuFactory extends Factory
      *
      * @var class-string<\Illuminate\Database\Eloquent\Model>
      */
-    protected $model = \App\Models\Menu::class;
+    protected $model = Menu::class;
     /**
      * Define the model's default state.
      *
@@ -23,7 +24,7 @@ class MenuFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            //        
         ];
     }
 }

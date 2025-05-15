@@ -3,30 +3,36 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Models\Room;
+use App\Models\Activity;
+use App\Models\Dish;
+use App\Models\Menu;
+use App\Models\Category;
+use App\Models\Option;
 use Illuminate\Support\Facades\Log;
 use App\Models\Product;
-use App\Models\Option;
-use App\Models\Category;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Product>
- */
 class ProductFactory extends Factory
 {
-    /**
-     * The name of the factory's corresponding model.
-     *
-     * @var class-string<\Illuminate\Database\Eloquent\Model>
-     */
     protected $model = Product::class;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
+        $class = $this->faker->randomElement([
+            Room::class,
+            Activity::class,
+            Dish::class,
+            Menu::class,
+        ]);
+
+        // Créer l'instance correspondante pour le productable
+        $productable = match ($class) {
+            Room::class => Room::factory()->create(),
+            Activity::class => Activity::factory()->create(),
+            Dish::class => Dish::factory()->create(),
+            Menu::class => Menu::factory()->create(),
+        };
+
         return [
             'name' => $this->faker->word(),
             'description' => $this->faker->sentence(),
@@ -41,25 +47,21 @@ class ProductFactory extends Factory
                     return $category->id;
                 }
             },
+            'productable_type' => get_class($productable),
+            'productable_id' => $productable->id,
             'image' => $this->faker->imageUrl(),
             'status' => $this->faker->boolean(),
-            'productable_type' => $this->faker->randomElement(['App\Models\Room', 'App\Models\Activity', 'App\Models\Dish', 'App\Models\Menu',]),
-            'productable_id' => function (array $attributes) {
-                $type = $attributes['productable_type'];
-                $productable = $type::factory()->create();
-                Log::info("Création du produit de type {$type} avec ID : {$productable->id}");
-                return $productable->id;
-            },
             'is_draft' => $this->faker->boolean(),
         ];
     }
 
-    // Ajoutons des options pour chaque produit
     public function configure()
     {
         return $this->afterCreating(function (Product $product) {
             $options = Option::inRandomOrder()->take(3)->pluck('id');
             $product->options()->attach($options);
+            Log::info("Options attachées au produit ID {$product->id}: " . implode(', ', $options->toArray()));
         });
     }
 }
+

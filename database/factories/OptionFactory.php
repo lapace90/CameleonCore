@@ -28,7 +28,7 @@ class OptionFactory extends Factory
      */
     public function definition(): array
     {
-        // Choisir un produit polymorphique de manière plus explicite
+        // Choisir un type de produit polymorphique
         $productType = $this->faker->randomElement([
             Room::class,
             Activity::class,
@@ -36,7 +36,7 @@ class OptionFactory extends Factory
             Menu::class,
         ]);
 
-        // Créer un produit associé à ce type de manière explicite
+        // Créer un produit lié au type polymorphique
         $productable = match ($productType) {
             Room::class => Room::factory()->create(),
             Activity::class => Activity::factory()->create(),
@@ -44,14 +44,13 @@ class OptionFactory extends Factory
             Menu::class => Menu::factory()->create(),
         };
 
-        // Retourne les données de l'option avec le produit polymorphique
         return [
             'name' => $this->faker->word(),
             'description' => $this->faker->sentence(),
             'price' => $this->faker->randomFloat(2, 1, 100),
+            // Utilisation de `for()` pour gérer la relation polymorphique
             'productable_id' => $productable->id,
-            'productable_type' => $productType, // Utilise le bon type de produit polymorphique
+            'productable_type' => $productType,
         ];
     }
 }
-

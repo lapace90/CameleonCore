@@ -22,6 +22,6 @@ class Room extends Model
 
     public function options()
     {
-        return $this->morphMany(Option::class, 'product');
+        return $this->morphMany(Option::class, 'productable');
     }
 }

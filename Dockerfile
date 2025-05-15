@@ -1,7 +1,7 @@
-# Usa l'immagine ufficiale di PHP 8.4 con FPM
+# Utilise l'image officielle de PHP 8.4 avec FPM
 FROM php:8.4-fpm-bookworm
 
-# Installa le dipendenze di sistema
+# Installe les dépendances de système
 RUN apt-get update && apt-get install -y \
     apt-transport-https \
     libpq-dev \
@@ -10,36 +10,33 @@ RUN apt-get update && apt-get install -y \
     zip \
     git \
     curl \
-    # libzip-dev \
     libxml2-dev \
-    libonig-dev
+    libonig-dev && \
+    rm -rf /var/lib/apt/lists/*
 
-# Aggiungi il repository Sury per PHP
-# RUN curl -sSLo /usr/share/keyrings/debsuryorg-archive-keyring.gpg https://packages.sury.org/php/apt.gpg \
-    # && sh -c 'echo "deb [signed-by=/usr/share/keyrings/debsuryorg-archive-keyring.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
+# Installe Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
+    composer --version
     
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+# Installe les extensions PHP
+RUN apt-get update && apt-get install -y libpq-dev && \
+    docker-php-ext-install pdo_pgsql pgsql
 
-# Installa le estensioni PHP
-RUN docker-php-ext-install pdo pdo_pgsql pgsql mbstring xml
+# Active les extensions PHP
+RUN docker-php-ext-enable pdo_pgsql
 
-RUN php -m | grep mbstring
-
-
-# Imposta la directory di lavoro
+# Copie les fichiers du projet
 WORKDIR /app
+COPY . .
 
-# Copia i file del progetto
-COPY . /app
-
-# Installa le dipendenze di Composer
+# Installe les dépendances de Composer
 RUN composer install
 
-# Installa API Platform
+# Installe API Platform
 RUN composer require api-platform/laravel
 
-# Esponi la porta 9000 per PHP-FPM
+# Expose le port 9000 pour PHP-FPM
 EXPOSE 9000
 
-# Avvia PHP-FPM
-CMD ["php-fpm"]
+# Démarre PHP-FPM
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=9000"]

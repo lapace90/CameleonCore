@@ -59,41 +59,37 @@ class DatabaseSeeder extends Seeder
                     $product->save();
                 });
             });
-            
-            // Seed des options
-            Log::info("Seeding options...");
-            Option::factory()->count(15)->create();  // Appelle la factory des options
-            Log::info("Finished seeding options");
+
 
             $this->seedModel('customers', fn() => Customer::factory()->count(10)->create());
 
-            // Models with complex dependencies
-            $this->seedModel('reservations', function () {
-                return Reservation::factory()->count(10)->create([
-                    'room_id' => function () {
-                        return Room::inRandomOrder()->first()->id;
-                    },
-                    'customer_id' => function () {
-                        return Customer::inRandomOrder()->first()->id;
-                    },
-                ]);
-            });
+            // // Models with complex dependencies
+            // $this->seedModel('reservations', function () {
+            //     return Reservation::factory()->count(10)->create([
+            //         'room_id' => function () {
+            //             return Room::inRandomOrder()->first()->id;
+            //         },
+            //         'customer_id' => function () {
+            //             return Customer::inRandomOrder()->first()->id;
+            //         },
+            //     ]);
+            // });
 
-            $this->seedModel('invoices', function () {
-                return Invoice::factory()->count(10)->create()->each(function ($invoice) {
-                    $invoice->customer()->associate(Customer::inRandomOrder()->first());
-                    $invoice->reservation()->associate(Reservation::inRandomOrder()->first());
-                    $invoice->save();
-                });
-            });
+            // $this->seedModel('invoices', function () {
+            //     return Invoice::factory()->count(10)->create()->each(function ($invoice) {
+            //         $invoice->customer()->associate(Customer::inRandomOrder()->first());
+            //         $invoice->reservation()->associate(Reservation::inRandomOrder()->first());
+            //         $invoice->save();
+            //     });
+            // });
 
-            // Permissions and roles last
-            $this->seedModel('permissions', fn() => Permission::factory()->count(10)->create());
-            $this->seedModel('roles', function () {
-                return Role::factory()->count(5)->create()->each(function ($role) {
-                    $role->permissions()->attach(Permission::inRandomOrder()->take(3)->pluck('id'));
-                });
-            });
+            // // Permissions and roles last
+            // $this->seedModel('permissions', fn() => Permission::factory()->count(10)->create());
+            // $this->seedModel('roles', function () {
+            //     return Role::factory()->count(5)->create()->each(function ($role) {
+            //         $role->permissions()->attach(Permission::inRandomOrder()->take(3)->pluck('id'));
+            //     });
+            // });
 
             DB::commit();
             Log::info('Database seeding completed successfully');

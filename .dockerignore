@@ -1,0 +1,5 @@
+node_modules
+vendor
+*.log
+frontend/node_modules
+*.tmp

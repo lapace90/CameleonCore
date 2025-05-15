@@ -23,9 +23,7 @@ class ReservationFactory extends Factory
     public function definition(): array
     {
         return [
-            'customer_name' => \App\Models\Customer::factory('name'),
-            'customer_email' => \App\Models\Customer::factory('email'),
-            'customer_phone' => \App\Models\Customer::factory('phone'),
+            'customer_id' => \App\Models\Customer::factory()->create()->id,
             'date' => $this->faker->date(),
             'checkin' => $this->faker->dateTimeBetween('now', '+1 week'),
             'checkout' => $this->faker->dateTimeBetween('+1 week', '+2 weeks'),

@@ -25,7 +25,8 @@ class Tag extends Model
     // Relation avec les produits (tags globaux)
     public function products()
     {
-        return $this->belongsToMany(Product::class);
+        return $this->morphedByMany(Product::class, 'taggable')
+            ->withTimestamps();
     }
 
     // Relation polymorphique (pour les tags spécifiques)

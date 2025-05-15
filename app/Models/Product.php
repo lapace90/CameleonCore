@@ -23,8 +23,7 @@ class Product extends Model
         'image',
         'category_id',
         'status',
-        'productable_id',
-        'productable_type',
+        'productable',
         'is_draft'
     ];
 

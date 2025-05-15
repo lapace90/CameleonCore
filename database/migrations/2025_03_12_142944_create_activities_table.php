@@ -19,6 +19,7 @@ return new class extends Migration
             $table->unsignedInteger('max_people');
             $table->unsignedTinyInteger('difficulty_level')->default(1); // Pour calculateTags()
             $table->timestamps();
+            
         });
     }
 

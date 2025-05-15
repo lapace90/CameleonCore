@@ -24,10 +24,7 @@ class DishFactory extends Factory
     public function definition(): array
     {
         return [
-            'productable_type' => \App\Models\Dish::class,
-            'productable_id' => \App\Models\Dish::factory(),
-            'productable' => \App\Models\Dish::factory(),
-            'options' => \App\Models\Option::factory()->count(3),
+            //
         ];
     }
 }

@@ -16,12 +16,10 @@ return new class extends Migration
             $table->string('image')->nullable();
             $table->foreignId('category_id')->constrained()->onDelete('cascade');
             $table->boolean('status')->default(true);
-            $table->morphs('productable');
+            $table->unsignedBigInteger('productable_id');
+            $table->string('productable_type');
             $table->boolean('is_draft')->default(false);
             $table->timestamps();
-
-            // Index pour les relations polymorphiques
-            $table->index(['productable_id', 'productable_type']);
         });
     }
 

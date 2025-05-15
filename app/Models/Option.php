@@ -18,8 +18,7 @@ class Option extends Model
         'name',
         'description',
         'price',
-        'productable_id',
-        'productable_type',
+
     ];
 
     public function products(): BelongsToMany
