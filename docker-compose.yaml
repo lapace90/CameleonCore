@@ -1,6 +1,8 @@
 
 networks:
-  application:
+  backend:
+    driver: bridge
+  frontend:
     driver: bridge
 
 services:
@@ -17,7 +19,7 @@ services:
       db:
         condition: service_healthy
     networks:
-      - application
+      - backend
     env_file:
       - .env
     environment:
@@ -35,22 +37,17 @@ services:
       dockerfile: Dockerfile
     container_name: myFrontendX
     ports:
-      - 5173:5173
-    volumes:
-      - ./frontend/CampCameleonXfront:/app
+      - 5173:80
     networks:
-      -   application
-    env_file:
-      - .env
-    command: >
-      sh -c "
-        npm install &&
-        npm run dev
-      "
+      - backend
+      - frontend
+    # env_file:
+    #   - .env
+
   db:
     image: postgres:17
     ports:
-      - 5432:5432
+      - 5433:5432
     volumes:
       - ./data:/var/lib/postgresql/data
     env_file:
@@ -60,7 +57,7 @@ services:
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     networks:
-      - application
+      - backend
     container_name: myPostgresX
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]

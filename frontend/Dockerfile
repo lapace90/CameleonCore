@@ -1,21 +1,30 @@
-# Dockerfile - frontend
-FROM node:20
+# build stage
+FROM node:20-alpine as build-stage
 
-# Dossier de travail dans le container
+# Set working directory
 WORKDIR /app
 
-# Copie uniquement les fichiers de dépendances pour profiter du cache Docker
-COPY package*.json ./
+# Install dependencies
+COPY CampCameleonXfront/package*.json ./
+# COPY vite.config.js ./
 
-# Installation des dépendances
+# Install dependencies
 RUN npm install
 
-# Puis copie le reste du projet
-COPY . .
+# Copy all files
+COPY CampCameleonXfront/ ./
 
-# Expose le port utilisé par Vite
+# Build the application
+RUN npm run build
+
+# production stage
+# Use nginx to serve the application
+FROM nginx:stable-alpine
+
+# Copy the built files from the build stage
+COPY --from=build-stage /app/dist /usr/share/nginx/html
+
+# Copy the nginx configuration file
 EXPOSE 5173
 
-# Lancement du serveur Vite (important : --host)
-
-CMD ["npm", "run", "dev", "--", "--host"]
+CMD ["nginx", "-g", "daemon off;"]

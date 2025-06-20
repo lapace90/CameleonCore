@@ -1,0 +1,115 @@
+// Styles spécifiques à l'admin (inspirés Argon Dashboard)
+
+// Sidebar
+.admin-sidebar {
+  width: 250px;
+  background: linear-gradient(87deg, #172b4d 0, #1a174d 100%);
+  min-height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+  
+  .sidebar-brand {
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    
+    h2 {
+      color: white;
+      font-size: 1.25rem;
+      margin: 0;
+    }
+  }
+  
+  .sidebar-nav {
+    padding: 1rem 0;
+    
+    .nav-item {
+      margin: 0.25rem 1rem;
+      
+      .nav-link {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        border-radius: var(--border-radius);
+        transition: all 0.15s ease;
+        
+        i {
+          margin-right: 1rem;
+          width: 1rem;
+          text-align: center;
+        }
+        
+        &:hover, &.router-link-active {
+          background-color: rgba(255, 255, 255, 0.1);
+          color: white;
+        }
+      }
+    }
+  }
+}
+
+// Header admin
+.admin-header {
+  background-color: white;
+  box-shadow: var(--shadow-sm);
+  padding: 1rem 2rem;
+  margin-left: 250px; // Décalage pour la sidebar
+  
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+    h1 {
+      color: var(--text-dark);
+      font-size: 1.75rem;
+      margin: 0;
+    }
+    
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+  }
+}
+
+// Main content admin
+.admin-main {
+  margin-left: 250px; // Décalage pour la sidebar
+  min-height: calc(100vh - 80px); // Hauteur - header
+}
+
+// Cards spécifiques admin
+.stats-card {
+  background: linear-gradient(87deg, var(--primary) 0, #825ee4 100%);
+  color: white;
+  
+  .card-body {
+    position: relative;
+    
+    .stats-icon {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      font-size: 2rem;
+      opacity: 0.8;
+    }
+    
+    .stats-number {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    
+    .stats-label {
+      opacity: 0.8;
+      text-transform: uppercase;
+      font-size: 0.875rem;
+      letter-spacing: 0.04em;
+    }
+  }
+}

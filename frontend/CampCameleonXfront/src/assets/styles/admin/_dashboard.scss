@@ -1,0 +1,107 @@
+@import '../variables';
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.charts-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1.5rem;
+
+  @include media-breakpoint-down(md) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chart-card {
+  @extend .card;
+
+  .chart-placeholder {
+    padding: 3rem;
+    text-align: center;
+    color: $text-secondary;
+    background: linear-gradient(135deg, $bg-light 0%, lighten($bg-light, 2%) 100%);
+
+    @include media-breakpoint-down(md) {
+      padding: 2rem;
+    }
+
+    .chart-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    p {
+      margin: 0 0 0.5rem 0;
+      font-weight: $font-weight-medium;
+    }
+
+    small {
+      color: lighten($text-secondary, 10%);
+    }
+  }
+}
+
+.activity-section {
+  .activity-card {
+    @extend .card;
+  }
+
+  .activity-list {
+    padding: 0;
+  }
+
+  .activity-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid $bg-light;
+    transition: background-color $transition-base;
+
+    &:hover {
+      background-color: $bg-light;
+    }
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .activity-icon {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: $font-size-sm;
+      flex-shrink: 0;
+    }
+
+    .activity-content {
+      flex: 1;
+
+      .activity-text {
+        margin: 0 0 0.25rem 0;
+        color: $text-primary;
+        font-weight: $font-weight-medium;
+      }
+
+      .activity-time {
+        color: $text-secondary;
+        font-size: $font-size-sm;
+      }
+    }
+  }
+}

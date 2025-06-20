@@ -1,0 +1,187 @@
+@import '../variables';
+
+.card {
+  background-color: $bg-white;
+  border-radius: $card-border-radius;
+  box-shadow: $card-shadow;
+  border: 1px solid $border-color;
+  overflow: hidden;
+  transition: all $transition-base;
+
+  &.card-hover {
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: $shadow-lg;
+    }
+  }
+
+  &.card-border-none {
+    border: none;
+  }
+
+  &.card-shadow-sm {
+    box-shadow: $shadow-sm;
+  }
+
+  &.card-shadow-lg {
+    box-shadow: $shadow-lg;
+  }
+}
+
+.card-header {
+  padding: $card-padding;
+  background-color: $bg-light;
+  border-bottom: 1px solid $border-color;
+
+  &.card-header-transparent {
+    background-color: transparent;
+  }
+
+  &.card-header-primary {
+    @include card-variant($primary, white);
+  }
+
+  &.card-header-success {
+    @include card-variant($success, white);
+  }
+
+  .card-title {
+    margin: 0;
+    font-size: $font-size-lg;
+    font-weight: $font-weight-semibold;
+    color: $text-primary;
+  }
+
+  .card-subtitle {
+    margin: 0.5rem 0 0 0;
+    font-size: $font-size-sm;
+    color: $text-secondary;
+  }
+}
+
+.card-body {
+  padding: $card-padding;
+
+  &.card-body-sm {
+    padding: 1rem;
+  }
+
+  &.card-body-lg {
+    padding: 2rem;
+  }
+
+  .card-text {
+    margin-bottom: 1rem;
+    color: $text-secondary;
+    line-height: $line-height-relaxed;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.card-footer {
+  padding: $card-padding;
+  background-color: $bg-light;
+  border-top: 1px solid $border-color;
+
+  &.card-footer-transparent {
+    background-color: transparent;
+    border-top: none;
+  }
+}
+
+// Cartes spécialisées
+.stat-card {
+  @extend .card;
+  position: relative;
+  overflow: hidden;
+
+  &.stat-card-primary {
+    background: $gradient-primary;
+    color: white;
+  }
+
+  &.stat-card-success {
+    background: $gradient-success;
+    color: white;
+  }
+
+  &.stat-card-warning {
+    background: $gradient-warning;
+    color: white;
+  }
+
+  &.stat-card-danger {
+    background: $gradient-danger;
+    color: white;
+  }
+
+  .stat-icon {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 2rem;
+    opacity: 0.8;
+  }
+
+  .stat-number {
+    font-size: 2rem;
+    font-weight: $font-weight-bold;
+    margin-bottom: 0.5rem;
+  }
+
+  .stat-label {
+    opacity: 0.8;
+    text-transform: uppercase;
+    font-size: $font-size-sm;
+    letter-spacing: 0.04em;
+  }
+
+  .stat-change {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: 0.5rem;
+
+    &.positive {
+      color: rgba(white, 0.9);
+    }
+
+    &.negative {
+      color: rgba(white, 0.7);
+    }
+  }
+}
+
+.feature-card {
+  @extend .card;
+  text-align: center;
+  padding: 2rem;
+
+  .feature-icon {
+    width: 4rem;
+    height: 4rem;
+    border-radius: $border-radius-xl;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    color: white;
+    font-size: 1.5rem;
+  }
+
+  .feature-title {
+    color: $text-primary;
+    margin-bottom: 1rem;
+    font-size: $font-size-xl;
+  }
+
+  .feature-description {
+    color: $text-secondary;
+    line-height: $line-height-relaxed;
+  }
+}

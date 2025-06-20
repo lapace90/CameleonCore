@@ -1,0 +1,76 @@
+// Import des variables
+@import 'variables';
+
+// Reset global
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: $font-family-sans-serif;
+  background-color: $bg-default;
+  color: $text-primary;
+  line-height: $line-height-normal;
+  font-size: $font-size-base;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// Liens
+a {
+  color: $primary;
+  text-decoration: none;
+  transition: $transition-base;
+
+  &:hover {
+    color: $primary-dark;
+  }
+}
+
+// Images responsive par défaut
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+// Container global
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+
+  @include media-breakpoint-up(sm) {
+    padding: 0 1.5rem;
+  }
+
+  @include media-breakpoint-up(lg) {
+    padding: 0 2rem;
+  }
+}
+
+// Scrollbar personnalisée
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: $bg-light;
+}
+
+::-webkit-scrollbar-thumb {
+  background: $border-color;
+  border-radius: 3px;
+
+  &:hover {
+    background: $text-secondary;
+  }
+}

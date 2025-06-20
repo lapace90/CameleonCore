@@ -1,0 +1,218 @@
+// ========================================
+// Variables SCSS - CampCameleonX Moodboard
+// ========================================
+
+// Import des polices Google Fonts
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+
+// Couleurs principales du moodboard
+$slate-blue: #656C97;     // Bleu ardoise principal
+$terracotta: #CE5E1A;     // Orange terracotta/terre
+$cream: #F3D8C7;         // Crème/beige clair  
+$coffee: #41241C;        // Marron café foncé
+$sand: #D6B190;          // Sable/beige doré
+
+// Palette de couleurs système (basée sur le moodboard)
+$primary: $slate-blue;    // #656C97 - Couleur principale
+$secondary: $sand;        // #D6B190 - Couleur secondaire
+$accent: $terracotta;     // #CE5E1A - Couleur d'accent
+$success: #2d8f63;       // Vert nature (dérivé)
+$warning: $terracotta;    // Orange/terracotta
+$danger: #c53030;        // Rouge (conservé)
+$info: $slate-blue;      // Info = couleur principale
+$light: $cream;          // #F3D8C7 - Crème
+$dark: $coffee;          // #41241C - Marron foncé
+
+// Variantes des couleurs principales
+$primary-light: lighten($primary, 15%);     // #8691b8
+$primary-dark: darken($primary, 15%);       // #4a5276
+$accent-light: lighten($accent, 20%);       // #e08851
+$accent-dark: darken($accent, 15%);         // #a84b15
+$cream-light: lighten($cream, 8%);          // #f7e5d9
+$cream-dark: darken($cream, 12%);           // #d4c0a8
+
+// Couleurs de fond inspirées moodboard
+$bg-default: #faf9f7;           // Blanc cassé chaud
+$bg-white: #ffffff;
+$bg-secondary: $cream-light;     // Crème très clair
+$bg-light: $cream;              // Crème
+$bg-warm: #f5f3f0;             // Ton chaud neutre
+$bg-desert: linear-gradient(135deg, $cream 0%, $sand 100%);
+
+// Couleurs de texte harmonieuses
+$text-primary: $coffee;         // #41241C - Marron foncé
+$text-secondary: lighten($coffee, 25%);  // Marron moyen
+$text-muted: lighten($coffee, 45%);      // Marron clair
+$text-light: $cream;            // Crème
+$text-accent: $accent;          // Orange terracotta
+$text-warm: #8b6f47;           // Brun chaud
+
+// Couleurs de bordure douces
+$border-color: lighten($sand, 15%);      // #e5d4bf
+$border-color-light: lighten($sand, 20%); // #ead9c7
+$border-color-dark: $sand;                // #D6B190
+
+// Gradients inspirés du désert/nature
+$gradient-primary: linear-gradient(135deg, $primary 0%, $primary-light 100%);
+$gradient-warm: linear-gradient(135deg, $terracotta 0%, $sand 100%);
+$gradient-desert: linear-gradient(135deg, #ce5e1a 0%, #d6b190 50%, #f3d8c7 100%);
+$gradient-sunset: linear-gradient(135deg, $accent 0%, $sand 70%, $cream 100%);
+$gradient-earth: linear-gradient(135deg, $coffee 0%, $accent 100%);
+$gradient-hero: linear-gradient(135deg, $slate-blue 0%, lighten($slate-blue, 10%) 100%);
+
+// Ombres douces et naturelles
+$shadow-warm: 0 4px 6px rgba($coffee, 0.1);
+$shadow-soft: 0 2px 8px rgba($coffee, 0.08);
+$shadow-medium: 0 4px 12px rgba($coffee, 0.12);
+$shadow-strong: 0 8px 24px rgba($coffee, 0.15);
+$shadow-accent: 0 4px 12px rgba($accent, 0.2);
+
+// Typographie (basée sur le moodboard)
+$font-family-primary: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+$font-family-display: 'Playfair Display', Georgia, 'Times New Roman', serif; // Équivalent de "The Seasons"
+$font-family-monospace: 'Fira Code', 'Monaco', 'Consolas', monospace;
+
+// Tailles de police harmonieuses
+$font-size-xs: 0.75rem;    // 12px
+$font-size-sm: 0.875rem;   // 14px  
+$font-size-base: 1rem;     // 16px
+$font-size-lg: 1.125rem;   // 18px
+$font-size-xl: 1.25rem;    // 20px
+$font-size-2xl: 1.5rem;    // 24px
+$font-size-3xl: 1.875rem;  // 30px
+$font-size-4xl: 2.25rem;   // 36px
+$font-size-5xl: 3rem;      // 48px
+$font-size-6xl: 3.75rem;   // 60px
+
+$font-weight-light: 300;
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+
+$line-height-tight: 1.25;
+$line-height-normal: 1.5;
+$line-height-relaxed: 1.75;
+
+// Espacements harmonieux
+$spacer: 1rem;
+$spacers: (
+  0: 0,
+  1: $spacer * 0.25,  // 4px
+  2: $spacer * 0.5,   // 8px
+  3: $spacer * 0.75,  // 12px
+  4: $spacer,         // 16px
+  5: $spacer * 1.25,  // 20px
+  6: $spacer * 1.5,   // 24px
+  8: $spacer * 2,     // 32px
+  10: $spacer * 2.5,  // 40px
+  12: $spacer * 3,    // 48px
+  16: $spacer * 4,    // 64px
+  20: $spacer * 5,    // 80px
+  24: $spacer * 6,    // 96px
+  32: $spacer * 8,    // 128px
+);
+
+// Border radius organiques
+$border-radius-sm: 0.375rem;
+$border-radius: 0.5rem;
+$border-radius-lg: 0.75rem;
+$border-radius-xl: 1rem;
+$border-radius-2xl: 1.5rem;
+$border-radius-organic: 1rem 0.5rem 1rem 0.5rem; // Forme plus organique
+
+// Transitions douces
+$transition-fast: 0.15s ease;
+$transition-base: 0.25s ease;
+$transition-slow: 0.4s ease;
+$transition-bounce: 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+// Breakpoints
+$breakpoints: (
+  xs: 0,
+  sm: 576px,
+  md: 768px,
+  lg: 992px,
+  xl: 1200px,
+  xxl: 1400px
+);
+
+// Z-index
+$zindex-dropdown: 1000;
+$zindex-sticky: 1020;
+$zindex-fixed: 1030;
+$zindex-modal-backdrop: 1040;
+$zindex-modal: 1050;
+
+// Layout dimensions
+$sidebar-width: 280px;
+$header-height: 75px;
+$footer-height: 65px;
+
+// Composants spécifiques avec couleurs moodboard
+$btn-padding-y: 0.75rem;
+$btn-padding-x: 1.5rem;
+$btn-font-weight: $font-weight-semibold;
+$btn-border-radius: $border-radius-lg;
+
+$input-padding-y: 0.875rem;
+$input-padding-x: 1.25rem;
+$input-border-color: $border-color;
+$input-border-radius: $border-radius;
+$input-focus-border-color: $primary;
+$input-bg: rgba($cream, 0.3);
+
+$card-padding: 2rem;
+$card-border-radius: $border-radius-xl;
+$card-shadow: $shadow-soft;
+$card-bg: rgba(white, 0.95);
+
+// Variables spécifiques au camping/nature
+$nature-green: #4a5d23;
+$desert-orange: $terracotta;
+$sky-blue: #87ceeb;
+$earth-brown: $coffee;
+$sunset-pink: #ffa07a;
+
+// Mixins pour les couleurs du moodboard
+@mixin desert-gradient {
+  background: $gradient-desert;
+}
+
+@mixin warm-shadow {
+  box-shadow: $shadow-warm;
+}
+
+@mixin nature-colors {
+  background: linear-gradient(135deg, $nature-green 0%, lighten($nature-green, 20%) 100%);
+  color: white;
+}
+
+// Animation inspirée de la nature
+@keyframes desert-wind {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  25% { transform: translateX(2px) rotate(0.5deg); }
+  75% { transform: translateX(-2px) rotate(-0.5deg); }
+}
+
+@keyframes warm-glow {
+  0%, 100% { box-shadow: 0 0 5px rgba($accent, 0.3); }
+  50% { box-shadow: 0 0 20px rgba($accent, 0.6); }
+}
+
+// Classes helper pour les couleurs moodboard
+.text-terracotta { color: $terracotta !important; }
+.text-sand { color: $sand !important; }
+.text-coffee { color: $coffee !important; }
+.text-cream { color: $cream !important; }
+.text-slate { color: $slate-blue !important; }
+
+.bg-terracotta { background-color: $terracotta !important; }
+.bg-sand { background-color: $sand !important; }
+.bg-coffee { background-color: $coffee !important; }
+.bg-cream { background-color: $cream !important; }
+.bg-slate { background-color: $slate-blue !important; }
+
+.bg-desert { background: $gradient-desert !important; }
+.bg-warm { background: $gradient-warm !important; }
+.bg-sunset { background: $gradient-sunset !important; }

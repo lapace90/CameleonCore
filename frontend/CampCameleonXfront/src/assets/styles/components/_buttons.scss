@@ -1,0 +1,107 @@
+@import '../variables';
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: $font-weight-semibold;
+  text-align: center;
+  text-decoration: none;
+  border: 1px solid transparent;
+  border-radius: $border-radius;
+  cursor: pointer;
+  transition: all $transition-base;
+  white-space: nowrap;
+  user-select: none;
+  vertical-align: middle;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+
+  // Tailles
+  &.btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: $font-size-sm;
+  }
+
+  &.btn-md {
+    padding: $btn-padding-y $btn-padding-x;
+    font-size: $font-size-base;
+  }
+
+  &.btn-lg {
+    padding: 1rem 2rem;
+    font-size: $font-size-lg;
+  }
+
+  &.btn-block {
+    width: 100%;
+  }
+
+  // Variants
+  &.btn-primary {
+    @include button-variant($primary);
+    background: $gradient-primary;
+    box-shadow: 0 2px 4px rgba($primary, 0.2);
+
+    &:hover:not(:disabled) {
+      box-shadow: $shadow-primary;
+    }
+  }
+
+  &.btn-secondary {
+    @include button-variant($secondary);
+  }
+
+  &.btn-success {
+    @include button-variant($success);
+    background: $gradient-success;
+  }
+
+  &.btn-warning {
+    @include button-variant($warning);
+    background: $gradient-warning;
+  }
+
+  &.btn-danger {
+    @include button-variant($danger);
+    background: $gradient-danger;
+  }
+
+  &.btn-outline {
+    background-color: transparent;
+    border-color: $primary;
+    color: $primary;
+
+    &:hover:not(:disabled) {
+      background-color: $primary;
+      color: white;
+      transform: translateY(-1px);
+      box-shadow: $shadow-primary;
+    }
+  }
+
+  &.btn-ghost {
+    background-color: transparent;
+    border-color: transparent;
+    color: $primary;
+
+    &:hover:not(:disabled) {
+      background-color: rgba($primary, 0.1);
+    }
+  }
+
+  // Loading state
+  &.btn-loading {
+    pointer-events: none;
+    opacity: 0.8;
+
+    .fa-spinner {
+      animation: spin 1s linear infinite;
+    }
+  }
+}

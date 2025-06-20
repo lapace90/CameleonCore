@@ -1,0 +1,93 @@
+// ====================================
+// Mixins réutilisables
+// ====================================
+
+@import 'variables';
+
+// Mixin pour les variants de boutons
+@mixin button-variant($color) {
+  background-color: $color;
+  border-color: $color;
+  color: white;
+  
+  &:hover:not(:disabled) {
+    background-color: darken($color, 8%);
+    border-color: darken($color, 8%);
+    transform: translateY(-1px);
+  }
+  
+  &:focus {
+    box-shadow: 0 0 0 0.2rem rgba($color, 0.25);
+  }
+
+  &:active {
+    background-color: darken($color, 12%);
+    border-color: darken($color, 12%);
+  }
+}
+
+// Mixin pour les variants de cartes
+@mixin card-variant($bg-color, $text-color: inherit) {
+  background-color: $bg-color;
+  color: $text-color;
+  
+  .card-header {
+    background-color: darken($bg-color, 3%);
+    border-bottom-color: darken($bg-color, 10%);
+  }
+}
+
+// Mixin pour les breakpoints
+@mixin media-breakpoint-up($breakpoint) {
+  @media (min-width: map-get($breakpoints, $breakpoint)) {
+    @content;
+  }
+}
+
+@mixin media-breakpoint-down($breakpoint) {
+  @media (max-width: #{map-get($breakpoints, $breakpoint) - 1px}) {
+    @content;
+  }
+}
+
+@mixin media-breakpoint-between($lower, $upper) {
+  @media (min-width: #{map-get($breakpoints, $lower)}) and (max-width: #{map-get($breakpoints, $upper) - 1px}) {
+    @content;
+  }
+}
+
+// Mixin pour truncate text
+@mixin text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Mixin pour les transitions communes
+@mixin transition($properties: all, $duration: $transition-base) {
+  transition: $properties $duration;
+}
+
+// Mixin pour centrer absolument
+@mixin absolute-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+// Mixin pour les overlay
+@mixin overlay($opacity: 0.5) {
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, $opacity);
+    z-index: 1;
+  }
+}

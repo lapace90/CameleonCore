@@ -1,0 +1,276 @@
+@import '../variables';
+
+// ========================================
+// LAYOUT PUBLIC PRINCIPAL - UN SEUL ENDROIT
+// ========================================
+
+// Structure principale
+.public-layout {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+
+    .main-content {
+        flex: 1;
+        padding-top: $header-height; // Compensation pour header fixe
+    }
+}
+
+// ========================================
+// HEADER PUBLIC - DÉFINITION UNIQUE
+// ========================================
+.public-header {
+    background-color: rgba(white, 0.95);
+    backdrop-filter: blur(10px);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: $zindex-fixed;
+    transition: all $transition-slow;
+    border-bottom: 1px solid rgba($border-color, 0.3);
+
+    &.scrolled {
+        background-color: rgba(white, 0.98);
+        box-shadow: $shadow-medium;
+        border-bottom-color: rgba($border-color, 0.8);
+    }
+
+    .navbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 0;
+        min-height: $header-height;
+
+        @include media-breakpoint-down(md) {
+            padding: 0.75rem 0;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            font-size: $font-size-2xl;
+            font-weight: $font-weight-bold;
+            color: $primary;
+            font-family: $font-family-display;
+            transition: transform $transition-base;
+
+            &:hover {
+                transform: translateY(-1px);
+                text-decoration: none;
+                color: $primary;
+            }
+
+            .brand-icon {
+                font-size: 1.75rem;
+                margin-right: 0.5rem;
+                color: $accent;
+            }
+
+            .brand-text {
+                background: $gradient-warm;
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+
+                @include media-breakpoint-down(sm) {
+                    display: none;
+                }
+            }
+        }
+
+        .navbar-nav {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            gap: 2rem;
+
+            @include media-breakpoint-down(md) {
+                display: none;
+            }
+
+            .nav-item {
+                position: relative;
+            }
+
+            .nav-link {
+                color: $text-primary;
+                text-decoration: none;
+                font-weight: $font-weight-medium;
+                padding: 0.5rem 0;
+                transition: color $transition-base;
+                position: relative;
+
+                &::after {
+                    content: '';
+                    position: absolute;
+                    bottom: -2px;
+                    left: 0;
+                    width: 0;
+                    height: 2px;
+                    background: $gradient-warm;
+                    transition: width $transition-slow;
+                }
+
+                &:hover::after,
+                &.router-link-active::after {
+                    width: 100%;
+                }
+
+                &:hover,
+                &.router-link-active {
+                    color: $primary;
+                    text-decoration: none;
+                }
+            }
+        }
+
+        .navbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+
+            @include media-breakpoint-down(md) {
+                display: none;
+            }
+        }
+    }
+
+    // Mobile menu
+    .mobile-menu-btn {
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+
+        @include media-breakpoint-down(md) {
+            display: flex;
+        }
+
+        span {
+            display: block;
+            height: 2px;
+            width: 100%;
+            background-color: $text-primary;
+            margin: 3px 0;
+            transition: all $transition-slow;
+            transform-origin: center;
+        }
+
+        &.active {
+            span:nth-child(1) {
+                transform: rotate(45deg) translate(6px, 6px);
+            }
+
+            span:nth-child(2) {
+                opacity: 0;
+            }
+
+            span:nth-child(3) {
+                transform: rotate(-45deg) translate(6px, -6px);
+            }
+        }
+    }
+
+    .mobile-nav {
+        display: none !important; // Caché par défaut
+
+        &.open {
+            display: block; // Visible seulement quand ouvert
+        }
+
+        @media (max-width: 768px) {
+            display: block; // Réapparaît sur mobile mais reste caché
+            transform: translateY(-100%); // Hors écran
+
+            &.open {
+                transform: translateY(0); // Descend quand ouvert
+            }
+        }
+    }
+
+    .mobile-nav-list {
+        list-style: none !important;
+        margin: 0;
+        padding: 1rem 0;
+    }
+
+    .mobile-nav-item {
+        border-bottom: 1px solid $bg-light;
+    }
+
+    .mobile-nav-link {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 2rem;
+        color: $text-primary;
+        text-decoration: none;
+        font-weight: $font-weight-medium;
+        transition: all $transition-base;
+
+        &:hover,
+        &.router-link-active {
+            background-color: $bg-light;
+            color: $primary;
+            text-decoration: none;
+        }
+
+        i {
+            color: $accent;
+            width: 1.25rem;
+            text-align: center;
+        }
+
+        &.mobile-nav-cta {
+            background: $gradient-warm;
+            color: white !important;
+            margin: 1rem;
+            border-radius: $border-radius;
+            font-weight: $font-weight-semibold;
+
+            &:hover {
+                background: $gradient-sunset;
+                color: white !important;
+            }
+
+            i {
+                color: white !important;
+            }
+        }
+    }
+
+    .mobile-nav-divider {
+        height: 1px;
+        background-color: $border-color;
+        margin: 0.5rem 2rem;
+    }
+}
+
+.mobile-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba($coffee, 0.5);
+    opacity: 0;
+    visibility: hidden;
+    transition: all $transition-slow;
+    z-index: 998;
+
+    &.active {
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+

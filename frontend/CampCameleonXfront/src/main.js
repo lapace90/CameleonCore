@@ -1,10 +1,13 @@
-import './assets/main.css'
-
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-
-import App from './App.vue'
 import router from './router'
+
+import '@fortawesome/fontawesome-free/css/all.css'
+// Import des styles
+import './assets/styles/shared.scss'
+
+// Import de l'App principal (on le créera ensuite)
+import App from './App.vue'
 
 const app = createApp(App)
 

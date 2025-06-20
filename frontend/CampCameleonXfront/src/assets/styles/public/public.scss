@@ -1,0 +1,71 @@
+// Styles spécifiques au site public
+
+// Section hero
+.hero-section {
+  background: linear-gradient(87deg, var(--primary) 0, #825ee4 100%);
+  color: white;
+  padding: 5rem 2rem;
+  text-align: center;
+  
+  .hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+    
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 1.5rem;
+      font-weight: 700;
+    }
+    
+    p {
+      font-size: 1.25rem;
+      margin-bottom: 2rem;
+      opacity: 0.9;
+    }
+    
+    .hero-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+  }
+}
+
+// Cards features
+.feature-card {
+  text-align: center;
+  padding: 2rem;
+  border-radius: var(--border-radius-lg);
+  background-color: white;
+  box-shadow: var(--shadow);
+  transition: transform 0.15s ease;
+  
+  &:hover {
+    transform: translateY(-5px);
+  }
+  
+  .feature-icon {
+    width: 4rem;
+    height: 4rem;
+    background: linear-gradient(87deg, var(--primary) 0, #825ee4 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    color: white;
+    font-size: 1.5rem;
+  }
+  
+  h3 {
+    color: var(--text-dark);
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+  }
+  
+  p {
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+}
