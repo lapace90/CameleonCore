@@ -1,7 +1,10 @@
 // ====================================
-// Mixins réutilisables
+// Mixins réutilisables - VERSION SASS MODERNE
 // ====================================
 
+// Import des modules Sass modernes
+@use "sass:map";
+@use "sass:color";
 @import 'variables';
 
 // Mixin pour les variants de boutons
@@ -9,20 +12,20 @@
   background-color: $color;
   border-color: $color;
   color: white;
-  
+ 
   &:hover:not(:disabled) {
-    background-color: darken($color, 8%);
-    border-color: darken($color, 8%);
+    background-color: color.scale($color, $lightness: -8%);
+    border-color: color.scale($color, $lightness: -8%);
     transform: translateY(-1px);
   }
-  
+ 
   &:focus {
     box-shadow: 0 0 0 0.2rem rgba($color, 0.25);
   }
-
+  
   &:active {
-    background-color: darken($color, 12%);
-    border-color: darken($color, 12%);
+    background-color: color.scale($color, $lightness: -12%);
+    border-color: color.scale($color, $lightness: -12%);
   }
 }
 
@@ -30,28 +33,28 @@
 @mixin card-variant($bg-color, $text-color: inherit) {
   background-color: $bg-color;
   color: $text-color;
-  
+ 
   .card-header {
-    background-color: darken($bg-color, 3%);
-    border-bottom-color: darken($bg-color, 10%);
+    background-color: color.scale($bg-color, $lightness: -3%);
+    border-bottom-color: color.scale($bg-color, $lightness: -10%);
   }
 }
 
-// Mixin pour les breakpoints
+// Mixin pour les breakpoints - FONCTIONS SASS MODERNES
 @mixin media-breakpoint-up($breakpoint) {
-  @media (min-width: map-get($breakpoints, $breakpoint)) {
+  @media (min-width: map.get($breakpoints, $breakpoint)) {
     @content;
   }
 }
 
 @mixin media-breakpoint-down($breakpoint) {
-  @media (max-width: #{map-get($breakpoints, $breakpoint) - 1px}) {
+  @media (max-width: #{map.get($breakpoints, $breakpoint) - 1px}) {
     @content;
   }
 }
 
 @mixin media-breakpoint-between($lower, $upper) {
-  @media (min-width: #{map-get($breakpoints, $lower)}) and (max-width: #{map-get($breakpoints, $upper) - 1px}) {
+  @media (min-width: #{map.get($breakpoints, $lower)}) and (max-width: #{map.get($breakpoints, $upper) - 1px}) {
     @content;
   }
 }
@@ -79,7 +82,7 @@
 // Mixin pour les overlay
 @mixin overlay($opacity: 0.5) {
   position: relative;
-  
+ 
   &::before {
     content: '';
     position: absolute;
@@ -89,5 +92,46 @@
     bottom: 0;
     background-color: rgba(0, 0, 0, $opacity);
     z-index: 1;
+  }
+}
+
+// Nouveaux mixins utiles pour le design desert
+@mixin desert-text-shadow {
+  text-shadow: 0 2px 10px rgba($coffee, 0.5);
+}
+
+@mixin organic-border-radius($size: $border-radius-xl) {
+  border-radius: $size calc($size * 0.3) $size calc($size * 0.3);
+}
+
+@mixin hover-lift($distance: 5px) {
+  transition: transform $transition-base;
+  
+  &:hover {
+    transform: translateY(-#{$distance});
+  }
+}
+
+// Mixin pour les gradients de fond avec overlay
+@mixin hero-background($image-url, $overlay-color: $coffee, $overlay-opacity: 0.3) {
+  background: 
+    linear-gradient(
+      135deg,
+      rgba($overlay-color, $overlay-opacity) 0%,
+      rgba($terracotta, $overlay-opacity * 0.7) 50%,
+      rgba($overlay-color, $overlay-opacity * 1.2) 100%
+    ),
+    url($image-url) center/cover;
+}
+
+// Mixin pour les animations de scroll
+@mixin scroll-fade-in {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+  
+  &.visible {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

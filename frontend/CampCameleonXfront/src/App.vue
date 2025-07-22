@@ -1,13 +1,12 @@
 <!-- src/App.vue -->
 <template>
-  <div id="app" class="public-layout">
+
        
     <!-- Main content -->
     <main class="main-content">
       <RouterView />
     </main>
-   
-  </div>
+
 </template>
 
 <script>

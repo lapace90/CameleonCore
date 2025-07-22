@@ -1,7 +1,6 @@
 <template>
   <div class="settings-page">
     <div class="page-header">
-      <h2>Paramètres</h2>
     </div>
     
     <div class="settings-grid">
@@ -60,7 +59,7 @@
     </div>
     
     <div class="settings-actions">
-      <button class="btn btn-primary">Sauvegarder</button>
+      <button class="btn btn-success">Sauvegarder</button>
       <button class="btn btn-outline">Annuler</button>
     </div>
   </div>

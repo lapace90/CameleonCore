@@ -3,20 +3,18 @@
     <!-- Sidebar -->
     <AdminSidebar />
     
-    <!-- Main content -->
-    <div class="main-content">
       <!-- Header -->
       <AdminHeader />
       
       <!-- Page content -->
-      <main class="content-wrapper">
+      <main class="admin-content-wrapper">
         <router-view />
       </main>
       
       <!-- Footer -->
       <AdminFooter />
     </div>
-  </div>
+
 </template>
 
 <script>

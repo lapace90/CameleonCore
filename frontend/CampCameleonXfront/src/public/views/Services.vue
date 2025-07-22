@@ -4,39 +4,63 @@
     <section class="services-hero">
       <div class="container">
         <div class="hero-content">
-          <h1>Nos Services</h1>
+          <h1>Nos Expériences Désert</h1>
           <p class="hero-subtitle">
-            Découvrez tous nos services conçus pour rendre votre séjour 
-            inoubliable et confortable.
+            Découvrez tous nos services conçus pour vous offrir une aventure authentique
+            au cœur du Sahara marocain.
           </p>
         </div>
       </div>
     </section>
 
-    <!-- Main Services Section -->
-    <section class="main-services">
+    <!-- Section Menus (votre composant existant) -->
+    <MenusSection @menu-selected="handleMenuSelection" />
+
+    <!-- Section Activités (votre composant existant) -->
+    <ActivitiesSection displayMode="detailed" sectionTitle="Nos activités détaillées"
+      sectionSubtitle="Choisissez votre aventure" :showStats="false" />
+
+
+    <!-- Section Hébergement -->
+    <section class="accommodation-section">
       <div class="container">
         <div class="section-header">
-          <h2>Services Principaux</h2>
-          <p>Tout ce dont vous avez besoin pour un séjour parfait</p>
+          <h2>Hébergements Authentiques</h2>
+          <p>Dormez sous les étoiles dans des installations confortables et traditionnelles</p>
         </div>
-        
-        <div class="services-grid">
-          <div class="service-card featured" v-for="service in mainServices" :key="service.id">
-            <div class="service-image">
-              <div class="image-placeholder" :style="{ background: service.gradient }">
-                <i :class="service.icon"></i>
+
+        <div class="accommodation-grid">
+          <div class="accommodation-card" v-for="accommodation in accommodations" :key="accommodation.id"
+            :class="{ 'popular': accommodation.popular }">
+            <div class="accommodation-image">
+              <img :src="accommodation.image" :alt="accommodation.title" />
+              <div class="accommodation-badge" v-if="accommodation.popular">
+                <i class="fas fa-star"></i>
+                <span>Populaire</span>
+              </div>
+              <div class="price-badge">
+                <span class="price">{{ accommodation.price }}€</span>
+                <span class="per-person">/ pers</span>
               </div>
             </div>
-            <div class="service-content">
-              <h3>{{ service.title }}</h3>
-              <p>{{ service.description }}</p>
-              <ul class="service-features">
-                <li v-for="feature in service.features" :key="feature">{{ feature }}</li>
+            <div class="accommodation-content">
+              <h3>{{ accommodation.title }}</h3>
+              <p>{{ accommodation.description }}</p>
+              <ul class="accommodation-features">
+                <li v-for="feature in accommodation.features" :key="feature">
+                  <i class="fas fa-check"></i>
+                  {{ feature }}
+                </li>
               </ul>
-              <div class="service-pricing">
-                <span class="price">{{ service.price }}</span>
-                <span class="price-unit">{{ service.priceUnit }}</span>
+              <div class="accommodation-specs">
+                <div class="spec">
+                  <i class="fas fa-users"></i>
+                  <span>{{ accommodation.capacity }} personnes</span>
+                </div>
+                <div class="spec">
+                  <i class="fas fa-bed"></i>
+                  <span>{{ accommodation.beds }}</span>
+                </div>
               </div>
               <button class="btn btn-primary">
                 <i class="fas fa-calendar-plus"></i>
@@ -48,24 +72,24 @@
       </div>
     </section>
 
-    <!-- Additional Services Section -->
+    <!-- Section Services Additionnels -->
     <section class="additional-services">
       <div class="container">
         <div class="section-header">
-          <h2>Services Additionnels</h2>
-          <p>Des extras pour personnaliser votre expérience</p>
+          <h2>Services & Extras</h2>
+          <p>Personnalisez votre aventure avec nos services complémentaires</p>
         </div>
-        
-        <div class="addon-services-grid">
-          <div class="addon-service" v-for="addon in addonServices" :key="addon.id">
-            <div class="addon-icon" :style="{ backgroundColor: addon.color }">
-              <i :class="addon.icon"></i>
+
+        <div class="services-grid">
+          <div class="service-item" v-for="service in extraServices" :key="service.id">
+            <div class="service-icon" :style="{ backgroundColor: service.color }">
+              <i :class="service.icon"></i>
             </div>
-            <div class="addon-content">
-              <h4>{{ addon.title }}</h4>
-              <p>{{ addon.description }}</p>
-              <div class="addon-price">
-                <span>{{ addon.price }}</span>
+            <div class="service-content">
+              <h4>{{ service.title }}</h4>
+              <p>{{ service.description }}</p>
+              <div class="service-price">
+                <span>{{ service.price }}</span>
               </div>
             </div>
           </div>
@@ -73,14 +97,14 @@
       </div>
     </section>
 
-    <!-- Amenities Section -->
+    <!-- Section Équipements Inclus -->
     <section class="amenities-section">
       <div class="container">
         <div class="section-header">
-          <h2>Équipements Inclus</h2>
-          <p>Profitez de tous ces équipements sans supplément</p>
+          <h2>Inclus dans Votre Séjour</h2>
+          <p>Tous ces services sont compris sans supplément</p>
         </div>
-        
+
         <div class="amenities-grid">
           <div class="amenity-item" v-for="amenity in amenities" :key="amenity.id">
             <div class="amenity-icon">
@@ -93,25 +117,28 @@
       </div>
     </section>
 
-    <!-- Pricing Section -->
+    <!-- Section Tarifs Forfaits -->
     <section class="pricing-section">
       <div class="container">
         <div class="section-header">
-          <h2>Nos Tarifs</h2>
-          <p>Des prix transparents adaptés à tous les budgets</p>
+          <h2>Nos Forfaits Désert</h2>
+          <p>Choisissez l'expérience qui vous correspond</p>
         </div>
-        
+
         <div class="pricing-grid">
           <div class="pricing-card" v-for="plan in pricingPlans" :key="plan.id" :class="{ 'popular': plan.popular }">
             <div class="pricing-header">
               <h3>{{ plan.name }}</h3>
               <div class="pricing-badge" v-if="plan.popular">
-                <span>Populaire</span>
+                <span>Recommandé</span>
               </div>
             </div>
             <div class="pricing-price">
               <span class="price">{{ plan.price }}€</span>
               <span class="price-unit">{{ plan.unit }}</span>
+            </div>
+            <div class="pricing-duration">
+              <span>{{ plan.duration }}</span>
             </div>
             <ul class="pricing-features">
               <li v-for="feature in plan.features" :key="feature">
@@ -128,14 +155,14 @@
       </div>
     </section>
 
-    <!-- FAQ Section -->
+    <!-- Section FAQ -->
     <section class="faq-section">
       <div class="container">
         <div class="section-header">
           <h2>Questions Fréquentes</h2>
-          <p>Tout ce que vous devez savoir sur nos services</p>
+          <p>Tout ce que vous devez savoir sur votre aventure désert</p>
         </div>
-        
+
         <div class="faq-list">
           <div class="faq-item" v-for="faq in faqs" :key="faq.id">
             <button class="faq-question" @click="toggleFaq(faq.id)" :class="{ 'active': faq.open }">
@@ -153,153 +180,210 @@
 </template>
 
 <script>
+import ActivitiesSection from '@/public/components/ui/Activities.vue'
+import MenusSection from '@/public/components/ui/MenusSection.vue'
+
 export default {
-  name: 'PublicServices',
+  name: 'ServicesPage',
+  components: {
+    ActivitiesSection,
+    MenusSection
+  },
   data() {
     return {
-      mainServices: [
+      selectedMenu: null,
+      accommodations: [
         {
           id: 1,
-          title: 'Emplacement Standard',
-          description: 'Emplacement spacieux avec tous les équipements de base pour un séjour confortable.',
-          icon: 'fas fa-campground',
-          gradient: 'linear-gradient(135deg, #5e72e4 0%, #825ee4 100%)',
-          features: ['80m² minimum', 'Électricité 16A', 'Point d\'eau à proximité', 'WiFi gratuit'],
-          price: '25',
-          priceUnit: '/ nuit'
+          title: 'Tente Berbère Traditionnelle',
+          description: 'Authentique tente nomade avec tout le confort moderne. Expérience immersive garantie.',
+          image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+          price: 85,
+          capacity: 2,
+          beds: '2 matelas au sol',
+          popular: false,
+          features: [
+            'Tente authentique en laine de chameau',
+            'Matelas et couvertures berbères',
+            'Lanternes traditionnelles',
+            'Espace privé de 15m²'
+          ]
         },
         {
           id: 2,
-          title: 'Emplacement Premium',
-          description: 'Emplacements privilégiés avec vue panoramique et équipements haut de gamme.',
-          icon: 'fas fa-star',
-          gradient: 'linear-gradient(135deg, #2dce89 0%, #2dceaa 100%)',
-          features: ['120m² minimum', 'Électricité + eau', 'Vue exceptionnelle', 'WiFi premium', 'Parking privé'],
-          price: '40',
-          priceUnit: '/ nuit'
+          title: 'Tente Confort Étoilée',
+          description: 'Le parfait équilibre entre tradition et confort avec vue panoramique sur les dunes.',
+          image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+          price: 120,
+          capacity: 2,
+          beds: '1 lit double confortable',
+          popular: true,
+          features: [
+            'Tente design avec toit ouvrant',
+            'Lit double avec literie premium',
+            'Salle de bain privée',
+            'Terrasse privée avec vue dunes',
+            'Éclairage solaire'
+          ]
         },
         {
           id: 3,
-          title: 'Forfait Famille',
-          description: 'Forfait spécialement conçu pour les familles avec activités incluses.',
-          icon: 'fas fa-users',
-          gradient: 'linear-gradient(135deg, #fb6340 0%, #fbb140 100%)',
-          features: ['Emplacement premium', 'Activités enfants', 'Kit barbecue', 'Petit-déjeuner x2'],
-          price: '95',
-          priceUnit: '/ séjour'
+          title: 'Suite Famille Oasis',
+          description: 'Hébergement spacieux pour familles avec espace enfants et activités dédiées.',
+          image: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+          price: 95,
+          capacity: 4,
+          beds: '1 lit double + 2 lits simples',
+          popular: false,
+          features: [
+            'Espace familial de 25m²',
+            'Coin enfants aménagé',
+            'Salle de bain familiale',
+            'Kit jeux désert inclus',
+            'Petit-déjeuner enfants offert'
+          ]
         }
       ],
-      addonServices: [
+      extraServices: [
         {
           id: 1,
-          title: 'Location matériel',
-          description: 'Tentes, matelas, réchauds et tout l\'équipement nécessaire.',
-          icon: 'fas fa-tools',
-          color: '#5e72e4',
-          price: 'À partir de 15€/jour'
+          title: 'Transport 4x4',
+          description: 'Transfert depuis Merzouga et excursions dans les dunes en véhicule tout-terrain.',
+          icon: 'fas fa-car',
+          color: '#CE5E1A',
+          price: 'À partir de 25€/trajet'
         },
         {
           id: 2,
-          title: 'Petit-déjeuner',
-          description: 'Petit-déjeuner continental servi chaque matin.',
-          icon: 'fas fa-coffee',
-          color: '#2dce89',
-          price: '8€/personne'
+          title: 'Guide Privé',
+          description: 'Guide berbère dédié pour découvrir les secrets du désert et la culture locale.',
+          icon: 'fas fa-user-tie',
+          color: '#D6B190',
+          price: '40€/demi-journée'
         },
         {
           id: 3,
-          title: 'Laverie',
-          description: 'Service de lavage et séchage disponible 24h/24.',
-          icon: 'fas fa-tshirt',
-          color: '#11cdef',
-          price: '4€/cycle'
+          title: 'Soirée Musicale',
+          description: 'Concert privé de musique traditionnelle autour du feu avec musiciens locaux.',
+          icon: 'fas fa-music',
+          color: '#656C97',
+          price: '60€/soirée'
         },
         {
           id: 4,
-          title: 'Épicerie',
-          description: 'Produits de première nécessité et spécialités locales.',
-          icon: 'fas fa-shopping-basket',
-          color: '#fb6340',
-          price: 'Prix variables'
+          title: 'Atelier Artisanat',
+          description: 'Initiation à la poterie, tapis berbère ou cuisine traditionnelle du désert.',
+          icon: 'fas fa-palette',
+          color: '#41241C',
+          price: '20€/personne'
+        },
+        {
+          id: 5,
+          title: 'Observation Étoiles',
+          description: 'Soirée astronomie avec télescope et guide pour découvrir le ciel du Sahara.',
+          icon: 'fas fa-telescope',
+          color: '#2d8f63',
+          price: '15€/personne'
+        },
+        {
+          id: 6,
+          title: 'Massage Détente',
+          description: 'Massage relaxant aux huiles d\'argan dans un cadre exceptionnel.',
+          icon: 'fas fa-spa',
+          color: '#8b6f47',
+          price: '45€/séance'
         }
       ],
       amenities: [
-        { id: 1, title: 'Sanitaires', description: 'Blocs sanitaires modernes avec douches chaudes', icon: 'fas fa-shower' },
-        { id: 2, title: 'Sécurité', description: 'Surveillance 24h/24 et éclairage nocturne', icon: 'fas fa-shield-alt' },
-        { id: 3, title: 'Parkings', description: 'Places de parking gratuites et sécurisées', icon: 'fas fa-parking' },
-        { id: 4, title: 'Aires de jeux', description: 'Espaces récréatifs pour enfants', icon: 'fas fa-child' },
-        { id: 5, title: 'WiFi', description: 'Connexion internet gratuite dans tout le camping', icon: 'fas fa-wifi' },
-        { id: 6, title: 'Barbecue', description: 'Aires de barbecue collectives équipées', icon: 'fas fa-fire' }
+        { id: 1, title: 'Sanitaires Écologiques', description: 'Toilettes sèches et douches solaires respectueuses de l\'environnement', icon: 'fas fa-shower' },
+        { id: 2, title: 'Sécurité 24/7', description: 'Surveillance discrète et assistance d\'urgence jour et nuit', icon: 'fas fa-shield-alt' },
+        { id: 3, title: 'Parking Gardé', description: 'Stationnement sécurisé pour votre véhicule à Merzouga', icon: 'fas fa-parking' },
+        { id: 4, title: 'Transferts Inclus', description: 'Transport chameau/4x4 depuis le point de rendez-vous', icon: 'fas fa-route' },
+        { id: 5, title: 'WiFi Satellite', description: 'Connexion internet par satellite dans les zones communes', icon: 'fas fa-wifi' },
+        { id: 6, title: 'Feu de Camp', description: 'Foyer central pour les soirées conviviales sous les étoiles', icon: 'fas fa-fire' },
+        { id: 7, title: 'Éclairage Solaire', description: 'Système d\'éclairage écologique dans tout le campement', icon: 'fas fa-sun' },
+        { id: 8, title: 'Eau Potable', description: 'Points d\'eau purifiée disponibles 24h/24', icon: 'fas fa-tint' },
+        { id: 9, title: 'Premiers Secours', description: 'Trousse de secours et personnel formé aux urgences', icon: 'fas fa-first-aid' }
       ],
       pricingPlans: [
         {
           id: 1,
-          name: 'Découverte',
-          price: 20,
-          unit: '/ nuit',
+          name: 'Évasion Express',
+          price: 180,
+          unit: '/ pers',
+          duration: '1 nuit / 2 jours',
           popular: false,
           features: [
-            'Emplacement standard 80m²',
-            'Électricité incluse',
-            'Accès sanitaires',
-            'WiFi gratuit',
-            'Parking gratuit'
+            'Tente berbère traditionnelle',
+            '1 dîner + 1 petit-déjeuner',
+            'Balade chameau coucher soleil',
+            'Soirée musique autour du feu',
+            'Transferts 4x4 inclus'
           ]
         },
         {
           id: 2,
-          name: 'Confort',
-          price: 35,
-          unit: '/ nuit',
+          name: 'Immersion Désert',
+          price: 320,
+          unit: '/ pers',
+          duration: '2 nuits / 3 jours',
           popular: true,
           features: [
-            'Emplacement premium 120m²',
-            'Électricité + point d\'eau',
-            'Vue panoramique',
-            'WiFi premium',
-            'Petit-déjeuner inclus',
-            'Kit barbecue'
+            'Tente confort étoilée',
+            '2 dîners + 2 petits-déjeuners',
+            'Randonnée guidée sur les dunes',
+            'Atelier artisanat berbère',
+            'Observation des étoiles',
+            'Tous transferts inclus'
           ]
         },
         {
           id: 3,
-          name: 'Luxe',
-          price: 55,
-          unit: '/ nuit',
+          name: 'Odyssée Saharienne',
+          price: 580,
+          unit: '/ pers',
+          duration: '4 nuits / 5 jours',
           popular: false,
           features: [
-            'Emplacement VIP 150m²',
-            'Tous équipements inclus',
-            'Service concierge',
-            'Activités privées',
-            'Petit-déjeuner premium',
-            'Service ménage'
+            'Suite premium avec terrasse',
+            'Pension complète gastronomique',
+            'Guide privé dédié',
+            'Excursions oasis et villages',
+            'Massage détente inclus',
+            'Soirée musicale privée',
+            'Certificat d\'aventurier'
           ]
         }
       ],
       faqs: [
         {
           id: 1,
-          question: 'Puis-je annuler ma réservation ?',
-          answer: 'Oui, vous pouvez annuler votre réservation jusqu\'à 48h avant votre arrivée sans frais. Au-delà, des frais d\'annulation peuvent s\'appliquer.',
+          question: 'Que dois-je apporter pour le désert ?',
+          answer: 'Nous fournissons une liste détaillée après réservation. En général : vêtements chauds pour la nuit, protection solaire, chaussures fermées, lampe frontale. Tout l\'équipement de camp est fourni.',
           open: false
         },
         {
           id: 2,
-          question: 'Les animaux sont-ils acceptés ?',
-          answer: 'Oui, les animaux domestiques sont les bienvenus dans notre camping. Un supplément de 5€/nuit/animal s\'applique.',
+          question: 'Les repas conviennent-ils aux régimes spéciaux ?',
+          answer: 'Absolument ! Nous adaptons nos menus aux régimes végétariens, végétaliens, sans gluten ou halal. Informez-nous de vos besoins lors de la réservation.',
           open: false
         },
         {
           id: 3,
-          question: 'Y a-t-il des commerces à proximité ?',
-          answer: 'Oui, vous trouverez une épicerie sur place ainsi que plusieurs commerces dans le village à 2km du camping.',
+          question: 'Comment se déroule l\'arrivée au camp ?',
+          answer: 'Rendez-vous à Merzouga, puis transfert en 4x4 ou à dos de chameau selon votre choix. Le trajet dure 45 minutes et fait partie de l\'expérience !',
           open: false
         },
         {
           id: 4,
-          question: 'Proposez-vous des activités ?',
-          answer: 'Nous organisons régulièrement des randonnées guidées, des ateliers nature et des soirées animations selon la saison.',
+          question: 'Y a-t-il de l\'électricité dans le désert ?',
+          answer: 'Nos installations fonctionnent à l\'énergie solaire. Vous pouvez recharger vos appareils dans les espaces communs. Les tentes ont un éclairage LED autonome.',
+          open: false
+        },
+        {
+          id: 5,
+          question: 'Que se passe-t-il en cas de météo défavorable ?',
+          answer: 'Le désert se visite toute l\'année ! En cas de conditions exceptionnelles, nous adaptons les activités et proposons des alternatives en toute sécurité.',
           open: false
         }
       ]
@@ -315,7 +399,619 @@ export default {
           if (f.id !== id) f.open = false;
         });
       }
+    },
+    handleMenuSelection(menuData) {
+      this.selectedMenu = menuData;
+      console.log('Menu sélectionné:', menuData);
     }
   }
 }
 </script>
+
+<style lang="scss" scoped>
+@import '@/assets/styles/variables';
+
+.services-page {
+  margin-top: -120px; // Background remonte sous header transparent
+}
+
+// ========================================
+// HERO SECTION
+// ========================================
+.services-hero {
+  background: $gradient-hero;
+  color: white;
+  padding: 10rem 0 4rem;
+  text-align: center;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(ellipse at center, transparent 0%, rgba($coffee, 0.2) 100%);
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    position: relative;
+    z-index: 2;
+  }
+
+  .hero-content {
+    padding-top: 2rem;
+
+    h1 {
+      font-size: clamp($font-size-4xl, 5vw, $font-size-6xl);
+      margin-bottom: 1.5rem;
+      font-family: $font-family-display;
+      font-weight: 400;
+    }
+
+    .hero-subtitle {
+      font-size: $font-size-xl;
+      opacity: 0.95;
+      max-width: 700px;
+      margin: 0 auto;
+      line-height: $line-height-relaxed;
+      font-family: $font-family-primary;
+    }
+  }
+}
+
+// ========================================
+// SECTIONS GÉNÉRALES
+// ========================================
+.section-header {
+  text-align: center;
+  margin-bottom: 4rem;
+
+  h2 {
+    font-size: clamp($font-size-3xl, 4vw, $font-size-4xl);
+    color: $text-primary;
+    margin-bottom: 1rem;
+    font-family: $font-family-display;
+    font-weight: 400;
+  }
+
+  p {
+    font-size: $font-size-lg;
+    color: $text-secondary;
+    font-family: $font-family-primary;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+}
+
+// ========================================
+// HÉBERGEMENTS
+// ========================================
+.accommodation-section {
+  padding: 6rem 0;
+  background: linear-gradient(135deg, $bg-secondary 0%, $bg-warm 100%);
+
+  .accommodation-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2.5rem;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+  }
+
+  .accommodation-card {
+    background: rgba(white, 0.95);
+    border-radius: $border-radius-2xl;
+    overflow: hidden;
+    box-shadow: $shadow-soft;
+    transition: all $transition-base;
+    border: 2px solid transparent;
+    display: flex; // ✅ FLEX pour aligner les boutons
+    flex-direction: column; // ✅ Colonne pour pousser le bouton en bas
+
+    &:hover {
+      transform: translateY(-8px);
+      box-shadow: $shadow-strong;
+      border-color: rgba($terracotta, 0.3);
+    }
+
+    &.popular {
+      border-color: $terracotta;
+      position: relative;
+    }
+
+    .accommodation-image {
+      position: relative;
+      height: 250px;
+      overflow: hidden;
+      flex-shrink: 0; // ✅ Taille fixe pour l'image
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform $transition-base;
+      }
+
+      .accommodation-badge {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        background: $gradient-warm;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: $border-radius;
+        font-size: $font-size-sm;
+        font-weight: $font-weight-semibold;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+
+        i {
+          color: #ffd700;
+        }
+      }
+
+      .price-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: rgba(white, 0.95);
+        color: $text-primary;
+        padding: 0.75rem 1rem;
+        border-radius: $border-radius-lg;
+        text-align: center;
+        backdrop-filter: blur(10px);
+
+        .price {
+          display: block;
+          font-size: $font-size-xl;
+          font-weight: $font-weight-bold;
+          color: $terracotta;
+        }
+
+        .per-person {
+          font-size: $font-size-sm;
+          color: $text-secondary;
+        }
+      }
+    }
+
+    .accommodation-content {
+      padding: 2rem;
+      display: flex; // ✅ FLEX pour organiser le contenu
+      flex-direction: column;
+      flex-grow: 1; // ✅ Prend tout l'espace disponible
+
+      h3 {
+        font-size: $font-size-2xl;
+        color: $text-primary;
+        margin-bottom: 1rem;
+        font-family: $font-family-display;
+      }
+
+      p {
+        color: $text-secondary;
+        margin-bottom: 1.5rem;
+        line-height: $line-height-relaxed;
+      }
+
+      .accommodation-features {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 1.5rem 0;
+
+        li {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          padding: 0.5rem 0;
+          color: $text-secondary;
+
+          i {
+            color: $terracotta;
+            font-size: $font-size-sm;
+          }
+        }
+      }
+
+      .accommodation-specs {
+        display: flex;
+        gap: 2rem;
+        margin-bottom: 2rem;
+        padding: 1rem;
+        background: rgba($sand, 0.1);
+        border-radius: $border-radius;
+
+        .spec {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          color: $text-secondary;
+
+          i {
+            color: $terracotta;
+          }
+        }
+      }
+
+      .btn {
+        width: 100%;
+        background: $gradient-warm;
+        border: none;
+        color: white;
+        padding: 1rem;
+        border-radius: $border-radius-lg;
+        font-weight: $font-weight-semibold;
+        transition: all $transition-base;
+        margin-top: auto; // ✅ POUSSE LE BOUTON EN BAS
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba($terracotta, 0.3);
+        }
+      }
+    }
+
+    &:hover .accommodation-image img {
+      transform: scale(1.05);
+    }
+  }
+}
+
+// ========================================
+// SERVICES ADDITIONNELS
+// ========================================
+.additional-services {
+  padding: 6rem 0;
+  background: $bg-default;
+
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .service-item {
+    background: rgba(white, 0.9);
+    padding: 2rem;
+    border-radius: $border-radius-xl;
+    display: flex;
+    gap: 1.5rem;
+    transition: all $transition-base;
+    border: 1px solid rgba($terracotta, 0.1);
+
+    &:hover {
+      background: white;
+      transform: translateY(-3px);
+      box-shadow: $shadow-medium;
+    }
+
+    .service-icon {
+      width: 4rem;
+      height: 4rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: $font-size-xl;
+      flex-shrink: 0;
+    }
+
+    .service-content {
+      h4 {
+        color: $text-primary;
+        margin-bottom: 0.5rem;
+        font-family: $font-family-primary;
+      }
+
+      p {
+        color: $text-secondary;
+        margin-bottom: 1rem;
+        font-size: $font-size-sm;
+      }
+
+      .service-price {
+        font-weight: $font-weight-semibold;
+        color: $terracotta;
+      }
+    }
+  }
+}
+
+// ========================================
+// ÉQUIPEMENTS
+// ========================================
+.amenities-section {
+  padding: 6rem 0;
+  background: linear-gradient(135deg, $bg-warm 0%, $bg-secondary 100%);
+
+  .amenities-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); // ✅ 3 colonnes fixes
+    grid-template-rows: repeat(3, 1fr); // ✅ 3 rangées 
+    gap: 2rem;
+    max-width: 900px; // ✅ Limitation pour ne pas être trop large
+    margin: 0 auto;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr; // ✅ 1 colonne sur mobile
+      grid-template-rows: auto;
+      max-width: 300px;
+    }
+
+    .amenity-item {
+      background: rgba(white, 0.8);
+      padding: 2rem;
+      border-radius: $border-radius-xl;
+      text-align: center;
+      transition: all $transition-base;
+      border: 1px solid rgba($terracotta, 0.1); // ✅ Bordure subtile
+
+      &:hover {
+        background: rgba(white, 0.95);
+        transform: translateY(-3px);
+        box-shadow: $shadow-medium;
+        border-color: rgba($terracotta, 0.3);
+      }
+
+      .amenity-icon {
+        width: 3.5rem; // ✅ Taille légèrement réduite pour l'équilibre
+        height: 3.5rem;
+        background: $gradient-warm;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: $font-size-lg; // ✅ Icône proportionnée
+        margin: 0 auto 1rem;
+      }
+
+      h5 {
+        color: $text-primary;
+        margin-bottom: 0.75rem; // ✅ Marge ajustée
+        font-family: $font-family-primary;
+        font-size: $font-size-base; // ✅ Taille ajustée
+        font-weight: $font-weight-semibold;
+      }
+
+      p {
+        color: $text-secondary;
+        font-size: $font-size-sm;
+        line-height: $line-height-relaxed;
+        margin: 0; // ✅ Suppression des marges
+      }
+    }
+  }
+}
+
+// ========================================
+// TARIFS
+// ========================================
+.pricing-section {
+  padding: 6rem 0;
+  background: $bg-default;
+
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2.5rem;
+    max-width: 1000px;
+    margin: 0 auto;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .pricing-card {
+    background: rgba(white, 0.95);
+    border-radius: $border-radius-2xl;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: $shadow-soft;
+    transition: all $transition-base;
+    border: 2px solid transparent;
+    position: relative;
+    display: flex; // ✅ FLEX pour aligner les boutons
+    flex-direction: column; // ✅ Colonne pour pousser le bouton en bas
+
+    &:hover {
+      transform: translateY(-8px);
+      box-shadow: $shadow-strong;
+    }
+
+    &.popular {
+      border-color: $terracotta;
+      transform: scale(1.05);
+
+      .pricing-badge {
+        position: absolute;
+        top: -15px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: $gradient-warm;
+        color: white;
+        padding: 0.5rem 2rem;
+        border-radius: $border-radius-lg;
+        font-size: $font-size-sm;
+        font-weight: $font-weight-semibold;
+      }
+    }
+
+    .pricing-header h3 {
+      color: $text-primary;
+      font-size: $font-size-2xl;
+      margin-bottom: 1rem;
+      font-family: $font-family-display;
+    }
+
+    .pricing-price {
+      margin-bottom: 0.5rem;
+
+      .price {
+        font-size: $font-size-5xl;
+        font-weight: $font-weight-bold;
+        color: $terracotta;
+        font-family: $font-family-display;
+      }
+
+      .price-unit {
+        color: $text-secondary;
+        font-size: $font-size-base;
+      }
+    }
+
+    .pricing-duration {
+      color: $text-muted;
+      margin-bottom: 2rem;
+      font-style: italic;
+    }
+
+    .pricing-features {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 2rem 0;
+      text-align: left;
+      flex-grow: 1; // ✅ Prend l'espace disponible
+
+      li {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 0;
+        color: $text-secondary;
+
+        i {
+          color: $terracotta;
+          font-size: $font-size-sm;
+        }
+      }
+    }
+
+    .btn {
+      width: 100%;
+      padding: 1rem;
+      border-radius: $border-radius-lg;
+      font-weight: $font-weight-semibold;
+      transition: all $transition-base;
+      margin-top: auto; // ✅ POUSSE LE BOUTON EN BAS
+
+      &.btn-primary {
+        background: $gradient-warm;
+        border: none;
+        color: white;
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba($terracotta, 0.3);
+        }
+      }
+
+      &.btn-outline {
+        background: transparent;
+        border: 2px solid $terracotta;
+        color: $terracotta;
+
+        &:hover {
+          background: $terracotta;
+          color: white;
+        }
+      }
+    }
+  }
+}
+
+// ========================================
+// FAQ
+// ========================================
+.faq-section {
+  padding: 6rem 0;
+  background: linear-gradient(135deg, $bg-secondary 0%, $bg-warm 100%);
+
+  .faq-list {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .faq-item {
+    background: rgba(white, 0.9);
+    margin-bottom: 1rem;
+    border-radius: $border-radius-lg;
+    overflow: hidden;
+    border: 1px solid rgba($terracotta, 0.1);
+
+    .faq-question {
+      width: 100%;
+      background: none;
+      border: none;
+      padding: 1.5rem 2rem;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: $font-size-lg;
+      font-weight: $font-weight-semibold;
+      color: $text-primary;
+      transition: all $transition-base;
+
+      &:hover {
+        background: rgba($sand, 0.1);
+      }
+
+      &.active {
+        background: rgba($terracotta, 0.1);
+        color: $terracotta;
+
+        i {
+          transform: rotate(180deg);
+        }
+      }
+
+      i {
+        color: $terracotta;
+        transition: transform $transition-base;
+      }
+    }
+
+    .faq-answer {
+      padding: 0 2rem 1.5rem;
+      color: $text-secondary;
+      line-height: $line-height-relaxed;
+    }
+  }
+}
+
+// ========================================
+// ANIMATIONS
+// ========================================
+.services-page {
+  animation: fadeInUp 0.8s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>

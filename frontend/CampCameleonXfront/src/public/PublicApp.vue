@@ -27,5 +27,4 @@ export default {
 </script>
 <style lang="scss">
 @import '@/assets/styles/shared.scss';
-
 </style>

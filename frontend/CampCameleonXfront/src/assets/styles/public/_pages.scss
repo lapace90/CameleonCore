@@ -287,7 +287,6 @@
         h4 {
           color: $text-primary;
           margin-bottom: 0.5rem;
-          font-size: $font-size-base;
         }
 
         p {
@@ -297,7 +296,7 @@
         }
 
         small {
-          color: lighten($text-secondary, 10%);
+          color: color.scale($text-secondary, $lightness: 10%);
           font-size: $font-size-sm;
         }
       }

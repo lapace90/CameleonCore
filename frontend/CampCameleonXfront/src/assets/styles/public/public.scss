@@ -1,71 +1,373 @@
-// Styles spécifiques au site public
+// public/public.scss - CORRIGÉ avec vos vraies variables
+@import '../variables';
+@import '../mixins';
 
-// Section hero
-.hero-section {
-  background: linear-gradient(87deg, var(--primary) 0, #825ee4 100%);
-  color: white;
-  padding: 5rem 2rem;
-  text-align: center;
-  
-  .hero-content {
-    max-width: 800px;
-    margin: 0 auto;
-    
-    h1 {
-      font-size: 3rem;
-      margin-bottom: 1.5rem;
-      font-weight: 700;
-    }
-    
-    p {
-      font-size: 1.25rem;
-      margin-bottom: 2rem;
-      opacity: 0.9;
-    }
-    
-    .hero-buttons {
-      display: flex;
-      gap: 1rem;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-  }
-}
+// ========================================
+// SECTION À PROPOS - AVEC VOS VARIABLES
+// ========================================
+.about-section {
+  padding: 8rem 0;
+  background: $bg-secondary; // Utilise votre $cream-light
 
-// Cards features
-.feature-card {
-  text-align: center;
-  padding: 2rem;
-  border-radius: var(--border-radius-lg);
-  background-color: white;
-  box-shadow: var(--shadow);
-  transition: transform 0.15s ease;
-  
-  &:hover {
-    transform: translateY(-5px);
-  }
-  
-  .feature-icon {
-    width: 4rem;
-    height: 4rem;
-    background: linear-gradient(87deg, var(--primary) 0, #825ee4 100%);
-    border-radius: 50%;
-    display: flex;
+  .about-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6rem;
     align-items: center;
-    justify-content: center;
-    margin: 0 auto 1.5rem;
-    color: white;
-    font-size: 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+
+    @include media-breakpoint-down(md) {
+      grid-template-columns: 1fr;
+      gap: 3rem;
+      text-align: center;
+    }
   }
-  
-  h3 {
-    color: var(--text-dark);
-    margin-bottom: 1rem;
-    font-size: 1.25rem;
+
+  .about-text {
+    padding-right: 2rem;
+
+    @include media-breakpoint-down(md) {
+      padding-right: 0;
+    }
   }
-  
-  p {
-    color: var(--text-muted);
-    line-height: 1.6;
+
+  .about-title {
+    font-size: clamp($font-size-4xl, 4vw, $font-size-5xl);
+    font-weight: $font-weight-light;
+    line-height: $line-height-tight;
+    color: $text-primary;
+    margin-bottom: 1.5rem;
+    font-family: $font-family-display;
+
+    .highlight {
+      font-weight: $font-weight-semibold;
+      background: $gradient-warm;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      display: inline-block;
+    }
+  }
+
+  .about-divider {
+    width: 60px;
+    height: 3px;
+    background: $gradient-warm;
+    margin: 2rem 0;
+    border-radius: 2px;
+
+    @include media-breakpoint-down(md) {
+      margin: 2rem auto;
+    }
+  }
+
+  .about-subtitle {
+    font-size: $font-size-xl;
+    font-weight: $font-weight-semibold;
+    color: $text-primary;
+    margin-bottom: 2rem;
+    line-height: $line-height-normal;
+    font-family: $font-family-primary;
+  }
+
+  .about-description {
+    font-size: $font-size-lg;
+    line-height: $line-height-relaxed;
+    color: $text-secondary;
+    font-family: $font-family-primary;
+    margin-bottom: 2rem;
+  }
+
+  .about-actions {
+    .btn {
+      padding: 1rem 2rem;
+      font-size: $font-size-base;
+      border-radius: $border-radius-lg;
+
+      &.btn-primary {
+        background: $gradient-warm;
+        border: none;
+        color: white;
+        transition: all $transition-base;
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: $shadow-accent;
+        }
+      }
+    }
+  }
+
+  .about-image {
+    .image-container {
+      position: relative;
+
+      .desert-image {
+        width: 100%;
+        height: 600px;
+        object-fit: cover;
+        border-radius: $border-radius-2xl * 2; // 80px équivalent
+        box-shadow: $shadow-strong;
+        transition: transform $transition-base;
+
+        &:hover {
+          transform: translateY(-5px);
+        }
+
+        @include media-breakpoint-down(md) {
+          height: 400px;
+          border-radius: $border-radius-2xl;
+        }
+      }
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: -20px;
+        right: -20px;
+        width: 100px;
+        height: 100px;
+        background: $gradient-warm;
+        border-radius: 50%;
+        opacity: 0.1;
+        z-index: -1;
+
+        @include media-breakpoint-down(md) {
+          display: none;
+        }
+      }
+    }
   }
 }
+
+// ========================================
+// SECTION TÉMOIGNAGES - AVEC VOS VARIABLES
+// ========================================
+.testimonials-section {
+  padding: 8rem 0;
+  background: $gradient-hero; // Utilise votre gradient défini
+
+  .testimonials-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: stretch;
+
+    @include media-breakpoint-down(lg) {
+      grid-template-columns: 1fr;
+      gap: 4rem;
+    }
+  }
+}
+
+// ========================================
+// PARTIE RÉSERVATION (GAUCHE)
+// ========================================
+.reservation-side {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+
+  .reservation-content {
+    text-align: center;
+    position: relative;
+  }
+
+  .organic-shape {
+    position: relative;
+    margin-bottom: 3rem;
+
+    .reservation-image {
+      width: 400px;
+      height: 500px;
+      object-fit: cover;
+      border-radius: $border-radius-2xl $border-radius $border-radius-2xl $border-radius;
+      box-shadow: $shadow-strong;
+
+      @include media-breakpoint-down(md) {
+        width: 300px;
+        height: 400px;
+        border-radius: $border-radius-xl $border-radius-sm $border-radius-xl $border-radius-sm;
+      }
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 50px;
+      right: -30px;
+      width: 150px;
+      height: 200px;
+      background: $primary-light;
+      border-radius: 50%;
+      opacity: 0.3;
+      z-index: -1;
+
+      @include media-breakpoint-down(md) {
+        display: none;
+      }
+    }
+  }
+
+  .reservation-title {
+    font-size: clamp($font-size-3xl, 3.5vw, $font-size-4xl);
+    font-weight: $font-weight-light;
+    color: white;
+    line-height: $line-height-tight;
+    margin-bottom: 2rem;
+    font-family: $font-family-display;
+
+    .highlight {
+      font-weight: $font-weight-semibold;
+      background: $gradient-warm;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      display: inline-block;
+    }
+  }
+
+  .star-accent {
+    font-size: 3rem;
+    color: $terracotta;
+    animation: starTwinkle 2s ease-in-out infinite;
+  }
+}
+
+@keyframes starTwinkle {
+
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+// ========================================
+// PARTIE TÉMOIGNAGES (DROITE)
+// ========================================
+.testimonials-side {
+  padding: 2rem;
+  color: white;
+
+  .testimonials-title {
+    font-size: 2.5rem;
+    font-weight: $font-weight-light;
+    line-height: $line-height-tight;
+    margin-bottom: 3rem;
+    color: white;
+    font-family: $font-family-heading;
+  }
+}
+
+.testimonial-card {
+  background: rgba($coffee, 0.8);
+  border-radius: $border-radius-2xl;
+  padding: 2.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba($terracotta, 0.2);
+
+  @include media-breakpoint-down(md) {
+    flex-direction: column;
+    text-align: center;
+    gap: 1.5rem;
+    padding: 2rem;
+  }
+
+  .polaroid-photos {
+    display: flex;
+    gap: 1rem;
+    flex-shrink: 0;
+
+    .polaroid {
+      background: white;
+      padding: 10px 10px 40px 10px;
+      border-radius: $border-radius-sm;
+      box-shadow: $shadow-medium;
+      transform: rotate(-5deg);
+      transition: transform $transition-base;
+
+      &:hover {
+        transform: rotate(0deg) scale(1.05);
+      }
+
+      &:nth-child(2) {
+        transform: rotate(5deg);
+        margin-top: 20px;
+
+        &:hover {
+          transform: rotate(0deg) scale(1.05);
+        }
+      }
+
+      img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 2px;
+
+        @include media-breakpoint-down(md) {
+          width: 60px;
+          height: 60px;
+        }
+      }
+    }
+  }
+
+  .testimonial-content {
+    flex: 1;
+
+    .client-name {
+      font-size: $font-size-xl;
+      font-weight: $font-weight-semibold;
+      color: $sand;
+      margin-bottom: 1rem;
+      font-family: $font-family-display;
+    }
+
+    .testimonial-text {
+      font-size: $font-size-base;
+      line-height: $line-height-relaxed;
+      color: rgba(white, 0.9);
+      margin-bottom: 1.5rem;
+      font-style: italic;
+    }
+
+    .rating {
+      display: flex;
+      gap: 0.25rem;
+
+      @include media-breakpoint-down(md) {
+        justify-content: center;
+      }
+
+      .star {
+        font-size: $font-size-lg;
+        color: #ffd700;
+      }
+    }
+  }
+}
+
+// ========================================
+// RESPONSIVE
+// ========================================
+@include media-breakpoint-down(md) {
+
+  .about-section,
+  .testimonials-section {
+    padding: 4rem 0;
+  }
+}
+

@@ -4,6 +4,7 @@ import Home from '../views/Home.vue'
 import About from '../views/About.vue'
 import Services from '../views/Services.vue'
 import Contact from '../views/Contact.vue'
+import Testimonials from '../views/Testimonials.vue'
 
 export default [
   {
@@ -29,7 +30,12 @@ export default [
         path: 'contact',
         name: 'Contact',
         component: Contact
-      }
+      },
+      {
+        path: 'testimonials',
+        name: 'Testimonials',
+        component: Testimonials
+      },
     ]
   }
 ]

@@ -42,7 +42,7 @@ export default {
 .admin-footer {
   background-color: #fff;
   border-top: 1px solid #e9ecef;
-  margin-left: 260px;
+  margin-left: -0.6rem;
   padding: 1rem 2rem;
   box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.05);
 }

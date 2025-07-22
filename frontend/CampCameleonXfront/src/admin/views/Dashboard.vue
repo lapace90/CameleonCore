@@ -45,6 +45,16 @@
         </div>
       </div>
     </div>
+
+    <!-- Mini calendrier -->
+          <div class="calendar-widget">
+            <FullCalendar
+              title="Événements à venir"
+              :show-stats="false"
+              mode="admin"
+              @event-created="handleEventCreated"
+            />
+          </div>
     
     <!-- Recent Activity -->
     <div class="activity-section">
@@ -70,6 +80,9 @@
 </template>
 
 <script>
+import FullCalendar from '@/shared/components/calendar/FullCalendar.vue'
+
+
 export default {
   name: 'AdminDashboard',
   data() {

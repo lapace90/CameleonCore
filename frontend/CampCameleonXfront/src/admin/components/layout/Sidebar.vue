@@ -1,22 +1,61 @@
 <template>
   <aside class="admin-sidebar">
     <!-- Brand -->
-    <div class="sidebar-brand">
-      <h2>⛺ CampCameleonX</h2>
-      <span class="brand-subtitle">Admin Dashboard</span>
-    </div>
-    
+    <router-link to="/admin/dashboard" class="nav-link">
+      <div class="sidebar-brand">
+        <h2>⛺ CampCameleonX</h2>
+        <span class="brand-subtitle">Admin Dashboard</span>
+      </div>
+    </router-link>
+
     <!-- Navigation -->
     <nav class="sidebar-nav">
       <ul class="nav-list">
-        <!-- Dashboard -->
+        
+        <!-- Agenda -->
         <li class="nav-item">
-          <router-link to="/admin/dashboard" class="nav-link">
-            <i class="fas fa-chart-pie"></i>
-            <span>Dashboard</span>
+          <router-link to="/admin/agenda" class="nav-link">
+            <i class="fas fa-calendar"></i>
+            <span>Agenda</span>
           </router-link>
         </li>
-        
+
+        <!-- Divider -->
+        <li class="nav-divider">
+          <hr>
+          <span>Services</span>
+        </li>
+
+
+        <!-- Restauration -->
+        <li class="nav-item">
+          <router-link to="/admin/restauration" class="nav-link">
+            <i class="fa-solid fa-utensils"></i>
+            <span>Restauration</span>
+          </router-link>
+        </li>
+        <!-- Activités -->
+        <li class="nav-item">
+          <router-link to="/admin/activities" class="nav-link">
+            <i class="fa-solid fa-person-hiking"></i>
+            <span>Activités</span>
+          </router-link>
+        </li>
+        <!-- Chambres -->
+        <li class="nav-item">
+          <router-link to="/admin/rooms" class="nav-link">
+            <i class="fa-solid fa-bed"></i>
+            <!-- <i class="fa-solid fa-campground"></i> -->
+            <span>Chambres</span>
+          </router-link>
+        </li>
+
+        <!-- Divider -->
+        <li class="nav-divider">
+          <hr>
+          <span>???</span>
+        </li>
+
         <!-- Users -->
         <li class="nav-item">
           <router-link to="/admin/users" class="nav-link">
@@ -24,7 +63,7 @@
             <span>Utilisateurs</span>
           </router-link>
         </li>
-        
+
         <!-- Analytics -->
         <li class="nav-item">
           <router-link to="/admin/analytics" class="nav-link">
@@ -32,13 +71,13 @@
             <span>Analytics</span>
           </router-link>
         </li>
-        
+
         <!-- Divider -->
         <li class="nav-divider">
           <hr>
           <span>Gestion</span>
         </li>
-        
+
         <!-- Settings -->
         <li class="nav-item">
           <router-link to="/admin/settings" class="nav-link">
@@ -46,7 +85,7 @@
             <span>Paramètres</span>
           </router-link>
         </li>
-        
+
         <!-- Back to site -->
         <li class="nav-item">
           <router-link to="/home" class="nav-link nav-link-external">
@@ -56,11 +95,11 @@
         </li>
       </ul>
     </nav>
-    
+
     <!-- User profile in sidebar -->
     <div class="sidebar-user">
       <div class="user-avatar">
-        <img src="https://via.placeholder.com/40" alt="User">
+        <!-- <img src="https://via.placeholder.com/40" alt="User"> -->
       </div>
       <div class="user-info">
         <span class="user-name">Admin User</span>
@@ -75,4 +114,3 @@ export default {
   name: 'AdminSidebar'
 }
 </script>
-

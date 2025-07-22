@@ -45,11 +45,11 @@
   // Variants
   &.btn-primary {
     @include button-variant($primary);
-    background: $gradient-primary;
+    // background: $gradient-primary;
     box-shadow: 0 2px 4px rgba($primary, 0.2);
 
     &:hover:not(:disabled) {
-      box-shadow: $shadow-primary;
+      box-shadow: $shadow-medium;
     }
   }
 
@@ -59,17 +59,17 @@
 
   &.btn-success {
     @include button-variant($success);
-    background: $gradient-success;
+    background: $success;
   }
 
   &.btn-warning {
     @include button-variant($warning);
-    background: $gradient-warning;
+    background: $warning;
   }
 
   &.btn-danger {
     @include button-variant($danger);
-    background: $gradient-danger;
+    background: $danger;
   }
 
   &.btn-outline {
@@ -81,7 +81,7 @@
       background-color: $primary;
       color: white;
       transform: translateY(-1px);
-      box-shadow: $shadow-primary;
+      // box-shadow: $shadow-medium;
     }
   }
 
@@ -90,9 +90,9 @@
     border-color: transparent;
     color: $primary;
 
-    &:hover:not(:disabled) {
-      background-color: rgba($primary, 0.1);
-    }
+    // &:hover:not(:disabled) {
+    //   background-color: rgba($primary, 0.1);
+    // }
   }
 
   // Loading state
@@ -104,4 +104,11 @@
       animation: spin 1s linear infinite;
     }
   }
+
+}
+#add-user {
+  display:block;
+  max-width: fit-content;
+  float:inline-end;
+  background: $success;
 }

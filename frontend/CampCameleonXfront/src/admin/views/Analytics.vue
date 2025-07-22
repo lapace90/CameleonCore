@@ -1,8 +1,8 @@
 <template>
   <div class="analytics-page">
     <div class="page-header">
-      <h2>Analytics</h2>
       <div class="date-range">
+        <label for="date-select">Trier par: </label>
         <select class="date-select">
           <option>7 derniers jours</option>
           <option>30 derniers jours</option>

@@ -1,26 +1,28 @@
 @import '../variables';
+@import '../mixins';
 
 // Layout principal admin
 .admin-layout {
   display: flex;
   min-height: 100vh;
   background-color: $bg-default;
+  flex-direction: column;
+  margin-left: var(--sidebar-width);
 
-  .main-content {
-    flex: 1;
+  .admin-content-wrapper {
+    flex: 1; 
     display: flex;
     flex-direction: column;
-    margin-left: $sidebar-width;
-
+    
     @include media-breakpoint-down(md) {
-      margin-left: 0;
+      padding: 1rem;
     }
   }
 
-  .content-wrapper {
-    flex: 1;
-    padding: 2rem;
-    overflow-y: auto;
+  // Le contenu principal qui doit grandir
+  .admin-main-content {
+    flex: 1; // Prend tout l'espace restant
+    padding: 1rem 2rem;
     
     @include media-breakpoint-down(md) {
       padding: 1rem;
@@ -28,10 +30,28 @@
   }
 }
 
+// Alternative si vous voulez un footer absolument collé au bas
+.admin-layout-sticky-footer {
+  position: relative;
+  min-height: 100vh;
+  
+  .admin-content-wrapper {
+    min-height: calc(100vh - 60px); // 60px = hauteur approximative du footer
+    padding-bottom: 60px; // Espace pour le footer
+  }
+  
+  .admin-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+}
+
 // Sidebar Admin
 .admin-sidebar {
   width: $sidebar-width;
-  background: $gradient-dark;
+  background: $coffee;
   min-height: 100vh;
   position: fixed;
   left: 0;
@@ -44,21 +64,21 @@
 
   @include media-breakpoint-down(md) {
     transform: translateX(-100%);
-    
+
     &.sidebar-open {
       transform: translateX(0);
     }
   }
 
   .sidebar-brand {
-    padding: 1.5rem 1.5rem 1rem;
+    // padding: 1.5rem 1.5rem 1rem;
     border-bottom: 1px solid rgba(white, 0.1);
     text-align: center;
 
     h2 {
       color: white;
       font-size: $font-size-2xl;
-      margin: 0 0 0.25rem 0;
+      // margin: 0 0 0.25rem 0;
       font-weight: $font-weight-semibold;
     }
 
@@ -72,7 +92,6 @@
 
   .sidebar-nav {
     flex: 1;
-    padding: 1rem 0;
 
     .nav-list {
       list-style: none;
@@ -87,7 +106,6 @@
     .nav-link {
       display: flex;
       align-items: center;
-      padding: 0.75rem 1rem;
       color: rgba(white, 0.8);
       text-decoration: none;
       border-radius: $border-radius;
@@ -110,7 +128,7 @@
       &.router-link-active {
         background-color: rgba(white, 0.15);
         color: white;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 2px 4px rgba(252, 252, 252, 0.1);
       }
 
       &.nav-link-external {
@@ -120,7 +138,7 @@
     }
 
     .nav-divider {
-      margin: 1.5rem 1rem 1rem;
+      margin: .3rem .5rem .5rem;
       padding: 0 1rem;
 
       hr {
@@ -140,7 +158,6 @@
   }
 
   .sidebar-user {
-    padding: 1rem 1.5rem;
     border-top: 1px solid rgba(white, 0.1);
     display: flex;
     align-items: center;
@@ -174,12 +191,15 @@
 
 // Header Admin
 .admin-header {
-  background-color: white;
-  box-shadow: $shadow-sm;
+  background: $gradient-earth;
   position: sticky;
   top: 0;
   z-index: $zindex-sticky;
   border-bottom: 1px solid $border-color;
+  padding: 1rem 2rem;
+  margin-bottom: .5rem;
+  margin-left: -0.6rem;
+  flex-shrink: 0; // Empêche le header de se compresser
 
   .header-content {
     display: flex;
@@ -197,7 +217,7 @@
     flex: 1;
 
     .page-title {
-      color: $text-primary;
+      color: $cream;
       font-size: $font-size-3xl;
       font-weight: $font-weight-semibold;
       margin: 0 0 0.25rem 0;
@@ -273,12 +293,14 @@
   }
 }
 
-// Footer Admin
+// Footer Admin - Reste en bas grâce au flexbox parent
 .admin-footer {
   background-color: white;
   border-top: 1px solid $border-color;
   padding: 1rem 2rem;
   box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.05);
+  flex-shrink: 0; // Empêche le footer de se compresser
+  margin-top: auto; // Pousse le footer vers le bas si besoin
 
   @include media-breakpoint-down(md) {
     padding: 1rem;
@@ -343,3 +365,4 @@
     border: 1px solid $border-color;
   }
 }
+

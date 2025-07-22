@@ -2,63 +2,69 @@
 // Variables SCSS - CampCameleonX Moodboard
 // ========================================
 
+// Import du module color de Sass
+@use "sass:color";
+
 // Import des polices Google Fonts
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Ephesis&family=Forum&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap');
 
-// Couleurs principales du moodboard
-$slate-blue: #656C97;     // Bleu ardoise principal
-$terracotta: #CE5E1A;     // Orange terracotta/terre
-$cream: #F3D8C7;         // Crème/beige clair  
-$coffee: #41241C;        // Marron café foncé
-$sand: #D6B190;          // Sable/beige doré
 
-// Palette de couleurs système (basée sur le moodboard)
-$primary: $slate-blue;    // #656C97 - Couleur principale
-$secondary: $sand;        // #D6B190 - Couleur secondaire
-$accent: $terracotta;     // #CE5E1A - Couleur d'accent
-$success: #2d8f63;       // Vert nature (dérivé)
-$warning: $terracotta;    // Orange/terracotta
-$danger: #c53030;        // Rouge (conservé)
-$info: $slate-blue;      // Info = couleur principale
-$light: $cream;          // #F3D8C7 - Crème
-$dark: $coffee;          // #41241C - Marron foncé
+// Couleurs principales
+$slate-blue: #8f93ac; // Bleu ardoise principal
+$terracotta: #CE5E1A; // Orange terracotta/terre
+$cream: #F3D8C7; // Crème/beige clair  
+$coffee: #41241C; // Marron café foncé
+$sand: #D6B190; // Sable/beige doré
+
+// Palette de couleurs système
+$primary: $slate-blue; // #656C97 - Couleur principale
+$secondary: $sand; // #D6B190 - Couleur secondaire
+$accent: $terracotta; // #CE5E1A - Couleur d'accent
+$success: #2d8f63; // Vert nature (dérivé)
+$warning: $terracotta; // Orange/terracotta
+$danger: #c53030; // Rouge (conservé)
+$info: $slate-blue; // Info = couleur principale
+$light: $cream; // #F3D8C7 - Crème
+$dark: $coffee; // #41241C - Marron foncé
 
 // Variantes des couleurs principales
-$primary-light: lighten($primary, 15%);     // #8691b8
-$primary-dark: darken($primary, 15%);       // #4a5276
-$accent-light: lighten($accent, 20%);       // #e08851
-$accent-dark: darken($accent, 15%);         // #a84b15
-$cream-light: lighten($cream, 8%);          // #f7e5d9
-$cream-dark: darken($cream, 12%);           // #d4c0a8
+$primary-light: color.scale($primary, $lightness: 15%); // #8691b8
+$primary-dark: color.scale($primary, $lightness: -15%); // #4a5276
+$accent-light: color.scale($accent, $lightness: 20%); // #e08851
+$accent-dark: color.scale($accent, $lightness: -15%); // #a84b15
+$cream-light: color.scale($cream, $lightness: 8%); // #f7e5d9
+$cream-dark: color.scale($cream, $lightness: -12%); // #d4c0a8
 
 // Couleurs de fond inspirées moodboard
-$bg-default: #faf9f7;           // Blanc cassé chaud
+$bg-default: #faf9f7; // Blanc cassé chaud
 $bg-white: #ffffff;
-$bg-secondary: $cream-light;     // Crème très clair
-$bg-light: $cream;              // Crème
-$bg-warm: #f5f3f0;             // Ton chaud neutre
+$bg-secondary: $cream-light; // Crème très clair
+$bg-light: $cream; // Crème
+$bg-warm: #f5f3f0; // Ton chaud neutre
 $bg-desert: linear-gradient(135deg, $cream 0%, $sand 100%);
 
 // Couleurs de texte harmonieuses
-$text-primary: $coffee;         // #41241C - Marron foncé
-$text-secondary: lighten($coffee, 25%);  // Marron moyen
-$text-muted: lighten($coffee, 45%);      // Marron clair
-$text-light: $cream;            // Crème
-$text-accent: $accent;          // Orange terracotta
-$text-warm: #8b6f47;           // Brun chaud
+$text-primary: $coffee; // #41241C - Marron foncé
+$text-secondary: color.scale($coffee, $lightness: 25%); // Marron moyen
+$text-muted: color.scale($coffee, $lightness: 45%); // Marron clair
+$text-light: $cream; // Crème
+$text-accent: $accent; // Orange terracotta
+$text-warm: #8b6f47; // Brun chaud
 
 // Couleurs de bordure douces
-$border-color: lighten($sand, 15%);      // #e5d4bf
-$border-color-light: lighten($sand, 20%); // #ead9c7
-$border-color-dark: $sand;                // #D6B190
+$border-color: color.scale($sand, $lightness: 15%); // #e5d4bf
+$border-color-light: color.scale($sand, $lightness: 20%); // #ead9c7
+$border-color-dark: $sand;
 
 // Gradients inspirés du désert/nature
 $gradient-primary: linear-gradient(135deg, $primary 0%, $primary-light 100%);
 $gradient-warm: linear-gradient(135deg, $terracotta 0%, $sand 100%);
 $gradient-desert: linear-gradient(135deg, #ce5e1a 0%, #d6b190 50%, #f3d8c7 100%);
 $gradient-sunset: linear-gradient(135deg, $accent 0%, $sand 70%, $cream 100%);
-$gradient-earth: linear-gradient(135deg, $coffee 0%, $accent 100%);
-$gradient-hero: linear-gradient(135deg, $slate-blue 0%, lighten($slate-blue, 10%) 100%);
+$gradient-earth: linear-gradient(135deg, $coffee 0%, $sand 100%);
+$gradient-earth-reverse: linear-gradient(135deg, $sand 0%, $coffee 100%);
+$gradient-hero: linear-gradient(135deg, $slate-blue 0%, color.scale($slate-blue, $lightness: 10%) 100%);
 
 // Ombres douces et naturelles
 $shadow-warm: 0 4px 6px rgba($coffee, 0.1);
@@ -67,22 +73,23 @@ $shadow-medium: 0 4px 12px rgba($coffee, 0.12);
 $shadow-strong: 0 8px 24px rgba($coffee, 0.15);
 $shadow-accent: 0 4px 12px rgba($accent, 0.2);
 
-// Typographie (basée sur le moodboard)
+// Typographie
 $font-family-primary: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-$font-family-display: 'Playfair Display', Georgia, 'Times New Roman', serif; // Équivalent de "The Seasons"
+$font-family-heading: 'Forum', serif;
+$font-family-display: 'Ephesis', cursive;
 $font-family-monospace: 'Fira Code', 'Monaco', 'Consolas', monospace;
 
 // Tailles de police harmonieuses
-$font-size-xs: 0.75rem;    // 12px
-$font-size-sm: 0.875rem;   // 14px  
-$font-size-base: 1rem;     // 16px
-$font-size-lg: 1.125rem;   // 18px
-$font-size-xl: 1.25rem;    // 20px
-$font-size-2xl: 1.5rem;    // 24px
-$font-size-3xl: 1.875rem;  // 30px
-$font-size-4xl: 2.25rem;   // 36px
-$font-size-5xl: 3rem;      // 48px
-$font-size-6xl: 3.75rem;   // 60px
+$font-size-xs: 0.75rem; // 12px
+$font-size-sm: 0.875rem; // 14px  
+$font-size-base: 1rem; // 16px
+$font-size-lg: 1.125rem; // 18px
+$font-size-xl: 1.25rem; // 20px
+$font-size-2xl: 1.5rem; // 24px
+$font-size-3xl: 1.875rem; // 30px
+$font-size-4xl: 2.5rem; // 36px
+$font-size-5xl: 3rem; // 48px
+$font-size-6xl: 3.75rem; // 60px
 
 $font-weight-light: 300;
 $font-weight-normal: 400;
@@ -98,19 +105,32 @@ $line-height-relaxed: 1.75;
 $spacer: 1rem;
 $spacers: (
   0: 0,
-  1: $spacer * 0.25,  // 4px
-  2: $spacer * 0.5,   // 8px
-  3: $spacer * 0.75,  // 12px
-  4: $spacer,         // 16px
-  5: $spacer * 1.25,  // 20px
-  6: $spacer * 1.5,   // 24px
-  8: $spacer * 2,     // 32px
-  10: $spacer * 2.5,  // 40px
-  12: $spacer * 3,    // 48px
-  16: $spacer * 4,    // 64px
-  20: $spacer * 5,    // 80px
-  24: $spacer * 6,    // 96px
-  32: $spacer * 8,    // 128px
+  1: $spacer * 0.25,
+  // 4px
+  2: $spacer * 0.5,
+  // 8px
+  3: $spacer * 0.75,
+  // 12px
+  4: $spacer,
+  // 16px
+  5: $spacer * 1.25,
+  // 20px
+  6: $spacer * 1.5,
+  // 24px
+  8: $spacer * 2,
+  // 32px
+  10: $spacer * 2.5,
+  // 40px
+  12: $spacer * 3,
+  // 48px
+  16: $spacer * 4,
+  // 64px
+  20: $spacer * 5,
+  // 80px
+  24: $spacer * 6,
+  // 96px
+  32: $spacer * 8,
+  // 128px
 );
 
 // Border radius organiques
@@ -120,6 +140,7 @@ $border-radius-lg: 0.75rem;
 $border-radius-xl: 1rem;
 $border-radius-2xl: 1.5rem;
 $border-radius-organic: 1rem 0.5rem 1rem 0.5rem; // Forme plus organique
+$circle: 50px;
 
 // Transitions douces
 $transition-fast: 0.15s ease;
@@ -184,35 +205,88 @@ $sunset-pink: #ffa07a;
 }
 
 @mixin nature-colors {
-  background: linear-gradient(135deg, $nature-green 0%, lighten($nature-green, 20%) 100%);
+  background: linear-gradient(135deg, $nature-green 0%, color.scale($nature-green, $lightness: 20%) 100%);
   color: white;
 }
 
 // Animation inspirée de la nature
 @keyframes desert-wind {
-  0%, 100% { transform: translateX(0) rotate(0deg); }
-  25% { transform: translateX(2px) rotate(0.5deg); }
-  75% { transform: translateX(-2px) rotate(-0.5deg); }
+
+  0%,
+  100% {
+    transform: translateX(0) rotate(0deg);
+  }
+
+  25% {
+    transform: translateX(2px) rotate(0.5deg);
+  }
+
+  75% {
+    transform: translateX(-2px) rotate(-0.5deg);
+  }
 }
 
 @keyframes warm-glow {
-  0%, 100% { box-shadow: 0 0 5px rgba($accent, 0.3); }
-  50% { box-shadow: 0 0 20px rgba($accent, 0.6); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 5px rgba($accent, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 20px rgba($accent, 0.6);
+  }
 }
 
 // Classes helper pour les couleurs moodboard
-.text-terracotta { color: $terracotta !important; }
-.text-sand { color: $sand !important; }
-.text-coffee { color: $coffee !important; }
-.text-cream { color: $cream !important; }
-.text-slate { color: $slate-blue !important; }
+.text-terracotta {
+  color: $terracotta !important;
+}
 
-.bg-terracotta { background-color: $terracotta !important; }
-.bg-sand { background-color: $sand !important; }
-.bg-coffee { background-color: $coffee !important; }
-.bg-cream { background-color: $cream !important; }
-.bg-slate { background-color: $slate-blue !important; }
+.text-sand {
+  color: $sand !important;
+}
 
-.bg-desert { background: $gradient-desert !important; }
-.bg-warm { background: $gradient-warm !important; }
-.bg-sunset { background: $gradient-sunset !important; }
+.text-coffee {
+  color: $coffee !important;
+}
+
+.text-cream {
+  color: $cream !important;
+}
+
+.text-slate {
+  color: $slate-blue !important;
+}
+
+.bg-terracotta {
+  background-color: $terracotta !important;
+}
+
+.bg-sand {
+  background-color: $sand !important;
+}
+
+.bg-coffee {
+  background-color: $coffee !important;
+}
+
+.bg-cream {
+  background-color: $cream !important;
+}
+
+.bg-slate {
+  background-color: $slate-blue !important;
+}
+
+.bg-desert {
+  background: $gradient-desert !important;
+}
+
+.bg-warm {
+  background: $gradient-warm !important;
+}
+
+.bg-sunset {
+  background: $gradient-sunset !important;
+}

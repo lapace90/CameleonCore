@@ -1,13 +1,14 @@
+<!-- src/public/views/About.vue -->
 <template>
   <div class="about-page">
     <!-- Hero Section -->
     <section class="about-hero">
-      <div class="container">
+      <div class="container mt-5">
         <div class="hero-content">
-          <h1>À propos de CampCameleonX</h1>
+          <h1>À propos du Camp Caméléon</h1>
           <p class="hero-subtitle">
-            Depuis 15 ans, nous créons des expériences de camping exceptionnelles 
-            au cœur de la nature française.
+            Depuis 12 ans, nous créons des expériences inoubliables
+            au cœur du désert marocain, où l'authenticité rencontre le raffinement.
           </p>
         </div>
       </div>
@@ -20,36 +21,37 @@
           <div class="story-text">
             <h2>Notre Histoire</h2>
             <p>
-              Tout a commencé en 2009 avec une passion simple : partager la beauté 
-              de la nature française avec les familles et aventuriers du monde entier. 
-              Marc et Sophie, les fondateurs de CampCameleonX, ont transformé un ancien 
-              terrain agricole en un havre de paix pour les amoureux du camping.
+              Tout a commencé en 2012 avec un rêve : créer un pont entre les cultures dans l'immensité du Sahara marocain. 
+              Amina et Youssef, fondateurs du Camp Caméléon, ont transformé une oasis ancestrale en un havre de paix 
+              où se rencontrent voyageurs du monde entier et traditions millénaires du désert.
             </p>
             <p>
-              Aujourd'hui, nous accueillons plus de 2500 campeurs chaque année sur 
-              nos 150 emplacements soigneusement aménagés. Notre philosophie reste 
-              la même : offrir une expérience authentique tout en respectant 
-              l'environnement et le confort de nos visiteurs.
+              Aujourd'hui, nous accueillons plus de 1500 voyageurs chaque année dans nos tentes traditionnelles 
+              rénovées avec soin. Notre philosophie demeure inchangée : offrir une immersion authentique dans 
+              la culture berbère tout en préservant le confort et la sérénité que mérite chaque invité.
             </p>
             <div class="story-stats">
               <div class="stat-item">
-                <span class="stat-number">15</span>
-                <span class="stat-label">Années d'expérience</span>
+                <span class="stat-number">12</span>
+                <span class="stat-label">Années d'hospitalité</span>
               </div>
               <div class="stat-item">
-                <span class="stat-number">2500+</span>
-                <span class="stat-label">Clients par an</span>
+                <span class="stat-number">1500+</span>
+                <span class="stat-label">Voyageurs par an</span>
               </div>
               <div class="stat-item">
-                <span class="stat-number">150</span>
-                <span class="stat-label">Emplacements</span>
+                <span class="stat-number">25</span>
+                <span class="stat-label">Tentes d'exception</span>
               </div>
             </div>
           </div>
           <div class="story-visual">
-            <div class="image-placeholder">
-              <i class="fas fa-mountain"></i>
-              <p>Photo du camping</p>
+            <div class="image-container">
+              <img 
+                src="@/assets/images/site/145.jpg" 
+                alt="Tentes berbères dans le désert" 
+                class="story-image"
+              />
             </div>
           </div>
         </div>
@@ -61,12 +63,12 @@
       <div class="container">
         <div class="section-header">
           <h2>Nos Valeurs</h2>
-          <p>Ce qui nous guide chaque jour dans notre mission</p>
+          <p>Les principes qui guident chaque moment de votre séjour</p>
         </div>
-        
+
         <div class="values-grid">
           <div class="value-card" v-for="value in values" :key="value.id">
-            <div class="value-icon" :style="{ backgroundColor: value.color }">
+            <div class="value-icon" :style="{ background: value.gradient }">
               <i :class="value.icon"></i>
             </div>
             <h3>{{ value.title }}</h3>
@@ -81,9 +83,9 @@
       <div class="container">
         <div class="section-header">
           <h2>Notre Équipe</h2>
-          <p>Les personnes passionnées qui rendent votre séjour inoubliable</p>
+          <p>Les âmes passionnées qui font de votre séjour une expérience magique</p>
         </div>
-        
+
         <div class="team-grid">
           <div class="team-member" v-for="member in team" :key="member.id">
             <div class="member-avatar">
@@ -93,8 +95,8 @@
             <span class="member-role">{{ member.role }}</span>
             <p>{{ member.description }}</p>
             <div class="member-social">
-              <a href="#" class="social-link" v-if="member.linkedin">
-                <i class="fab fa-linkedin"></i>
+              <a href="#" class="social-link" v-if="member.instagram">
+                <i class="fab fa-instagram"></i>
               </a>
               <a href="#" class="social-link" v-if="member.email">
                 <i class="fas fa-envelope"></i>
@@ -105,21 +107,21 @@
       </div>
     </section>
 
-    <!-- Certifications Section -->
-    <section class="certifications-section">
+    <!-- Experience Section -->
+    <section class="experience-section">
       <div class="container">
         <div class="section-header">
-          <h2>Nos Certifications</h2>
-          <p>Reconnue pour la qualité et le respect de l'environnement</p>
+          <h2>L'Art de l'Hospitalité Marocaine</h2>
+          <p>Une immersion totale dans les traditions du désert</p>
         </div>
-        
-        <div class="certifications-grid">
-          <div class="certification-item" v-for="cert in certifications" :key="cert.id">
-            <div class="cert-logo">
-              <i :class="cert.icon"></i>
+
+        <div class="experience-grid">
+          <div class="experience-item" v-for="exp in experiences" :key="exp.id">
+            <div class="exp-icon">
+              <i :class="exp.icon"></i>
             </div>
-            <h4>{{ cert.name }}</h4>
-            <p>{{ cert.description }}</p>
+            <h4>{{ exp.name }}</h4>
+            <p>{{ exp.description }}</p>
           </div>
         </div>
       </div>
@@ -129,101 +131,101 @@
 
 <script>
 export default {
-  name: 'PublicAbout',
+  name: 'AboutPage',
   data() {
     return {
       values: [
         {
           id: 1,
-          title: 'Respect de la nature',
-          description: 'Nous nous engageons à préserver l\'environnement et à sensibiliser nos visiteurs à l\'écologie.',
-          icon: 'fas fa-leaf',
-          color: '#2dce89'
+          title: 'Authenticité Berbère',
+          description: 'Nous préservons et partageons les traditions millénaires du peuple berbère avec respect et fierté.',
+          icon: 'fas fa-star-and-crescent',
+          gradient: 'linear-gradient(135deg, #CE5E1A 0%, #D6B190 100%)'
         },
         {
           id: 2,
-          title: 'Accueil chaleureux',
-          description: 'Chaque client est accueilli comme un membre de la famille avec attention et bienveillance.',
+          title: 'Hospitalité Sacrée',
+          description: 'Chaque invité est accueilli selon la tradition marocaine : comme un membre de la famille.',
           icon: 'fas fa-heart',
-          color: '#f5365c'
+          gradient: 'linear-gradient(135deg, #656C97 0%, #8691b8 100%)'
         },
         {
           id: 3,
-          title: 'Qualité du service',
-          description: 'Nous visons l\'excellence dans tous nos services pour garantir votre satisfaction.',
-          icon: 'fas fa-star',
-          color: '#fb6340'
+          title: 'Harmonie avec le Désert',
+          description: 'Nous vivons en symbiose avec le Sahara, respectant ses cycles et sa beauté sauvage.',
+          icon: 'fas fa-leaf',
+          gradient: 'linear-gradient(135deg, #D6B190 0%, #F3D8C7 100%)'
         },
         {
           id: 4,
-          title: 'Innovation',
-          description: 'Nous modernisons constamment nos équipements et services pour améliorer votre expérience.',
-          icon: 'fas fa-lightbulb',
-          color: '#11cdef'
+          title: 'Artisanat Local',
+          description: 'Nous soutenons les artisans locaux et intégrons leur savoir-faire dans chaque détail.',
+          icon: 'fas fa-palette',
+          gradient: 'linear-gradient(135deg, #CE5E1A 0%, #656C97 100%)'
         }
       ],
       team: [
         {
           id: 1,
-          name: 'Marc Dubois',
-          role: 'Fondateur & Directeur',
-          description: 'Passionné de nature depuis toujours, Marc a créé CampCameleonX pour partager sa vision du camping authentique.',
-          avatar: 'https://via.placeholder.com/120',
-          linkedin: true,
+          name: 'Amina El Fassi',
+          role: 'Fondatrice & Gardienne des Traditions',
+          description: 'Native de la région, Amina veille à préserver l\'authenticité de l\'expérience berbère tout en innovant pour le confort moderne.',
+          avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=120&q=80',
+          instagram: true,
           email: true
         },
         {
           id: 2,
-          name: 'Sophie Martin',
-          role: 'Co-fondatrice & Responsable Accueil',
-          description: 'Sophie veille à ce que chaque client vive une expérience mémorable dès son arrivée.',
-          avatar: 'https://via.placeholder.com/120',
-          linkedin: true,
+          name: 'Youssef Ben Ali',
+          role: 'Co-fondateur & Guide du Désert',
+          description: 'Connaisseur inégalé du Sahara, Youssef guide nos invités vers les secrets les mieux gardés du désert.',
+          avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=120&q=80',
+          instagram: true,
           email: true
         },
         {
           id: 3,
-          name: 'Pierre Leclerc',
-          role: 'Responsable Maintenance',
-          description: 'Pierre assure que tous nos équipements soient toujours en parfait état de fonctionnement.',
-          avatar: 'https://via.placeholder.com/120',
-          linkedin: false,
+          name: 'Fatima Ouhadi',
+          role: 'Cheffe Cuisinière',
+          description: 'Fatima vous fait découvrir les saveurs authentiques du Maroc avec des recettes transmises de génération en génération.',
+          avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=120&q=80',
+          instagram: false,
           email: true
         },
         {
           id: 4,
-          name: 'Julie Bernard',
-          role: 'Animatrice Nature',
-          description: 'Julie organise les activités et sensibilise petits et grands à la protection de l\'environnement.',
-          avatar: 'https://via.placeholder.com/120',
-          linkedin: true,
+          name: 'Omar Tahiri',
+          role: 'Maître Chamelier',
+          description: 'Omar et ses dromadaires vous emmènent dans des randonnées inoubliables à travers les dunes dorées.',
+          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=120&q=80',
+          instagram: true,
           email: true
         }
       ],
-      certifications: [
+      experiences: [
         {
           id: 1,
-          name: 'Écolabel Européen',
-          description: 'Certification environnementale reconnue par l\'UE',
-          icon: 'fas fa-leaf'
+          name: 'Tentes Royales',
+          description: 'Hébergement dans des tentes berbères authentiques avec tout le confort moderne',
+          icon: 'fas fa-campground'
         },
         {
           id: 2,
-          name: 'Qualité Tourisme',
-          description: 'Marque d\'État attribuée aux professionnels du tourisme',
-          icon: 'fas fa-award'
+          name: 'Cuisine Traditionnelle',
+          description: 'Dégustez les saveurs du Maroc préparées selon les recettes ancestrales',
+          icon: 'fas fa-utensils'
         },
         {
           id: 3,
-          name: 'Accueil Vélo',
-          description: 'Services et équipements adaptés aux cyclotouristes',
-          icon: 'fas fa-bicycle'
+          name: 'Randonnées Chamelières',
+          description: 'Explorez le désert à dos de dromadaire comme les caravanes d\'autrefois',
+          icon: 'fas fa-route'
         },
         {
           id: 4,
-          name: 'Camping Qualité',
-          description: 'Réseau de campings sélectionnés pour leur qualité',
-          icon: 'fas fa-certificate'
+          name: 'Musique Berbère',
+          description: 'Soirées authentiques au rythme des instruments traditionnels sous les étoiles',
+          icon: 'fas fa-music'
         }
       ]
     }
@@ -231,42 +233,58 @@ export default {
 }
 </script>
 
-<!-- <style scoped>
-.about-page {
-  padding-top: 70px;
-}
+<style lang="scss" scoped>
+@import '@/assets/styles/variables';
 
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
+.about-page {
+  margin-top: -120px;
 }
 
 /* Hero Section */
 .about-hero {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: $gradient-hero;
   color: white;
-  padding: 4rem 0;
+  top: -1;
+  padding: 12rem 0 4rem;
   text-align: center;
-}
+  position: relative;
 
-.hero-content h1 {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  font-weight: 700;
-}
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(ellipse at center, transparent 0%, rgba($coffee, 0.2) 100%);
+  }
 
-.hero-subtitle {
-  font-size: 1.25rem;
-  opacity: 0.9;
-  max-width: 600px;
-  margin: 0 auto;
+  .hero-content {
+    position: relative;
+    z-index: 2;
+  }
+
+  h1 {
+    font-size: $font-size-6xl;
+    margin-bottom: 1.5rem;
+    font-family: $font-family-display;
+    font-weight: 400;
+  }
+
+  .hero-subtitle {
+    font-size: $font-size-xl;
+    opacity: 0.95;
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: $line-height-relaxed;
+    font-style: italic;
+  }
 }
 
 /* Story Section */
 .story-section {
-  padding: 5rem 0;
-  background: white;
+  padding: 6rem 0;
+  background: $bg-secondary;
 }
 
 .story-content {
@@ -274,183 +292,222 @@ export default {
   grid-template-columns: 1fr 1fr;
   gap: 4rem;
   align-items: center;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
 }
 
-.story-text h2 {
-  font-size: 2.5rem;
-  color: #32325d;
-  margin-bottom: 2rem;
-}
+.story-text {
+  h2 {
+    font-size: $font-size-4xl;
+    color: $text-primary;
+    margin-bottom: 2rem;
+    font-family: $font-family-display;
+    font-weight: 400;
+  }
 
-.story-text p {
-  color: #8898aa;
-  line-height: 1.8;
-  margin-bottom: 1.5rem;
-  font-size: 1.1rem;
+  p {
+    color: $text-secondary;
+    line-height: $line-height-relaxed;
+    margin-bottom: 1.5rem;
+    font-size: $font-size-lg;
+  }
 }
 
 .story-stats {
   display: flex;
   gap: 2rem;
-  margin-top: 2rem;
+  margin-top: 3rem;
+
+  @media (max-width: 768px) {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
 }
 
 .stat-item {
   text-align: center;
-}
+  padding: 1.5rem;
+  background: rgba(white, 0.6);
+  border-radius: $border-radius-xl;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba($terracotta, 0.1);
 
-.stat-number {
-  display: block;
-  font-size: 2rem;
-  font-weight: 700;
-  color: #5e72e4;
-  margin-bottom: 0.5rem;
-}
+  .stat-number {
+    display: block;
+    font-size: $font-size-4xl;
+    font-weight: $font-weight-bold;
+    color: $accent;
+    margin-bottom: 0.5rem;
+    font-family: $font-family-display;
+  }
 
-.stat-label {
-  color: #8898aa;
-  font-size: 0.875rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  .stat-label {
+    color: $text-secondary;
+    font-size: $font-size-sm;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: $font-weight-medium;
+  }
 }
 
 .story-visual {
-  display: flex;
-  justify-content: center;
-}
+  .image-container {
+    position: relative;
 
-.image-placeholder {
-  width: 100%;
-  height: 400px;
-  background: linear-gradient(135deg, #f8f9fe 0%, #f1f2f6 100%);
-  border-radius: 1rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: #8898aa;
-  border: 2px dashed #dee2e6;
-}
+    .story-image {
+      width: 100%;
+      height: 500px;
+      object-fit: cover;
+      border-radius: $border-radius-2xl * 2;
+      box-shadow: $shadow-strong;
 
-.image-placeholder i {
-  font-size: 4rem;
-  margin-bottom: 1rem;
-  opacity: 0.5;
+      @media (max-width: 768px) {
+        height: 400px;
+      }
+    }
+  }
 }
 
 /* Values Section */
 .values-section {
-  padding: 5rem 0;
-  background-color: #f8f9fe;
+  padding: 6rem 0;
+  background: white;
 }
 
 .section-header {
   text-align: center;
-  margin-bottom: 3rem;
-}
+  margin-bottom: 4rem;
 
-.section-header h2 {
-  font-size: 2.5rem;
-  color: #32325d;
-  margin-bottom: 1rem;
-}
+  h2 {
+    font-size: $font-size-4xl;
+    color: $text-primary;
+    margin-bottom: 1rem;
+    font-family: $font-family-display;
+    font-weight: 400;
+  }
 
-.section-header p {
-  color: #8898aa;
-  font-size: 1.125rem;
+  p {
+    color: $text-secondary;
+    font-size: $font-size-lg;
+  }
 }
 
 .values-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
 }
 
 .value-card {
   background: white;
-  padding: 2rem;
-  border-radius: 1rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+  padding: 2rem 1.5rem;
+  border-radius: $border-radius-xl;
+  box-shadow: $shadow-soft;
   text-align: center;
-  transition: transform 0.3s ease;
-}
+  transition: all $transition-base;
+  border: 1px solid rgba($border-color, 0.3);
 
-.value-card:hover {
-  transform: translateY(-5px);
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: $shadow-strong;
+  }
 }
 
 .value-icon {
-  width: 4rem;
-  height: 4rem;
-  border-radius: 1rem;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: $border-radius-lg;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 1.5rem;
+  margin: 0 auto 1.25rem;
   color: white;
-  font-size: 1.5rem;
-}
-
-.value-card h3 {
-  color: #32325d;
-  margin-bottom: 1rem;
   font-size: 1.25rem;
 }
 
+.value-card h3 {
+  color: $text-primary;
+  margin-bottom: 1rem;
+  font-size: $font-size-lg;
+  font-family: $font-family-display;
+  font-weight: 400;
+}
+
 .value-card p {
-  color: #8898aa;
-  line-height: 1.6;
+  color: $text-secondary;
+  line-height: $line-height-relaxed;
+  font-size: $font-size-sm;
 }
 
 /* Team Section */
 .team-section {
-  padding: 5rem 0;
-  background: white;
+  padding: 6rem 0;
+  background: $bg-secondary;
 }
 
 .team-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
 }
 
 .team-member {
   background: white;
-  padding: 2rem;
-  border-radius: 1rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+  padding: 2rem 1.5rem;
+  border-radius: $border-radius-xl;
+  box-shadow: $shadow-soft;
   text-align: center;
-  border: 1px solid #e9ecef;
-  transition: all 0.3s ease;
-}
+  transition: all $transition-base;
 
-.team-member:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: $shadow-strong;
+  }
 }
 
 .member-avatar {
-  margin-bottom: 1.5rem;
-}
+  margin-bottom: 1.25rem;
 
-.member-avatar img {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  border: 4px solid #f8f9fe;
-  object-fit: cover;
+  img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 3px solid $cream;
+    object-fit: cover;
+  }
 }
 
 .team-member h4 {
-  color: #32325d;
+  color: $text-primary;
   margin-bottom: 0.5rem;
-  font-size: 1.25rem;
+  font-size: $font-size-lg;
+  font-family: $font-family-display;
+  font-weight: 400;
 }
 
 .member-role {
-  color: #5e72e4;
-  font-weight: 600;
-  font-size: 0.875rem;
+  color: $accent;
+  font-weight: $font-weight-semibold;
+  font-size: $font-size-sm;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   display: block;
@@ -458,105 +515,117 @@ export default {
 }
 
 .team-member p {
-  color: #8898aa;
-  line-height: 1.6;
+  color: $text-secondary;
+  line-height: $line-height-relaxed;
   margin-bottom: 1.5rem;
-  font-size: 0.9rem;
+  font-size: $font-size-sm;
 }
 
 .member-social {
   display: flex;
   justify-content: center;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .social-link {
   width: 35px;
   height: 35px;
   border-radius: 50%;
-  background-color: #f8f9fe;
-  color: #8898aa;
+  background: $gradient-warm;
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   text-decoration: none;
-  transition: all 0.15s ease;
+  transition: all $transition-base;
+  font-size: $font-size-sm;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: $shadow-accent;
+  }
 }
 
-.social-link:hover {
-  background-color: #5e72e4;
-  color: white;
-  transform: translateY(-2px);
+/* Experience Section */
+.experience-section {
+  padding: 6rem 0;
+  background: white;
 }
 
-/* Certifications Section */
-.certifications-section {
-  padding: 5rem 0;
-  background-color: #f8f9fe;
-}
-
-.certifications-grid {
+.experience-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 2rem;
 }
 
-.certification-item {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 0.75rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+.experience-item {
+  background: $bg-secondary;
+  padding: 2rem;
+  border-radius: $border-radius-xl;
   text-align: center;
-  border: 1px solid #e9ecef;
+  border: 1px solid rgba($border-color, 0.3);
+  transition: all $transition-base;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: $shadow-soft;
+  }
 }
 
-.cert-logo {
-  width: 3rem;
-  height: 3rem;
-  background: linear-gradient(135deg, #5e72e4 0%, #825ee4 100%);
-  border-radius: 0.5rem;
+.exp-icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  background: $gradient-warm;
+  border-radius: $border-radius-lg;
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto 1rem;
   color: white;
-  font-size: 1.25rem;
+  font-size: 1.5rem;
 }
 
-.certification-item h4 {
-  color: #32325d;
-  margin-bottom: 0.5rem;
-  font-size: 1rem;
+.experience-item h4 {
+  color: $text-primary;
+  margin-bottom: 1rem;
+  font-size: $font-size-lg;
+  font-family: $font-family-display;
+  font-weight: 400;
 }
 
-.certification-item p {
-  color: #8898aa;
-  font-size: 0.875rem;
-  line-height: 1.5;
+.experience-item p {
+  color: $text-secondary;
+  font-size: $font-size-sm;
+  line-height: $line-height-relaxed;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .hero-content h1 {
-    font-size: 2.5rem;
+  .about-hero {
+    padding: 6rem 0 3rem;
   }
   
-  .story-content {
-    grid-template-columns: 1fr;
-    gap: 2rem;
+  .story-section,
+  .values-section,
+  .team-section,
+  .experience-section {
+    padding: 4rem 0;
   }
   
   .story-stats {
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
   }
-  
-  .section-header h2 {
-    font-size: 2rem;
+
+  .values-grid,
+  .team-grid {
+    gap: 1rem;
   }
-  
-  .team-grid,
-  .values-grid {
-    grid-template-columns: 1fr;
+
+  .value-card,
+  .team-member {
+    padding: 1.5rem 1rem;
   }
 }
-</style> -->
+</style>
