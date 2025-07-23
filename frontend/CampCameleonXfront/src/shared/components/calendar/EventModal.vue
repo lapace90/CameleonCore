@@ -435,7 +435,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<!-- <style scoped>
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -741,4 +741,4 @@ export default {
     justify-content: center;
   }
 }
-</style>
+</style> -->

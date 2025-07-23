@@ -25,8 +25,6 @@
 // Import FontAwesome
 @import '@fortawesome/fontawesome-free/css/all.css';
 
-
-
 // Import des polices Google Fonts
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
 
@@ -414,7 +412,7 @@ body {
 // LAYOUT PUBLIC
 // ========================================
 .public-layout {
-  min-height: 100vh;
+  // min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
@@ -422,7 +420,6 @@ body {
 .public-layout .main-content {
   flex: 1;
   margin-left: 0 !important;
-  /* Override admin margin */
   padding-top: var(--header-height);
 }
 
@@ -449,12 +446,6 @@ body {
   position: relative;
   overflow: hidden;
   text-align: center;
-}
-
-.hero-content {
-  position: relative;
-  z-index: 1;
-  margin-bottom: 3rem;
 }
 
 .hero-title {
@@ -800,7 +791,8 @@ body {
       font-family: var(--font-display);
 
       @media (max-width: 768px) {
-        font-size: 2.5rem;
+        font-size: 2.2rem !important;
+        
       }
 
       .hero-highlight {
@@ -1165,5 +1157,6 @@ body {
 // Fix pour s'assurer que le contenu est visible
 .main-content {
   background: transparent;
-  min-height: 100vh;
 }
+
+// Agenda

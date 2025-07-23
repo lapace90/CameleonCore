@@ -135,7 +135,9 @@ export default {
         'AdminDashboard': 'Dashboard',
         'AdminUsers': 'Gestion des utilisateurs',
         'AdminAnalytics': 'Analytics',
-        'AdminSettings': 'Paramètres'
+        'FullAgenda': 'Agenda',
+        'AdminSettings': 'Paramètres',
+        'ProductShow': 'Services'        
       };
       return titles[routeName] || 'Admin';
     },

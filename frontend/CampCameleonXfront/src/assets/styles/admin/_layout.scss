@@ -9,6 +9,10 @@
   flex-direction: column;
   margin-left: var(--sidebar-width);
 
+  .admin-container {
+    padding: 1.2rem;
+  }
+
   .admin-content-wrapper {
     flex: 1; 
     display: flex;
@@ -239,7 +243,7 @@
 
         &:not(:last-child)::after {
           content: '/';
-          margin-left: 0.5rem;
+          // margin-left: 0.5rem;
           color: $border-color;
         }
 

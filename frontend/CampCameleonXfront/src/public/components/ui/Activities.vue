@@ -334,7 +334,7 @@ export default {
         font-weight: 300;
         line-height: $line-height-tight;
         margin-bottom: 1rem;
-        font-family: $font-family-heading;
+        font-family: $font-family-primary;
         color: $bg-default;
     }
 
@@ -342,11 +342,11 @@ export default {
         font-size: 2rem;
         font-weight: 300;
         color: $bg-default;
-        font-family: $font-family-heading;
+        font-family: $font-family-primary;
     }
 }
 
-/* ===== STYLES CARROUSEL (existants) ===== */
+/* ===== STYLES CARROUSEL ===== */
 .carousel-container {
     position: relative;
     max-width: 900px;

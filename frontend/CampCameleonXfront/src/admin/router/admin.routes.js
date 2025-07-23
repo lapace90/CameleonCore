@@ -4,9 +4,12 @@ import Dashboard from '../views/Dashboard.vue'
 import Users from '../views/Users.vue'
 import Settings from '../views/Settings.vue'
 import Analytics from '../views/Analytics.vue'
-import AdminCalendar from '../views/AdminCalendar.vue'
 import FullCalendar from '@/shared/components/calendar/FullCalendar.vue'
 
+// Import des composants produits
+import ProductsShow from '../views/products/ProductsShow.vue'
+import ProductDetail from '../views/products/ProductDetail.vue'
+import ProductForm from '../views/products/ProductForm.vue'
 
 export default [
   {
@@ -24,7 +27,7 @@ export default [
       },
       {
         path: 'users',
-        name: 'AdminUsers', 
+        name: 'AdminUsers',
         component: Users
       },
       {
@@ -39,8 +42,39 @@ export default [
       },
       {
         path: 'agenda',
-        name: 'AdminCalendar',
+        name: 'FullAgenda',
         component: FullCalendar
+      },
+      // Routes produits
+      {
+        path: 'products/:type',
+        name: 'ProductsShow',
+        component: ProductsShow,
+        props: true
+      },
+      {
+        path: 'products/:type/create',
+        name: 'ProductCreate',
+        component: ProductForm,
+        props: route => ({
+          productType: route.params.type,
+          action: 'create'
+        })
+      },
+      {
+        path: 'products/:type/:id',
+        name: 'ProductDetail',
+        component: ProductDetail,
+        props: true
+      },
+      {
+        path: 'products/:type/:id/edit',
+        name: 'ProductEdit',
+        component: ProductForm,
+        props: route => ({
+          productType: route.params.type,
+          action: 'edit'
+        })
       }
     ]
   }

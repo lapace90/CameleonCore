@@ -2,18 +2,19 @@
   <div class="admin-layout">
     <!-- Sidebar -->
     <AdminSidebar />
-    
-      <!-- Header -->
-      <AdminHeader />
-      
-      <!-- Page content -->
+
+    <!-- Header -->
+    <AdminHeader />
+
+    <!-- Page content -->
+    <div class="admin-container">
       <main class="admin-content-wrapper">
         <router-view />
       </main>
-      
-      <!-- Footer -->
-      <AdminFooter />
     </div>
+    <!-- Footer -->
+    <AdminFooter />
+  </div>
 
 </template>
 
@@ -31,3 +32,6 @@ export default {
   }
 }
 </script>
+<style>
+@import './src/assets/styles/shared.scss';
+</style>

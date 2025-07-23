@@ -11,7 +11,7 @@
     <!-- Navigation -->
     <nav class="sidebar-nav">
       <ul class="nav-list">
-        
+
         <!-- Agenda -->
         <li class="nav-item">
           <router-link to="/admin/agenda" class="nav-link">
@@ -29,21 +29,21 @@
 
         <!-- Restauration -->
         <li class="nav-item">
-          <router-link to="/admin/restauration" class="nav-link">
+          <router-link to="/admin/products/menu" class="nav-link">
             <i class="fa-solid fa-utensils"></i>
             <span>Restauration</span>
           </router-link>
         </li>
         <!-- Activités -->
         <li class="nav-item">
-          <router-link to="/admin/activities" class="nav-link">
+          <router-link to="/admin/products/activity" class="nav-link">
             <i class="fa-solid fa-person-hiking"></i>
             <span>Activités</span>
           </router-link>
         </li>
         <!-- Chambres -->
         <li class="nav-item">
-          <router-link to="/admin/rooms" class="nav-link">
+          <router-link to="/admin/products/room" class="nav-link">
             <i class="fa-solid fa-bed"></i>
             <!-- <i class="fa-solid fa-campground"></i> -->
             <span>Chambres</span>

@@ -1,0 +1,1393 @@
+<template>
+  <div class="products-container">
+    <!-- Header avec titre et actions -->
+    <div class="products-header">
+      <div class="header-left">
+        <div class="product-type-info">
+          <div class="type-icon" :style="{ backgroundColor: typeConfig.color }">
+            <i :class="typeConfig.icon"></i>
+          </div>
+          <div class="type-details">
+            <h1 class="page-title">{{ typeConfig.label }}</h1>
+            <p class="page-subtitle">Gestion de {{ typeConfig.label.toLowerCase() }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button @click="exportProducts" class="btn btn-secondary">
+          <i class="fas fa-download"></i>
+          Exporter
+        </button>
+        <router-link :to="{ name: 'ProductCreate', params: { type: type } }" class="btn btn-primary">
+          <i class="fas fa-plus"></i>
+          Nouveau {{ typeConfig.singular }}
+        </router-link>
+      </div>
+    </div>
+
+    <!-- Filtres et recherche -->
+    <div class="products-filters">
+      <div class="filters-row">
+        <!-- Recherche -->
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input v-model="filters.search" type="text" placeholder="Rechercher..." @input="debouncedSearch" />
+        </div>
+
+        <!-- Filtres -->
+        <div class="filter-group">
+          <select v-model="filters.category" @change="fetchProducts" class="filter-select">
+            <option value="">Toutes les catégories</option>
+            <option v-for="category in categories" :key="category.id" :value="category.id">
+              {{ category.name }}
+            </option>
+          </select>
+
+          <select v-model="filters.status" @change="fetchProducts" class="filter-select">
+            <option value="">Tous les statuts</option>
+            <option value="active">Actif</option>
+            <option value="inactive">Inactif</option>
+            <option value="draft">Brouillon</option>
+          </select>
+
+          <button @click="resetFilters" class="btn btn-outline">
+            <i class="fas fa-times"></i>
+            Reset
+          </button>
+        </div>
+
+        <!-- Sélection d'affichage -->
+        <div class="view-switcher">
+          <button @click="viewMode = 'grid'" class="view-btn" :class="{ active: viewMode === 'grid' }">
+            <i class="fas fa-th"></i>
+          </button>
+          <button @click="viewMode = 'list'" class="view-btn" :class="{ active: viewMode === 'list' }">
+            <i class="fas fa-list"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats rapides -->
+    <div class="products-stats">
+      <div class="stat-item">
+        <span class="stat-number">{{ stats.total }}</span>
+        <span class="stat-label">Total</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">{{ stats.active }}</span>
+        <span class="stat-label">Actifs</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">{{ stats.draft }}</span>
+        <span class="stat-label">Brouillons</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">{{ stats.revenue }}</span>
+        <span class="stat-label">CA moyen</span>
+      </div>
+    </div>
+
+    <!-- Actions en lot -->
+    <div v-if="selectedProducts.length > 0" class="bulk-actions">
+      <div class="bulk-info">
+        <span>{{ selectedProducts.length }} produit(s) sélectionné(s)</span>
+      </div>
+      <div class="bulk-buttons">
+        <button @click="bulkAction('activate')" class="btn btn-success btn-sm">
+          <i class="fas fa-check"></i>
+          Activer
+        </button>
+        <button @click="bulkAction('deactivate')" class="btn btn-warning btn-sm">
+          <i class="fas fa-pause"></i>
+          Désactiver
+        </button>
+        <button @click="bulkAction('delete')" class="btn btn-danger btn-sm">
+          <i class="fas fa-trash"></i>
+          Supprimer
+        </button>
+      </div>
+    </div>
+
+    <!-- Message d'erreur -->
+    <div v-if="error" class="error-message">
+      <div class="alert alert-danger">
+        <i class="fas fa-exclamation-triangle"></i>
+        {{ error }}
+        <button @click="error = null" class="btn-close">&times;</button>
+      </div>
+    </div>
+
+    <!-- Contenu principal -->
+    <div class="products-content">
+      <!-- Loading -->
+      <div v-if="loading" class="loading-state">
+        <div class="spinner"></div>
+        <p>Chargement des produits...</p>
+      </div>
+
+      <!-- Vue grille -->
+      <div v-else-if="viewMode === 'grid'" class="products-grid">
+        <div v-for="product in filteredProducts" :key="product.id" class="product-card"
+          :class="{ selected: selectedProducts.includes(product.id) }">
+          <div class="card-header">
+            <input type="checkbox" :value="product.id" v-model="selectedProducts" class="product-checkbox" />
+            <div class="product-status" :class="getStatusClass(product)">
+              {{ getStatusLabel(product) }}
+            </div>
+          </div>
+
+          <div class="card-image">
+            <img :src="getValidImageUrl(product.image)" :alt="product.name" @error="handleImageError" />
+            <div class="image-overlay">
+              <button @click="viewProduct(product)" class="overlay-btn">
+                <i class="fas fa-eye"></i>
+              </button>
+              <button @click="editProduct(product)" class="overlay-btn">
+                <i class="fas fa-edit"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="card-content">
+            <h3 class="product-name">{{ product.name }}</h3>
+            <p class="product-category">{{ getProductCategoryName(product) }}</p>
+            <p class="product-description">{{ truncateText(product.description, 80) }}</p>
+
+            <!-- Champs spécifiques par type -->
+            <!-- <div class="product-specifics" v-if="product.productable">
+              <div v-for="(value, key) in product.productable" :key="key" class="specific-field">
+                <span class="field-label" v-if="key && typeof key === 'string'">{{ getFieldLabel(key) }}:</span>
+                <span class="field-value">{{ formatFieldValue(product.productable, key) }}</span>
+              </div>
+            </div> -->
+
+            <div class="card-footer">
+              <div class="product-price">
+                {{ formatPrice(product.price) }}
+              </div>
+              <div class="card-actions">
+                <button @click="duplicateProduct(product)" class="btn-icon" title="Dupliquer">
+                  <i class="fas fa-copy"></i>
+                </button>
+                <button @click="toggleStatus(product)" class="btn-icon"
+                  :title="product.status ? 'Désactiver' : 'Activer'">
+                  <i :class="product.status ? 'fas fa-pause' : 'fas fa-play'"></i>
+                </button>
+                <button @click="deleteProduct(product)" class="btn-icon text-danger" title="Supprimer">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vue liste -->
+      <div v-else class="products-table">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>
+                <input type="checkbox" :checked="allSelected" @change="toggleAllSelection" />
+              </th>
+              <th>Image</th>
+              <th @click="sortBy('name')" class="sortable">
+                Nom
+                <i class="fas fa-sort"></i>
+              </th>
+              <th>Catégorie</th>
+              <th v-for="field in safeListColumns" :key="field" @click="sortBy(field)" class="sortable">
+                {{ getFieldLabel(field) }}
+                <i class="fas fa-sort"></i>
+              </th>
+              <th @click="sortBy('price')" class="sortable">
+                Prix
+                <i class="fas fa-sort"></i>
+              </th>
+              <th>Statut</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="product in filteredProducts" :key="product.id"
+              :class="{ selected: selectedProducts.includes(product.id) }">
+              <td>
+                <input type="checkbox" :value="product.id" v-model="selectedProducts" />
+              </td>
+              <td>
+                <div class="table-image">
+                  <img :src="getValidImageUrl(product.image)" :alt="product.name" @error="handleImageError" />
+                </div>
+              </td>
+              <td>
+                <div class="product-name-cell">
+                  <strong>{{ product.name }}</strong>
+                  <p class="product-description-mini">{{ truncateText(product.description, 50) }}</p>
+                </div>
+              </td>
+              <td>
+                <span class="category-badge">{{ getProductCategoryName(product) }}</span>
+              </td>
+              <td v-for="field in safeListColumns" :key="field">
+                {{ formatFieldValue(product.productable, field) }}
+              </td>
+              <td>
+                <span class="price-value">{{ formatPrice(product.price) }}</span>
+              </td>
+              <td>
+                <span class="status-badge" :class="getStatusClass(product)">
+                  {{ getStatusLabel(product) }}
+                </span>
+              </td>
+              <td>
+                <div class="table-actions">
+                  <button @click="viewProduct(product)" class="btn-icon" title="Voir">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button @click="editProduct(product)" class="btn-icon" title="Modifier">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button @click="duplicateProduct(product)" class="btn-icon" title="Dupliquer">
+                    <i class="fas fa-copy"></i>
+                  </button>
+                  <button @click="deleteProduct(product)" class="btn-icon text-danger" title="Supprimer">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty state -->
+      <div v-if="!loading && filteredProducts.length === 0" class="empty-state">
+        <div class="empty-icon">
+          <i :class="typeConfig.icon"></i>
+        </div>
+        <h3>Aucun {{ typeConfig.singular.toLowerCase() }} trouvé</h3>
+        <p>Commencez par créer votre premier {{ typeConfig.singular.toLowerCase() }}</p>
+        <router-link :to="{ name: 'ProductCreate', params: { type: type } }" class="btn btn-primary">
+          <i class="fas fa-plus"></i>
+          Créer {{ typeConfig.singular }}
+        </router-link>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div v-if="pagination.total > pagination.perPage" class="products-pagination">
+      <div class="pagination-info">
+        Affichage de {{ pagination.from }} à {{ pagination.to }} sur {{ pagination.total }} résultats
+      </div>
+      <div class="pagination-controls">
+        <button @click="changePage(pagination.currentPage - 1)" :disabled="pagination.currentPage === 1"
+          class="btn btn-outline btn-sm">
+          <i class="fas fa-chevron-left"></i>
+          Précédent
+        </button>
+
+        <span class="pagination-pages">
+          <button v-for="page in visiblePages" :key="page" @click="changePage(page)" class="btn btn-sm"
+            :class="page === pagination.currentPage ? 'btn-primary' : 'btn-outline'">
+            {{ page }}
+          </button>
+        </span>
+
+        <button @click="changePage(pagination.currentPage + 1)"
+          :disabled="pagination.currentPage === pagination.lastPage" class="btn btn-outline btn-sm">
+          Suivant
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import axios from 'axios'
+
+export default {
+  name: 'ProductsShow',
+  props: {
+    type: {
+      type: String,
+      required: true
+    }
+  },
+
+  data() {
+    return {
+      loading: false,
+      viewMode: 'grid',
+      products: [],
+      filteredProducts: [],
+      categories: [],
+      selectedProducts: [],
+      searchTimeout: null,
+      error: null,
+
+      filters: {
+        search: '',
+        category: '',
+        status: ''
+      },
+
+      pagination: {
+        currentPage: 1,
+        perPage: 20,
+        total: 0,
+        lastPage: 1,
+        from: 0,
+        to: 0
+      },
+
+      stats: {
+        total: 0,
+        active: 0,
+        draft: 0,
+        revenue: '0€'
+      },
+
+      productConfigs: {
+        activity: {
+          label: 'Activités',
+          singular: 'Activité',
+          icon: 'fas fa-hiking',
+          color: '#3b82f6',
+          gridFields: ['duration', 'capacity'],
+          listColumns: ['duration', 'capacity']
+        },
+        menu: {
+          label: 'Menus',
+          singular: 'Menu',
+          icon: 'fas fa-utensils',
+          color: '#10b981',
+          gridFields: ['ingredients'],
+          listColumns: ['ingredients']
+        },
+        room: {
+          label: 'Hébergements',
+          singular: 'Hébergement',
+          icon: 'fas fa-bed',
+          color: '#f59e0b',
+          gridFields: ['capacity'],
+          listColumns: ['capacity']
+        },
+        option: {
+          label: 'Options',
+          singular: 'Option',
+          icon: 'fas fa-puzzle-piece',
+          color: '#8b5cf6',
+          gridFields: ['type'],
+          listColumns: ['type']
+        }
+      }
+    }
+  },
+
+  computed: {
+    typeConfig() {
+      return this.productConfigs[this.type] || this.productConfigs.activity
+    },
+
+    // Safe list columns - ensure they are always strings
+    safeListColumns() {
+      const columns = this.typeConfig.listColumns || []
+      return columns.filter(col => col && typeof col === 'string')
+    },
+
+    allSelected() {
+      return this.filteredProducts.length > 0 && this.selectedProducts.length === this.filteredProducts.length
+    },
+
+    visiblePages() {
+      const pages = []
+      const current = this.pagination.currentPage
+      const last = this.pagination.lastPage
+
+      // Simple pagination logic - show current page and neighbors
+      for (let i = Math.max(1, current - 2); i <= Math.min(last, current + 2); i++) {
+        pages.push(i)
+      }
+
+      return pages
+    }
+  },
+
+  created() {
+    this.debouncedSearch = this.debounce(this.applyFilters, 500)
+    this.fetchProducts()
+    this.fetchCategories()
+  },
+
+  methods: {
+    debounce(func, wait) {
+      let timeout
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout)
+          func.apply(this, args)
+        }
+        clearTimeout(timeout)
+        timeout = setTimeout(later, wait)
+      }.bind(this)
+    },
+
+    async fetchProducts() {
+      this.loading = true
+      this.error = null
+
+      try {
+        // Build API URL with filters
+        const params = new URLSearchParams()
+        if (this.type) {
+          params.append('type', this.type)
+        }
+        if (this.filters.search) {
+          params.append('search', this.filters.search)
+        }
+        if (this.filters.status) {
+          params.append('status', this.filters.status)
+        }
+        if (this.filters.category) {
+          params.append('category_id', this.filters.category)
+        }
+        params.append('page', this.pagination.currentPage)
+        params.append('per_page', this.pagination.perPage)
+
+        const url = `/api/products${params.toString() ? '?' + params.toString() : ''}`
+        console.log('Fetching products from:', url)
+
+        const response = await axios.get(url, {
+          headers: {
+            'Accept': 'application/ld+json',
+            'Content-Type': 'application/json'
+          }
+        })
+
+        console.log('API Response:', response.data)
+
+        // Handle API Platform JSON-LD response format
+        if (response.data && response.data.member) {
+          this.products = response.data.member
+
+          // Update pagination info
+          if (response.data.totalItems) {
+            this.pagination.total = response.data.totalItems
+            this.pagination.lastPage = Math.ceil(this.pagination.total / this.pagination.perPage)
+          }
+
+          // Filter by product type if not done by API
+          this.applyFilters()
+          this.updateStats()
+        } else {
+          console.warn('Unexpected API response format:', response.data)
+          this.products = []
+          this.filteredProducts = []
+        }
+
+      } catch (error) {
+        console.error('Erreur lors du chargement des produits:', error)
+        this.error = 'Erreur lors du chargement des produits. Vérifiez que l\'API est démarrée.'
+        this.products = []
+        this.filteredProducts = []
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async fetchCategories() {
+      try {
+        const response = await axios.get('/api/categories', {
+          headers: {
+            'Accept': 'application/ld+json',
+            'Content-Type': 'application/json'
+          }
+        })
+
+        // Handle API Platform JSON-LD response format
+        if (response.data && response.data.member) {
+          this.categories = response.data.member
+        } else if (Array.isArray(response.data)) {
+          this.categories = response.data
+        } else {
+          console.warn('Unexpected categories response format:', response.data)
+          this.categories = []
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des catégories:', error)
+        // Don't show error for categories as it's not critical
+        this.categories = []
+      }
+    },
+
+    getProductType(productableType) {
+      const typeMap = {
+        'App\\Models\\Activity': 'activity',
+        'App\\Models\\Room': 'room',
+        'App\\Models\\Menu': 'menu',
+        'App\\Models\\Dish': 'menu',
+        'App\\Models\\Option': 'option'
+      }
+      return typeMap[productableType] || null
+    },
+
+    applyFilters() {
+      let filtered = [...this.products]
+
+      // Filter by product type (if not filtered by API)
+      if (this.type) {
+        filtered = filtered.filter(product => {
+          const productType = this.getProductType(product.productableType)
+          return productType === this.type
+        })
+      }
+
+      // Search filter
+      if (this.filters.search) {
+        const searchLower = this.filters.search.toLowerCase()
+        filtered = filtered.filter(product =>
+          product.name.toLowerCase().includes(searchLower) ||
+          (product.description && product.description.toLowerCase().includes(searchLower))
+        )
+      }
+
+      // Status filter
+      if (this.filters.status) {
+        filtered = filtered.filter(product => {
+          if (this.filters.status === 'active') return product.status && !product.isDraft
+          if (this.filters.status === 'inactive') return !product.status
+          if (this.filters.status === 'draft') return product.isDraft
+          return true
+        })
+      }
+
+      // Category filter
+      if (this.filters.category) {
+        filtered = filtered.filter(product => {
+          // Handle API Platform IRI format
+          if (typeof product.category === 'string') {
+            return product.category.includes(`/api/categories/${this.filters.category}`)
+          }
+          return product.category?.id == this.filters.category
+        })
+      }
+
+      this.filteredProducts = filtered
+      this.updatePaginationInfo()
+    },
+
+    updateStats() {
+      const products = this.filteredProducts
+      this.stats = {
+        total: products.length,
+        active: products.filter(p => p.status && !p.isDraft).length,
+        draft: products.filter(p => p.isDraft).length,
+        revenue: this.formatPrice(products.reduce((sum, p) => sum + parseFloat(p.price || 0), 0) / (products.length || 1))
+      }
+    },
+
+    updatePaginationInfo() {
+      const total = this.filteredProducts.length
+      const perPage = this.pagination.perPage
+      const currentPage = this.pagination.currentPage
+
+      this.pagination.from = total > 0 ? ((currentPage - 1) * perPage) + 1 : 0
+      this.pagination.to = Math.min(currentPage * perPage, total)
+    },
+
+    getProductCategoryName(product) {
+      if (typeof product.category === 'string') {
+        // If category is an IRI, we need to find it in our categories array
+        const categoryId = product.category.split('/').pop()
+        const category = this.categories.find(c => c.id == categoryId)
+        return category?.name || 'Sans catégorie'
+      }
+      return product.category?.name || 'Sans catégorie'
+    },
+
+    // Actions
+    viewProduct(product) {
+      this.$router.push({
+        name: 'ProductDetail',
+        params: { type: this.type, id: product.id }
+      })
+    },
+
+    editProduct(product) {
+      this.$router.push({
+        name: 'ProductEdit',
+        params: { type: this.type, id: product.id }
+      })
+    },
+
+    async duplicateProduct(product) {
+      if (!confirm(`Dupliquer "${product.name}" ?`)) return
+
+      try {
+        const duplicatedData = { ...product }
+        delete duplicatedData.id
+        delete duplicatedData['@id']
+        delete duplicatedData['@type']
+        duplicatedData.name = `${product.name} (copie)`
+
+        await axios.post('/api/products', duplicatedData)
+        this.fetchProducts()
+      } catch (error) {
+        console.error('Erreur duplication:', error)
+        this.error = 'Erreur lors de la duplication du produit'
+      }
+    },
+
+    toggleAllSelection() {
+      if (this.allSelected) {
+        this.selectedProducts = []
+      } else {
+        this.selectedProducts = this.filteredProducts.map(p => p.id)
+      }
+    },
+
+    async bulkAction(action) {
+      if (!confirm(`Confirmer l'action "${action}" sur ${this.selectedProducts.length} produit(s) ?`)) return
+
+      try {
+        const promises = this.selectedProducts.map(async (productId) => {
+          const product = this.products.find(p => p.id === productId)
+          if (!product) return
+
+          switch (action) {
+            case 'activate':
+              return axios.patch(`/api/products/${productId}`, { status: true, isDraft: false })
+            case 'deactivate':
+              return axios.patch(`/api/products/${productId}`, { status: false })
+            case 'delete':
+              return axios.delete(`/api/products/${productId}`)
+          }
+        })
+
+        await Promise.all(promises)
+        this.selectedProducts = []
+        this.fetchProducts()
+      } catch (error) {
+        console.error(`Erreur action ${action}:`, error)
+        this.error = `Erreur lors de l'action ${action}`
+      }
+    },
+
+    resetFilters() {
+      this.filters = { search: '', category: '', status: '' }
+      this.pagination.currentPage = 1
+      this.fetchProducts()
+    },
+
+    sortBy(field) {
+      // TODO: Implement sorting
+      console.log('Tri par:', field)
+    },
+
+    changePage(page) {
+      if (page >= 1 && page <= this.pagination.lastPage) {
+        this.pagination.currentPage = page
+        this.fetchProducts()
+      }
+    },
+
+    async deleteProduct(product) {
+      if (!confirm(`Supprimer "${product.name}" ?`)) return
+
+      try {
+        await axios.delete(`/api/products/${product.id}`)
+        this.fetchProducts()
+      } catch (error) {
+        console.error('Erreur suppression:', error)
+        this.error = 'Erreur lors de la suppression du produit'
+      }
+    },
+
+    async toggleStatus(product) {
+      try {
+        const response = await axios.patch(`/api/products/${product.id}`, {
+          status: !product.status
+        })
+
+        // Update local product
+        const index = this.products.findIndex(p => p.id === product.id)
+        if (index !== -1) {
+          this.products[index].status = !product.status
+        }
+
+        this.applyFilters()
+        this.updateStats()
+      } catch (error) {
+        console.error('Erreur toggle status:', error)
+        this.error = 'Erreur lors de la modification du statut'
+      }
+    },
+
+    // Utility methods
+    getFieldLabel(field) {
+      // Ensure field is a string
+      if (!field || typeof field !== 'string') {
+        return 'N/A'
+      }
+
+      const labels = {
+        duration: 'Durée',
+        capacity: 'Capacité',
+        ingredients: 'Ingrédients',
+        type: 'Type',
+        createdAt: 'Créé le',
+        updatedAt: 'Modifié le'
+      }
+      return labels[field] || field.charAt(0).toUpperCase() + field.slice(1)
+    },
+
+    // Fix malformed image URLs
+    getValidImageUrl(imageUrl) {
+      if (!imageUrl) {
+        return this.getPlaceholderImage()
+      }
+
+      // Check if URL contains double protocol (malformed)
+      if (imageUrl.includes('storage/https://') || imageUrl.includes('storage/http://')) {
+        // Extract the actual image URL after 'storage/'
+        const match = imageUrl.match(/storage\/(https?:\/\/.+)/)
+        if (match && match[1]) {
+          return match[1]
+        }
+      }
+
+      // Check if it's a valid URL
+      try {
+        new URL(imageUrl)
+        return imageUrl
+      } catch (error) {
+        console.warn('Invalid image URL:', imageUrl)
+        return this.getPlaceholderImage()
+      }
+    },
+
+    getPlaceholderImage() {
+      // Create a simple SVG placeholder
+      const svg = `
+        <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+          <rect width="200" height="200" fill="#f3f4f6"/>
+          <text x="100" y="100" text-anchor="middle" dy=".3em" font-family="Arial, sans-serif" font-size="14" fill="#9ca3af">
+            Image non disponible
+          </text>
+        </svg>
+      `
+      return 'data:image/svg+xml;base64,' + btoa(svg)
+    },
+
+    formatFieldValue(productable, field) {
+      // Ensure field is a string and productable exists
+      if (!field || typeof field !== 'string' || !productable) {
+        return '-'
+      }
+
+      if (productable[field] === undefined || productable[field] === null) {
+        return '-'
+      }
+
+      const value = productable[field]
+
+      // Handle different field types
+      switch (field) {
+        case 'duration':
+          return `${value} min`
+        case 'capacity':
+          return `${value} pers.`
+        case 'createdAt':
+        case 'updatedAt':
+          return new Date(value).toLocaleDateString('fr-FR')
+        default:
+          return value.toString()
+      }
+    },
+
+    truncateText(text, length) {
+      if (!text) return ''
+      return text.length > length ? text.substring(0, length) + '...' : text
+    },
+
+    handleImageError(event) {
+      console.warn('Image failed to load:', event.target.src)
+      event.target.src = this.getPlaceholderImage()
+      // Prevent infinite error loops
+      event.target.onerror = null
+    },
+
+    exportProducts() {
+      // TODO: Implement export functionality
+      console.log('Export des produits')
+    },
+
+    getStatusClass(product) {
+      if (product.isDraft) return 'status-draft'
+      return product.status ? 'status-active' : 'status-inactive'
+    },
+
+    getStatusLabel(product) {
+      if (product.isDraft) return 'Brouillon'
+      return product.status ? 'Actif' : 'Inactif'
+    },
+
+    formatPrice(price) {
+      return new Intl.NumberFormat('fr-FR', {
+        style: 'currency',
+        currency: 'EUR'
+      }).format(parseFloat(price) || 0)
+    }
+  }
+}
+</script>
+
+<style scoped>
+.products-container {
+  padding: 2rem;
+}
+
+.products-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.product-type-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.type-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.page-subtitle {
+  margin: 0;
+  color: #6b7280;
+  font-size: 1rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.products-filters {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+}
+
+.filters-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  position: relative;
+  flex: 1;
+  min-width: 250px;
+}
+
+.search-box i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.875rem;
+}
+
+.filter-group {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.filter-select {
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  font-size: 0.875rem;
+  min-width: 150px;
+}
+
+.view-switcher {
+  display: flex;
+  background: #f3f4f6;
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.view-btn {
+  padding: 0.5rem 0.75rem;
+  border: none;
+  background: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.view-btn.active {
+  background: white;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.products-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-item {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.stat-number {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.stat-label {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.bulk-actions {
+  background: #dbeafe;
+  border: 1px solid #3b82f6;
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.bulk-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.product-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.product-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.product-card.selected {
+  border-color: #3b82f6;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+}
+
+.card-image {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+}
+
+.card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.card-image:hover .image-overlay {
+  opacity: 1;
+}
+
+.overlay-btn {
+  background: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.overlay-btn:hover {
+  transform: scale(1.1);
+}
+
+.card-content {
+  padding: 1.5rem;
+}
+
+.product-name {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.product-category {
+  margin: 0 0 0.75rem 0;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.product-description {
+  margin: 0 0 1rem 0;
+  color: #4b5563;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.product-specifics {
+  margin-bottom: 1rem;
+}
+
+.specific-field {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+  font-size: 0.8rem;
+}
+
+.field-label {
+  color: #6b7280;
+}
+
+.field-value {
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.product-price {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #059669;
+}
+
+.card-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.products-table {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.table th {
+  background: #f9fafb;
+  font-weight: 600;
+  color: #374151;
+}
+
+.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.sortable:hover {
+  background: #f3f4f6;
+}
+
+.table-image img {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.product-name-cell strong {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.product-description-mini {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.8rem;
+}
+
+.category-badge,
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.status-active {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-inactive {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-draft {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.table-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.btn-primary {
+  background: #3b82f6;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #2563eb;
+}
+
+.btn-secondary {
+  background: #6b7280;
+  color: white;
+}
+
+.btn-outline {
+  background: white;
+  border: 1px solid #d1d5db;
+  color: #374151;
+}
+
+.btn-success {
+  background: #059669;
+  color: white;
+}
+
+.btn-warning {
+  background: #d97706;
+  color: white;
+}
+
+.btn-danger {
+  background: #dc2626;
+  color: white;
+}
+
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #6b7280;
+}
+
+.btn-icon:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.text-danger {
+  color: #dc2626 !important;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.empty-icon {
+  font-size: 4rem;
+  color: #d1d5db;
+  margin-bottom: 1rem;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f4f6;
+  border-top: 4px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.products-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.pagination-controls {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.pagination-pages {
+  display: flex;
+  gap: 0.25rem;
+}
+
+@media (max-width: 768px) {
+  .products-container {
+    padding: 1rem;
+  }
+
+  .products-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .filters-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-box {
+    min-width: auto;
+  }
+
+  .products-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .products-pagination {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+</style>

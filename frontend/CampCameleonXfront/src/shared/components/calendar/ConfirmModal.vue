@@ -179,7 +179,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<!-- <style scoped>
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -411,4 +411,4 @@ export default {
     max-width: 100%;
   }
 }
-</style>
+</style> -->

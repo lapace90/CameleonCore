@@ -18,44 +18,50 @@
         </div>
       </div>
     </div>
-    
-    <!-- Charts Section -->
-    <div class="charts-section">
-      <div class="chart-card">
-        <div class="card-header">
-          <h3>Réservations par mois</h3>
-          <span class="chart-subtitle">Évolution des réservations</span>
+
+    <!-- Main Content Grid -->
+    <div class="admin-main-content">
+      <!-- Charts Section -->
+      <div class="charts-section">
+        <div class="chart-card">
+          <div class="card-header">
+            <h3>Réservations par mois</h3>
+            <span class="chart-subtitle">Évolution des réservations</span>
+          </div>
+          <div class="chart-placeholder">
+            <i class="fas fa-chart-line chart-icon"></i>
+            <p>Graphique des réservations</p>
+            <small>Intégration Chart.js à venir</small>
+          </div>
         </div>
-        <div class="chart-placeholder">
-          <i class="fas fa-chart-line chart-icon"></i>
-          <p>Graphique des réservations</p>
-          <small>Intégration Chart.js à venir</small>
+
+        <div class="chart-card">
+          <div class="card-header">
+            <h3>Répartition des services</h3>
+            <span class="chart-subtitle">Services les plus demandés</span>
+          </div>
+          <div class="chart-placeholder">
+            <i class="fas fa-chart-pie chart-icon"></i>
+            <p>Graphique circulaire</p>
+            <small>Intégration Chart.js à venir</small>
+          </div>
         </div>
       </div>
-      
-      <div class="chart-card">
-        <div class="card-header">
-          <h3>Répartition des services</h3>
-          <span class="chart-subtitle">Services les plus demandés</span>
-        </div>
-        <div class="chart-placeholder">
-          <i class="fas fa-chart-pie chart-icon"></i>
-          <p>Graphique circulaire</p>
-          <small>Intégration Chart.js à venir</small>
-        </div>
+
+      <!-- Calendar Widget -->
+      <div class="calendar-section">
+        <CalendarWidget 
+          title="Agenda de la semaine" 
+          :show-actions="true" 
+          :show-upcoming="true" 
+          :max-upcoming-events="4"
+          @event-clicked="handleEventClick" 
+          @date-selected="handleDateSelect" 
+          @event-created="handleEventCreated" 
+        />
       </div>
     </div>
 
-    <!-- Mini calendrier -->
-          <div class="calendar-widget">
-            <FullCalendar
-              title="Événements à venir"
-              :show-stats="false"
-              mode="admin"
-              @event-created="handleEventCreated"
-            />
-          </div>
-    
     <!-- Recent Activity -->
     <div class="activity-section">
       <div class="activity-card">
@@ -76,17 +82,46 @@
         </div>
       </div>
     </div>
+
+    <!-- Modales (en dehors du contenu principal) -->
+    <EventModal 
+      :show="showEventModal" 
+      :event="selectedEvent" 
+      :is-editing="isEditing" 
+      @save="handleSaveEvent"
+      @delete="handleDeleteEvent" 
+      @close="closeEventModal" 
+    />
+
+    <ConfirmModal 
+      :show="showConfirmDelete" 
+      title="Supprimer l'événement"
+      message="Êtes-vous sûr de vouloir supprimer cet événement ? Cette action est irréversible." 
+      @confirm="confirmDelete"
+      @cancel="showConfirmDelete = false" 
+    />
   </div>
 </template>
 
 <script>
-import FullCalendar from '@/shared/components/calendar/FullCalendar.vue'
-
+import CalendarWidget from './CalendarWidget.vue'
+import EventModal from '@/shared/components/calendar/EventModal.vue'
+import ConfirmModal from '@/shared/components/calendar/ConfirmModal.vue'
 
 export default {
-  name: 'AdminDashboard',
+  name: 'Dashboard',
+  components: {
+    CalendarWidget,
+    EventModal,
+    ConfirmModal
+  },
   data() {
     return {
+      selectedEvent: null,
+      showEventModal: false,
+      isEditing: false,
+      showConfirmDelete: false,
+      eventToDelete: null,
       stats: [
         {
           id: 1,
@@ -160,6 +195,86 @@ export default {
         }
       ]
     }
+  },
+  methods: {
+    // Gestion du widget calendrier
+    handleEventClick(event) {
+      console.log('Événement cliqué:', event)
+      this.selectedEvent = event
+      this.isEditing = true
+      this.showEventModal = true
+    },
+
+    handleQuickAdd() {
+      this.selectedEvent = {
+        id: null,
+        title: '',
+        start: new Date().toISOString(),
+        end: new Date(Date.now() + 60 * 60 * 1000).toISOString(), // 1h après
+        backgroundColor: '#3788d8',
+        type: 'reservation'
+      }
+      this.isEditing = false
+      this.showEventModal = true
+    },
+
+    handleSaveEvent(eventData) {
+      if (this.isEditing) {
+        console.log('Événement modifié :', eventData)
+      } else {
+        console.log('Événement ajouté :', eventData)
+      }
+      this.closeEventModal()
+    },
+
+    handleDeleteEvent(eventData) {
+      this.eventToDelete = eventData
+      this.showConfirmDelete = true
+    },
+
+    confirmDelete() {
+      console.log('Suppression de :', this.eventToDelete)
+      this.showConfirmDelete = false
+      this.closeEventModal()
+    },
+
+    handleDateSelect(date) {
+      console.log('Date sélectionnée:', date)
+    },
+
+    handleEventCreated(event) {
+      console.log('Création d\'événement demandée:', event)
+      // Si event contient une date/heure, l'utiliser, sinon utiliser l'heure actuelle
+      const startDate = event?.start || event?.date || new Date()
+      
+      this.selectedEvent = {
+        id: null,
+        title: '',
+        start: startDate instanceof Date ? startDate.toISOString() : startDate,
+        end: new Date(new Date(startDate).getTime() + 60 * 60 * 1000).toISOString(), // 1h après
+        backgroundColor: '#3788d8',
+        type: 'reservation'
+      }
+      this.isEditing = false
+      this.showEventModal = true
+    },
+
+    closeEventModal() {
+      this.selectedEvent = null
+      this.showEventModal = false
+      this.isEditing = false
+    },
+
+    formatEventDate(dateStr) {
+      return new Date(dateStr).toLocaleDateString('fr-FR', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    }
   }
 }
 </script>
@@ -175,6 +290,13 @@ export default {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 1.5rem;
+}
+
+.admin-main-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  min-height: fit-content;
 }
 
 .stat-card {
@@ -244,12 +366,17 @@ export default {
 }
 
 .charts-section {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 1.5rem;
 }
 
-.chart-card, .activity-card {
+.calendar-section {
+  /* Le widget prend sa taille naturelle */
+}
+
+.chart-card,
+.activity-card {
   background: white;
   border-radius: 0.75rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
@@ -358,20 +485,133 @@ export default {
   font-size: 0.875rem;
 }
 
+/* Event Modal */
+.event-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.event-modal {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  width: 90%;
+  max-width: 400px;
+  overflow: hidden;
+}
+
+.modal-header {
+  padding: 1.25rem 1.5rem;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h5 {
+  margin: 0;
+  font-weight: 600;
+  color: #374151;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+}
+
+.close-btn:hover {
+  background: #e5e7eb;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.modal-body p {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+.modal-body p:last-child {
+  margin-bottom: 0;
+}
+
+.modal-footer {
+  padding: 1rem 1.5rem;
+  background: #f9fafb;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.btn-cancel,
+.btn-edit {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+  border: none;
+}
+
+.btn-cancel {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.btn-cancel:hover {
+  background: #e5e7eb;
+}
+
+.btn-edit {
+  background: #3b82f6;
+  color: white;
+}
+
+.btn-edit:hover {
+  background: #2563eb;
+}
+
 /* Responsive */
+@media (max-width: 1024px) {
+  .main-content {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
   .stats-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .charts-section {
-    grid-template-columns: 1fr;
+    gap: 1rem;
   }
-  
+
   .stat-content {
     padding: 1rem;
   }
-  
+
   .chart-placeholder {
     padding: 2rem;
   }

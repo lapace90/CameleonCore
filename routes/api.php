@@ -10,14 +10,25 @@ use App\Http\Controllers\OptionController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:api')->prefix('dashboard')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard.index');
-  
-    // Route::get('/statistics', [DashboardController::class, 'statistics'])->name('dashboard.statistics');
 
-       // Users routes
+    // Route::get('/statistics', [DashboardController::class, 'statistics'])->name('dashboard.statistics');
+    // Products API routes
+    Route::prefix('products')->group(function () {
+        Route::get('/', [ProductController::class, 'index'])->name('products.index');
+        Route::post('/', [ProductController::class, 'store'])->name('products.store');
+        Route::get('/search', [ProductController::class, 'search'])->name('products.search');
+        Route::get('/stats', [ProductController::class, 'stats'])->name('products.stats');
+        Route::get('/{product}', [ProductController::class, 'show'])->name('products.show');
+        Route::put('/{product}', [ProductController::class, 'update'])->name('products.update');
+        Route::patch('/{product}', [ProductController::class, 'patch'])->name('products.patch');
+        Route::delete('/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
+    });
+    // Users routes
     Route::prefix('users')->group(function () {
         Route::get('/{id}', [UserController::class, 'showUser'])->name('dashboard.user.show');
         Route::get('/{id}/edit', [UserController::class, 'editUser'])->name('dashboard.user.edit');
@@ -86,12 +97,13 @@ Route::middleware('auth:api')->prefix('dashboard')->group(function () {
     // });
 
     // Categories routes
-    Route::prefix('categories')->group(function () {
-        Route::get('/', [CategoryController::class, 'categories'])->name('dashboard.categories');
-        Route::get('/{id}', [CategoryController::class, 'showCategory'])->name('dashboard.categories.show');
-        Route::put('/{id}/update', [CategoryController::class, 'updateCategory'])->name('dashboard.categories.update');
-        Route::delete('/{id}', [CategoryController::class, 'deleteCategory'])->name('dashboard.categories.delete');
-    });
+Route::prefix('categories')->group(function () {
+    Route::get('/', [CategoryController::class, 'index'])->name('categories.index');
+    Route::post('/', [CategoryController::class, 'store'])->name('categories.store');
+    Route::get('/{category}', [CategoryController::class, 'show'])->name('categories.show');
+    Route::put('/{category}', [CategoryController::class, 'update'])->name('categories.update');
+    Route::delete('/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+});
 
     // Options routes
     Route::prefix('options')->group(function () {

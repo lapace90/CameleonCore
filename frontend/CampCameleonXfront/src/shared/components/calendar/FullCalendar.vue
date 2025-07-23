@@ -3,18 +3,13 @@
     <!-- Header du calendrier -->
     <div class="calendar-header">
       <div class="header-left">
-        <h2 class="calendar-title">Agenda</h2>
+        <!-- <h2 class="calendar-title"></h2> -->
         <p class="calendar-subtitle">Gestion des réservations et événements</p>
       </div>
       <div class="header-actions">
         <div class="view-switcher">
-          <button 
-            v-for="view in availableViews" 
-            :key="view.value"
-            @click="changeView(view.value)"
-            class="view-btn"
-            :class="{ active: currentView === view.value }"
-          >
+          <button v-for="view in availableViews" :key="view.value" @click="changeView(view.value)" class="view-btn"
+            :class="{ active: currentView === view.value }">
             <i :class="view.icon"></i>
             {{ view.label }}
           </button>
@@ -59,30 +54,17 @@
 
     <!-- Le calendrier FullCalendar -->
     <div class="calendar-wrapper">
-      <FullCalendar 
-        ref="calendar"
-        :options="calendarOptions"
-      />
+      <FullCalendar ref="calendar" :options="calendarOptions" />
     </div>
 
     <!-- Modal création/édition événement -->
-    <EventModal
-      :show="showModal"
-      :event="currentEvent"
-      :is-editing="isEditing"
-      @save="handleSaveEvent"
-      @delete="handleDeleteEvent"
-      @close="closeModal"
-    />
+    <EventModal :show="showModal" :event="currentEvent" :is-editing="isEditing" @save="handleSaveEvent"
+      @delete="handleDeleteEvent" @close="closeModal" />
 
     <!-- Modal de confirmation suppression -->
-    <ConfirmModal
-      :show="showConfirmDelete"
-      title="Supprimer l'événement"
+    <ConfirmModal :show="showConfirmDelete" title="Supprimer l'événement"
       message="Êtes-vous sûr de vouloir supprimer cet événement ? Cette action est irréversible."
-      @confirm="confirmDelete"
-      @cancel="showConfirmDelete = false"
-    />
+      @confirm="confirmDelete" @cancel="showConfirmDelete = false" />
   </div>
 </template>
 
@@ -96,7 +78,7 @@ import EventModal from './EventModal.vue'
 import ConfirmModal from './ConfirmModal.vue'
 
 export default {
-  name: 'AdminCalendar',
+  name: 'FullAgenda',
   components: {
     FullCalendar,
     EventModal,
@@ -126,7 +108,7 @@ export default {
       isEditing: false,
       eventToDelete: null,
       currentEvent: this.getEmptyEvent(),
-      
+
       // Vues disponibles selon le mode
       availableViews: [
         { value: 'dayGridMonth', label: 'Mois', icon: 'fas fa-calendar' },
@@ -148,43 +130,43 @@ export default {
         initialView: 'dayGridMonth',
         headerToolbar: false, // On utilise notre propre header
         height: 'auto',
-        
+
         // Apparence
         dayMaxEvents: 3,
         moreLinkClick: 'popover',
         nowIndicator: true,
         weekNumbers: false,
-        
+
         // Heures d'ouverture du camping
         businessHours: {
           daysOfWeek: [0, 1, 2, 3, 4, 5, 6], // Tous les jours
           startTime: '08:00',
           endTime: '22:00'
         },
-        
+
         // Interactions (selon le mode)
         editable: this.mode === 'admin',
         selectable: this.mode === 'admin',
         selectMirror: true,
         droppable: this.mode === 'admin',
-        
+
         // Events sources
         events: this.fetchEvents,
-        
+
         // Callbacks
         select: this.handleDateSelect,
         eventClick: this.handleEventClick,
         eventDrop: this.handleEventDrop,
         eventResize: this.handleEventResize,
         datesSet: this.handleDatesChange,
-        
+
         // Custom rendering
         eventClassNames: this.getEventClasses,
         eventContent: this.renderEventContent
       }
     }
   },
-  
+
   computed: {
     calendarApi() {
       return this.$refs.calendar?.getApi()
@@ -196,7 +178,7 @@ export default {
     fetchEvents(fetchInfo, successCallback, failureCallback) {
       // Simulation - remplacez par votre API
       const events = this.getSimulatedEvents(fetchInfo.start, fetchInfo.end)
-      
+
       // En production, remplacez par :
       // this.$http.get('/api/events', {
       //   params: {
@@ -208,7 +190,7 @@ export default {
       // }).catch(error => {
       //   failureCallback(error)
       // })
-      
+
       successCallback(events)
     },
 
@@ -271,7 +253,7 @@ export default {
     // === INTERACTIONS UTILISATEUR ===
     handleDateSelect(selectInfo) {
       if (this.mode !== 'admin') return
-      
+
       this.currentEvent = {
         ...this.getEmptyEvent(),
         start: selectInfo.start.toISOString(),
@@ -279,7 +261,7 @@ export default {
       }
       this.isEditing = false
       this.showModal = true
-      
+
       // Déselectionner après ouverture modal
       selectInfo.view.calendar.unselect()
     },
@@ -287,7 +269,7 @@ export default {
     handleEventClick(clickInfo) {
       this.currentEvent = this.extractEventData(clickInfo.event)
       this.isEditing = true
-      
+
       if (this.mode === 'admin') {
         this.showModal = true
       } else {
@@ -335,14 +317,14 @@ export default {
           ...eventData,
           id: this.generateId()
         }
-        
+
         // En production :
         // const response = await this.$http.post('/api/events', eventData)
         // this.calendarApi.addEvent(response.data)
-        
+
         this.calendarApi.addEvent(newEvent)
         this.$emit('event-created', newEvent)
-        
+
         this.showNotification('Événement créé avec succès', 'success')
       } catch (error) {
         this.showNotification('Erreur lors de la création', 'error')
@@ -354,7 +336,7 @@ export default {
       try {
         // En production :
         // await this.$http.put(`/api/events/${eventData.id}`, eventData)
-        
+
         const calendarEvent = this.calendarApi.getEventById(eventData.id)
         if (calendarEvent) {
           calendarEvent.setProp('title', eventData.title)
@@ -363,7 +345,7 @@ export default {
           calendarEvent.setProp('backgroundColor', eventData.backgroundColor)
           calendarEvent.setExtendedProp('notes', eventData.notes)
         }
-        
+
         this.$emit('event-updated', eventData)
         this.showNotification('Événement modifié avec succès', 'success')
       } catch (error) {
@@ -381,19 +363,19 @@ export default {
       try {
         // En production :
         // await this.$http.delete(`/api/events/${this.eventToDelete.id}`)
-        
+
         const calendarEvent = this.calendarApi.getEventById(this.eventToDelete.id)
         if (calendarEvent) {
           calendarEvent.remove()
         }
-        
+
         this.$emit('event-deleted', this.eventToDelete.id)
         this.showNotification('Événement supprimé', 'success')
       } catch (error) {
         this.showNotification('Erreur lors de la suppression', 'error')
         console.error('Error deleting event:', error)
       }
-      
+
       this.showConfirmDelete = false
       this.closeModal()
     },
@@ -451,7 +433,7 @@ export default {
         maintenance: 'fas fa-tools',
         formation: 'fas fa-graduation-cap'
       }
-      
+
       return {
         html: `
           <div class="event-content">
@@ -503,7 +485,7 @@ export default {
 /* Header */
 .calendar-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 2rem;
+  padding: 1rem;
   color: white;
   display: flex;
   justify-content: space-between;
@@ -611,9 +593,17 @@ export default {
   font-size: 1.2rem;
 }
 
-.stat-icon.reservations { background: linear-gradient(135deg, #28a745, #20c997); }
-.stat-icon.events { background: linear-gradient(135deg, #ffc107, #fd7e14); }
-.stat-icon.occupancy { background: linear-gradient(135deg, #6f42c1, #e83e8c); }
+.stat-icon.reservations {
+  background: linear-gradient(135deg, #28a745, #20c997);
+}
+
+.stat-icon.events {
+  background: linear-gradient(135deg, #ffc107, #fd7e14);
+}
+
+.stat-icon.occupancy {
+  background: linear-gradient(135deg, #6f42c1, #e83e8c);
+}
 
 .stat-content {
   display: flex;
@@ -638,7 +628,7 @@ export default {
 
 /* Personnalisation FullCalendar */
 :deep(.fc) {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-family-primary);
 }
 
 :deep(.fc-event) {
@@ -698,7 +688,7 @@ export default {
 @media (max-width: 768px) {
   .calendar-header {
     flex-direction: column;
-    text-align: center;
+    text-align: center; 
   }
 
   .view-switcher {
@@ -722,5 +712,25 @@ export default {
     flex-direction: column;
     gap: 0.5rem;
   }
+}
+
+/* === LARGEUR SUFFISANTE POUR LIRE "TOUTE LA JOURNÉE" === */
+:deep(.fc-timegrid-axis) {
+  min-width: 190px !important;
+  width: 190px !important;
+  max-width: fit-content !important;
+}
+
+:deep(.fc-timegrid-axis-cushion) {
+  text-align: center !important;
+  font-size: 0.9rem !important;
+  line-height: .9 !important;
+  font-weight: 700;
+  color: #667eea !important;
+}
+
+:deep(.fc-timegrid-slot-label-cushion) {
+    font-weight: 700;
+    padding: .7rem;
 }
 </style>

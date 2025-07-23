@@ -23,7 +23,7 @@ export default {
 @import '@/assets/styles/variables';
 
 .desert-hero {
-    height: 100vh;
+    min-height: 100vh;
     background: linear-gradient(135deg,
             rgba($coffee, 0.3) 0%,
             rgba($terracotta, 0.2) 50%,
@@ -67,7 +67,7 @@ export default {
     }
 
     .hero-title {
-        margin-top: 10rem;
+        margin-top: 8rem;
         font-size: 7rem;
         font-weight: $font-weight-light;
         line-height: $line-height-tight;
@@ -84,7 +84,6 @@ export default {
             display: inline-block;
         }
     }
-
 
     .hero-subtitle {
         font-weight: $font-weight-light;
@@ -112,15 +111,18 @@ export default {
 
 // Responsive
 @media (max-width: 768px) {
-    .desert-hero {
-        height: 90vh;
+    .desert-hero {        
+        min-height: 100vh !important;
+        line-height: 1;
 
         .hero-title {
-            margin-bottom: 1.5rem;
+            margin-bottom: .6rem;
+            margin-top: 7rem;
         }
 
         .hero-subtitle {
             font-size: $font-size-lg;
+            margin-bottom: 1rem !important;
         }
     }
 }
