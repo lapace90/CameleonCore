@@ -1,6 +1,54 @@
 @import '../variables';
 @import '../mixins';
 
+// Sidebar
+
+.admin-sidebar {
+  width: 250px;
+  min-height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+  
+  .sidebar-brand {
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    
+    h2 {
+      color: white;
+      font-size: 1.25rem;
+      margin: 0;
+    }
+  }
+  
+  .sidebar-nav {
+    
+    .nav-item {
+      // margin: 0.25rem 1rem;
+      
+      .nav-link {
+        display: flex;
+        align-items: center;
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        border-radius: var(--border-radius);
+        transition: all 0.15s ease;
+        
+        i {
+          margin-right: 1rem;
+          width: 1rem;
+          text-align: center;
+        }
+        
+        &:hover, &.router-link-active {
+          background-color: rgba(255, 255, 255, 0.1);
+          color: white;
+        }
+      }
+    }
+  }
+}
 // Layout principal admin
 .admin-layout {
   display: flex;

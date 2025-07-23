@@ -3,14 +3,11 @@
     <!-- Header -->
     <div class="form-header">
       <div class="header-navigation">
-        <router-link 
-          :to="backRoute"
-          class="back-link"
-        >
+        <router-link :to="backRoute" class="back-link">
           <i class="fas fa-arrow-left"></i>
           {{ isEditing ? 'Retour aux détails' : `Retour à ${typeConfig.label}` }}
         </router-link>
-        
+
         <div class="breadcrumb">
           <span>{{ typeConfig.label }}</span>
           <i class="fas fa-chevron-right"></i>
@@ -19,11 +16,7 @@
       </div>
 
       <div class="header-actions">
-        <button 
-          v-if="isEditing" 
-          @click="previewProduct" 
-          class="btn btn-secondary"
-        >
+        <button v-if="isEditing" @click="previewProduct" class="btn btn-secondary">
           <i class="fas fa-eye"></i>
           Aperçu
         </button>
@@ -61,7 +54,7 @@
             {{ isEditing ? `Modifier "${product?.name}"` : `Nouveau ${typeConfig.singular}` }}
           </h1>
         </div>
-        
+
         <div class="title-right" v-if="isEditing && product">
           <div class="status-info">
             <span class="status-badge" :class="getStatusClass(product)">
@@ -81,11 +74,8 @@
               <h3>Image principale</h3>
               <div class="image-upload-area">
                 <div v-if="imagePreview || form.image" class="current-image">
-                  <img 
-                    :src="getValidImageUrl(imagePreview || form.image)" 
-                    :alt="form.name || 'Image du produit'"
-                    @error="handleImageError"
-                  />
+                  <img :src="getValidImageUrl(imagePreview || form.image)" :alt="form.name || 'Image du produit'"
+                    @error="handleImageError" />
                   <div class="image-overlay">
                     <button type="button" @click="changeImage" class="overlay-btn">
                       <i class="fas fa-edit"></i>
@@ -97,20 +87,15 @@
                     </button>
                   </div>
                 </div>
-                
+
                 <div v-else class="upload-placeholder" @click="selectImage">
                   <i class="fas fa-cloud-upload-alt"></i>
                   <p>Cliquez pour ajouter une image</p>
                   <span>JPG, PNG - Max 5MB</span>
                 </div>
-                
-                <input 
-                  ref="imageInput"
-                  type="file" 
-                  accept="image/*"
-                  @change="handleImageUpload"
-                  style="display: none"
-                />
+
+                <input ref="imageInput" type="file" accept="image/*" @change="handleImageUpload"
+                  style="display: none" />
               </div>
             </div>
 
@@ -119,10 +104,8 @@
               <h3>Aperçu</h3>
               <div class="preview-card">
                 <div class="preview-image">
-                  <img 
-                    :src="getValidImageUrl(imagePreview || form.image) || getPlaceholderImage()" 
-                    :alt="form.name || 'Aperçu'"
-                  />
+                  <img :src="getValidImageUrl(imagePreview || form.image) || getPlaceholderImage()"
+                    :alt="form.name || 'Aperçu'" />
                 </div>
                 <div class="preview-content">
                   <h4>{{ form.name || 'Nom du produit' }}</h4>
@@ -146,30 +129,16 @@
               <div class="form-grid">
                 <div class="form-group">
                   <label class="form-label required">Nom</label>
-                  <input 
-                    v-model="form.name"
-                    type="text" 
-                    class="form-input"
-                    placeholder="Nom du produit"
-                    required
-                    :class="{ 'error': errors.name }"
-                  />
+                  <input v-model="form.name" type="text" class="form-input" placeholder="Nom du produit" required
+                    :class="{ 'error': errors.name }" />
                   <span v-if="errors.name" class="error-message">{{ errors.name }}</span>
                 </div>
 
                 <div class="form-group">
                   <label class="form-label required">Prix</label>
                   <div class="input-group">
-                    <input 
-                      v-model.number="form.price"
-                      type="number" 
-                      step="0.01"
-                      min="0"
-                      class="form-input"
-                      placeholder="0.00"
-                      required
-                      :class="{ 'error': errors.price }"
-                    />
+                    <input v-model.number="form.price" type="number" step="0.01" min="0" class="form-input"
+                      placeholder="0.00" required :class="{ 'error': errors.price }" />
                     <span class="input-addon">€</span>
                   </div>
                   <span v-if="errors.price" class="error-message">{{ errors.price }}</span>
@@ -177,17 +146,9 @@
 
                 <div class="form-group">
                   <label class="form-label">Catégorie</label>
-                  <select 
-                    v-model="form.category_id" 
-                    class="form-select"
-                    :class="{ 'error': errors.category_id }"
-                  >
+                  <select v-model="form.category_id" class="form-select" :class="{ 'error': errors.category_id }">
                     <option value="">Sélectionner une catégorie</option>
-                    <option 
-                      v-for="category in categories" 
-                      :key="category.id" 
-                      :value="category.id"
-                    >
+                    <option v-for="category in categories" :key="category.id" :value="category.id">
                       {{ category.name }}
                     </option>
                   </select>
@@ -198,21 +159,11 @@
                   <label class="form-label">Statut</label>
                   <div class="radio-group">
                     <label class="radio-item">
-                      <input 
-                        type="radio" 
-                        v-model="form.status" 
-                        :value="true"
-                        name="status"
-                      />
+                      <input type="radio" v-model="form.status" :value="true" name="status" />
                       <span class="radio-label">Actif</span>
                     </label>
                     <label class="radio-item">
-                      <input 
-                        type="radio" 
-                        v-model="form.status" 
-                        :value="false"
-                        name="status"
-                      />
+                      <input type="radio" v-model="form.status" :value="false" name="status" />
                       <span class="radio-label">Inactif</span>
                     </label>
                   </div>
@@ -220,13 +171,9 @@
 
                 <div class="form-group full-width">
                   <label class="form-label">Description</label>
-                  <textarea 
-                    v-model="form.description"
-                    class="form-textarea"
-                    rows="4"
+                  <textarea v-model="form.description" class="form-textarea" rows="4"
                     placeholder="Description détaillée du produit..."
-                    :class="{ 'error': errors.description }"
-                  ></textarea>
+                    :class="{ 'error': errors.description }"></textarea>
                   <span v-if="errors.description" class="error-message">{{ errors.description }}</span>
                 </div>
               </div>
@@ -236,108 +183,60 @@
             <div class="form-section">
               <h3>Détails {{ typeConfig.singular.toLowerCase() }}</h3>
               <div class="form-grid">
-                <div 
-                  v-for="field in typeConfig.formFields" 
-                  :key="field.name"
-                  class="form-group"
-                  :class="{ 'full-width': field.fullWidth }"
-                >
+                <div v-for="field in typeConfig.formFields" :key="field.name" class="form-group"
+                  :class="{ 'full-width': field.fullWidth }">
                   <label class="form-label" :class="{ 'required': field.required }">
                     {{ field.label }}
                   </label>
-                  
+
                   <!-- Input text -->
-                  <input 
-                    v-if="field.type === 'text'"
-                    v-model="form.productable[field.name]"
-                    type="text" 
-                    class="form-input"
-                    :placeholder="field.placeholder"
-                    :required="field.required"
-                    :class="{ 'error': errors[`productable.${field.name}`] }"
-                  />
-                  
+                  <input v-if="field.type === 'text'" v-model="form.productable[field.name]" type="text"
+                    class="form-input" :placeholder="field.placeholder" :required="field.required"
+                    :class="{ 'error': errors[`productable.${field.name}`] }" />
+
                   <!-- Input number -->
                   <div v-else-if="field.type === 'number'" class="input-group">
-                    <input 
-                      v-model.number="form.productable[field.name]"
-                      type="number" 
-                      class="form-input"
-                      :placeholder="field.placeholder"
-                      :min="field.min"
-                      :max="field.max"
-                      :step="field.step"
-                      :required="field.required"
-                      :class="{ 'error': errors[`productable.${field.name}`] }"
-                    />
+                    <input v-model.number="form.productable[field.name]" type="number" class="form-input"
+                      :placeholder="field.placeholder" :min="field.min" :max="field.max" :step="field.step"
+                      :required="field.required" :class="{ 'error': errors[`productable.${field.name}`] }" />
                     <span v-if="field.unit" class="input-addon">{{ field.unit }}</span>
                   </div>
-                  
+
                   <!-- Select -->
-                  <select 
-                    v-else-if="field.type === 'select'"
-                    v-model="form.productable[field.name]"
-                    class="form-select"
-                    :required="field.required"
-                    :class="{ 'error': errors[`productable.${field.name}`] }"
-                  >
+                  <select v-else-if="field.type === 'select'" v-model="form.productable[field.name]" class="form-select"
+                    :required="field.required" :class="{ 'error': errors[`productable.${field.name}`] }">
                     <option value="">{{ field.placeholder }}</option>
-                    <option 
-                      v-for="option in field.options" 
-                      :key="option.value" 
-                      :value="option.value"
-                    >
+                    <option v-for="option in field.options" :key="option.value" :value="option.value">
                       {{ option.label }}
                     </option>
                   </select>
-                  
+
                   <!-- Textarea -->
-                  <textarea 
-                    v-else-if="field.type === 'textarea'"
-                    v-model="form.productable[field.name]"
-                    class="form-textarea"
-                    :rows="field.rows || 3"
-                    :placeholder="field.placeholder"
-                    :required="field.required"
-                    :class="{ 'error': errors[`productable.${field.name}`] }"
-                  ></textarea>
-                  
+                  <textarea v-else-if="field.type === 'textarea'" v-model="form.productable[field.name]"
+                    class="form-textarea" :rows="field.rows || 3" :placeholder="field.placeholder"
+                    :required="field.required" :class="{ 'error': errors[`productable.${field.name}`] }"></textarea>
+
                   <!-- Checkbox -->
                   <div v-else-if="field.type === 'checkbox'" class="checkbox-group">
                     <label class="checkbox-item">
-                      <input 
-                        type="checkbox" 
-                        v-model="form.productable[field.name]"
-                      />
+                      <input type="checkbox" v-model="form.productable[field.name]" />
                       <span class="checkbox-label">{{ field.checkboxLabel || field.label }}</span>
                     </label>
                   </div>
-                  
+
                   <!-- Multi-select pour tags/options -->
                   <div v-else-if="field.type === 'tags'" class="tags-input">
                     <div class="selected-tags">
-                      <span 
-                        v-for="tag in form.productable[field.name] || []" 
-                        :key="tag"
-                        class="tag-item"
-                      >
+                      <span v-for="tag in form.productable[field.name] || []" :key="tag" class="tag-item">
                         {{ tag }}
-                        <button 
-                          type="button" 
-                          @click="removeTag(field.name, tag)"
-                          class="tag-remove"
-                        >
+                        <button type="button" @click="removeTag(field.name, tag)" class="tag-remove">
                           <i class="fas fa-times"></i>
                         </button>
                       </span>
                     </div>
-                    <input 
-                      type="text" 
-                      class="form-input"
-                      :placeholder="field.placeholder"
+                    <input type="text" class="form-input" :placeholder="field.placeholder"
                       @keydown.enter.prevent="addTag(field.name, $event)"
-                      @keydown.comma.prevent="addTag(field.name, $event)"
-                    />
+                      @keydown.comma.prevent="addTag(field.name, $event)" />
                   </div>
 
                   <span v-if="errors[`productable.${field.name}`]" class="error-message">
@@ -355,48 +254,27 @@
                 <div class="available-tags">
                   <label class="form-label">Tags disponibles</label>
                   <div class="tags-list">
-                    <label 
-                      v-for="tag in availableTags" 
-                      :key="tag.id"
-                      class="tag-checkbox"
-                      :class="{ 'selected': form.selectedTags.includes(tag.id) }"
-                    >
-                      <input 
-                        type="checkbox" 
-                        :value="tag.id"
-                        v-model="form.selectedTags"
-                      />
+                    <label v-for="tag in availableTags" :key="tag.id" class="tag-checkbox"
+                      :class="{ 'selected': form.selectedTags.includes(tag.id) }">
+                      <input type="checkbox" :value="tag.id" v-model="form.selectedTags" />
                       <span>{{ tag.name }}</span>
                     </label>
                   </div>
                 </div>
-                
+
                 <div class="custom-tags">
                   <label class="form-label">Tags personnalisés</label>
                   <div class="tags-input">
                     <div class="selected-tags">
-                      <span 
-                        v-for="tag in form.customTags" 
-                        :key="tag"
-                        class="tag-item custom"
-                      >
+                      <span v-for="tag in form.customTags" :key="tag" class="tag-item custom">
                         {{ tag }}
-                        <button 
-                          type="button" 
-                          @click="removeCustomTag(tag)"
-                          class="tag-remove"
-                        >
+                        <button type="button" @click="removeCustomTag(tag)" class="tag-remove">
                           <i class="fas fa-times"></i>
                         </button>
                       </span>
                     </div>
-                    <input 
-                      type="text" 
-                      class="form-input"
-                      placeholder="Ajouter un tag personnalisé..."
-                      @keydown.enter.prevent="addCustomTag"
-                      @keydown.comma.prevent="addCustomTag"
-                    />
+                    <input type="text" class="form-input" placeholder="Ajouter un tag personnalisé..."
+                      @keydown.enter.prevent="addCustomTag" @keydown.comma.prevent="addCustomTag" />
                   </div>
                 </div>
               </div>
@@ -407,41 +285,26 @@
               <h3>Options disponibles</h3>
               <div class="options-section">
                 <div class="available-options">
-                  <div 
-                    v-for="option in availableOptions" 
-                    :key="option.id"
-                    class="option-item"
-                    :class="{ 'selected': isOptionSelected(option.id) }"
-                  >
+                  <div v-for="option in availableOptions" :key="option.id" class="option-item"
+                    :class="{ 'selected': isOptionSelected(option.id) }">
                     <label class="option-checkbox">
-                      <input 
-                        type="checkbox" 
-                        :value="option.id"
-                        @change="toggleOption(option.id)"
-                        :checked="isOptionSelected(option.id)"
-                      />
+                      <input type="checkbox" :value="option.id" @change="toggleOption(option.id)"
+                        :checked="isOptionSelected(option.id)" />
                       <div class="option-info">
                         <span class="option-name">{{ option.name }}</span>
                         <span class="option-price">{{ formatPrice(option.price) }}</span>
                       </div>
                     </label>
-                    
+
                     <div v-if="isOptionSelected(option.id)" class="option-config">
                       <label class="config-item">
-                        <input 
-                          type="checkbox" 
-                          v-model="getOptionConfig(option.id).required"
-                        />
+                        <input type="checkbox" v-model="getOptionConfig(option.id).required" />
                         <span>Obligatoire</span>
                       </label>
                       <div class="config-item">
                         <label>Quantité max:</label>
-                        <input 
-                          type="number" 
-                          v-model.number="getOptionConfig(option.id).max_quantity"
-                          min="1"
-                          class="form-input small"
-                        />
+                        <input type="number" v-model.number="getOptionConfig(option.id).max_quantity" min="1"
+                          class="form-input small" />
                       </div>
                     </div>
                   </div>
@@ -454,32 +317,18 @@
         <!-- Actions du formulaire -->
         <div class="form-actions">
           <div class="actions-left">
-            <button 
-              type="button" 
-              @click="resetForm" 
-              class="btn btn-outline"
-              :disabled="saving"
-            >
+            <button type="button" @click="resetForm" class="btn btn-outline" :disabled="saving">
               <i class="fas fa-undo"></i>
               Réinitialiser
             </button>
           </div>
-          
+
           <div class="actions-right">
-            <button 
-              type="button" 
-              @click="saveDraft" 
-              class="btn btn-secondary"
-              :disabled="saving"
-            >
+            <button type="button" @click="saveDraft" class="btn btn-secondary" :disabled="saving">
               <i class="fas fa-save"></i>
               Sauvegarder brouillon
             </button>
-            <button 
-              type="submit" 
-              class="btn btn-primary"
-              :disabled="saving || !isFormValid"
-            >
+            <button type="submit" class="btn btn-primary" :disabled="saving || !isFormValid">
               <i v-if="saving" class="fas fa-spinner fa-spin"></i>
               <i v-else class="fas fa-check"></i>
               {{ isEditing ? 'Mettre à jour' : 'Créer' }} {{ typeConfig.singular.toLowerCase() }}
@@ -520,7 +369,7 @@ export default {
       availableTags: [],
       availableOptions: [],
       error: null,
-      
+
       // Formulaire
       form: {
         name: '',
@@ -535,10 +384,10 @@ export default {
         selectedOptions: [],
         productable: {}
       },
-      
+
       // Erreurs de validation
       errors: {},
-      
+
       // Configuration des types de produits
       productConfigs: {
         activity: {
@@ -550,7 +399,8 @@ export default {
           formFields: [
             { name: 'duration', label: 'Durée', type: 'number', unit: 'min', required: true, placeholder: '60' },
             { name: 'capacity', label: 'Capacité', type: 'number', unit: 'pers.', required: true, placeholder: '10' },
-            { name: 'difficulty', label: 'Difficulté', type: 'select', required: true, placeholder: 'Choisir...', 
+            {
+              name: 'difficulty', label: 'Difficulté', type: 'select', required: true, placeholder: 'Choisir...',
               options: [
                 { value: 'facile', label: 'Facile' },
                 { value: 'moyen', label: 'Moyen' },
@@ -561,8 +411,10 @@ export default {
             { name: 'location', label: 'Lieu', type: 'text', placeholder: 'Lieu de l\'activité' },
             { name: 'age_min', label: 'Âge minimum', type: 'number', unit: 'ans', min: 0, max: 99 },
             { name: 'age_max', label: 'Âge maximum', type: 'number', unit: 'ans', min: 0, max: 99 },
-            { name: 'requirements', label: 'Prérequis', type: 'textarea', rows: 3, fullWidth: true, 
-              placeholder: 'Conditions physiques, expérience requise...' }
+            {
+              name: 'requirements', label: 'Prérequis', type: 'textarea', rows: 3, fullWidth: true,
+              placeholder: 'Conditions physiques, expérience requise...'
+            }
           ]
         },
         menu: {
@@ -575,7 +427,8 @@ export default {
             { name: 'ingredients', label: 'Ingrédients', type: 'tags', required: true, placeholder: 'Ajouter ingrédient...', fullWidth: true },
             { name: 'allergens', label: 'Allergènes', type: 'tags', placeholder: 'Ajouter allergène...', fullWidth: true },
             { name: 'preparation_time', label: 'Temps de préparation', type: 'number', unit: 'min', placeholder: '30' },
-            { name: 'cooking_method', label: 'Méthode de cuisson', type: 'select', placeholder: 'Choisir...',
+            {
+              name: 'cooking_method', label: 'Méthode de cuisson', type: 'select', placeholder: 'Choisir...',
               options: [
                 { value: 'grille', label: 'Grillé' },
                 { value: 'four', label: 'Au four' },
@@ -583,8 +436,10 @@ export default {
                 { value: 'vapeur', label: 'À la vapeur' }
               ]
             },
-            { name: 'nutritional_info', label: 'Informations nutritionnelles', type: 'textarea', rows: 3, fullWidth: true,
-              placeholder: 'Calories, protéines, glucides...' },
+            {
+              name: 'nutritional_info', label: 'Informations nutritionnelles', type: 'textarea', rows: 3, fullWidth: true,
+              placeholder: 'Calories, protéines, glucides...'
+            },
             { name: 'vegetarian', label: 'Végétarien', type: 'checkbox' },
             { name: 'vegan', label: 'Végan', type: 'checkbox' },
             { name: 'gluten_free', label: 'Sans gluten', type: 'checkbox' }
@@ -599,7 +454,8 @@ export default {
           formFields: [
             { name: 'capacity', label: 'Capacité', type: 'number', unit: 'pers.', required: true, placeholder: '4' },
             { name: 'surface', label: 'Surface', type: 'number', unit: 'm²', placeholder: '25' },
-            { name: 'bed_type', label: 'Type de lit', type: 'select', placeholder: 'Choisir...',
+            {
+              name: 'bed_type', label: 'Type de lit', type: 'select', placeholder: 'Choisir...',
               options: [
                 { value: 'simple', label: 'Lit simple' },
                 { value: 'double', label: 'Lit double' },
@@ -607,7 +463,8 @@ export default {
                 { value: 'queen', label: 'Lit queen' }
               ]
             },
-            { name: 'bathroom_type', label: 'Salle de bain', type: 'select', placeholder: 'Choisir...',
+            {
+              name: 'bathroom_type', label: 'Salle de bain', type: 'select', placeholder: 'Choisir...',
               options: [
                 { value: 'privee', label: 'Privée' },
                 { value: 'partagee', label: 'Partagée' },
@@ -628,7 +485,8 @@ export default {
           color: '#8b5cf6',
           hasOptions: false,
           formFields: [
-            { name: 'type', label: 'Type d\'option', type: 'select', required: true, placeholder: 'Choisir...',
+            {
+              name: 'type', label: 'Type d\'option', type: 'select', required: true, placeholder: 'Choisir...',
               options: [
                 { value: 'service', label: 'Service' },
                 { value: 'equipment', label: 'Équipement' },
@@ -638,44 +496,46 @@ export default {
             },
             { name: 'max_quantity', label: 'Quantité maximum', type: 'number', min: 1, placeholder: '1' },
             { name: 'duration', label: 'Durée (si applicable)', type: 'number', unit: 'min', placeholder: '60' },
-            { name: 'availability', label: 'Disponibilité', type: 'textarea', rows: 2, fullWidth: true,
-              placeholder: 'Conditions de disponibilité...' }
+            {
+              name: 'availability', label: 'Disponibilité', type: 'textarea', rows: 2, fullWidth: true,
+              placeholder: 'Conditions de disponibilité...'
+            }
           ]
         }
       }
     }
   },
-  
+
   computed: {
     isEditing() {
       return this.action === 'edit'
     },
-    
+
     typeConfig() {
       return this.productConfigs[this.productType] || this.productConfigs.activity
     },
-    
+
     // Récupérer l'ID depuis les paramètres de la route
     productId() {
       return this.$route.params.id || this.productIdProp
     },
-    
+
     selectedCategory() {
       return this.categories.find(c => c.id === this.form.category_id)
     },
-    
+
     backRoute() {
       if (this.isEditing && this.productId) {
         return { name: 'ProductDetail', params: { type: this.productType, id: this.productId } }
       }
       return { name: 'ProductsShow', params: { type: this.productType } }
     },
-    
+
     isFormValid() {
       return this.form.name && this.form.price >= 0 && Object.keys(this.errors).length === 0
     }
   },
-  
+
   async created() {
     await this.initializeComponent()
   },
@@ -692,7 +552,7 @@ export default {
           this.fetchTags(),
           this.typeConfig.hasOptions ? this.fetchOptions() : Promise.resolve()
         ])
-        
+
         if (this.isEditing) {
           await this.fetchProduct()
         }
@@ -703,7 +563,7 @@ export default {
         this.loading = false
       }
     },
-    
+
     initializeForm() {
       // Initialiser les champs spécifiques du type
       this.form.productable = {}
@@ -719,21 +579,21 @@ export default {
         }
       })
     },
-    
+
     async fetchProduct() {
       try {
         console.log('Fetching product for edit:', this.productId)
-        
+
         const response = await axios.get(`/api/products/${this.productId}`, {
           headers: {
             'Accept': 'application/ld+json',
             'Content-Type': 'application/json'
           }
         })
-        
+
         this.product = response.data
         console.log('Product loaded:', this.product)
-        
+
         // Charger les données productable si nécessaire
         if (this.product.productable && typeof this.product.productable === 'string') {
           try {
@@ -746,19 +606,19 @@ export default {
         } else {
           this.product.productableData = this.product.productable || {}
         }
-        
+
         this.populateForm()
       } catch (error) {
         console.error('Erreur lors du chargement du produit:', error)
         this.error = 'Erreur lors du chargement du produit'
       }
     },
-    
+
     populateForm() {
       if (!this.product) return
-      
+
       console.log('Populating form with product:', this.product)
-      
+
       this.form = {
         name: this.product.name || '',
         description: this.product.description || '',
@@ -772,7 +632,7 @@ export default {
         selectedOptions: this.extractOptions(this.product.options),
         productable: { ...this.product.productableData }
       }
-      
+
       console.log('Form populated:', this.form)
     },
 
@@ -807,7 +667,7 @@ export default {
         max_quantity: option.pivot?.max_quantity || 1
       }))
     },
-    
+
     async fetchCategories() {
       try {
         const response = await axios.get('/api/categories', {
@@ -816,7 +676,7 @@ export default {
             'Content-Type': 'application/json'
           }
         })
-        
+
         if (response.data && response.data.member) {
           this.categories = response.data.member
         } else if (Array.isArray(response.data)) {
@@ -824,14 +684,14 @@ export default {
         } else {
           this.categories = []
         }
-        
+
         console.log('Categories loaded:', this.categories)
       } catch (error) {
         console.error('Erreur lors du chargement des catégories:', error)
         this.categories = []
       }
     },
-    
+
     async fetchTags() {
       try {
         // Pour l'instant, simulation avec des données factices
@@ -847,7 +707,7 @@ export default {
         this.availableTags = []
       }
     },
-    
+
     async fetchOptions() {
       try {
         const response = await axios.get('/api/products', {
@@ -857,20 +717,20 @@ export default {
             'Content-Type': 'application/json'
           }
         })
-        
+
         if (response.data && response.data.member) {
           this.availableOptions = response.data.member.filter(p => p.productableType === 'App\\Models\\Option')
         } else {
           this.availableOptions = []
         }
-        
+
         console.log('Options loaded:', this.availableOptions)
       } catch (error) {
         console.error('Erreur lors du chargement des options:', error)
         this.availableOptions = []
       }
     },
-    
+
     // Gestion des images
     getValidImageUrl(imageUrl) {
       if (!imageUrl) return null
@@ -901,15 +761,15 @@ export default {
       `
       return 'data:image/svg+xml;base64,' + btoa(svg)
     },
-    
+
     selectImage() {
       this.$refs.imageInput.click()
     },
-    
+
     changeImage() {
       this.$refs.imageInput.click()
     },
-    
+
     removeImage() {
       this.form.image = null
       this.imagePreview = null
@@ -917,80 +777,80 @@ export default {
         this.$refs.imageInput.value = ''
       }
     },
-    
+
     handleImageUpload(event) {
       const file = event.target.files[0]
       if (!file) return
-      
+
       // Validation du fichier
       if (file.size > 5 * 1024 * 1024) {
         this.error = 'Le fichier est trop volumineux (max 5MB)'
         return
       }
-      
+
       // Créer l'aperçu
       const reader = new FileReader()
       reader.onload = (e) => {
         this.imagePreview = e.target.result
       }
       reader.readAsDataURL(file)
-      
+
       // Stocker le fichier pour l'upload
       this.form.imageFile = file
     },
-    
+
     handleImageError(event) {
       console.warn('Image failed to load:', event.target.src)
       event.target.src = this.getPlaceholderImage()
       event.target.onerror = null
     },
-    
+
     // Gestion des tags
     addTag(fieldName, event) {
       const value = event.target.value.trim()
       if (!value) return
-      
+
       if (!this.form.productable[fieldName]) {
         this.form.productable[fieldName] = []
       }
-      
+
       if (!this.form.productable[fieldName].includes(value)) {
         this.form.productable[fieldName].push(value)
       }
-      
+
       event.target.value = ''
     },
-    
+
     removeTag(fieldName, tag) {
       const index = this.form.productable[fieldName].indexOf(tag)
       if (index > -1) {
         this.form.productable[fieldName].splice(index, 1)
       }
     },
-    
+
     addCustomTag(event) {
       const value = event.target.value.trim()
       if (!value) return
-      
+
       if (!this.form.customTags.includes(value)) {
         this.form.customTags.push(value)
       }
-      
+
       event.target.value = ''
     },
-    
+
     removeCustomTag(tag) {
       const index = this.form.customTags.indexOf(tag)
       if (index > -1) {
         this.form.customTags.splice(index, 1)
       }
     },
-    
+
     // Gestion des options
     isOptionSelected(optionId) {
       return this.form.selectedOptions.some(o => o.id === optionId)
     },
-    
+
     getOptionConfig(optionId) {
       let config = this.form.selectedOptions.find(o => o.id === optionId)
       if (!config) {
@@ -999,7 +859,7 @@ export default {
       }
       return config
     },
-    
+
     toggleOption(optionId) {
       const index = this.form.selectedOptions.findIndex(o => o.id === optionId)
       if (index > -1) {
@@ -1012,17 +872,17 @@ export default {
         })
       }
     },
-    
+
     // Actions du formulaire
     async submitForm() {
       if (!this.validateForm()) return
-      
+
       this.saving = true
       this.error = null
-      
+
       try {
         const payload = this.buildPayload()
-        
+
         let response
         if (this.isEditing) {
           response = await axios.patch(`/api/products/${this.productId}`, payload, {
@@ -1039,15 +899,15 @@ export default {
             }
           })
         }
-        
+
         console.log('Product saved:', response.data)
-        
+
         // Redirection
         this.$router.push({
           name: 'ProductDetail',
           params: { type: this.productType, id: response.data.id }
         })
-        
+
       } catch (error) {
         console.error('Erreur lors de la sauvegarde:', error)
         if (error.response?.data?.errors) {
@@ -1097,11 +957,11 @@ export default {
       }
       return typeMap[this.productType] || 'App\\Models\\Activity'
     },
-    
+
     async saveDraft() {
       const originalDraftStatus = this.form.is_draft
       this.form.is_draft = true
-      
+
       try {
         await this.submitForm()
       } catch (error) {
@@ -1109,28 +969,28 @@ export default {
         throw error
       }
     },
-    
+
     validateForm() {
       this.errors = {}
-      
+
       if (!this.form.name) {
         this.errors.name = 'Le nom est obligatoire'
       }
-      
+
       if (this.form.price < 0) {
         this.errors.price = 'Le prix doit être positif'
       }
-      
+
       // Validation des champs spécifiques
       this.typeConfig.formFields.forEach(field => {
         if (field.required && !this.form.productable[field.name]) {
           this.errors[`productable.${field.name}`] = `${field.label} est obligatoire`
         }
       })
-      
+
       return Object.keys(this.errors).length === 0
     },
-    
+
     resetForm() {
       if (confirm('Êtes-vous sûr de vouloir réinitialiser le formulaire ?')) {
         if (this.isEditing) {
@@ -1155,32 +1015,32 @@ export default {
         this.imagePreview = null
       }
     },
-    
+
     previewProduct() {
       this.$router.push({
         name: 'ProductDetail',
         params: { type: this.productType, id: this.productId }
       })
     },
-    
+
     // Utilitaires
     getStatusClass(product) {
       if (product.is_draft || product.isDraft) return 'status-draft'
       return product.status ? 'status-active' : 'status-inactive'
     },
-    
+
     getStatusLabel(product) {
       if (product.is_draft || product.isDraft) return 'Brouillon'
       return product.status ? 'Actif' : 'Inactif'
     },
-    
+
     formatPrice(price) {
       return new Intl.NumberFormat('fr-FR', {
         style: 'currency',
         currency: 'EUR'
       }).format(parseFloat(price) || 0)
     },
-    
+
     truncateText(text, length) {
       if (!text) return ''
       return text.length > length ? text.substring(0, length) + '...' : text
@@ -1189,657 +1049,3 @@ export default {
 }
 </script>
 
-<style scoped>
-.product-form-container {
-  padding: 2rem;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.error-message {
-  margin-bottom: 1rem;
-}
-
-.alert {
-  padding: 1rem 1.5rem;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.alert-danger {
-  background: #fee2e2;
-  border: 1px solid #fecaca;
-  color: #991b1b;
-}
-
-.btn-close {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  background: none;
-  border: none;
-  font-size: 1.2rem;
-  cursor: pointer;
-  color: inherit;
-  opacity: 0.7;
-}
-
-.btn-close:hover {
-  opacity: 1;
-}
-
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem 2rem;
-}
-
-.spinner {
-  width: 2.5rem;
-  height: 2.5rem;
-  border: 3px solid #e5e7eb;
-  border-top: 3px solid #3b82f6;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* Header */
-.form-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-}
-
-.back-link {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #6b7280;
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s ease;
-}
-
-.back-link:hover {
-  color: #374151;
-}
-
-.breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #9ca3af;
-  font-size: 0.875rem;
-  margin-top: 0.5rem;
-}
-
-.header-actions {
-  display: flex;
-  gap: 1rem;
-}
-
-/* Titre */
-.page-title-section {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 3rem;
-  padding: 2rem;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.product-type-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  color: white;
-  font-size: 0.875rem;
-  font-weight: 500;
-  margin-bottom: 1rem;
-}
-
-.page-title {
-  margin: 0;
-  font-size: 2rem;
-  font-weight: 700;
-  color: #1f2937;
-}
-
-.status-info {
-  text-align: right;
-}
-
-/* Formulaire */
-.product-form {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-}
-
-.form-content {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 0;
-  min-height: 600px;
-}
-
-/* Colonne gauche */
-.form-left {
-  padding: 2rem;
-  background: #f9fafb;
-  border-right: 1px solid #e5e7eb;
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
-
-.image-upload-section h3,
-.product-preview h3 {
-  margin: 0 0 1rem 0;
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #1f2937;
-}
-
-.image-upload-area {
-  border: 2px dashed #d1d5db;
-  border-radius: 8px;
-  overflow: hidden;
-  transition: border-color 0.2s ease;
-}
-
-.image-upload-area:hover {
-  border-color: #3b82f6;
-}
-
-.current-image {
-  position: relative;
-  aspect-ratio: 4/3;
-}
-
-.current-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.image-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.current-image:hover .image-overlay {
-  opacity: 1;
-}
-
-.overlay-btn {
-  background: white;
-  border: none;
-  border-radius: 6px;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  font-size: 0.875rem;
-  transition: transform 0.2s ease;
-}
-
-.overlay-btn:hover {
-  transform: scale(1.05);
-}
-
-.upload-placeholder {
-  aspect-ratio: 4/3;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: #6b7280;
-  transition: color 0.2s ease;
-}
-
-.upload-placeholder:hover {
-  color: #3b82f6;
-}
-
-.upload-placeholder i {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-
-.upload-placeholder p {
-  margin: 0 0 0.5rem 0;
-  font-weight: 500;
-}
-
-.upload-placeholder span {
-  font-size: 0.875rem;
-}
-
-/* Aperçu */
-.preview-card {
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  overflow: hidden;
-  background: white;
-}
-
-.preview-image {
-  aspect-ratio: 4/3;
-  overflow: hidden;
-}
-
-.preview-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.preview-content {
-  padding: 1rem;
-}
-
-.preview-content h4 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #1f2937;
-}
-
-.preview-category {
-  margin: 0 0 0.75rem 0;
-  color: #6b7280;
-  font-size: 0.875rem;
-}
-
-.preview-description {
-  margin: 0 0 1rem 0;
-  color: #4b5563;
-  font-size: 0.875rem;
-  line-height: 1.4;
-}
-
-.preview-price {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #059669;
-}
-
-/* Colonne droite */
-.form-right {
-  padding: 2rem;
-}
-
-.form-section {
-  border-bottom: 1px solid #e5e7eb;
-  padding-bottom: 2rem;
-}
-
-.form-section:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.form-section h3 {
-  margin: 0 0 1.5rem 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #1f2937;
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.form-group.full-width {
-  grid-column: 1 / -1;
-}
-
-.form-label {
-  font-weight: 500;
-  color: #374151;
-  font-size: 0.875rem;
-}
-
-.form-label.required::after {
-  content: ' *';
-  color: #dc2626;
-}
-
-.form-input,
-.form-select,
-.form-textarea {
-  padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  transition: all 0.2s ease;
-}
-
-.form-input:focus,
-.form-select:focus,
-.form-textarea:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.form-input.error,
-.form-select.error,
-.form-textarea.error {
-  border-color: #dc2626;
-}
-
-.input-group {
-  display: flex;
-  align-items: center;
-}
-
-.input-group .form-input {
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-  border-right: none;
-}
-
-.input-addon {
-  padding: 0.75rem;
-  background: #f9fafb;
-  border: 1px solid #d1d5db;
-  border-left: none;
-  border-top-right-radius: 8px;
-  border-bottom-right-radius: 8px;
-  font-size: 0.875rem;
-  color: #6b7280;
-}
-
-.form-input.small {
-  width: 80px;
-  padding: 0.5rem;
-}
-
-.form-textarea {
-  resize: vertical;
-  min-height: 80px;
-}
-
-.error-message {
-  color: #dc2626;
-  font-size: 0.75rem;
-}
-
-.help-text {
-  color: #6b7280;
-  font-size: 0.75rem;
-}
-
-/* Radio et checkbox */
-.radio-group {
-  display: flex;
-  gap: 1rem;
-}
-
-.radio-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-}
-
-.checkbox-group,
-.checkbox-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-}
-
-/* Tags */
-.tags-section {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-}
-
-.tags-input {
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  padding: 0.5rem;
-}
-
-.selected-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.tag-item {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.25rem 0.5rem;
-  background: #3b82f6;
-  color: white;
-  border-radius: 12px;
-  font-size: 0.75rem;
-}
-
-.tag-item.custom {
-  background: #6b7280;
-}
-
-.tag-remove {
-  background: none;
-  border: none;
-  color: white;
-  cursor: pointer;
-  padding: 0;
-  font-size: 0.7rem;
-}
-
-.tags-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.tag-checkbox {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 0.875rem;
-}
-
-.tag-checkbox:hover {
-  border-color: #3b82f6;
-}
-
-.tag-checkbox.selected {
-  background: #dbeafe;
-  border-color: #3b82f6;
-  color: #1e40af;
-}
-
-/* Options */
-.options-section {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.option-item {
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 1rem;
-  transition: all 0.2s ease;
-}
-
-.option-item.selected {
-  border-color: #3b82f6;
-  background: #dbeafe;
-}
-
-.option-checkbox {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  cursor: pointer;
-}
-
-.option-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex: 1;
-}
-
-.option-name {
-  font-weight: 500;
-  color: #1f2937;
-}
-
-.option-price {
-  font-weight: 600;
-  color: var(--success);
-}
-
-.option-config {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #e5e7eb;
-  display: flex;
-  gap: 2rem;
-  align-items: center;
-}
-
-.config-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-}
-
-/* Actions */
-.form-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 2rem;
-  background: #f9fafb;
-  border-top: 1px solid #e5e7eb;
-}
-
-.actions-right {
-  display: flex;
-  gap: 1rem;
-}
-
-/* Statuts */
-.status-active {
-  background: #d1fae5;
-  color: #065f46;
-}
-
-.status-inactive {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-.status-draft {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.status-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-/* Responsive */
-@media (max-width: 1024px) {
-  .form-content {
-    grid-template-columns: 1fr;
-  }
-  
-  .form-left {
-    border-right: none;
-    border-bottom: 1px solid #e5e7eb;
-  }
-  
-  .tags-section {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 768px) {
-  .product-form-container {
-    padding: 1rem;
-  }
-  
-  .form-header {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
-  }
-  
-  .page-title-section {
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .form-actions {
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .actions-right {
-    width: 100%;
-    justify-content: center;
-  }
-}
-</style>
