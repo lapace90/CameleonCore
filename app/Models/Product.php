@@ -9,9 +9,11 @@ use App\Models\Category;
 use App\Models\Reservation;
 use ApiPlatform\Metadata\ApiResource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use ApiPlatform\Laravel\Eloquent\Filter\EqualsFilter;
+use ApiPlatform\Metadata\QueryParameter;
 
 #[ApiResource]
-
+#[QueryParameter(key: 'type', filter: EqualsFilter::class, property: 'productable_type')]
 class Product extends Model
 {
     use HasFactory;
@@ -80,6 +82,8 @@ class Product extends Model
             ->merge($this->productable->specificTags ?? collect())
             ->unique('id');
     }
+
+    
 }
 
 

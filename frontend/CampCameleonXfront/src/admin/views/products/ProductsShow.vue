@@ -230,7 +230,7 @@
                 <span class="category-badge">{{ getProductCategoryName(product) }}</span>
               </td>
               <td v-for="field in safeListColumns" :key="field">
-                {{ formatFieldValue(product.productable, field) }}
+                {{ formatFieldValue(product.productableData, field) }}
               </td>
               <td>
                 <span class="price-value">{{ formatPrice(product.price) }}</span>
@@ -363,8 +363,24 @@ export default {
           singular: 'Menu',
           icon: 'fas fa-utensils',
           color: '#10b981',
-          gridFields: ['ingredients'],
-          listColumns: ['ingredients']
+          gridFields: ['dishes', 'dietary_tags'],
+          listColumns: ['dishes', 'dietary_info']
+        },
+        dish: {
+          label: 'Plats',
+          singular: 'Plat',
+          icon: 'fas fa-drumstick-bite',
+          color: '#f97316',
+          gridFields: ['ingredients_count', 'dietary_tags'],
+          listColumns: ['ingredients_count', 'dietary_info']
+        },
+        ingredient: {
+          label: 'Ingrédients',
+          singular: 'Ingrédient',
+          icon: 'fas fa-seedling',
+          color: '#22c55e',
+          gridFields: ['stock', 'dietary_info'],
+          listColumns: ['stock', 'is_vegetarian', 'is_vegan']
         },
         room: {
           label: 'Hébergements',
@@ -391,7 +407,6 @@ export default {
       return this.productConfigs[this.type] || this.productConfigs.activity
     },
 
-    // Safe list columns - ensure they are always strings
     safeListColumns() {
       const columns = this.typeConfig.listColumns || []
       return columns.filter(col => col && typeof col === 'string')
@@ -406,7 +421,6 @@ export default {
       const current = this.pagination.currentPage
       const last = this.pagination.lastPage
 
-      // Simple pagination logic - show current page and neighbors
       for (let i = Math.max(1, current - 2); i <= Math.min(last, current + 2); i++) {
         pages.push(i)
       }
@@ -439,10 +453,18 @@ export default {
       this.error = null
 
       try {
-        // Build API URL with filters
         const params = new URLSearchParams()
         if (this.type) {
-          params.append('type', this.type)
+          // Convertir le type en nom de classe complet pour API Platform
+          const typeMap = {
+            'activity': 'App\\Models\\Activity',
+            'room': 'App\\Models\\Room',
+            'menu': 'App\\Models\\Menu',
+            'dish': 'App\\Models\\Dish',
+            'ingredient': 'App\\Models\\Ingredient',
+            'option': 'App\\Models\\Option'
+          }
+          params.append('type', typeMap[this.type])
         }
         if (this.filters.search) {
           params.append('search', this.filters.search)
@@ -467,34 +489,37 @@ export default {
         })
 
         console.log('API Response:', response.data)
+        console.log('Type envoyé au backend:', this.type)
+        console.log('Produits reçus:', response.data.member.map(p => p.productableType))
 
-        // Handle API Platform JSON-LD response format
         if (response.data && response.data.member) {
           this.products = response.data.member
+          this.filteredProducts = response.data.member
 
-          // Update pagination info
           if (response.data.totalItems) {
             this.pagination.total = response.data.totalItems
             this.pagination.lastPage = Math.ceil(this.pagination.total / this.pagination.perPage)
           }
 
-          // Filter by product type if not done by API
-          this.applyFilters()
           this.updateStats()
         } else {
-          console.warn('Unexpected API response format:', response.data)
           this.products = []
           this.filteredProducts = []
         }
 
       } catch (error) {
         console.error('Erreur lors du chargement des produits:', error)
-        this.error = 'Erreur lors du chargement des produits. Vérifiez que l\'API est démarrée.'
+        this.error = 'Erreur lors du chargement des produits.'
         this.products = []
         this.filteredProducts = []
       } finally {
         this.loading = false
       }
+    },
+
+    applyFilters() {
+      this.pagination.currentPage = 1
+      this.fetchProducts()
     },
 
     async fetchCategories() {
@@ -506,100 +531,31 @@ export default {
           }
         })
 
-        // Handle API Platform JSON-LD response format
         if (response.data && response.data.member) {
           this.categories = response.data.member
         } else if (Array.isArray(response.data)) {
           this.categories = response.data
         } else {
-          console.warn('Unexpected categories response format:', response.data)
           this.categories = []
         }
       } catch (error) {
         console.error('Erreur lors du chargement des catégories:', error)
-        // Don't show error for categories as it's not critical
         this.categories = []
       }
-    },
-
-    getProductType(productableType) {
-      const typeMap = {
-        'App\\Models\\Activity': 'activity',
-        'App\\Models\\Room': 'room',
-        'App\\Models\\Menu': 'menu',
-        'App\\Models\\Dish': 'menu',
-        'App\\Models\\Option': 'option'
-      }
-      return typeMap[productableType] || null
-    },
-
-    applyFilters() {
-      let filtered = [...this.products]
-
-      // Filter by product type (if not filtered by API)
-      if (this.type) {
-        filtered = filtered.filter(product => {
-          const productType = this.getProductType(product.productableType)
-          return productType === this.type
-        })
-      }
-
-      // Search filter
-      if (this.filters.search) {
-        const searchLower = this.filters.search.toLowerCase()
-        filtered = filtered.filter(product =>
-          product.name.toLowerCase().includes(searchLower) ||
-          (product.description && product.description.toLowerCase().includes(searchLower))
-        )
-      }
-
-      // Status filter
-      if (this.filters.status) {
-        filtered = filtered.filter(product => {
-          if (this.filters.status === 'active') return product.status && !product.isDraft
-          if (this.filters.status === 'inactive') return !product.status
-          if (this.filters.status === 'draft') return product.isDraft
-          return true
-        })
-      }
-
-      // Category filter
-      if (this.filters.category) {
-        filtered = filtered.filter(product => {
-          // Handle API Platform IRI format
-          if (typeof product.category === 'string') {
-            return product.category.includes(`/api/categories/${this.filters.category}`)
-          }
-          return product.category?.id == this.filters.category
-        })
-      }
-
-      this.filteredProducts = filtered
-      this.updatePaginationInfo()
     },
 
     updateStats() {
       const products = this.filteredProducts
       this.stats = {
-        total: products.length,
+        total: this.pagination.total || products.length,
         active: products.filter(p => p.status && !p.isDraft).length,
         draft: products.filter(p => p.isDraft).length,
         revenue: this.formatPrice(products.reduce((sum, p) => sum + parseFloat(p.price || 0), 0) / (products.length || 1))
       }
     },
 
-    updatePaginationInfo() {
-      const total = this.filteredProducts.length
-      const perPage = this.pagination.perPage
-      const currentPage = this.pagination.currentPage
-
-      this.pagination.from = total > 0 ? ((currentPage - 1) * perPage) + 1 : 0
-      this.pagination.to = Math.min(currentPage * perPage, total)
-    },
-
     getProductCategoryName(product) {
       if (typeof product.category === 'string') {
-        // If category is an IRI, we need to find it in our categories array
         const categoryId = product.category.split('/').pop()
         const category = this.categories.find(c => c.id == categoryId)
         return category?.name || 'Sans catégorie'
@@ -607,7 +563,6 @@ export default {
       return product.category?.name || 'Sans catégorie'
     },
 
-    // Actions
     viewProduct(product) {
       this.$router.push({
         name: 'ProductDetail',
@@ -682,7 +637,6 @@ export default {
     },
 
     sortBy(field) {
-      // TODO: Implement sorting
       console.log('Tri par:', field)
     },
 
@@ -707,27 +661,23 @@ export default {
 
     async toggleStatus(product) {
       try {
-        const response = await axios.patch(`/api/products/${product.id}`, {
+        await axios.patch(`/api/products/${product.id}`, {
           status: !product.status
         })
 
-        // Update local product
         const index = this.products.findIndex(p => p.id === product.id)
         if (index !== -1) {
           this.products[index].status = !product.status
         }
 
-        this.applyFilters()
-        this.updateStats()
+        this.fetchProducts()
       } catch (error) {
         console.error('Erreur toggle status:', error)
         this.error = 'Erreur lors de la modification du statut'
       }
     },
 
-    // Utility methods
     getFieldLabel(field) {
-      // Ensure field is a string
       if (!field || typeof field !== 'string') {
         return 'N/A'
       }
@@ -737,39 +687,43 @@ export default {
         capacity: 'Capacité',
         ingredients: 'Ingrédients',
         type: 'Type',
+        ingredients_count: 'Nb ingrédients',
+        dietary_tags: 'Tags diététiques',
+        dietary_info: 'Info diététique',
+        stock: 'Stock',
+        is_vegetarian: 'Végétarien',
+        is_vegan: 'Végan',
+        is_spicy: 'Épicé',
+        is_gluten_free: 'Sans gluten',
+        is_lactose_free: 'Sans lactose',
+        is_nut_free: 'Sans noix',
         createdAt: 'Créé le',
         updatedAt: 'Modifié le'
       }
       return labels[field] || field.charAt(0).toUpperCase() + field.slice(1)
     },
 
-    // Fix malformed image URLs
     getValidImageUrl(imageUrl) {
       if (!imageUrl) {
         return this.getPlaceholderImage()
       }
 
-      // Check if URL contains double protocol (malformed)
       if (imageUrl.includes('storage/https://') || imageUrl.includes('storage/http://')) {
-        // Extract the actual image URL after 'storage/'
         const match = imageUrl.match(/storage\/(https?:\/\/.+)/)
         if (match && match[1]) {
           return match[1]
         }
       }
 
-      // Check if it's a valid URL
       try {
         new URL(imageUrl)
         return imageUrl
       } catch (error) {
-        console.warn('Invalid image URL:', imageUrl)
         return this.getPlaceholderImage()
       }
     },
 
     getPlaceholderImage() {
-      // Create a simple SVG placeholder
       const svg = `
         <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
           <rect width="200" height="200" fill="#f3f4f6"/>
@@ -781,24 +735,47 @@ export default {
       return 'data:image/svg+xml;base64,' + btoa(svg)
     },
 
+    formatDietaryInfo(productable) {
+      const tags = []
+      if (productable.is_vegan) tags.push('Végan')
+      else if (productable.is_vegetarian) tags.push('Végétarien')
+      if (productable.is_spicy) tags.push('Épicé')
+      if (productable.is_gluten_free) tags.push('Sans gluten')
+      if (productable.is_lactose_free) tags.push('Sans lactose')
+      if (productable.is_nut_free) tags.push('Sans noix')
+
+      return tags.length > 0 ? tags.join(', ') : 'Aucune restriction'
+    },
+
     formatFieldValue(productable, field) {
-      // Ensure field is a string and productable exists
-      if (!field || typeof field !== 'string' || !productable) {
+      const data = productable || {}
+
+      if (!field || typeof field !== 'string' || !data) {
         return '-'
       }
 
-      if (productable[field] === undefined || productable[field] === null) {
+      if (data[field] === undefined || data[field] === null) {
         return '-'
       }
 
-      const value = productable[field]
+      const value = data[field]
 
-      // Handle different field types
       switch (field) {
         case 'duration':
           return `${value} min`
         case 'capacity':
           return `${value} pers.`
+        case 'stock':
+          return value > 0 ? `${value} unités` : 'Rupture'
+        case 'is_vegetarian':
+        case 'is_vegan':
+        case 'is_spicy':
+        case 'is_gluten_free':
+        case 'is_lactose_free':
+        case 'is_nut_free':
+          return value ? '✓' : '✗'
+        case 'dietary_info':
+          return this.formatDietaryInfo(productable)
         case 'createdAt':
         case 'updatedAt':
           return new Date(value).toLocaleDateString('fr-FR')
@@ -813,24 +790,21 @@ export default {
     },
 
     handleImageError(event) {
-      console.warn('Image failed to load:', event.target.src)
       event.target.src = this.getPlaceholderImage()
-      // Prevent infinite error loops
       event.target.onerror = null
     },
 
     exportProducts() {
-      // TODO: Implement export functionality
       console.log('Export des produits')
     },
 
     getStatusClass(product) {
-      if (product.isDraft) return 'status-draft'
+      if (product.is_draft || product.isDraft) return 'status-draft'
       return product.status ? 'status-active' : 'status-inactive'
     },
 
     getStatusLabel(product) {
-      if (product.isDraft) return 'Brouillon'
+      if (product.is_draft || product.isDraft) return 'Brouillon'
       return product.status ? 'Actif' : 'Inactif'
     },
 
@@ -843,4 +817,3 @@ export default {
   }
 }
 </script>
-

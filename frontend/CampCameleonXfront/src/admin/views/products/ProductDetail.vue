@@ -56,7 +56,12 @@
               <i :class="getStatusIcon(product)"></i>
               {{ getStatusLabel(product) }}
             </div>
-            <button @click="toggleStatus" class="btn btn-sm" :class="product.status ? 'btn-warning' : 'btn-success'">
+            <button v-if="product.isDraft" @click="publishDraft" class="btn btn-sm btn-primary">
+              <i class="fas fa-upload"></i>
+              Publier
+            </button>
+            <button v-else @click="toggleStatus" class="btn btn-sm"
+              :class="product.status ? 'btn-warning' : 'btn-success'">
               <i :class="product.status ? 'fas fa-pause' : 'fas fa-play'"></i>
               {{ product.status ? 'Désactiver' : 'Activer' }}
             </button>
@@ -335,10 +340,10 @@ export default {
     async fetchProduct() {
       this.loading = true
       this.error = null
-      
+
       try {
         console.log('Fetching product:', this.productId)
-        
+
         // Récupération du produit principal
         const response = await axios.get(`/api/products/${this.productId}`, {
           headers: {
@@ -346,10 +351,10 @@ export default {
             'Content-Type': 'application/json'
           }
         })
-        
+
         this.product = response.data
         console.log('Product data:', this.product)
-        
+
         // Récupération des données productable si elles existent
         if (this.product.productable && typeof this.product.productable === 'string') {
           try {
@@ -368,7 +373,7 @@ export default {
         } else if (typeof this.product.productable === 'object') {
           this.productableData = this.product.productable
         }
-        
+
         // Récupération de la catégorie si c'est une IRI
         if (this.product.category && typeof this.product.category === 'string') {
           try {
@@ -386,7 +391,7 @@ export default {
         } else if (typeof this.product.category === 'object') {
           this.categoryData = this.product.category
         }
-        
+
       } catch (error) {
         console.error('Erreur lors du chargement du produit:', error)
         this.error = 'Erreur lors du chargement du produit'
@@ -423,11 +428,11 @@ export default {
     async toggleStatus() {
       try {
         const newStatus = !this.product.status
-        
+
         const response = await axios.patch(`/api/products/${this.product.id}`, {
           status: newStatus
         })
-        
+
         this.product.status = newStatus
         console.log(`Produit ${this.product.status ? 'activé' : 'désactivé'}`)
       } catch (error) {
@@ -442,10 +447,10 @@ export default {
         delete duplicatedData['@id']
         delete duplicatedData['@type']
         duplicatedData.name = `${this.product.name} (copie)`
-        
+
         const response = await axios.post('/api/products', duplicatedData)
         console.log('Produit dupliqué:', response.data)
-        
+
         // Redirection vers la liste avec un message de succès
         this.$router.push({
           name: 'ProductsShow',
@@ -462,10 +467,10 @@ export default {
       try {
         await axios.delete(`/api/products/${this.product.id}`)
         console.log('Produit supprimé')
-        
-        this.$router.push({ 
-          name: 'ProductsShow', 
-          params: { type: this.type } 
+
+        this.$router.push({
+          name: 'ProductsShow',
+          params: { type: this.type }
         })
       } catch (error) {
         console.error('Erreur lors de la suppression:', error)
@@ -599,7 +604,7 @@ export default {
 
     formatDate(date) {
       if (!date) return 'Non définie'
-      
+
       try {
         return new Date(date).toLocaleDateString('fr-FR', {
           year: 'numeric',
@@ -650,4 +655,3 @@ export default {
   }
 }
 </script>
-

@@ -3,15 +3,13 @@
     <!-- Brand -->
     <router-link to="/admin/dashboard" class="nav-link">
       <div class="sidebar-brand">
-        <h2>⛺ CampCameleonX</h2>
+        <h2>🦎 CampCameleonX</h2>
         <span class="brand-subtitle">Admin Dashboard</span>
       </div>
     </router-link>
-
     <!-- Navigation -->
     <nav class="sidebar-nav">
       <ul class="nav-list">
-
         <!-- Agenda -->
         <li class="nav-item">
           <router-link to="/admin/agenda" class="nav-link">
@@ -19,20 +17,25 @@
             <span>Agenda</span>
           </router-link>
         </li>
-
         <!-- Divider -->
         <li class="nav-divider">
           <hr>
           <span>Services</span>
         </li>
-
-
-        <!-- Restauration -->
-        <li class="nav-item">
-          <router-link to="/admin/products/menu" class="nav-link">
+        <!-- Restauration avec sous-menu -->
+         <li class="nav-item">
+          <a @click="toggleSubmenu('restauration')" class="nav-link" style="cursor: pointer;">
             <i class="fa-solid fa-utensils"></i>
             <span>Restauration</span>
-          </router-link>
+            <i class="fas fa-chevron-down" :class="{ rotated: openSubmenu === 'restauration' }" style="margin-left: auto; font-size: 0.8rem;"></i>
+          </a>
+          <ul v-show="openSubmenu === 'restauration'" style="list-style: none; padding-left: 2rem; margin: 0;">
+            <li><router-link to="/admin/products/menu" class="nav-link" style="padding-left: 2rem; font-size: 0.9rem;">Gérer les Menus</router-link></li>
+            <li><router-link to="/admin/products/dish" class="nav-link" style="padding-left: 2rem; font-size: 0.9rem;">Gérer les Plats</router-link></li>
+            <li><router-link to="/admin/products/ingredient" class="nav-link" style="padding-left: 2rem; font-size: 0.9rem;">Ingrédients</router-link></li>
+            <li><router-link to="/admin/restauration/reservations" class="nav-link" style="padding-left: 2rem; font-size: 0.9rem;">Réservations</router-link></li> <!-- Penser à l'URL -->
+            <li><router-link to="/admin/products/stock" class="nav-link" style="padding-left: 2rem; font-size: 0.9rem;">Stock et Courses</router-link></li>
+          </ul>
         </li>
         <!-- Activités -->
         <li class="nav-item">
@@ -45,17 +48,14 @@
         <li class="nav-item">
           <router-link to="/admin/products/room" class="nav-link">
             <i class="fa-solid fa-bed"></i>
-            <!-- <i class="fa-solid fa-campground"></i> -->
             <span>Chambres</span>
           </router-link>
         </li>
-
         <!-- Divider -->
         <li class="nav-divider">
           <hr>
           <span>???</span>
         </li>
-
         <!-- Users -->
         <li class="nav-item">
           <router-link to="/admin/users" class="nav-link">
@@ -63,7 +63,6 @@
             <span>Utilisateurs</span>
           </router-link>
         </li>
-
         <!-- Analytics -->
         <li class="nav-item">
           <router-link to="/admin/analytics" class="nav-link">
@@ -71,13 +70,11 @@
             <span>Analytics</span>
           </router-link>
         </li>
-
         <!-- Divider -->
         <li class="nav-divider">
           <hr>
           <span>Gestion</span>
         </li>
-
         <!-- Settings -->
         <li class="nav-item">
           <router-link to="/admin/settings" class="nav-link">
@@ -85,7 +82,6 @@
             <span>Paramètres</span>
           </router-link>
         </li>
-
         <!-- Back to site -->
         <li class="nav-item">
           <router-link to="/home" class="nav-link nav-link-external">
@@ -95,7 +91,6 @@
         </li>
       </ul>
     </nav>
-
     <!-- User profile in sidebar -->
     <div class="sidebar-user">
       <div class="user-avatar">
@@ -111,6 +106,34 @@
 
 <script>
 export default {
-  name: 'AdminSidebar'
+  name: 'AdminSidebar',
+  data() {
+    return {
+      openSubmenu: null
+    }
+  },
+  methods: {
+    toggleSubmenu(menuName) {
+      this.openSubmenu = this.openSubmenu === menuName ? null : menuName
+    }
+  }
 }
 </script>
+
+<style scoped>
+.submenu-toggle {
+  justify-content: space-between;
+}
+.submenu {
+  list-style: none;
+  padding-left: 2rem;
+}
+.submenu-link {
+  display: block;
+  padding: 0.5rem 1rem;
+  color: #9ca3af;
+  text-decoration: none;
+}
+.rotated {
+  transform: rotate(180deg);
+}</style>

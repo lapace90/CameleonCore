@@ -1,33 +1,6 @@
 <template>
   <div class="product-form-container">
-    <!-- Header -->
-    <div class="form-header">
-      <div class="header-navigation">
-        <router-link :to="backRoute" class="back-link">
-          <i class="fas fa-arrow-left"></i>
-          {{ isEditing ? 'Retour aux détails' : `Retour à ${typeConfig.label}` }}
-        </router-link>
-
-        <div class="breadcrumb">
-          <span>{{ typeConfig.label }}</span>
-          <i class="fas fa-chevron-right"></i>
-          <span>{{ isEditing ? product?.name : `Nouveau ${typeConfig.singular}` }}</span>
-        </div>
-      </div>
-
-      <div class="header-actions">
-        <button v-if="isEditing" @click="previewProduct" class="btn btn-secondary">
-          <i class="fas fa-eye"></i>
-          Aperçu
-        </button>
-        <button @click="saveDraft" class="btn btn-outline" :disabled="saving">
-          <i class="fas fa-save"></i>
-          Sauvegarder brouillon
-        </button>
-      </div>
-    </div>
-
-    <!-- Message d'erreur -->
+    <!-- Message d'erreur (toujours visible) -->
     <div v-if="error" class="error-message">
       <div class="alert alert-danger">
         <i class="fas fa-exclamation-triangle"></i>
@@ -38,11 +11,39 @@
 
     <!-- Loading -->
     <div v-if="loading" class="loading-state">
-      <div class="spinner"></div>
-      <p>Chargement...</p>
+      <div class="container">
+        <div class="spinner"></div>
+        <p>Chargement...</p>
+      </div>
     </div>
 
+    <!-- Contenu principal (seulement quand pas en chargement) -->
     <div v-else>
+      <!-- Header -->
+      <div class="form-header-product">
+        <div class="header-navigation">
+          <router-link :to="backRoute" class="back-link">
+            <i class="fas fa-arrow-left"></i>
+            {{ isEditing ? 'Retour aux détails' : `Retour à ${typeConfig.label}` }}
+          </router-link>
+          <div class="breadcrumb">
+            <span>{{ typeConfig.label }}</span>
+            <i class="fas fa-chevron-right"></i>
+            <span>{{ isEditing ? product?.name : `Nouveau ${typeConfig.singular}` }}</span>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button v-if="isEditing" @click="previewProduct" class="btn btn-secondary">
+            <i class="fas fa-eye"></i>
+            Aperçu
+          </button>
+          <button @click="saveDraft" class="btn btn-outline" :disabled="saving">
+            <i class="fas fa-save"></i>
+            Sauvegarder brouillon
+          </button>
+        </div>
+      </div>
+
       <!-- Titre de la page -->
       <div class="page-title-section">
         <div class="title-left">
@@ -54,7 +55,6 @@
             {{ isEditing ? `Modifier "${product?.name}"` : `Nouveau ${typeConfig.singular}` }}
           </h1>
         </div>
-
         <div class="title-right" v-if="isEditing && product">
           <div class="status-info">
             <span class="status-badge" :class="getStatusClass(product)">
@@ -750,16 +750,35 @@ export default {
       }
     },
 
+    createSvgDataUrl(svg) {
+      try {
+        // Try URL encoding first (most compatible)
+        return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg)
+      } catch (error) {
+        console.warn('Failed to create SVG data URL:', error)
+        // Fallback to a simple ASCII version
+        const fallbackSvg = `
+      <svg width="300" height="200" xmlns="http://www.w3.org/2000/svg">
+        <rect width="300" height="200" fill="#f3f4f6"/>
+        <text x="150" y="100" text-anchor="middle" dy=".3em" font-family="Arial, sans-serif" font-size="14" fill="#9ca3af">
+          Product Preview
+        </text>
+      </svg>
+    `
+        return 'data:image/svg+xml;base64,' + btoa(fallbackSvg)
+      }
+    },
+
     getPlaceholderImage() {
       const svg = `
-        <svg width="300" height="200" xmlns="http://www.w3.org/2000/svg">
-          <rect width="300" height="200" fill="#f3f4f6"/>
-          <text x="150" y="100" text-anchor="middle" dy=".3em" font-family="Arial, sans-serif" font-size="14" fill="#9ca3af">
-            Aperçu du produit
-          </text>
-        </svg>
-      `
-      return 'data:image/svg+xml;base64,' + btoa(svg)
+    <svg width="300" height="200" xmlns="http://www.w3.org/2000/svg">
+      <rect width="300" height="200" fill="#f3f4f6"/>
+      <text x="150" y="100" text-anchor="middle" dy=".3em" font-family="Arial, sans-serif" font-size="14" fill="#9ca3af">
+        Aperçu du produit
+      </text>
+    </svg>
+  `
+      return this.createSvgDataUrl(svg)
     },
 
     selectImage() {
@@ -1048,4 +1067,3 @@ export default {
   }
 }
 </script>
-

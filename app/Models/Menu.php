@@ -11,8 +11,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Menu extends Model
 {
     use HasFactory;
+
     public function product()
     {
         return $this->morphOne(Product::class, 'productable');
+    }
+
+    public function dishes()
+    {
+        return $this->belongsToMany(Dish::class);
     }
 }

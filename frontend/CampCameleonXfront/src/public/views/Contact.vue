@@ -18,7 +18,7 @@
         <div class="contact-grid">
           <!-- Contact Form -->
           <div class="form-container">
-            <div class="form-header">
+            <div class="form-header-contact">
               <h2>Envoyez-nous un message</h2>
               <p>Remplissez le formulaire ci-dessous et nous vous répondrons dans les plus brefs délais.</p>
             </div>
@@ -411,7 +411,7 @@ export default {
   position: relative;
 }
 
-.form-header {
+.form-header-contact {
   margin-bottom: 2rem;
 
   h2 {

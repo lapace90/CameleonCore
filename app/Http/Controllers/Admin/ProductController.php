@@ -16,95 +16,120 @@ class ProductController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function index(Request $request)
-    {
-        try {
-            $query = Product::with(['category', 'productable', 'globalTags']);
+    // public function index(Request $request)
+    // {
+    //     try {
+    //         $query = Product::with(['category', 'productable', 'globalTags']);
 
-            // Filtre par type de productable
-            if ($request->has('type') && $request->type) {
-                $type = $request->type;
-                
-                // Map front-end types to model classes
-                $typeMap = [
-                    'activity' => 'App\\Models\\Activity',
-                    'room' => 'App\\Models\\Room',
-                    'menu' => 'App\\Models\\Menu',
-                    'dish' => 'App\\Models\\Dish',
-                    'option' => 'App\\Models\\Option'
-                ];
-                
-                if (isset($typeMap[$type])) {
-                    $query->where('productableType', $typeMap[$type]);
-                }
-            }
+    //         // Filtre par type de productable
+    //         if ($request->filled('type')) {
+    //             $type = $request->input('type');
+    //             $typeMap = [
+    //                 'activity' => 'App\\Models\\Activity',
+    //                 'room' => 'App\\Models\\Room',
+    //                 'menu' => 'App\\Models\\Menu',
+    //                 'dish' => 'App\\Models\\Dish',
+    //                 'ingredient' => 'App\\Models\\Ingredient',
+    //                 'option' => 'App\\Models\\Option'
+    //             ];
 
-            // Filtre par statut
-            if ($request->has('status') && $request->status) {
-                switch ($request->status) {
-                    case 'active':
-                        $query->where('status', true)->where('isDraft', false);
-                        break;
-                    case 'inactive':
-                        $query->where('status', false);
-                        break;
-                    case 'draft':
-                        $query->where('isDraft', true);
-                        break;
-                }
-            }
+    //             if (array_key_exists($type, $typeMap)) {
+    //                 $query->where('productable_type', '=', $typeMap[$type]);
+    //             }
+    //         }
 
-            // Recherche
-            if ($request->has('search') && $request->search) {
-                $search = $request->search;
-                $query->where(function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('description', 'like', "%{$search}%");
-                });
-            }
+    //         // Filtre par statut
+    //         if ($request->has('status') && $request->status) {
+    //             switch ($request->status) {
+    //                 case 'active':
+    //                     $query->where('status', true)->where('is_draft', false);
+    //                     break;
+    //                 case 'inactive':
+    //                     $query->where('status', false);
+    //                     break;
+    //                 case 'draft':
+    //                     $query->where('is_draft', true);
+    //                     break;
+    //             }
+    //         }
 
-            // Filtre par catégorie
-            if ($request->has('category_id') && $request->category_id) {
-                $query->where('category_id', $request->category_id);
-            }
+    //         // Recherche
+    //         if ($request->has('search') && $request->search) {
+    //             $search = $request->search;
+    //             $query->where(function ($q) use ($search) {
+    //                 $q->where('name', 'like', "%{$search}%")
+    //                     ->orWhere('description', 'like', "%{$search}%");
+    //             });
+    //         }
 
-            // Pagination
-            $perPage = $request->get('per_page', 20);
-            $products = $query->paginate($perPage);
+    //         // Filtre par catégorie
+    //         if ($request->has('category_id') && $request->category_id) {
+    //             $query->where('category_id', $request->category_id);
+    //         }
 
-            // Format response for API Platform compatibility
-            $response = [
-                '@context' => '/api/contexts/Product',
-                '@id' => '/api/products',
-                '@type' => 'Collection',
-                'totalItems' => $products->total(),
-                'member' => $products->items(),
-                'view' => [
-                    '@id' => "/api/products?page={$products->currentPage()}",
-                    '@type' => 'PartialCollectionView',
-                    'first' => '/api/products?page=1',
-                    'last' => "/api/products?page={$products->lastPage()}",
-                ]
-            ];
+    //         // Pagination
+    //         $perPage = $request->get('per_page', 20);
+    //         $products = $query->paginate($perPage);
 
-            if ($products->hasMorePages()) {
-                $response['view']['next'] = "/api/products?page=" . ($products->currentPage() + 1);
-            }
+    //         // Transformer les produits pour inclure les données productable
+    //         $transformedProducts = $products->getCollection()->map(function ($product) {
+    //             $productData = $product->toArray();
 
-            if ($products->currentPage() > 1) {
-                $response['view']['previous'] = "/api/products?page=" . ($products->currentPage() - 1);
-            }
+    //             // Ajouter les données productable complètes
+    //             if ($product->productable) {
+    //                 $productData['productableData'] = $product->productable->toArray();
+    //             } else {
+    //                 $productData['productableData'] = null;
+    //             }
 
-            return response()->json($response);
+    //             return $productData;
+    //         });
 
-        } catch (\Exception $e) {
-            Log::error('Error fetching products: ' . $e->getMessage());
-            return response()->json([
-                'error' => 'Failed to fetch products',
-                'message' => $e->getMessage()
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-    }
+    //         // Format response for API Platform compatibility
+    //         $response = [
+    //             '@context' => '/api/contexts/Product',
+    //             '@id' => '/api/products',
+    //             '@productableType' => 'Collection',
+    //             'totalItems' => $products->total(),
+    //             'member' => $transformedProducts->toArray(),
+    //             'view' => [
+    //                 '@id' => "/api/products?page={$products->currentPage()}",
+    //                 '@productableType' => 'PartialCollectionView',
+    //                 'first' => '/api/products?page=1',
+    //                 'last' => "/api/products?page={$products->lastPage()}",
+    //             ]
+    //         ];
+
+    //         if ($products->hasMorePages()) {
+    //             $response['view']['next'] = "/api/products?page=" . ($products->currentPage() + 1);
+    //         }
+
+    //         if ($products->currentPage() > 1) {
+    //             $response['view']['previous'] = "/api/products?page=" . ($products->currentPage() - 1);
+    //         }
+
+    //         return response()->json($response);
+    //     } catch (\Exception $e) {
+    //         Log::error('Error fetching products: ' . $e->getMessage());
+    //         return response()->json([
+    //             'error' => 'Failed to fetch products',
+    //             'message' => $e->getMessage()
+    //         ], Response::HTTP_INTERNAL_SERVER_ERROR);
+    //     }
+    // }
+
+public function index(Request $request)
+{
+    $debug = [
+        'request_type' => $request->input('type'),
+        'has_type' => $request->has('type'),
+        'all_params' => $request->all(),
+        'menu_count' => Product::where('productable_type', 'App\\Models\\Menu')->count(),
+        'total_count' => Product::count()
+    ];
+    
+    return response()->json($debug);
+}
 
     /**
      * Store a newly created product in storage.
@@ -116,10 +141,10 @@ class ProductController extends Controller
     {
         try {
             $data = $request->validated();
-            
+
             // Handle productable creation if needed
             // This depends on your specific implementation
-            
+
             $product = Product::create($data);
 
             // Handle tags or other relationships if needed
@@ -131,7 +156,6 @@ class ProductController extends Controller
             $product->load(['category', 'productable', 'globalTags']);
 
             return response()->json($product, Response::HTTP_CREATED);
-            
         } catch (\Exception $e) {
             Log::error('Error creating product: ' . $e->getMessage());
             return response()->json([
@@ -158,7 +182,6 @@ class ProductController extends Controller
             ]);
 
             return response()->json($product);
-            
         } catch (\Exception $e) {
             Log::error('Error fetching product: ' . $e->getMessage());
             return response()->json([
@@ -190,7 +213,6 @@ class ProductController extends Controller
             $product->load(['category', 'productable', 'globalTags']);
 
             return response()->json($product);
-            
         } catch (\Exception $e) {
             Log::error('Error updating product: ' . $e->getMessage());
             return response()->json([
@@ -213,7 +235,7 @@ class ProductController extends Controller
             // Validate only the fields that are being updated
             $allowedFields = ['status', 'isDraft', 'name', 'description', 'price'];
             $data = $request->only($allowedFields);
-            
+
             // Validate the data
             $request->validate([
                 'status' => 'sometimes|boolean',
@@ -227,7 +249,6 @@ class ProductController extends Controller
             $product->load(['category', 'productable', 'globalTags']);
 
             return response()->json($product);
-            
         } catch (\Exception $e) {
             Log::error('Error patching product: ' . $e->getMessage());
             return response()->json([
@@ -248,7 +269,6 @@ class ProductController extends Controller
         try {
             $product->delete();
             return response()->json(null, Response::HTTP_NO_CONTENT);
-            
         } catch (\Exception $e) {
             Log::error('Error deleting product: ' . $e->getMessage());
             return response()->json([
@@ -268,13 +288,13 @@ class ProductController extends Controller
     {
         try {
             $query = $request->input('query');
-            
+
             if (!$query) {
                 return response()->json([
                     'error' => 'Query parameter is required'
                 ], Response::HTTP_BAD_REQUEST);
             }
-            
+
             $products = Product::with(['category', 'productable', 'globalTags'])
                 ->where('name', 'like', "%{$query}%")
                 ->orWhere('description', 'like', "%{$query}%")
@@ -282,7 +302,6 @@ class ProductController extends Controller
                 ->get();
 
             return response()->json($products);
-            
         } catch (\Exception $e) {
             Log::error('Error searching products: ' . $e->getMessage());
             return response()->json([
@@ -302,7 +321,7 @@ class ProductController extends Controller
     {
         try {
             $query = Product::query();
-            
+
             // Apply same filters as index method
             if ($request->has('type') && $request->type) {
                 $type = $request->type;
@@ -311,11 +330,12 @@ class ProductController extends Controller
                     'room' => 'App\\Models\\Room',
                     'menu' => 'App\\Models\\Menu',
                     'dish' => 'App\\Models\\Dish',
-                    'option' => 'App\\Models\\Option'
+                    'option' => 'App\\Models\\Option',
+                    'ingredient' => 'App\\Models\\Ingredient'
                 ];
-                
+
                 if (isset($typeMap[$type])) {
-                    $query->where('productableType', $typeMap[$type]);
+                    $query->where('productable_type', $typeMap[$type]);
                 }
             }
 
@@ -328,7 +348,6 @@ class ProductController extends Controller
             ];
 
             return response()->json($stats);
-            
         } catch (\Exception $e) {
             Log::error('Error fetching stats: ' . $e->getMessage());
             return response()->json([

@@ -28,11 +28,11 @@ class Dish extends Model
         return $this->belongsToMany(Ingredient::class);
     }
 
-   // Tags spécifiques (ex: "épicé")
-   public function specificTags()
-   {
-       return $this->morphToMany(Tag::class, 'taggable')->where('is_global', false);
-   }
+    // Tags spécifiques (ex: "épicé")
+    public function specificTags()
+    {
+        return $this->morphToMany(Tag::class, 'taggable')->where('is_global', false);
+    }
 
     public function updateTags()
     {
@@ -49,18 +49,17 @@ class Dish extends Model
     protected function calculateSpecificTags()
     {
         $tags = [];
-    
+
         $ingredients = $this->ingredients;
-    
+
         // Vegan implique automatiquement végétarien
         if ($ingredients->every('is_vegan', true)) {
             $tags[] = 'vegan';
             $tags[] = 'vegetarian';
-        } 
-        elseif ($ingredients->every('is_vegetarian', true)) {
+        } elseif ($ingredients->every('is_vegetarian', true)) {
             $tags[] = 'vegetarian';
         }
-    
+
         // Autres tags
         $checks = [
             'is_spicy' => 'spicy',
@@ -68,13 +67,18 @@ class Dish extends Model
             'is_lactose_free' => 'lactose_free',
             'is_nut_free' => 'nut_free'
         ];
-    
+
         foreach ($checks as $attribute => $tag) {
             if ($ingredients->contains($attribute, true)) {
                 $tags[] = $tag;
             }
         }
-    
+
         return $tags;
+    }
+
+    public function menus()
+    {
+        return $this->belongsToMany(Menu::class);
     }
 }
