@@ -2,6 +2,7 @@
   padding: 2rem;
   max-width: 1400px;
   margin: 0 auto;
+  width: 90%;
 }
 
 .error-message {
@@ -71,7 +72,6 @@
 }
 
 .back-link {
-  position: fixed;
   gap: 0.5rem;
   color: #6b7280;
   text-decoration: none;
@@ -425,11 +425,13 @@
 }
 
 .checkbox-group,
-.checkbox-item {
+.checkbox-item,
+.item-checkbox {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   cursor: pointer;
+  padding: .5rem;
 }
 
 /* Tags */

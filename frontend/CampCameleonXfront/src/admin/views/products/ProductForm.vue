@@ -1,6 +1,6 @@
 <template>
   <div class="product-form-container">
-    <!-- Message d'erreur (toujours visible) -->
+    <!-- Message d'erreur -->
     <div v-if="error" class="error-message">
       <div class="alert alert-danger">
         <i class="fas fa-exclamation-triangle"></i>
@@ -11,16 +11,14 @@
 
     <!-- Loading -->
     <div v-if="loading" class="loading-state">
-      <div class="container">
-        <div class="spinner"></div>
-        <p>Chargement...</p>
-      </div>
+      <div class="spinner"></div>
+      <p>Chargement...</p>
     </div>
 
-    <!-- Contenu principal (seulement quand pas en chargement) -->
+    <!-- Contenu principal -->
     <div v-else>
       <!-- Header -->
-      <div class="form-header-product">
+      <div class="form-header">
         <div class="header-navigation">
           <router-link :to="backRoute" class="back-link">
             <i class="fas fa-arrow-left"></i>
@@ -32,98 +30,51 @@
             <span>{{ isEditing ? product?.name : `Nouveau ${typeConfig.singular}` }}</span>
           </div>
         </div>
-        <div class="header-actions">
-          <button v-if="isEditing" @click="previewProduct" class="btn btn-secondary">
-            <i class="fas fa-eye"></i>
-            Aperçu
-          </button>
-          <button @click="saveDraft" class="btn btn-outline" :disabled="saving">
-            <i class="fas fa-save"></i>
-            Sauvegarder brouillon
-          </button>
-        </div>
       </div>
 
-      <!-- Titre de la page -->
+      <!-- Titre -->
       <div class="page-title-section">
-        <div class="title-left">
-          <div class="product-type-badge" :style="{ backgroundColor: typeConfig.color }">
-            <i :class="typeConfig.icon"></i>
-            {{ typeConfig.singular }}
-          </div>
-          <h1 class="page-title">
-            {{ isEditing ? `Modifier "${product?.name}"` : `Nouveau ${typeConfig.singular}` }}
-          </h1>
+        <div class="product-type-badge" :style="{ backgroundColor: typeConfig.color }">
+          <i :class="typeConfig.icon"></i>
+          {{ typeConfig.singular }}
         </div>
-        <div class="title-right" v-if="isEditing && product">
-          <div class="status-info">
-            <span class="status-badge" :class="getStatusClass(product)">
-              {{ getStatusLabel(product) }}
-            </span>
-          </div>
-        </div>
+        <h1 class="page-title">
+          {{ isEditing ? `Modifier "${product?.name}"` : `Nouveau ${typeConfig.singular}` }}
+        </h1>
       </div>
 
       <!-- Formulaire principal -->
       <form @submit.prevent="submitForm" class="product-form">
         <div class="form-content">
-          <!-- Colonne gauche - Image et aperçu -->
+          <!-- Colonne gauche - Image -->
           <div class="form-left">
-            <!-- Upload d'image -->
             <div class="image-upload-section">
-              <h3>Image principale</h3>
+              <h3>Image</h3>
               <div class="image-upload-area">
-                <div v-if="imagePreview || form.image" class="current-image">
-                  <img :src="getValidImageUrl(imagePreview || form.image)" :alt="form.name || 'Image du produit'"
+                <div v-if="imagePreview || form.image" class="main-image current-image">
+                  <img :src="getValidImageUrl(product.image || form.image)" :alt="form.name || 'Image'"
                     @error="handleImageError" />
                   <div class="image-overlay">
                     <button type="button" @click="changeImage" class="overlay-btn">
                       <i class="fas fa-edit"></i>
-                      Changer
                     </button>
                     <button type="button" @click="removeImage" class="overlay-btn">
                       <i class="fas fa-trash"></i>
-                      Supprimer
                     </button>
                   </div>
                 </div>
-
                 <div v-else class="upload-placeholder" @click="selectImage">
                   <i class="fas fa-cloud-upload-alt"></i>
-                  <p>Cliquez pour ajouter une image</p>
-                  <span>JPG, PNG - Max 5MB</span>
+                  <p>Ajouter une image</p>
                 </div>
-
-                <input ref="imageInput" type="file" accept="image/*" @change="handleImageUpload"
-                  style="display: none" />
-              </div>
-            </div>
-
-            <!-- Aperçu du produit -->
-            <div class="product-preview">
-              <h3>Aperçu</h3>
-              <div class="preview-card">
-                <div class="preview-image">
-                  <img :src="getValidImageUrl(imagePreview || form.image) || getPlaceholderImage()"
-                    :alt="form.name || 'Aperçu'" />
-                </div>
-                <div class="preview-content">
-                  <h4>{{ form.name || 'Nom du produit' }}</h4>
-                  <p class="preview-category">{{ selectedCategory?.name || 'Catégorie' }}</p>
-                  <p class="preview-description">
-                    {{ truncateText(form.description, 100) || 'Description du produit...' }}
-                  </p>
-                  <div class="preview-price">
-                    {{ formatPrice(form.price) }}
-                  </div>
-                </div>
+                <input ref="imageInput" type="file" accept="image/*" @change="handleImageUpload" style="display: none" />
               </div>
             </div>
           </div>
 
           <!-- Colonne droite - Formulaires -->
           <div class="form-right">
-            <!-- Informations générales -->
+            <!-- Informations de base -->
             <div class="form-section">
               <h3>Informations générales</h3>
               <div class="form-grid">
@@ -145,17 +96,6 @@
                 </div>
 
                 <div class="form-group">
-                  <label class="form-label">Catégorie</label>
-                  <select v-model="form.category_id" class="form-select" :class="{ 'error': errors.category_id }">
-                    <option value="">Sélectionner une catégorie</option>
-                    <option v-for="category in categories" :key="category.id" :value="category.id">
-                      {{ category.name }}
-                    </option>
-                  </select>
-                  <span v-if="errors.category_id" class="error-message">{{ errors.category_id }}</span>
-                </div>
-
-                <div class="form-group">
                   <label class="form-label">Statut</label>
                   <div class="radio-group">
                     <label class="radio-item">
@@ -171,150 +111,175 @@
 
                 <div class="form-group full-width">
                   <label class="form-label">Description</label>
-                  <textarea v-model="form.description" class="form-textarea" rows="4"
-                    placeholder="Description détaillée du produit..."
-                    :class="{ 'error': errors.description }"></textarea>
-                  <span v-if="errors.description" class="error-message">{{ errors.description }}</span>
+                  <textarea v-model="form.description" class="form-textarea" rows="3"
+                    placeholder="Description du produit..."></textarea>
                 </div>
               </div>
             </div>
 
-            <!-- Champs spécifiques au type -->
-            <div class="form-section">
+            <!-- Champs spécifiques - SELON VOTRE CONFIG EXACTE -->
+            <div v-if="typeConfig.fields.length > 0" class="form-section">
               <h3>Détails {{ typeConfig.singular.toLowerCase() }}</h3>
               <div class="form-grid">
-                <div v-for="field in typeConfig.formFields" :key="field.name" class="form-group"
-                  :class="{ 'full-width': field.fullWidth }">
-                  <label class="form-label" :class="{ 'required': field.required }">
-                    {{ field.label }}
-                  </label>
-
-                  <!-- Input text -->
-                  <input v-if="field.type === 'text'" v-model="form.productable[field.name]" type="text"
-                    class="form-input" :placeholder="field.placeholder" :required="field.required"
-                    :class="{ 'error': errors[`productable.${field.name}`] }" />
-
-                  <!-- Input number -->
-                  <div v-else-if="field.type === 'number'" class="input-group">
-                    <input v-model.number="form.productable[field.name]" type="number" class="form-input"
-                      :placeholder="field.placeholder" :min="field.min" :max="field.max" :step="field.step"
-                      :required="field.required" :class="{ 'error': errors[`productable.${field.name}`] }" />
-                    <span v-if="field.unit" class="input-addon">{{ field.unit }}</span>
+                
+                <!-- ACTIVITÉS - Champs de votre config : guide, duration, meeting_point, max_people, difficulty_level -->
+                <template v-if="productType === 'activity'">
+                  <div class="form-group">
+                    <label class="form-label required">Guide</label>
+                    <input v-model="form.productable.guide" type="text" class="form-input" 
+                      placeholder="Nom du guide" required />
                   </div>
-
-                  <!-- Select -->
-                  <select v-else-if="field.type === 'select'" v-model="form.productable[field.name]" class="form-select"
-                    :required="field.required" :class="{ 'error': errors[`productable.${field.name}`] }">
-                    <option value="">{{ field.placeholder }}</option>
-                    <option v-for="option in field.options" :key="option.value" :value="option.value">
-                      {{ option.label }}
-                    </option>
-                  </select>
-
-                  <!-- Textarea -->
-                  <textarea v-else-if="field.type === 'textarea'" v-model="form.productable[field.name]"
-                    class="form-textarea" :rows="field.rows || 3" :placeholder="field.placeholder"
-                    :required="field.required" :class="{ 'error': errors[`productable.${field.name}`] }"></textarea>
-
-                  <!-- Checkbox -->
-                  <div v-else-if="field.type === 'checkbox'" class="checkbox-group">
-                    <label class="checkbox-item">
-                      <input type="checkbox" v-model="form.productable[field.name]" />
-                      <span class="checkbox-label">{{ field.checkboxLabel || field.label }}</span>
-                    </label>
-                  </div>
-
-                  <!-- Multi-select pour tags/options -->
-                  <div v-else-if="field.type === 'tags'" class="tags-input">
-                    <div class="selected-tags">
-                      <span v-for="tag in form.productable[field.name] || []" :key="tag" class="tag-item">
-                        {{ tag }}
-                        <button type="button" @click="removeTag(field.name, tag)" class="tag-remove">
-                          <i class="fas fa-times"></i>
-                        </button>
-                      </span>
+                  <div class="form-group">
+                    <label class="form-label required">Durée</label>
+                    <div class="input-group">
+                      <input v-model.number="form.productable.duration" type="number" class="form-input"
+                        placeholder="120" min="1" required />
+                      <span class="input-addon">min</span>
                     </div>
-                    <input type="text" class="form-input" :placeholder="field.placeholder"
-                      @keydown.enter.prevent="addTag(field.name, $event)"
-                      @keydown.comma.prevent="addTag(field.name, $event)" />
                   </div>
-
-                  <span v-if="errors[`productable.${field.name}`]" class="error-message">
-                    {{ errors[`productable.${field.name}`] }}
-                  </span>
-                  <span v-if="field.help" class="help-text">{{ field.help }}</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Tags globaux -->
-            <div class="form-section">
-              <h3>Tags</h3>
-              <div class="tags-section">
-                <div class="available-tags">
-                  <label class="form-label">Tags disponibles</label>
-                  <div class="tags-list">
-                    <label v-for="tag in availableTags" :key="tag.id" class="tag-checkbox"
-                      :class="{ 'selected': form.selectedTags.includes(tag.id) }">
-                      <input type="checkbox" :value="tag.id" v-model="form.selectedTags" />
-                      <span>{{ tag.name }}</span>
-                    </label>
+                  <div class="form-group full-width">
+                    <label class="form-label required">Point de rendez-vous</label>
+                    <input v-model="form.productable.meeting_point" type="text" class="form-input" 
+                      placeholder="Lieu de rendez-vous" required />
                   </div>
-                </div>
-
-                <div class="custom-tags">
-                  <label class="form-label">Tags personnalisés</label>
-                  <div class="tags-input">
-                    <div class="selected-tags">
-                      <span v-for="tag in form.customTags" :key="tag" class="tag-item custom">
-                        {{ tag }}
-                        <button type="button" @click="removeCustomTag(tag)" class="tag-remove">
-                          <i class="fas fa-times"></i>
-                        </button>
-                      </span>
+                  <div class="form-group">
+                    <label class="form-label required">Capacité maximum</label>
+                    <div class="input-group">
+                      <input v-model.number="form.productable.max_people" type="number" class="form-input"
+                        placeholder="10" min="1" required />
+                      <span class="input-addon">pers.</span>
                     </div>
-                    <input type="text" class="form-input" placeholder="Ajouter un tag personnalisé..."
-                      @keydown.enter.prevent="addCustomTag" @keydown.comma.prevent="addCustomTag" />
                   </div>
-                </div>
-              </div>
-            </div>
+                  <div class="form-group">
+                    <label class="form-label required">Niveau de difficulté</label>
+                    <select v-model="form.productable.difficulty_level" class="form-select" required>
+                      <option value="">Choisir</option>
+                      <option value="easy">Facile</option>
+                      <option value="medium">Moyen</option>
+                      <option value="hard">Difficile</option>
+                    </select>
+                  </div>
+                </template>
 
-            <!-- Options associées (si applicable) -->
-            <div v-if="typeConfig.hasOptions" class="form-section">
-              <h3>Options disponibles</h3>
-              <div class="options-section">
-                <div class="available-options">
-                  <div v-for="option in availableOptions" :key="option.id" class="option-item"
-                    :class="{ 'selected': isOptionSelected(option.id) }">
-                    <label class="option-checkbox">
-                      <input type="checkbox" :value="option.id" @change="toggleOption(option.id)"
-                        :checked="isOptionSelected(option.id)" />
-                      <div class="option-info">
-                        <span class="option-name">{{ option.name }}</span>
-                        <span class="option-price">{{ formatPrice(option.price) }}</span>
-                      </div>
-                    </label>
-
-                    <div v-if="isOptionSelected(option.id)" class="option-config">
-                      <label class="config-item">
-                        <input type="checkbox" v-model="getOptionConfig(option.id).required" />
-                        <span>Obligatoire</span>
+                <!-- INGRÉDIENTS - Champs de votre config : stock, is_vegetarian, is_vegan, is_spicy, is_gluten_free, is_lactose_free, is_nut_free -->
+                <template v-if="productType === 'ingredient'">
+                  <div class="form-group">
+                    <label class="form-label">Stock</label>
+                    <div class="input-group">
+                      <input v-model.number="form.productable.stock" type="number" class="form-input"
+                        placeholder="100" min="0" />
+                      <span class="input-addon">unités</span>
+                    </div>
+                  </div>
+                  <div class="form-group full-width">
+                    <label class="form-label">Propriétés diététiques</label>
+                    <div class="checkbox-grid">
+                      <label class="checkbox-item">
+                        <input type="checkbox" v-model="form.productable.is_vegetarian" />
+                        <span class="checkbox-label">Végétarien</span>
                       </label>
-                      <div class="config-item">
-                        <label>Quantité max:</label>
-                        <input type="number" v-model.number="getOptionConfig(option.id).max_quantity" min="1"
-                          class="form-input small" />
-                      </div>
+                      <label class="checkbox-item">
+                        <input type="checkbox" v-model="form.productable.is_vegan" />
+                        <span class="checkbox-label">Végan</span>
+                      </label>
+                      <label class="checkbox-item">
+                        <input type="checkbox" v-model="form.productable.is_spicy" />
+                        <span class="checkbox-label">Épicé</span>
+                      </label>
+                      <label class="checkbox-item">
+                        <input type="checkbox" v-model="form.productable.is_gluten_free" />
+                        <span class="checkbox-label">Sans gluten</span>
+                      </label>
+                      <label class="checkbox-item">
+                        <input type="checkbox" v-model="form.productable.is_lactose_free" />
+                        <span class="checkbox-label">Sans lactose</span>
+                      </label>
+                      <label class="checkbox-item">
+                        <input type="checkbox" v-model="form.productable.is_nut_free" />
+                        <span class="checkbox-label">Sans noix</span>
+                      </label>
                     </div>
+                  </div>
+                </template>
+
+                <!-- HÉBERGEMENTS - Champs de votre config : capacity, availability -->
+                <template v-if="productType === 'room'">
+                  <div class="form-group">
+                    <label class="form-label required">Capacité</label>
+                    <div class="input-group">
+                      <input v-model.number="form.productable.capacity" type="number" class="form-input"
+                        placeholder="4" min="1" required />
+                      <span class="input-addon">pers.</span>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Disponibilité</label>
+                    <div class="radio-group">
+                      <label class="radio-item">
+                        <input type="radio" v-model="form.productable.availability" :value="true" name="availability" />
+                        <span class="radio-label">Disponible</span>
+                      </label>
+                      <label class="radio-item">
+                        <input type="radio" v-model="form.productable.availability" :value="false" name="availability" />
+                        <span class="radio-label">Non disponible</span>
+                      </label>
+                    </div>
+                  </div>
+                </template>
+
+              </div>
+            </div>
+
+            <!-- Relations - SELON VOTRE CONFIG hasRelation -->
+            <div v-if="isEditing && typeConfig.hasRelation" class="form-section">
+              <h3>{{ getRelationTitle() }}</h3>
+              
+              <!-- Sélection d'ingrédients pour un plat -->
+              <div v-if="typeConfig.hasRelation === 'ingredients'" class="selection-area">
+                <div class="available-items">
+                  <div v-for="ingredient in availableIngredients" :key="ingredient.id" class="selectable-item"
+                    :class="{ 'selected': form.selectedIngredients.includes(ingredient.id) }">
+                    <label class="item-checkbox">
+                      <input type="checkbox" :value="ingredient.id" v-model="form.selectedIngredients" />
+                      <div class="item-info">
+                        <span class="item-name">{{ ingredient.name }}</span>
+                        <span class="item-price">{{ formatPrice(ingredient.price) }}</span>
+                      </div>
+                    </label>
                   </div>
                 </div>
               </div>
+
+              <!-- Sélection de plats pour un menu OU plats utilisant un ingrédient -->
+              <div v-if="typeConfig.hasRelation === 'dishes'" class="selection-area">
+                <div class="available-items">
+                  <div v-for="dish in availableDishes" :key="dish.id" class="selectable-item"
+                    :class="{ 'selected': form.selectedDishes.includes(dish.id) }">
+                    <label class="item-checkbox">
+                      <input type="checkbox" :value="dish.id" v-model="form.selectedDishes" />
+                      <div class="item-info">
+                        <span class="item-name">{{ dish.name }}</span>
+                        <span class="item-price">{{ formatPrice(dish.price) }}</span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
             </div>
+
+            <!-- Message pour les types sans relations en création -->
+            <div v-if="!isEditing && typeConfig.hasRelation" class="form-section">
+              <div class="form-note">
+                <i class="fas fa-info-circle"></i>
+                Les {{ getRelationTitle().toLowerCase() }} pourront être ajoutés après la création.
+              </div>
+            </div>
+
           </div>
         </div>
 
-        <!-- Actions du formulaire -->
+        <!-- Actions -->
         <div class="form-actions">
           <div class="actions-left">
             <button type="button" @click="resetForm" class="btn btn-outline" :disabled="saving">
@@ -322,16 +287,11 @@
               Réinitialiser
             </button>
           </div>
-
           <div class="actions-right">
-            <button type="button" @click="saveDraft" class="btn btn-secondary" :disabled="saving">
-              <i class="fas fa-save"></i>
-              Sauvegarder brouillon
-            </button>
             <button type="submit" class="btn btn-primary" :disabled="saving || !isFormValid">
               <i v-if="saving" class="fas fa-spinner fa-spin"></i>
               <i v-else class="fas fa-check"></i>
-              {{ isEditing ? 'Mettre à jour' : 'Créer' }} {{ typeConfig.singular.toLowerCase() }}
+              {{ isEditing ? 'Mettre à jour' : 'Créer' }}
             </button>
           </div>
         </div>
@@ -346,17 +306,13 @@ import axios from 'axios'
 export default {
   name: 'ProductForm',
   props: {
-    productType: { // Reçu de la route
+    productType: {
       type: String,
       required: true
     },
-    action: { // 'create' ou 'edit'
+    action: {
       type: String,
       required: true
-    },
-    productIdProp: { // Seulement pour l'édition (optionnel)
-      type: [String, Number],
-      default: null
     }
   },
   data() {
@@ -365,9 +321,9 @@ export default {
       saving: false,
       imagePreview: null,
       product: null,
-      categories: [],
-      availableTags: [],
-      availableOptions: [],
+      // Données pour les relations
+      availableIngredients: [],
+      availableDishes: [],
       error: null,
 
       // Formulaire
@@ -375,132 +331,57 @@ export default {
         name: '',
         description: '',
         price: 0,
-        category_id: '',
         status: true,
-        is_draft: false,
         image: null,
-        selectedTags: [],
-        customTags: [],
-        selectedOptions: [],
+        // Relations
+        selectedIngredients: [],
+        selectedDishes: [],
         productable: {}
       },
 
-      // Erreurs de validation
       errors: {},
 
-      // Configuration des types de produits
+      // VOTRE CONFIGURATION EXACTE
       productConfigs: {
+        ingredient: {
+          label: 'Ingrédients',
+          singular: 'Ingrédient', 
+          icon: 'fas fa-seedling',
+          color: '#22c55e',
+          fields: ['stock', 'is_vegetarian', 'is_vegan', 'is_spicy', 'is_gluten_free', 'is_lactose_free', 'is_nut_free'],
+          hasRelation: 'dishes'
+        },
         activity: {
           label: 'Activités',
           singular: 'Activité',
-          icon: 'fas fa-hiking',
+          icon: 'fas fa-hiking', 
           color: '#3b82f6',
-          hasOptions: true,
-          formFields: [
-            { name: 'duration', label: 'Durée', type: 'number', unit: 'min', required: true, placeholder: '60' },
-            { name: 'capacity', label: 'Capacité', type: 'number', unit: 'pers.', required: true, placeholder: '10' },
-            {
-              name: 'difficulty', label: 'Difficulté', type: 'select', required: true, placeholder: 'Choisir...',
-              options: [
-                { value: 'facile', label: 'Facile' },
-                { value: 'moyen', label: 'Moyen' },
-                { value: 'difficile', label: 'Difficile' }
-              ]
-            },
-            { name: 'equipment', label: 'Équipement fourni', type: 'tags', placeholder: 'Ajouter équipement...', fullWidth: true },
-            { name: 'location', label: 'Lieu', type: 'text', placeholder: 'Lieu de l\'activité' },
-            { name: 'age_min', label: 'Âge minimum', type: 'number', unit: 'ans', min: 0, max: 99 },
-            { name: 'age_max', label: 'Âge maximum', type: 'number', unit: 'ans', min: 0, max: 99 },
-            {
-              name: 'requirements', label: 'Prérequis', type: 'textarea', rows: 3, fullWidth: true,
-              placeholder: 'Conditions physiques, expérience requise...'
-            }
-          ]
+          fields: ['guide', 'duration', 'meeting_point', 'max_people', 'difficulty_level'],
+          hasRelation: false
+        },
+        dish: {
+          label: 'Plats',
+          singular: 'Plat',
+          icon: 'fas fa-drumstick-bite',
+          color: '#f97316', 
+          fields: [],
+          hasRelation: 'ingredients'
         },
         menu: {
           label: 'Menus',
           singular: 'Menu',
           icon: 'fas fa-utensils',
           color: '#10b981',
-          hasOptions: true,
-          formFields: [
-            { name: 'ingredients', label: 'Ingrédients', type: 'tags', required: true, placeholder: 'Ajouter ingrédient...', fullWidth: true },
-            { name: 'allergens', label: 'Allergènes', type: 'tags', placeholder: 'Ajouter allergène...', fullWidth: true },
-            { name: 'preparation_time', label: 'Temps de préparation', type: 'number', unit: 'min', placeholder: '30' },
-            {
-              name: 'cooking_method', label: 'Méthode de cuisson', type: 'select', placeholder: 'Choisir...',
-              options: [
-                { value: 'grille', label: 'Grillé' },
-                { value: 'four', label: 'Au four' },
-                { value: 'poele', label: 'À la poêle' },
-                { value: 'vapeur', label: 'À la vapeur' }
-              ]
-            },
-            {
-              name: 'nutritional_info', label: 'Informations nutritionnelles', type: 'textarea', rows: 3, fullWidth: true,
-              placeholder: 'Calories, protéines, glucides...'
-            },
-            { name: 'vegetarian', label: 'Végétarien', type: 'checkbox' },
-            { name: 'vegan', label: 'Végan', type: 'checkbox' },
-            { name: 'gluten_free', label: 'Sans gluten', type: 'checkbox' }
-          ]
+          fields: [],
+          hasRelation: 'dishes'  
         },
         room: {
           label: 'Hébergements',
           singular: 'Hébergement',
           icon: 'fas fa-bed',
           color: '#f59e0b',
-          hasOptions: true,
-          formFields: [
-            { name: 'capacity', label: 'Capacité', type: 'number', unit: 'pers.', required: true, placeholder: '4' },
-            { name: 'surface', label: 'Surface', type: 'number', unit: 'm²', placeholder: '25' },
-            {
-              name: 'bed_type', label: 'Type de lit', type: 'select', placeholder: 'Choisir...',
-              options: [
-                { value: 'simple', label: 'Lit simple' },
-                { value: 'double', label: 'Lit double' },
-                { value: 'superpose', label: 'Lits superposés' },
-                { value: 'queen', label: 'Lit queen' }
-              ]
-            },
-            {
-              name: 'bathroom_type', label: 'Salle de bain', type: 'select', placeholder: 'Choisir...',
-              options: [
-                { value: 'privee', label: 'Privée' },
-                { value: 'partagee', label: 'Partagée' },
-                { value: 'commune', label: 'Commune' }
-              ]
-            },
-            { name: 'amenities', label: 'Équipements', type: 'tags', placeholder: 'Ajouter équipement...', fullWidth: true },
-            { name: 'view_type', label: 'Vue', type: 'text', placeholder: 'Vue mer, montagne...' },
-            { name: 'wifi', label: 'WiFi', type: 'checkbox' },
-            { name: 'air_conditioning', label: 'Climatisation', type: 'checkbox' },
-            { name: 'balcony', label: 'Balcon/Terrasse', type: 'checkbox' }
-          ]
-        },
-        option: {
-          label: 'Options',
-          singular: 'Option',
-          icon: 'fas fa-puzzle-piece',
-          color: '#8b5cf6',
-          hasOptions: false,
-          formFields: [
-            {
-              name: 'type', label: 'Type d\'option', type: 'select', required: true, placeholder: 'Choisir...',
-              options: [
-                { value: 'service', label: 'Service' },
-                { value: 'equipment', label: 'Équipement' },
-                { value: 'supplement', label: 'Supplément' },
-                { value: 'insurance', label: 'Assurance' }
-              ]
-            },
-            { name: 'max_quantity', label: 'Quantité maximum', type: 'number', min: 1, placeholder: '1' },
-            { name: 'duration', label: 'Durée (si applicable)', type: 'number', unit: 'min', placeholder: '60' },
-            {
-              name: 'availability', label: 'Disponibilité', type: 'textarea', rows: 2, fullWidth: true,
-              placeholder: 'Conditions de disponibilité...'
-            }
-          ]
+          fields: ['capacity', 'availability'],
+          hasRelation: false
         }
       }
     }
@@ -515,13 +396,8 @@ export default {
       return this.productConfigs[this.productType] || this.productConfigs.activity
     },
 
-    // Récupérer l'ID depuis les paramètres de la route
     productId() {
-      return this.$route.params.id || this.productIdProp
-    },
-
-    selectedCategory() {
-      return this.categories.find(c => c.id === this.form.category_id)
+      return this.$route.params.id
     },
 
     backRoute() {
@@ -547,14 +423,10 @@ export default {
 
       try {
         this.initializeForm()
-        await Promise.all([
-          this.fetchCategories(),
-          this.fetchTags(),
-          this.typeConfig.hasOptions ? this.fetchOptions() : Promise.resolve()
-        ])
-
+        
         if (this.isEditing) {
           await this.fetchProduct()
+          await this.fetchRelationalData()
         }
       } catch (error) {
         console.error('Erreur lors de l\'initialisation:', error)
@@ -565,17 +437,15 @@ export default {
     },
 
     initializeForm() {
-      // Initialiser les champs spécifiques du type
+      // Initialiser selon VOTRE config
       this.form.productable = {}
-      this.typeConfig.formFields.forEach(field => {
-        if (field.type === 'checkbox') {
-          this.form.productable[field.name] = false
-        } else if (field.type === 'tags') {
-          this.form.productable[field.name] = []
-        } else if (field.type === 'number') {
-          this.form.productable[field.name] = null
+
+      // Initialiser seulement les champs définis dans votre config
+      this.typeConfig.fields.forEach(field => {
+        if (['is_vegetarian', 'is_vegan', 'is_spicy', 'is_gluten_free', 'is_lactose_free', 'is_nut_free', 'availability'].includes(field)) {
+          this.form.productable[field] = false
         } else {
-          this.form.productable[field.name] = ''
+          this.form.productable[field] = null
         }
       })
     },
@@ -590,14 +460,17 @@ export default {
             'Content-Type': 'application/json'
           }
         })
-
         this.product = response.data
-        console.log('Product loaded:', this.product)
 
-        // Charger les données productable si nécessaire
+        // Charger les données productable
         if (this.product.productable && typeof this.product.productable === 'string') {
           try {
-            const productableResponse = await axios.get(this.product.productable)
+            const productableResponse = await axios.get(this.product.productable, {
+              headers: {
+                'Accept': 'application/ld+json',
+                'Content-Type': 'application/json'
+              }
+            })
             this.product.productableData = productableResponse.data
           } catch (error) {
             console.warn('Could not fetch productable data:', error)
@@ -608,6 +481,7 @@ export default {
         }
 
         this.populateForm()
+        await this.loadRelations()
       } catch (error) {
         console.error('Erreur lors du chargement du produit:', error)
         this.error = 'Erreur lors du chargement du produit'
@@ -617,168 +491,340 @@ export default {
     populateForm() {
       if (!this.product) return
 
-      console.log('Populating form with product:', this.product)
-
       this.form = {
         name: this.product.name || '',
         description: this.product.description || '',
         price: this.product.price || 0,
-        category_id: this.getCategoryId(this.product.category),
         status: this.product.status !== false,
-        is_draft: this.product.isDraft || this.product.is_draft || false,
         image: this.product.image || null,
-        selectedTags: this.extractTagIds(this.product.globalTags),
-        customTags: [],
-        selectedOptions: this.extractOptions(this.product.options),
+        selectedIngredients: [],
+        selectedDishes: [],
         productable: { ...this.product.productableData }
       }
-
-      console.log('Form populated:', this.form)
     },
 
-    getCategoryId(category) {
-      if (!category) return ''
-      if (typeof category === 'object' && category.id) return category.id
-      if (typeof category === 'string') {
-        // Extract ID from IRI
-        const match = category.match(/\/(\d+)$/)
-        return match ? match[1] : ''
-      }
-      return category
-    },
-
-    extractTagIds(tags) {
-      if (!Array.isArray(tags)) return []
-      return tags.map(tag => {
-        if (typeof tag === 'object' && tag.id) return tag.id
-        if (typeof tag === 'string') {
-          const match = tag.match(/\/(\d+)$/)
-          return match ? match[1] : tag
-        }
-        return tag
-      }).filter(Boolean)
-    },
-
-    extractOptions(options) {
-      if (!Array.isArray(options)) return []
-      return options.map(option => ({
-        id: typeof option === 'object' ? option.id : option,
-        required: option.pivot?.required || false,
-        max_quantity: option.pivot?.max_quantity || 1
-      }))
-    },
-
-    async fetchCategories() {
+    // Récupération des données relationnelles selon VOTRE structure
+    async fetchRelationalData() {
       try {
-        const response = await axios.get('/api/categories', {
-          headers: {
-            'Accept': 'application/ld+json',
-            'Content-Type': 'application/json'
+        // Pour un plat, récupérer les ingrédients disponibles
+        if (this.typeConfig.hasRelation === 'ingredients') {
+          const url = `/api/products?type=App\\Models\\Ingredient`
+          const response = await axios.get(url, {
+            headers: {
+              'Accept': 'application/ld+json',
+              'Content-Type': 'application/json'
+            }
+          })
+          
+          if (response.data && response.data.member) {
+            this.availableIngredients = response.data.member
           }
+        }
+
+        // Pour un menu ou ingrédient, récupérer les plats disponibles
+        if (this.typeConfig.hasRelation === 'dishes') {
+          const url = `/api/products?type=App\\Models\\Dish`
+          const response = await axios.get(url, {
+            headers: {
+              'Accept': 'application/ld+json',
+              'Content-Type': 'application/json'
+            }
+          })
+          
+          if (response.data && response.data.member) {
+            this.availableDishes = response.data.member
+          }
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des données relationnelles:', error)
+      }
+    },
+
+    // Charger les relations existantes selon VOTRE structure
+    async loadRelations() {
+      if (!this.product.productableData || !this.product.productableData.id) return
+      if (!this.typeConfig.hasRelation) return
+
+      try {
+        // Plat → Ingrédients
+        if (this.typeConfig.hasRelation === 'ingredients') {
+          const response = await axios.get(`/api/dishes/${this.product.productableData.id}`, {
+            headers: {
+              'Accept': 'application/ld+json',
+              'Content-Type': 'application/json'
+            }
+          })
+          
+          if (response.data.ingredients && Array.isArray(response.data.ingredients)) {
+            this.form.selectedIngredients = response.data.ingredients.map(ingredientIRI => {
+              const match = ingredientIRI.match(/\/(\d+)$/)
+              return match ? parseInt(match[1]) : null
+            }).filter(Boolean)
+          }
+        }
+
+        // Menu → Plats
+        if (this.typeConfig.hasRelation === 'dishes' && this.productType === 'menu') {
+          const response = await axios.get(`/api/menus/${this.product.productableData.id}`, {
+            headers: {
+              'Accept': 'application/ld+json',
+              'Content-Type': 'application/json'
+            }
+          })
+          
+          if (response.data.dishes && Array.isArray(response.data.dishes)) {
+            this.form.selectedDishes = response.data.dishes.map(dishIRI => {
+              const match = dishIRI.match(/\/(\d+)$/)
+              return match ? parseInt(match[1]) : null
+            }).filter(Boolean)
+          }
+        }
+
+        // Ingrédient → Plats (lecture seule pour comprendre les relations)
+        if (this.typeConfig.hasRelation === 'dishes' && this.productType === 'ingredient') {
+          const response = await axios.get(`/api/ingredients/${this.product.productableData.id}`, {
+            headers: {
+              'Accept': 'application/ld+json',
+              'Content-Type': 'application/json'
+            }
+          })
+          
+          if (response.data.dishes && Array.isArray(response.data.dishes)) {
+            this.form.selectedDishes = response.data.dishes.map(dishIRI => {
+              const match = dishIRI.match(/\/(\d+)$/)
+              return match ? parseInt(match[1]) : null
+            }).filter(Boolean)
+          }
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des relations:', error)
+      }
+    },
+
+    // Actions du formulaire
+    async submitForm() {
+      if (!this.validateForm()) return
+
+      this.saving = true
+      this.error = null
+
+      try {
+        const payload = this.buildPayload()
+        console.log('Payload:', payload)
+
+        let response
+        if (this.isEditing) {
+          response = await axios.patch(`/api/products/${this.productId}`, payload, {
+            headers: {
+              'Accept': 'application/ld+json',
+              'Content-Type': 'application/json'
+            }
+          })
+        } else {
+          response = await axios.post('/api/products', payload, {
+            headers: {
+              'Accept': 'application/ld+json',
+              'Content-Type': 'application/json'
+            }
+          })
+        }
+
+        console.log('Product saved:', response.data)
+
+        // Sauvegarder les relations si besoin
+        if (this.isEditing && this.typeConfig.hasRelation) {
+          await this.saveRelations(response.data)
+        }
+
+        // Redirection
+        this.$router.push({
+          name: 'ProductDetail',
+          params: { type: this.productType, id: response.data.id }
         })
 
-        if (response.data && response.data.member) {
-          this.categories = response.data.member
-        } else if (Array.isArray(response.data)) {
-          this.categories = response.data
-        } else {
-          this.categories = []
+      } catch (error) {
+        console.error('Erreur lors de la sauvegarde:', error)
+        if (error.response?.data?.errors) {
+          this.errors = error.response.data.errors
+        }
+        this.error = 'Erreur lors de la sauvegarde du produit'
+      } finally {
+        this.saving = false
+      }
+    },
+
+    buildPayload() {
+      const payload = {
+        name: this.form.name,
+        description: this.form.description,
+        price: this.form.price,
+        status: this.form.status,
+        productableType: this.getProductableType()
+      }
+
+      if (this.form.image) {
+        payload.image = this.form.image
+      }
+
+      if (Object.keys(this.form.productable).length > 0) {
+        payload.productable = { ...this.form.productable }
+      }
+
+      return payload
+    },
+
+    getProductableType() {
+      const typeMap = {
+        'activity': 'App\\Models\\Activity',
+        'ingredient': 'App\\Models\\Ingredient',
+        'dish': 'App\\Models\\Dish',
+        'menu': 'App\\Models\\Menu',
+        'room': 'App\\Models\\Room'
+      }
+      return typeMap[this.productType] || 'App\\Models\\Activity'
+    },
+
+    // Sauvegarde des relations selon VOTRE structure
+    async saveRelations(product) {
+      if (!product.productable || !this.typeConfig.hasRelation) return
+
+      try {
+        const productableId = typeof product.productable === 'string' 
+          ? product.productable.match(/\/(\d+)$/)?.[1]
+          : product.productable.id
+
+        if (!productableId) return
+
+        // Sauvegarder les ingrédients d'un plat
+        if (this.typeConfig.hasRelation === 'ingredients' && this.form.selectedIngredients.length > 0) {
+          const ingredientIRIs = this.form.selectedIngredients.map(id => `/api/ingredients/${id}`)
+          
+          try {
+            await axios.patch(`/api/dishes/${productableId}`, {
+              ingredients: ingredientIRIs
+            }, {
+              headers: { 
+                'Accept': 'application/ld+json',
+                'Content-Type': 'application/merge-patch+json' 
+              }
+            })
+          } catch (error) {
+            console.warn('Could not save dish ingredients:', error)
+          }
         }
 
-        console.log('Categories loaded:', this.categories)
+        // Sauvegarder les plats d'un menu
+        if (this.typeConfig.hasRelation === 'dishes' && this.productType === 'menu' && this.form.selectedDishes.length > 0) {
+          const dishIRIs = this.form.selectedDishes.map(id => `/api/dishes/${id}`)
+          
+          try {
+            await axios.patch(`/api/menus/${productableId}`, {
+              dishes: dishIRIs
+            }, {
+              headers: { 
+                'Accept': 'application/ld+json',
+                'Content-Type': 'application/merge-patch+json' 
+              }
+            })
+          } catch (error) {
+            console.warn('Could not save menu dishes:', error)
+          }
+        }
+
+        // Note: Les relations ingrédient → plats sont gérées côté plat
       } catch (error) {
-        console.error('Erreur lors du chargement des catégories:', error)
-        this.categories = []
+        console.error('Erreur lors de la sauvegarde des relations:', error)
       }
     },
 
-    async fetchTags() {
-      try {
-        // Pour l'instant, simulation avec des données factices
-        this.availableTags = [
-          { id: 1, name: 'Populaire' },
-          { id: 2, name: 'Nouveau' },
-          { id: 3, name: 'Recommandé' },
-          { id: 4, name: 'Famille' },
-          { id: 5, name: 'Aventure' }
-        ]
-      } catch (error) {
-        console.error('Erreur lors du chargement des tags:', error)
-        this.availableTags = []
-      }
-    },
+    validateForm() {
+      this.errors = {}
 
-    async fetchOptions() {
-      try {
-        const response = await axios.get('/api/products', {
-          params: { type: 'option' },
-          headers: {
-            'Accept': 'application/ld+json',
-            'Content-Type': 'application/json'
+      if (!this.form.name) {
+        this.errors.name = 'Le nom est obligatoire'
+      }
+
+      if (this.form.price < 0) {
+        this.errors.price = 'Le prix doit être positif'
+      }
+
+      // Validation spécifique selon votre config
+      if (this.productType === 'activity') {
+        const requiredFields = ['guide', 'duration', 'meeting_point', 'max_people', 'difficulty_level']
+        requiredFields.forEach(field => {
+          if (!this.form.productable[field]) {
+            this.errors[`productable.${field}`] = `${this.getFieldLabel(field)} est obligatoire`
           }
         })
-
-        if (response.data && response.data.member) {
-          this.availableOptions = response.data.member.filter(p => p.productableType === 'App\\Models\\Option')
-        } else {
-          this.availableOptions = []
-        }
-
-        console.log('Options loaded:', this.availableOptions)
-      } catch (error) {
-        console.error('Erreur lors du chargement des options:', error)
-        this.availableOptions = []
       }
+
+      if (this.productType === 'room') {
+        if (!this.form.productable.capacity) {
+          this.errors['productable.capacity'] = 'La capacité est obligatoire'
+        }
+      }
+
+      return Object.keys(this.errors).length === 0
+    },
+
+    resetForm() {
+      if (confirm('Réinitialiser le formulaire ?')) {
+        this.initializeForm()
+        this.form.name = ''
+        this.form.description = ''
+        this.form.price = 0
+        this.form.status = true
+        this.form.image = null
+        this.form.selectedIngredients = []
+        this.form.selectedDishes = []
+        this.errors = {}
+        this.imagePreview = null
+      }
+    },
+
+    // Utilitaires
+    getRelationTitle() {
+      if (this.typeConfig.hasRelation === 'ingredients') return 'Ingrédients'
+      if (this.typeConfig.hasRelation === 'dishes') {
+        return this.productType === 'ingredient' ? 'Plats utilisant cet ingrédient' : 'Plats du menu'
+      }
+      return ''
+    },
+
+    getFieldLabel(field) {
+      const labels = {
+        guide: 'Guide',
+        duration: 'Durée',
+        meeting_point: 'Point de rendez-vous',
+        max_people: 'Capacité maximum',
+        difficulty_level: 'Niveau de difficulté',
+        capacity: 'Capacité'
+      }
+      return labels[field] || field.charAt(0).toUpperCase() + field.slice(1)
     },
 
     // Gestion des images
     getValidImageUrl(imageUrl) {
-      if (!imageUrl) return null
-
-      if (imageUrl.includes('storage/https://') || imageUrl.includes('storage/http://')) {
-        const match = imageUrl.match(/storage\/(https?:\/\/.+)/)
-        if (match && match[1]) {
-          return match[1]
-        }
-      }
+      if (!imageUrl) return this.getPlaceholderImage()
 
       try {
         new URL(imageUrl)
         return imageUrl
       } catch (error) {
-        return null
-      }
-    },
-
-    createSvgDataUrl(svg) {
-      try {
-        // Try URL encoding first (most compatible)
-        return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg)
-      } catch (error) {
-        console.warn('Failed to create SVG data URL:', error)
-        // Fallback to a simple ASCII version
-        const fallbackSvg = `
-      <svg width="300" height="200" xmlns="http://www.w3.org/2000/svg">
-        <rect width="300" height="200" fill="#f3f4f6"/>
-        <text x="150" y="100" text-anchor="middle" dy=".3em" font-family="Arial, sans-serif" font-size="14" fill="#9ca3af">
-          Product Preview
-        </text>
-      </svg>
-    `
-        return 'data:image/svg+xml;base64,' + btoa(fallbackSvg)
+        return this.getPlaceholderImage()
       }
     },
 
     getPlaceholderImage() {
       const svg = `
-    <svg width="300" height="200" xmlns="http://www.w3.org/2000/svg">
-      <rect width="300" height="200" fill="#f3f4f6"/>
-      <text x="150" y="100" text-anchor="middle" dy=".3em" font-family="Arial, sans-serif" font-size="14" fill="#9ca3af">
-        Aperçu du produit
-      </text>
-    </svg>
-  `
-      return this.createSvgDataUrl(svg)
+        <svg width="300" height="200" xmlns="http://www.w3.org/2000/svg">
+          <rect width="300" height="200" fill="#f3f4f6"/>
+          <text x="150" y="100" text-anchor="middle" dy=".3em" font-family="Arial, sans-serif" font-size="14" fill="#9ca3af">
+            Aperçu
+          </text>
+        </svg>
+      `
+      return 'data:image/svg+xml;base64,' + btoa(svg)
     },
 
     selectImage() {
@@ -801,256 +847,23 @@ export default {
       const file = event.target.files[0]
       if (!file) return
 
-      // Validation du fichier
       if (file.size > 5 * 1024 * 1024) {
-        this.error = 'Le fichier est trop volumineux (max 5MB)'
+        this.error = 'Fichier trop volumineux (max 5MB)'
         return
       }
 
-      // Créer l'aperçu
       const reader = new FileReader()
       reader.onload = (e) => {
         this.imagePreview = e.target.result
       }
       reader.readAsDataURL(file)
 
-      // Stocker le fichier pour l'upload
       this.form.imageFile = file
     },
 
     handleImageError(event) {
-      console.warn('Image failed to load:', event.target.src)
       event.target.src = this.getPlaceholderImage()
       event.target.onerror = null
-    },
-
-    // Gestion des tags
-    addTag(fieldName, event) {
-      const value = event.target.value.trim()
-      if (!value) return
-
-      if (!this.form.productable[fieldName]) {
-        this.form.productable[fieldName] = []
-      }
-
-      if (!this.form.productable[fieldName].includes(value)) {
-        this.form.productable[fieldName].push(value)
-      }
-
-      event.target.value = ''
-    },
-
-    removeTag(fieldName, tag) {
-      const index = this.form.productable[fieldName].indexOf(tag)
-      if (index > -1) {
-        this.form.productable[fieldName].splice(index, 1)
-      }
-    },
-
-    addCustomTag(event) {
-      const value = event.target.value.trim()
-      if (!value) return
-
-      if (!this.form.customTags.includes(value)) {
-        this.form.customTags.push(value)
-      }
-
-      event.target.value = ''
-    },
-
-    removeCustomTag(tag) {
-      const index = this.form.customTags.indexOf(tag)
-      if (index > -1) {
-        this.form.customTags.splice(index, 1)
-      }
-    },
-
-    // Gestion des options
-    isOptionSelected(optionId) {
-      return this.form.selectedOptions.some(o => o.id === optionId)
-    },
-
-    getOptionConfig(optionId) {
-      let config = this.form.selectedOptions.find(o => o.id === optionId)
-      if (!config) {
-        config = { id: optionId, required: false, max_quantity: 1 }
-        this.form.selectedOptions.push(config)
-      }
-      return config
-    },
-
-    toggleOption(optionId) {
-      const index = this.form.selectedOptions.findIndex(o => o.id === optionId)
-      if (index > -1) {
-        this.form.selectedOptions.splice(index, 1)
-      } else {
-        this.form.selectedOptions.push({
-          id: optionId,
-          required: false,
-          max_quantity: 1
-        })
-      }
-    },
-
-    // Actions du formulaire
-    async submitForm() {
-      if (!this.validateForm()) return
-
-      this.saving = true
-      this.error = null
-
-      try {
-        const payload = this.buildPayload()
-
-        let response
-        if (this.isEditing) {
-          response = await axios.patch(`/api/products/${this.productId}`, payload, {
-            headers: {
-              'Accept': 'application/ld+json',
-              'Content-Type': 'application/json'
-            }
-          })
-        } else {
-          response = await axios.post('/api/products', payload, {
-            headers: {
-              'Accept': 'application/ld+json',
-              'Content-Type': 'application/json'
-            }
-          })
-        }
-
-        console.log('Product saved:', response.data)
-
-        // Redirection
-        this.$router.push({
-          name: 'ProductDetail',
-          params: { type: this.productType, id: response.data.id }
-        })
-
-      } catch (error) {
-        console.error('Erreur lors de la sauvegarde:', error)
-        if (error.response?.data?.errors) {
-          this.errors = error.response.data.errors
-        }
-        this.error = 'Erreur lors de la sauvegarde du produit'
-      } finally {
-        this.saving = false
-      }
-    },
-
-    buildPayload() {
-      // Construction du payload selon le format attendu par l'API
-      const payload = {
-        name: this.form.name,
-        description: this.form.description,
-        price: this.form.price,
-        status: this.form.status,
-        isDraft: this.form.is_draft,
-        productableType: this.getProductableType()
-      }
-
-      // Ajouter la catégorie si sélectionnée
-      if (this.form.category_id) {
-        payload.category = `/api/categories/${this.form.category_id}`
-      }
-
-      // Ajouter l'image si présente
-      if (this.form.image) {
-        payload.image = this.form.image
-      }
-
-      // Ajouter les données spécifiques du productable
-      if (Object.keys(this.form.productable).length > 0) {
-        payload.productable = { ...this.form.productable }
-      }
-
-      return payload
-    },
-
-    getProductableType() {
-      const typeMap = {
-        'activity': 'App\\Models\\Activity',
-        'room': 'App\\Models\\Room',
-        'menu': 'App\\Models\\Menu',
-        'option': 'App\\Models\\Option'
-      }
-      return typeMap[this.productType] || 'App\\Models\\Activity'
-    },
-
-    async saveDraft() {
-      const originalDraftStatus = this.form.is_draft
-      this.form.is_draft = true
-
-      try {
-        await this.submitForm()
-      } catch (error) {
-        this.form.is_draft = originalDraftStatus
-        throw error
-      }
-    },
-
-    validateForm() {
-      this.errors = {}
-
-      if (!this.form.name) {
-        this.errors.name = 'Le nom est obligatoire'
-      }
-
-      if (this.form.price < 0) {
-        this.errors.price = 'Le prix doit être positif'
-      }
-
-      // Validation des champs spécifiques
-      this.typeConfig.formFields.forEach(field => {
-        if (field.required && !this.form.productable[field.name]) {
-          this.errors[`productable.${field.name}`] = `${field.label} est obligatoire`
-        }
-      })
-
-      return Object.keys(this.errors).length === 0
-    },
-
-    resetForm() {
-      if (confirm('Êtes-vous sûr de vouloir réinitialiser le formulaire ?')) {
-        if (this.isEditing) {
-          this.populateForm()
-        } else {
-          this.initializeForm()
-          this.form = {
-            name: '',
-            description: '',
-            price: 0,
-            category_id: '',
-            status: true,
-            is_draft: false,
-            image: null,
-            selectedTags: [],
-            customTags: [],
-            selectedOptions: [],
-            productable: this.form.productable
-          }
-        }
-        this.errors = {}
-        this.imagePreview = null
-      }
-    },
-
-    previewProduct() {
-      this.$router.push({
-        name: 'ProductDetail',
-        params: { type: this.productType, id: this.productId }
-      })
-    },
-
-    // Utilitaires
-    getStatusClass(product) {
-      if (product.is_draft || product.isDraft) return 'status-draft'
-      return product.status ? 'status-active' : 'status-inactive'
-    },
-
-    getStatusLabel(product) {
-      if (product.is_draft || product.isDraft) return 'Brouillon'
-      return product.status ? 'Actif' : 'Inactif'
     },
 
     formatPrice(price) {
@@ -1058,11 +871,6 @@ export default {
         style: 'currency',
         currency: 'EUR'
       }).format(parseFloat(price) || 0)
-    },
-
-    truncateText(text, length) {
-      if (!text) return ''
-      return text.length > length ? text.substring(0, length) + '...' : text
     }
   }
 }

@@ -345,6 +345,15 @@
   }
 }
 
+.col-2 {
+  display: grid;
+  width: 50%;
+}
+.col-3 {
+  display: grid;
+  width: 35%;
+}
+
 // Footer Admin - Reste en bas grâce au flexbox parent
 .admin-footer {
   background-color: white;

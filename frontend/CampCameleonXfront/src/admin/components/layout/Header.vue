@@ -137,7 +137,9 @@ export default {
         'AdminAnalytics': 'Analytics',
         'FullAgenda': 'Agenda',
         'AdminSettings': 'Paramètres',
-        'ProductShow': 'Services'        
+        // 'ProductShow': this.$type.name,
+        // 'ProductDetail': this.$product.name,
+        // 'ProductForm': this.$product.name       
       };
       return titles[routeName] || 'Admin';
     },

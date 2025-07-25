@@ -29,13 +29,15 @@
     <div class="products-filters">
       <div class="filters-row">
         <!-- Recherche -->
-        <div class="search-box">
-          <i class="fas fa-search"></i>
-          <input v-model="filters.search" type="text" placeholder="Rechercher..." @input="debouncedSearch" />
+        <div class="col-2">
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input v-model="filters.search" type="text" placeholder="Rechercher..." @input="debouncedSearch"
+              style="width: 95%" />
+          </div>
         </div>
-
         <!-- Filtres -->
-        <div class="filter-group">
+        <div class="filter-group col-3">
           <select v-model="filters.category" @change="fetchProducts" class="filter-select">
             <option value="">Toutes les catégories</option>
             <option v-for="category in categories" :key="category.id" :value="category.id">
@@ -123,7 +125,7 @@
       <!-- Loading -->
       <div v-if="loading" class="loading-state">
         <div class="spinner"></div>
-        <p>Chargement des produits...</p>
+        <p>Chargement des {{ typeConfig.label }}...</p>
       </div>
 
       <!-- Vue grille -->

@@ -33,7 +33,7 @@
             <li><router-link to="/admin/products/menu" class="nav-link" style="padding-left: 2rem; font-size: 0.9rem;">Gérer les Menus</router-link></li>
             <li><router-link to="/admin/products/dish" class="nav-link" style="padding-left: 2rem; font-size: 0.9rem;">Gérer les Plats</router-link></li>
             <li><router-link to="/admin/products/ingredient" class="nav-link" style="padding-left: 2rem; font-size: 0.9rem;">Ingrédients</router-link></li>
-            <li><router-link to="/admin/restauration/reservations" class="nav-link" style="padding-left: 2rem; font-size: 0.9rem;">Réservations</router-link></li> <!-- Penser à l'URL -->
+            <!-- <li><router-link to="/admin/restauration/reservations" class="nav-link" style="padding-left: 2rem; font-size: 0.9rem;">Réservations</router-link></li> Penser à l'URL -->
             <li><router-link to="/admin/products/stock" class="nav-link" style="padding-left: 2rem; font-size: 0.9rem;">Stock et Courses</router-link></li>
           </ul>
         </li>

@@ -3,7 +3,7 @@
     <!-- Loading -->
     <div v-if="loading" class="loading-state">
       <div class="spinner"></div>
-      <p>Chargement du produit...</p>
+      <p>Chargement {{ typeConfig.singular }}...</p>
     </div>
 
     <!-- Contenu principal -->
@@ -15,12 +15,6 @@
             <i class="fas fa-arrow-left"></i>
             Retour à {{ typeConfig.label }}
           </router-link>
-
-          <div class="breadcrumb">
-            <span>{{ typeConfig.label }}</span>
-            <i class="fas fa-chevron-right"></i>
-            <span>{{ product.name }}</span>
-          </div>
         </div>
 
         <div class="header-actions">
@@ -84,13 +78,6 @@
                   <i class="fas fa-edit"></i>
                   Modifier l'image
                 </button>
-              </div>
-            </div>
-
-            <!-- Galerie supplémentaire -->
-            <div v-if="product.images && product.images.length > 0" class="image-thumbnails">
-              <div v-for="(image, index) in product.images" :key="index" class="thumbnail" @click="selectImage(image)">
-                <img :src="image.url" :alt="`Image ${index + 1}`" />
               </div>
             </div>
           </div>
@@ -170,7 +157,7 @@
             </div>
           </div>
 
-          <!-- Informations spécifiques au type -->
+          <!-- Informations spécifiques au type - VOTRE CONFIG ORIGINALE -->
           <div v-if="productableData" class="info-section">
             <h3>Détails {{ typeConfig.singular.toLowerCase() }}</h3>
             <div class="info-grid">
@@ -179,6 +166,59 @@
                 v-show="productableData[field] !== null && productableData[field] !== '' && productableData[field] !== undefined">
                 <label>{{ getFieldLabel(field) }}</label>
                 <span>{{ formatFieldValue(productableData[field], field) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Plats du menu - AVEC LIENS CLIQUABLES -->
+          <div v-if="productableData && productableData.dishes" class="info-section">
+            <h3>Plats du menu ({{ dishes.length }})</h3>
+            <div class="dishes-list">
+              <div v-if="dishes && dishes.length > 0">
+                <div v-for="dish in dishes" :key="dish['@id']" class="dish-item clickable" @click="goToDish(dish)">
+                  <div class="dish-header">
+                    <h4 class="dish-name">
+                      {{ dish.name }}
+                      <i class="fas fa-external-link-alt dish-link-icon"></i>
+                    </h4>
+                    <span class="dish-price">{{ formatPrice(dish.price) }}</span>
+                  </div>
+                  <p class="dish-description">{{ dish.description }}</p>
+
+                  <!-- Ingrédients -->
+                  <div v-if="dish.ingredients && dish.ingredients.length > 0" class="dish-ingredients">
+                    <span class="ingredients-label">
+                      <i class="fas fa-list"></i> Ingrédients:
+                    </span>
+                    <span class="ingredients-count">{{ dish.ingredients.length }} ingrédient(s)</span>
+                  </div>
+                </div>
+              </div>
+              <div v-else-if="dishes.length === 0 && !loading">
+                <p class="no-dishes">Aucun plat à afficher.</p>
+              </div>
+              <div v-else>
+                <p class="loading-dishes">
+                  <i class="fas fa-spinner fa-spin"></i> Chargement des plats...
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ingrédients du plat - AVEC LIENS CLIQUABLES -->
+          <div v-if="productableData && productableData.ingredients" class="info-section">
+            <h3>Ingrédients du plat ({{ productableData.ingredients.length }})</h3>
+            <div class="ingredients-list">
+              <div v-if="ingredients && ingredients.length > 0">
+                <div v-for="ingredient in ingredients" :key="ingredient['@id'] || ingredient.id || ingredient"
+                  class="ingredient-item clickable" @click="goToIngredient(ingredient)">
+                  <div class="ingredient-header ">
+                    <h4 class="ingredient-name">{{ ingredient.name }}</h4>
+                  </div>
+                </div>
+              </div>
+              <div v-else>
+                <p class="no-ingredients">Aucun ingrédient à afficher.</p>
               </div>
             </div>
           </div>
@@ -207,22 +247,6 @@
                   <span v-if="option.pivot.max_quantity" class="option-quantity">
                     Max: {{ option.pivot.max_quantity }}
                   </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Réservations récentes -->
-          <div v-if="recentReservations.length > 0" class="info-section">
-            <h3>Réservations récentes</h3>
-            <div class="reservations-list">
-              <div v-for="reservation in recentReservations" :key="reservation.id" class="reservation-item">
-                <div class="reservation-info">
-                  <span class="reservation-customer">{{ reservation.customer_name }} </span>
-                  <span class="reservation-date"> - {{ formatDate(reservation.created_at) }}</span>
-                </div>
-                <div class="reservation-amount">
-                  {{ formatPrice(reservation.total_amount) }}
                 </div>
               </div>
             </div>
@@ -288,7 +312,10 @@ export default {
       categoryData: null,
       recentReservations: [],
       error: null,
+      dishes: [],
+      ingredients: [],
 
+      // VOTRE CONFIG ORIGINALE - Ne pas changer !
       productConfigs: {
         activity: {
           label: 'Activités',
@@ -311,6 +338,20 @@ export default {
           color: '#f59e0b',
           detailFields: ['capacity', 'surface', 'amenities', 'bed_type', 'bathroom_type', 'view_type']
         },
+        dish: {
+          label: 'Plats',
+          singular: 'Plat',
+          icon: 'fas fa-drumstick-bite',
+          color: '#f97316',
+          detailFields: []
+        },
+        ingredient: {
+          label: 'Ingrédients',
+          singular: 'Ingrédient',
+          icon: 'fas fa-seedling',
+          color: '#22c55e',
+          detailFields: []
+        },
         option: {
           label: 'Options',
           singular: 'Option',
@@ -328,11 +369,37 @@ export default {
     },
     productId() {
       return this.$route.params.id
+    },
+
+    // NOUVEAU - Computed properties pour les menus seulement
+    totalIngredients() {
+      if (this.type !== 'menu' || !this.dishes.length) return 0
+
+      const allIngredients = new Set()
+      this.dishes.forEach(dish => {
+        if (dish.ingredients) {
+          dish.ingredients.forEach(ingredient => allIngredients.add(ingredient))
+        }
+      })
+      return allIngredients.size
+    },
+
+    totalMenuPrice() {
+      if (this.type !== 'menu' || !this.dishes.length) return 0
+
+      return this.dishes.reduce((total, dish) => {
+        return total + parseFloat(dish.price || 0)
+      }, 0)
     }
   },
-
   async created() {
-    await this.fetchProduct()
+    await this.fetchProduct();
+    if (this.productableData && this.productableData.dishes) {
+      await this.fetchDishesData();
+    }
+    if (this.productableData && this.productableData.ingredients) {
+      await this.fetchIngredientsData();
+    }
     await this.fetchRecentReservations()
   },
 
@@ -342,9 +409,6 @@ export default {
       this.error = null
 
       try {
-        console.log('Fetching product:', this.productId)
-
-        // Récupération du produit principal
         const response = await axios.get(`/api/products/${this.productId}`, {
           headers: {
             'Accept': 'application/ld+json',
@@ -353,9 +417,7 @@ export default {
         })
 
         this.product = response.data
-        console.log('Product data:', this.product)
 
-        // Récupération des données productable si elles existent
         if (this.product.productable && typeof this.product.productable === 'string') {
           try {
             const productableResponse = await axios.get(this.product.productable, {
@@ -365,7 +427,6 @@ export default {
               }
             })
             this.productableData = productableResponse.data
-            console.log('Productable data:', this.productableData)
           } catch (productableError) {
             console.warn('Could not fetch productable data:', productableError)
             this.productableData = this.product.productable
@@ -374,7 +435,6 @@ export default {
           this.productableData = this.product.productable
         }
 
-        // Récupération de la catégorie si c'est une IRI
         if (this.product.category && typeof this.product.category === 'string') {
           try {
             const categoryResponse = await axios.get(this.product.category, {
@@ -384,7 +444,6 @@ export default {
               }
             })
             this.categoryData = categoryResponse.data
-            console.log('Category data:', this.categoryData)
           } catch (categoryError) {
             console.warn('Could not fetch category data:', categoryError)
           }
@@ -401,40 +460,105 @@ export default {
       }
     },
 
-    async fetchRecentReservations() {
+    async fetchDishesData() {
       try {
-        // Pour l'instant, simulation avec des données factices
-        // À remplacer par un vrai appel API quand disponible
-        this.recentReservations = [
-          {
-            id: 1,
-            customer_name: 'Marie Dupont',
-            created_at: new Date(Date.now() - 86400000).toISOString(), // hier
-            total_amount: this.product?.price || 50
-          },
-          {
-            id: 2,
-            customer_name: 'Jean Martin',
-            created_at: new Date(Date.now() - 172800000).toISOString(), // avant-hier
-            total_amount: this.product?.price || 50
-          }
-        ]
+        const dishPromises = this.productableData.dishes.map(dishUrl =>
+          axios.get(dishUrl, {
+            headers: {
+              'Accept': 'application/ld+json',
+              'Content-Type': 'application/json'
+            }
+          })
+        );
+
+        const dishResponses = await Promise.all(dishPromises);
+        const dishesData = dishResponses.map(response => response.data);
+
+        const dishProductPromises = dishesData.map(dish =>
+          axios.get(dish.product, {
+            headers: {
+              'Accept': 'application/ld+json',
+              'Content-Type': 'application/json'
+            }
+          })
+        );
+
+        const dishProductResponses = await Promise.all(dishProductPromises);
+
+        this.dishes = dishesData.map((dish, index) => {
+          const productData = dishProductResponses[index].data;
+          return {
+            ...dish,
+            name: productData.name,
+            description: productData.description,
+            price: productData.price,
+            image: productData.image,
+            ingredients: dish.ingredients
+          };
+        });
+
+        // console.log('Complete dishes data:', this.dishes);
       } catch (error) {
-        console.error('Erreur lors du chargement des réservations:', error)
-        this.recentReservations = []
+        console.error('Erreur lors du chargement des plats:', error);
+        this.dishes = [];
       }
+    },
+
+    async fetchIngredientsData() {
+      try {
+        const ingredientPromises = this.productableData.ingredients.map(ingredientUrl =>
+          axios.get(ingredientUrl, {
+            headers: {
+              'Accept': 'application/ld+json',
+              'Content-Type': 'application/json'
+            }
+          })
+        );
+        const ingredientResponses = await Promise.all(ingredientPromises);
+        this.ingredients = ingredientResponses.map(response => response.data);
+      } catch (error) {
+        console.error('Erreur lors du chargement des ingrédients:', error);
+        this.ingredients = [];
+      }
+    },
+
+    goToIngredient(ingredient) {
+      if (ingredient['@id']) {
+        const match = ingredient['@id'].match(/\/(\d+)$/)
+        if (match) {
+          const ingredientId = match[1]
+          this.$router.push({
+            name: 'ProductDetail',
+            params: { type: 'ingredient', id: ingredientId }
+          })
+        }
+      }
+    },
+
+    goToDish(dish) {
+      if (dish.product) {
+        const match = dish.product.match(/\/(\d+)$/)
+        if (match) {
+          const productId = match[1]
+          this.$router.push({
+            name: 'ProductDetail',
+            params: { type: 'dish', id: productId }
+          })
+        }
+      }
+    },
+
+    async fetchRecentReservations() {
+      this.recentReservations = []
     },
 
     async toggleStatus() {
       try {
         const newStatus = !this.product.status
-
-        const response = await axios.patch(`/api/products/${this.product.id}`, {
+        await axios.patch(`/api/products/${this.product.id}`, {
           status: newStatus
         })
-
         this.product.status = newStatus
-        console.log(`Produit ${this.product.status ? 'activé' : 'désactivé'}`)
       } catch (error) {
         console.error('Erreur lors de la modification du statut:', error)
       }
@@ -448,10 +572,7 @@ export default {
         delete duplicatedData['@type']
         duplicatedData.name = `${this.product.name} (copie)`
 
-        const response = await axios.post('/api/products', duplicatedData)
-        console.log('Produit dupliqué:', response.data)
-
-        // Redirection vers la liste avec un message de succès
+        await axios.post('/api/products', duplicatedData)
         this.$router.push({
           name: 'ProductsShow',
           params: { type: this.type }
@@ -466,8 +587,6 @@ export default {
 
       try {
         await axios.delete(`/api/products/${this.product.id}`)
-        console.log('Produit supprimé')
-
         this.$router.push({
           name: 'ProductsShow',
           params: { type: this.type }
@@ -477,13 +596,11 @@ export default {
       }
     },
 
-    // Gestion des images
     getValidImageUrl(imageUrl) {
       if (!imageUrl) {
         return this.getPlaceholderImage()
       }
 
-      // Vérification des URLs malformées
       if (imageUrl.includes('storage/https://') || imageUrl.includes('storage/http://')) {
         const match = imageUrl.match(/storage\/(https?:\/\/.+)/)
         if (match && match[1]) {
@@ -495,30 +612,27 @@ export default {
         new URL(imageUrl)
         return imageUrl
       } catch (error) {
-        console.warn('Invalid image URL:', imageUrl)
         return this.getPlaceholderImage()
       }
     },
 
     getPlaceholderImage() {
       const svg = `
-        <svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
-          <rect width="400" height="300" fill="#f3f4f6"/>
-          <text x="200" y="150" text-anchor="middle" dy=".3em" font-family="Arial, sans-serif" font-size="16" fill="#9ca3af">
-            Image non disponible
-          </text>
-        </svg>
-      `
+          <svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+            <rect width="400" height="300" fill="#f3f4f6"/>
+            <text x="200" y="150" text-anchor="middle" dy=".3em" font-family="Arial, sans-serif" font-size="16" fill="#9ca3af">
+              Image non disponible
+            </text>
+          </svg>
+        `
       return 'data:image/svg+xml;base64,' + btoa(svg)
     },
 
     handleImageError(event) {
-      console.warn('Image failed to load:', event.target.src)
       event.target.src = this.getPlaceholderImage()
       event.target.onerror = null
     },
 
-    // Utilitaires pour les catégories
     getProductCategoryName() {
       if (this.categoryData) {
         return this.categoryData.name
@@ -529,7 +643,6 @@ export default {
       return 'Non définie'
     },
 
-    // Utilitaires pour les statuts
     getStatusClass(product) {
       if (product.isDraft || product.is_draft) return 'status-draft'
       return product.status ? 'status-active' : 'status-inactive'
@@ -545,7 +658,6 @@ export default {
       return product.status ? 'fas fa-check-circle' : 'fas fa-pause-circle'
     },
 
-    // Utilitaires pour les champs
     getFieldLabel(field) {
       const labels = {
         duration: 'Durée',
@@ -594,7 +706,6 @@ export default {
       return fullWidthFields.includes(field)
     },
 
-    // Utilitaires de formatage
     formatPrice(price) {
       return new Intl.NumberFormat('fr-FR', {
         style: 'currency',
@@ -618,21 +729,12 @@ export default {
       }
     },
 
-    // Actions sur les images
-    selectImage(image) {
-      console.log('Image sélectionnée:', image)
-      // TODO: Logique pour changer l'image principale
-    },
-
     openImageEditor() {
       console.log('Ouverture de l\'éditeur d\'image')
-      // TODO: Logique pour ouvrir l'éditeur d'image
     },
 
-    // Actions d'export/partage
     exportProduct() {
       console.log('Export du produit')
-      // TODO: Implémenter l'export
     },
 
     shareProduct() {
@@ -643,7 +745,6 @@ export default {
           url: window.location.href
         }).catch(err => console.log('Erreur lors du partage:', err))
       } else {
-        // Fallback pour les navigateurs qui ne supportent pas l'API de partage
         const url = window.location.href
         navigator.clipboard.writeText(url).then(() => {
           alert('Lien copié dans le presse-papiers!')
