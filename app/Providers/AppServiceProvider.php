@@ -8,6 +8,8 @@ use App\Observers\IngredientObserver;
 use App\Models\Tag;
 use App\Observers\TagObserver;
 use App\Models\Dish;
+use App\State\ProductCollectionProvider;
+use App\State\ProductProcessor;
 use App\Observers\DishObserver;
 
 class AppServiceProvider extends ServiceProvider
@@ -17,7 +19,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        //  $this->app->bind(ProductCollectionProvider::class, function () {
+        //     return new ProductCollectionProvider();
+        // });
+
+        // $this->app->bind(ProductProcessor::class, function () {
+        //     return new ProductProcessor();
+        // });
     }
 
     /**
@@ -25,9 +33,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-         // Enregistrez l'observer ici
-         Ingredient::observe(IngredientObserver::class);
-         Tag::observe(TagObserver::class);
-         Dish::observe(DishObserver::class);
+        Ingredient::observe(IngredientObserver::class);
+        Tag::observe(TagObserver::class);
+        Dish::observe(DishObserver::class);
+
     }
 }
