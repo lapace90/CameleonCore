@@ -22,6 +22,11 @@ class Ingredient extends Model
         'stock'
     ];
 
+    public function product()
+    {
+        return $this->morphOne(Product::class, 'productable');
+    }
+
     public function dishes()
     {
         return $this->belongsToMany(Dish::class);

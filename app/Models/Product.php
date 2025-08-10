@@ -65,7 +65,7 @@ class Product extends Model
 
     protected $appends = [
         'formatted_price',
-        'status_label', 
+        'status_label',
         'status_class',
         'type_config',
         'productable_detail',
@@ -121,12 +121,12 @@ class Product extends Model
         if (!$value) {
             return null;
         }
-        
+
         // Si c'est déjà une URL complète, la retourner telle quelle
         if (filter_var($value, FILTER_VALIDATE_URL)) {
             return $value;
         }
-        
+
         // Sinon, construire l'URL avec asset
         return asset('storage/' . $value);
     }
@@ -205,12 +205,13 @@ class Product extends Model
                             'description' => $dish->product->description ?? '',
                             'price' => $dish->product->price ?? 0,
                             'formatted_price' => number_format($dish->product->price ?? 0, 2, ',', ' ') . ' €',
-                            'image' => $dish->product->image ?? null
+                            'image' => $dish->product->image ?? null,
+                            'product_id' => $dish->product->id ?? null
                         ];
                     });
                 }
                 break;
-                
+
             case 'App\\Models\\Dish':
                 if ($this->productable->relationLoaded('ingredients')) {
                     $data['ingredients'] = $this->productable->ingredients->map(function ($ingredient) {
@@ -218,6 +219,7 @@ class Product extends Model
                             'id' => $ingredient->id,
                             'name' => $ingredient->product->name ?? 'N/A',
                             'stock' => $ingredient->stock ?? 0,
+                            'product_id' => $ingredient->product->id ?? null, // ✅ Maintenant ça marche !
                             'dietary_properties' => [
                                 'is_vegetarian' => $ingredient->is_vegetarian ?? false,
                                 'is_vegan' => $ingredient->is_vegan ?? false,
@@ -238,7 +240,7 @@ class Product extends Model
     public function getRelationsDataAttribute()
     {
         $relations = [];
-        
+
         switch ($this->productable_type) {
             case 'App\\Models\\Menu':
                 if ($this->productable && $this->productable->relationLoaded('dishes')) {
@@ -249,26 +251,35 @@ class Product extends Model
                             'name' => $dish->product->name ?? 'N/A',
                             'description' => $dish->product->description ?? '',
                             'price' => $dish->product->price ?? 0,
-                            'formatted_price' => number_format($dish->product->price ?? 0, 2, ',', ' ') . ' €'
+                            'formatted_price' => number_format($dish->product->price ?? 0, 2, ',', ' ') . ' €',
+                            'image' => $dish->product->image ?? null
                         ];
                     });
                 }
                 break;
-                
+
             case 'App\\Models\\Dish':
                 if ($this->productable && $this->productable->relationLoaded('ingredients')) {
                     $relations['ingredients'] = $this->productable->ingredients->map(function ($ingredient) {
                         return [
                             'id' => $ingredient->id,
-                            'product_id' => $ingredient->product->id ?? null,
+                            'product_id' => $ingredient->product->id ?? null, // ✅ Maintenant ça marche !
                             'name' => $ingredient->product->name ?? 'N/A',
-                            'stock' => $ingredient->stock ?? 0
+                            'stock' => $ingredient->stock ?? 0,
+                            'dietary_properties' => [
+                                'is_vegetarian' => $ingredient->is_vegetarian ?? false,
+                                'is_vegan' => $ingredient->is_vegan ?? false,
+                                'is_spicy' => $ingredient->is_spicy ?? false,
+                                'is_gluten_free' => $ingredient->is_gluten_free ?? false,
+                                'is_lactose_free' => $ingredient->is_lactose_free ?? false,
+                                'is_nut_free' => $ingredient->is_nut_free ?? false
+                            ]
                         ];
                     });
                 }
                 break;
         }
-        
+
         return $relations;
     }
 }

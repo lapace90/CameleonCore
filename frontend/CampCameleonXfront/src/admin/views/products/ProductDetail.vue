@@ -62,8 +62,7 @@
               <!-- <i class="fas fa-circle"></i> -->
               {{ product.status_label }}
             </div>
-            <button @click="toggleStatus" class="btn btn-sm" 
-              :class="product.status ? 'btn-warning' : 'btn-success'">
+            <button @click="toggleStatus" class="btn btn-sm" :class="product.status ? 'btn-warning' : 'btn-success'">
               <i :class="product.status ? 'fas fa-pause' : 'fas fa-play'"></i>
               {{ product.status ? 'Désactiver' : 'Activer' }}
             </button>
@@ -146,11 +145,12 @@
           <!-- Relations -->
           <div v-if="hasRelations" class="info-section">
             <h3>{{ getRelationTitle() }}</h3>
-            <div class="relations-list">
+            <div class="relations-content">
+
               <!-- Plats du menu -->
-              <div v-if="product.productable_detail.dishes" class="dishes-list">
-                <div v-for="dish in product.productable_detail.dishes" :key="dish.id" 
-                  class="relation-item" @click="goToProduct('dish', dish.product_id)">
+              <div v-if="menuDishes && menuDishes.length > 0" class="dishes-list">
+                <div v-for="dish in menuDishes" :key="dish.id" class="relation-item"
+                  @click="goToProduct('dish', dish.product_id)">
                   <div class="relation-header">
                     <h4 class="relation-name">{{ dish.name }}</h4>
                     <span class="relation-price">{{ dish.formatted_price }}</span>
@@ -160,58 +160,70 @@
               </div>
 
               <!-- Ingrédients du plat -->
-              <div v-if="product.productable_detail.ingredients" class="ingredients-list">
-                <div v-for="ingredient in product.productable_detail.ingredients" :key="ingredient.id"
-                  class="relation-item" @click="goToProduct('ingredient', ingredient.product_id)">
+              <div v-if="dishIngredients && dishIngredients.length > 0" class="ingredients-list">
+                <div v-for="ingredient in dishIngredients" :key="ingredient.id" class="relation-item"
+                  @click="goToProduct('ingredient', ingredient.product_id)">
                   <div class="relation-header">
                     <h4 class="relation-name">{{ ingredient.name }}</h4>
                     <span class="relation-stock">Stock: {{ ingredient.stock }}</span>
+                  </div>
+                  <div v-if="ingredient.dietary_properties" class="dietary-badges">
+                    <span v-if="ingredient.dietary_properties.is_vegetarian"
+                      class="badge badge-vegetarian">Végétarien</span>
+                    <span v-if="ingredient.dietary_properties.is_vegan" class="badge badge-vegan">Végan</span>
+                    <span v-if="ingredient.dietary_properties.is_spicy" class="badge badge-spicy">Épicé</span>
+                    <span v-if="ingredient.dietary_properties.is_gluten_free" class="badge badge-gluten-free">Sans
+                      gluten</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Message si pas de relations -->
+              <div v-if="!hasRelations" class="no-relations">
+                <p>Aucune relation configurée pour ce produit.</p>
+              </div>
+            </div>
+          </div>
+
+              <!-- Tags -->
+              <div v-if="product.tags && product.tags.length > 0" class="info-section">
+                <h3>Tags</h3>
+                <div class="tags-container">
+                  <span v-for="tag in product.tags" :key="tag.id" class="tag" :style="{ backgroundColor: tag.color }">
+                    {{ tag.name }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Options -->
+              <div v-if="product.options && product.options.length > 0" class="info-section">
+                <h3>Options disponibles</h3>
+                <div class="options-list">
+                  <div v-for="option in product.options" :key="option.id" class="option-item">
+                    <span class="option-name">{{ option.name }}</span>
+                    <span class="option-price">{{ option.formatted_price }}</span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Tags -->
-          <div v-if="product.tags && product.tags.length > 0" class="info-section">
-            <h3>Tags</h3>
-            <div class="tags-container">
-              <span v-for="tag in product.tags" :key="tag.id" class="tag" 
-                :style="{ backgroundColor: tag.color }">
-                {{ tag.name }}
+          <!-- Actions en bas -->
+          <div class="quick-actions-bar">
+            <div class="actions-left">
+              <span class="last-updated">
+                Dernière modification : {{ formatDate(product.updated_at) }}
               </span>
             </div>
-          </div>
-
-          <!-- Options -->
-          <div v-if="product.options && product.options.length > 0" class="info-section">
-            <h3>Options disponibles</h3>
-            <div class="options-list">
-              <div v-for="option in product.options" :key="option.id" class="option-item">
-                <span class="option-name">{{ option.name }}</span>
-                <span class="option-price">{{ option.formatted_price }}</span>
-              </div>
+            <div class="actions-right">
+              <router-link :to="editRoute" class="btn btn-primary">
+                <i class="fas fa-edit"></i>
+                Modifier
+              </router-link>
             </div>
           </div>
         </div>
       </div>
-
-      <!-- Actions en bas -->
-      <div class="quick-actions-bar">
-        <div class="actions-left">
-          <span class="last-updated">
-            Dernière modification : {{ formatDate(product.updated_at) }}
-          </span>
-        </div>
-        <div class="actions-right">
-          <router-link :to="editRoute" class="btn btn-primary">
-            <i class="fas fa-edit"></i>
-            Modifier
-          </router-link>
-        </div>
-      </div>
-    </div>
-  </div>
 </template>
 
 <script>
@@ -243,13 +255,20 @@ export default {
     editRoute() {
       return { name: 'ProductEdit', params: { type: this.type, id: this.productId } }
     },
+        menuDishes() {
+      return this.product?.productableDetail?.dishes || []
+    },
+    
+    dishIngredients() {
+      return this.product?.productableDetail?.ingredients || []
+    },
 
     hasDetailFields() {
       return this.product?.detail_fields && Object.keys(this.product.detail_fields).length > 0
     },
 
     hasRelations() {
-      return this.product?.productable_detail?.dishes || this.product?.productable_detail?.ingredients
+      return this.product?.productableDetail?.dishes || this.product?.productableDetail?.ingredients
     }
   },
 
@@ -265,10 +284,21 @@ export default {
       try {
         const response = await axios.get(`/api/products/${this.productId}`)
         this.product = response.data
+
+
+        // 🐛 DÉBOGAGE : Ajoutez ces logs
+        console.log('🔍 Produit reçu:', this.product)
+        console.log('🔍 Type:', this.product.productableType)
+        console.log('🔍 Productable detail:', this.product.productableDetail)
+
+        if (this.product.productable_detail) {
+          console.log('🔍 Dishes:', this.product.productable_detail.dishes)
+          console.log('🔍 Ingredients:', this.product.productable_detail.ingredients)
+        }
       } catch (error) {
         console.error('Erreur lors du chargement du produit:', error)
-        this.error = error.response?.status === 404 
-          ? 'Produit introuvable' 
+        this.error = error.response?.status === 404
+          ? 'Produit introuvable'
           : 'Erreur lors du chargement'
       } finally {
         this.loading = false
@@ -326,8 +356,8 @@ export default {
     },
 
     getRelationTitle() {
-      if (this.product?.productable_detail?.dishes) return 'Plats du menu'
-      if (this.product?.productable_detail?.ingredients) return 'Ingrédients'
+      if (this.product?.productableDetail?.dishes) return 'Plats du menu'
+      if (this.product?.productableDetail?.ingredients) return 'Ingrédients'
       return 'Relations'
     },
 
@@ -373,4 +403,3 @@ export default {
   }
 }
 </script>
-

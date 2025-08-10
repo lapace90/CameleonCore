@@ -3,14 +3,19 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use App\Models\Ingredient;
-use App\Observers\IngredientObserver;
-use App\Models\Tag;
-use App\Observers\TagObserver;
-use App\Models\Dish;
-use App\State\ProductCollectionProvider;
-use App\State\ProductProcessor;
-use App\Observers\DishObserver;
+
+// Models
+use App\Models\{Ingredient, Tag, Dish, Menu, Activity, Room};
+
+// Observers
+use App\Observers\{
+    IngredientObserver,
+    TagObserver,
+    DishObserver,
+    MenuObserver,
+    ActivityObserver,
+    RoomObserver
+};
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,13 +24,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //  $this->app->bind(ProductCollectionProvider::class, function () {
-        //     return new ProductCollectionProvider();
-        // });
-
-        // $this->app->bind(ProductProcessor::class, function () {
-        //     return new ProductProcessor();
-        // });
+        //
     }
 
     /**
@@ -33,9 +32,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // 🔍 Observers pour le système de tags automatiques
+        
         Ingredient::observe(IngredientObserver::class);
         Tag::observe(TagObserver::class);
         Dish::observe(DishObserver::class);
-
+        Menu::observe(MenuObserver::class);
+        Activity::observe(ActivityObserver::class);
+        Room::observe(RoomObserver::class);
     }
 }

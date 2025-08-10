@@ -46,7 +46,7 @@ class Dish extends Model
     }
 
     // Exemple de méthode de calcul des tags
-    protected function calculateSpecificTags()
+    public function calculateSpecificTags()
     {
         $tags = [];
 

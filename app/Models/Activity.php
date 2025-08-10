@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Activity extends Model
 {
     use HasFactory;
+    
     protected $fillable = [
         'guide',
         'duration',
@@ -25,24 +26,93 @@ class Activity extends Model
     {
         return $this->morphOne(Product::class, 'productable');
     }
-
     
-    // Relation avec les tags spécifiques
+    // ✅ Relation avec les tags spécifiques (cohérente avec Dish/Menu)
     public function specificTags()
     {
         return $this->morphToMany(Tag::class, 'taggable')
             ->where('is_global', false);
     }
 
-    public function calculateTags()
+    // ✅ Méthode standardisée (même nom que Dish/Menu)
+    public function calculateSpecificTags()
     {
         $tags = [];
 
-        // Logique spécifique aux Activity (ex: basée sur la difficulté)
-        if ($this->difficulty_level > 5) {
-            $tags[] = 'extreme';
+        // Logique basée sur la difficulté
+        switch ($this->difficulty_level) {
+            case 1:
+            case 2:
+                $tags[] = 'easy';
+                break;
+            case 3:
+            case 4:
+                $tags[] = 'medium';
+                break;
+            case 5:
+            case 6:
+                $tags[] = 'hard';
+                break;
+            case 7:
+            case 8:
+            case 9:
+            case 10:
+                $tags[] = 'extreme';
+                break;
         }
 
-        return $tags;
+        // Logique basée sur la durée
+        if ($this->duration <= 60) {
+            $tags[] = 'short'; // Moins d'1h
+        } elseif ($this->duration <= 180) {
+            $tags[] = 'medium_duration'; // 1-3h
+        } else {
+            $tags[] = 'long'; // Plus de 3h
+        }
+
+        // Logique basée sur la capacité
+        if ($this->max_people <= 5) {
+            $tags[] = 'small_group';
+        } elseif ($this->max_people <= 15) {
+            $tags[] = 'medium_group';
+        } else {
+            $tags[] = 'large_group';
+        }
+
+        // Logique basée sur le type d'activité (inféré du nom/description)
+        $activityName = strtolower($this->product->name ?? '');
+        
+        if (str_contains($activityName, 'escalade') || str_contains($activityName, 'climbing')) {
+            $tags[] = 'climbing';
+        }
+        if (str_contains($activityName, 'randonnée') || str_contains($activityName, 'hiking')) {
+            $tags[] = 'hiking';
+        }
+        if (str_contains($activityName, 'eau') || str_contains($activityName, 'water') || str_contains($activityName, 'kayak')) {
+            $tags[] = 'water';
+        }
+        if (str_contains($activityName, 'vélo') || str_contains($activityName, 'bike')) {
+            $tags[] = 'cycling';
+        }
+
+        // Tags selon le point de rendez-vous
+        if (str_contains(strtolower($this->meeting_point), 'intérieur') || 
+            str_contains(strtolower($this->meeting_point), 'indoor')) {
+            $tags[] = 'indoor';
+        } else {
+            $tags[] = 'outdoor';
+        }
+
+        return array_unique($tags);
+    }
+
+    // ✅ Méthode manuelle pour forcer la mise à jour des tags
+    public function updateTags()
+    {
+        $tags = $this->calculateSpecificTags();
+        
+        $this->specificTags()->sync(
+            Tag::whereIn('name', $tags)->where('is_global', false)->pluck('id')
+        );
     }
 }
