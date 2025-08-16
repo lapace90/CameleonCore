@@ -9,7 +9,7 @@
     <!-- Page content -->
     <div class="admin-container">
       <main class="admin-content-wrapper">
-        <router-view />
+        <router-view :key="$route.fullPath"/>
       </main>
     </div>
     <!-- Footer -->

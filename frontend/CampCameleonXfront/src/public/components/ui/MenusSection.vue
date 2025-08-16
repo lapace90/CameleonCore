@@ -3,7 +3,7 @@
     <div class="container">
       <!-- En-tête de section -->
       <div class="section-header">
-        <h2 class="section-title">Venez découvrir les saveurs du désert</h2>
+        <h2 class="section-title-front">Venez découvrir les saveurs du désert</h2>
         <p class="section-subtitle">
           Une cuisine authentique préparée avec amour au cœur du Sahara
         </p>
@@ -235,7 +235,7 @@ export default {
   text-align: center;
   margin-bottom: 4rem;
 
-  .section-title {
+  .section-title-front {
     font-size: clamp($font-size-3xl, 4vw, $font-size-5xl);
     font-weight: 400;
     color: $text-primary;

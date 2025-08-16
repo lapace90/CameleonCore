@@ -91,3 +91,13 @@
     background: #818a9c;
     transform: translateY(-2px);
 }
+
+.clickable-dish,
+.clickable-ingredient {
+    cursor: pointer;
+}
+
+.clickable-dish:hover,
+.clickable-ingredient:hover {
+    background-color: #f0f0f0;
+}

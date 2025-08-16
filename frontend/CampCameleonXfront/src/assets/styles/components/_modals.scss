@@ -250,17 +250,17 @@
   font-weight: 600;
   color: #374151;
   display: flex;
-  align-items: center;
+  align-items: center !important;
   gap: 0.5rem;
 }
 
-.section-title::before {
-  content: '';
-  width: 4px;
-  height: 20px;
-  background: #667eea;
-  border-radius: 2px;
-}
+// .section-title::before {
+//   content: '';
+//   width: 4px;
+//   height: 20px;
+//   background: #667eea;
+//   border-radius: 2px;
+// }
 
 /* Modal Footer */
 .modal-footer {

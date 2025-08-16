@@ -34,13 +34,23 @@
         </div>
       </div>
 
+      <div v-if="hasProductTags" class="product-tags">
+        <span v-for="tag in limitedTags" :key="tag.id" class="tag">
+          <i v-if="tag.icon" :class="tag.icon"></i>
+          {{ getDisplayName(tag.name) }}
+        </span>
+      </div>
+      <div v-if="totalTagsCount > 3" class="more-tags">
+        +{{ totalTagsCount - 3 }} autres
+      </div>
+
       <div class="card-footer">
         <div class="product-price">{{ product.formatted_price }}</div>
         <div class="card-actions">
           <button @click="$emit('duplicate', product)" class="btn-icon" title="Dupliquer">
             <i class="fas fa-copy"></i>
           </button>
-          <button @click="$emit('toggle-status', product)" class="btn-icon" 
+          <button @click="$emit('toggle-status', product)" class="btn-icon"
             :title="product.status ? 'Désactiver' : 'Activer'">
             <i :class="product.status ? 'fas fa-pause' : 'fas fa-play'"></i>
           </button>
@@ -60,12 +70,63 @@ export default {
     product: { type: Object, required: true },
     selected: { type: Boolean, default: false }
   },
+    mounted() {
+    // ✅ TEMPORAIRE : pour déboguer
+    console.log('🔍 Product data:', this.product)
+    console.log('🔍 GlobalTags:', this.product.globalTags)
+    console.log('🔍 SpecificTags:', this.product.specificTags)
+  },
   methods: {
     truncateText(text, length) {
       if (!text) return ''
       return text.length > length ? text.substring(0, length) + '...' : text
+    },
+
+    getDisplayName(tagName) {
+      const names = {
+        'vegetarian': 'Végé',
+        'vegan': 'Végan',
+        'spicy': 'Épicé',
+        'gluten_free': 'Sans gluten',
+        'lactose_free': 'Sans lactose',
+        'extreme': 'Extrême',
+        'couple': 'Couple',
+        'family': 'Famille',
+        'budget': 'Pas cher',
+        'premium': 'Premium'
+      }
+      return names[tagName] || tagName
     }
-  }
+  },
+  computed: {
+    hasProductTags() {
+      return (this.product.globalTags && this.product.globalTags.length > 0) ||
+        (this.product.specificTags && this.product.specificTags.length > 0)
+    },
+
+    limitedTags() {
+      let tags = []
+
+      // Tags globaux
+      if (this.product.globalTags) {
+        tags = [...tags, ...this.product.globalTags]
+      }
+
+      // Tags spécifiques  
+      if (this.product.specificTags) {
+        tags = [...tags, ...this.product.specificTags]
+      }
+
+      // Limiter à 3 tags max
+      return tags.slice(0, 3)
+    },
+    totalTagsCount() {
+      let count = 0
+      if (this.product.globalTags) count += this.product.globalTags.length
+      if (this.product.specificTags) count += this.product.specificTags.length
+      return count
+    }
+  },
 }
 </script>
 
@@ -253,5 +314,28 @@ export default {
 
 .text-danger:hover {
   background: #fee2e2 !important;
+}
+
+.product-tags {
+  margin: 8px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 9px;
+  font-weight: 500;
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.tag i {
+  font-size: 8px;
 }
 </style>

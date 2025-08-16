@@ -17,7 +17,8 @@ class ProductCollectionProvider implements ProviderInterface
         $query = Product::with([
             'category',
             'productable',
-            'globalTags'
+            'globalTags',
+            'specificTags'
         ]);
 
         // Appliquer les filtres
@@ -26,7 +27,7 @@ class ProductCollectionProvider implements ProviderInterface
         // Pagination
         $perPage = (int) $this->request->query('per_page', 20);
         $page = (int) $this->request->query('page', 1);
-        
+
         $paginator = $query->paginate($perPage, ['*'], 'page', $page);
 
         // Transformer les données pour le frontend
@@ -68,14 +69,14 @@ class ProductCollectionProvider implements ProviderInterface
         if ($search = $this->request->query('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('products.name', 'LIKE', "%{$search}%")
-                  ->orWhere('products.description', 'LIKE', "%{$search}%");
+                    ->orWhere('products.description', 'LIKE', "%{$search}%");
             });
         }
 
         // Tri - IMPORTANT: spécifier la table pour éviter l'ambiguïté
         $sortBy = $this->request->query('sort_by', 'created_at');
         $sortDirection = $this->request->query('sort_direction', 'desc');
-        
+
         $allowedSortFields = ['name', 'price', 'created_at', 'updated_at'];
         if (in_array($sortBy, $allowedSortFields)) {
             $query->orderBy('products.' . $sortBy, $sortDirection);
@@ -130,7 +131,7 @@ class ProductCollectionProvider implements ProviderInterface
         if (!$imageUrl) {
             return '/images/placeholder-product.svg';
         }
-        
+
         // L'accesseur du modèle gère déjà la logique URL vs chemin local
         return $imageUrl;
     }
@@ -177,7 +178,7 @@ class ProductCollectionProvider implements ProviderInterface
     {
         $fields = [];
         $productable = $product->productable;
-        
+
         if (!$productable) return $fields;
 
         switch ($product->productable_type) {
@@ -195,7 +196,7 @@ class ProductCollectionProvider implements ProviderInterface
                     ];
                 }
                 break;
-                
+
             case 'App\\Models\\Room':
                 if (isset($productable->capacity)) {
                     $fields['capacity'] = [
@@ -210,7 +211,7 @@ class ProductCollectionProvider implements ProviderInterface
                     ];
                 }
                 break;
-                
+
             case 'App\\Models\\Ingredient':
                 if (isset($productable->stock)) {
                     $fields['stock'] = [

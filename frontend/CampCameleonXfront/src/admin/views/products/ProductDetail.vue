@@ -149,8 +149,8 @@
 
               <!-- Plats du menu -->
               <div v-if="menuDishes && menuDishes.length > 0" class="dishes-list">
-                <div v-for="dish in menuDishes" :key="dish.id" class="relation-item"
-                  @click="goToProduct('dish', dish.product_id)">
+                <div v-for="dish in menuDishes" :key="dish.id" class="relation-item clickable-dish"
+                  @click="goToProduct('dish', dish.product_id)" title="Cliquer pour voir ce plat">
                   <div class="relation-header">
                     <h4 class="relation-name">{{ dish.name }}</h4>
                     <span class="relation-price">{{ dish.formatted_price }}</span>
@@ -161,8 +161,9 @@
 
               <!-- Ingrédients du plat -->
               <div v-if="dishIngredients && dishIngredients.length > 0" class="ingredients-list">
-                <div v-for="ingredient in dishIngredients" :key="ingredient.id" class="relation-item"
-                  @click="goToProduct('ingredient', ingredient.product_id)">
+                <div v-for="ingredient in dishIngredients" :key="ingredient.id"
+                  class="relation-item clickable-ingredient" @click="goToProduct('ingredient', ingredient.product_id)"
+                  title="Cliquer pour voir cet ingrédient">
                   <div class="relation-header">
                     <h4 class="relation-name">{{ ingredient.name }}</h4>
                     <span class="relation-stock">Stock: {{ ingredient.stock }}</span>
@@ -185,45 +186,45 @@
             </div>
           </div>
 
-              <!-- Tags -->
-              <div v-if="product.tags && product.tags.length > 0" class="info-section">
-                <h3>Tags</h3>
-                <div class="tags-container">
-                  <span v-for="tag in product.tags" :key="tag.id" class="tag" :style="{ backgroundColor: tag.color }">
-                    {{ tag.name }}
-                  </span>
-                </div>
-              </div>
-
-              <!-- Options -->
-              <div v-if="product.options && product.options.length > 0" class="info-section">
-                <h3>Options disponibles</h3>
-                <div class="options-list">
-                  <div v-for="option in product.options" :key="option.id" class="option-item">
-                    <span class="option-name">{{ option.name }}</span>
-                    <span class="option-price">{{ option.formatted_price }}</span>
-                  </div>
-                </div>
-              </div>
+          <!-- Tags -->
+          <div v-if="product.tags && product.tags.length > 0" class="info-section">
+            <h3>Tags</h3>
+            <div class="tags-container">
+              <span v-for="tag in product.tags" :key="tag.id" class="tag" :style="{ backgroundColor: tag.color }">
+                {{ tag.name }}
+              </span>
             </div>
           </div>
 
-          <!-- Actions en bas -->
-          <div class="quick-actions-bar">
-            <div class="actions-left">
-              <span class="last-updated">
-                Dernière modification : {{ formatDate(product.updated_at) }}
-              </span>
-            </div>
-            <div class="actions-right">
-              <router-link :to="editRoute" class="btn btn-primary">
-                <i class="fas fa-edit"></i>
-                Modifier
-              </router-link>
+          <!-- Options -->
+          <div v-if="product.options && product.options.length > 0" class="info-section">
+            <h3>Options disponibles</h3>
+            <div class="options-list">
+              <div v-for="option in product.options" :key="option.id" class="option-item">
+                <span class="option-name">{{ option.name }}</span>
+                <span class="option-price">{{ option.formatted_price }}</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- Actions en bas -->
+      <div class="quick-actions-bar">
+        <div class="actions-left">
+          <span class="last-updated">
+            Dernière modification : {{ formatDate(product.updated_at) }}
+          </span>
+        </div>
+        <div class="actions-right">
+          <router-link :to="editRoute" class="btn btn-primary">
+            <i class="fas fa-edit"></i>
+            Modifier
+          </router-link>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -255,10 +256,10 @@ export default {
     editRoute() {
       return { name: 'ProductEdit', params: { type: this.type, id: this.productId } }
     },
-        menuDishes() {
+    menuDishes() {
       return this.product?.productableDetail?.dishes || []
     },
-    
+
     dishIngredients() {
       return this.product?.productableDetail?.ingredients || []
     },

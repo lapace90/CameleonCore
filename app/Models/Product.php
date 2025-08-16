@@ -98,6 +98,11 @@ class Product extends Model
             ->where('is_global', true)
             ->withTimestamps();
     }
+    public function specificTags()
+    {
+        return $this->morphToMany(Tag::class, 'taggable')
+            ->where('is_global', false);
+    }
 
     // Scopes utiles
     public function scopeActive($query)
