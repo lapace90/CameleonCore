@@ -18,6 +18,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use App\Models\Category;
 use App\Models\Reservation;
+use App\Models\Option;
+use App\Models\Tag;
+use Illuminate\Support\Facades\Log;
 
 #[ApiResource(
     operations: [
@@ -97,11 +100,6 @@ class Product extends Model
         return $this->belongsToMany(Tag::class, 'product_tag')
             ->where('is_global', true)
             ->withTimestamps();
-    }
-    public function specificTags()
-    {
-        return $this->morphToMany(Tag::class, 'taggable')
-            ->where('is_global', false);
     }
 
     // Scopes utiles
@@ -242,49 +240,92 @@ class Product extends Model
         return $data;
     }
 
+
     public function getRelationsDataAttribute()
     {
         $relations = [];
 
-        switch ($this->productable_type) {
-            case 'App\\Models\\Menu':
-                if ($this->productable && $this->productable->relationLoaded('dishes')) {
-                    $relations['dishes'] = $this->productable->dishes->map(function ($dish) {
-                        return [
-                            'id' => $dish->id,
-                            'product_id' => $dish->product->id ?? null,
-                            'name' => $dish->product->name ?? 'N/A',
-                            'description' => $dish->product->description ?? '',
-                            'price' => $dish->product->price ?? 0,
-                            'formatted_price' => number_format($dish->product->price ?? 0, 2, ',', ' ') . ' €',
-                            'image' => $dish->product->image ?? null
-                        ];
-                    });
-                }
-                break;
+        try {
+            if (!$this->productable) {
+                return $relations;
+            }
 
-            case 'App\\Models\\Dish':
-                if ($this->productable && $this->productable->relationLoaded('ingredients')) {
-                    $relations['ingredients'] = $this->productable->ingredients->map(function ($ingredient) {
-                        return [
-                            'id' => $ingredient->id,
-                            'product_id' => $ingredient->product->id ?? null, // ✅ Maintenant ça marche !
-                            'name' => $ingredient->product->name ?? 'N/A',
-                            'stock' => $ingredient->stock ?? 0,
-                            'dietary_properties' => [
-                                'is_vegetarian' => $ingredient->is_vegetarian ?? false,
-                                'is_vegan' => $ingredient->is_vegan ?? false,
-                                'is_spicy' => $ingredient->is_spicy ?? false,
-                                'is_gluten_free' => $ingredient->is_gluten_free ?? false,
-                                'is_lactose_free' => $ingredient->is_lactose_free ?? false,
-                                'is_nut_free' => $ingredient->is_nut_free ?? false
-                            ]
-                        ];
-                    });
-                }
-                break;
+            switch ($this->productable_type) {
+                case 'App\\Models\\Menu':
+                    if ($this->productable->relationLoaded('dishes')) {
+                        $relations['dishes'] = $this->productable->dishes->map(function ($dish) {
+                            return [
+                                'id' => $dish->id,
+                                'product_id' => $dish->product->id ?? null,
+                                'name' => $dish->product->name ?? 'N/A',
+                                'stock' => null,
+                                'dietary_properties' => []
+                            ];
+                        });
+                    }
+                    break;
+
+                case 'App\\Models\\Dish':
+                    if ($this->productable->relationLoaded('ingredients')) {
+                        $relations['ingredients'] = $this->productable->ingredients->map(function ($ingredient) {
+                            return [
+                                'id' => $ingredient->id,
+                                'product_id' => $ingredient->product->id ?? null,
+                                'name' => $ingredient->product->name ?? 'N/A',
+                                'stock' => $ingredient->stock ?? 0,
+                                'dietary_properties' => [
+                                    'is_vegetarian' => $ingredient->is_vegetarian ?? false,
+                                    'is_vegan' => $ingredient->is_vegan ?? false,
+                                    'is_spicy' => $ingredient->is_spicy ?? false,
+                                    'is_gluten_free' => $ingredient->is_gluten_free ?? false,
+                                    'is_lactose_free' => $ingredient->is_lactose_free ?? false,
+                                    'is_nut_free' => $ingredient->is_nut_free ?? false
+                                ]
+                            ];
+                        });
+                    }
+                    break;
+
+                case 'App\\Models\\Ingredient':
+                    if ($this->productable->relationLoaded('dishes')) {
+                        $relations['dishes'] = $this->productable->dishes->map(function ($dish) {
+                            return [
+                                'id' => $dish->id,
+                                'product_id' => $dish->product->id ?? null,
+                                'name' => $dish->product->name ?? 'N/A',
+                                'stock' => null,
+                                'dietary_properties' => []
+                            ];
+                        });
+                    }
+                    break;
+
+                case 'App\\Models\\Activity':
+                case 'App\\Models\\Room':
+                    // Ces types n'ont pas de relations spéciales
+                    break;
+            }
+        } catch (\Exception $e) {
+            // En cas d'erreur, retourner un tableau vide plutôt que de planter
+            Log::warning("Erreur dans getRelationsDataAttribute pour le produit {$this->id}: " . $e->getMessage());
+            return [];
         }
 
         return $relations;
     }
+
+    public function specificTags()
+{
+    // Créer une relation vide par défaut
+    $emptyRelation = $this->morphToMany(Tag::class, 'taggable', 'taggables')
+        ->where('tags.id', '=', -1); // Condition impossible = relation vide
+    
+    // Si pas de productable, retourner la relation vide
+    if (!$this->productable || !method_exists($this->productable, 'specificTags')) {
+        return $emptyRelation;
+    }
+    
+    // Retourner la vraie relation du productable
+    return $this->productable->specificTags();
+}
 }

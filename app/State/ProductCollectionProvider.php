@@ -12,13 +12,21 @@ class ProductCollectionProvider implements ProviderInterface
 {
     public function __construct(private Request $request) {}
 
+    // Dans app/State/ProductCollectionProvider.php, modifiez la méthode provide() :
+
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): iterable
     {
         $query = Product::with([
             'category',
             'productable',
-            'globalTags',
-            'specificTags'
+            'globalTags'
+        ]);
+
+        // ✅ AJOUT : Charger les tags spécifiques selon le type de productable
+        $query->with([
+            'productable.specificTags' => function ($query) {
+                $query->where('is_global', false);
+            }
         ]);
 
         // Appliquer les filtres
@@ -83,6 +91,8 @@ class ProductCollectionProvider implements ProviderInterface
         }
     }
 
+    // Dans app/State/ProductCollectionProvider.php, modifiez la méthode transformProduct() :
+
     private function transformProduct($product): array
     {
         $data = [
@@ -102,7 +112,20 @@ class ProductCollectionProvider implements ProviderInterface
             ] : null,
             'type_config' => $this->getTypeConfig($product->productable_type),
             'created_at' => $product->created_at,
-            'updated_at' => $product->updated_at
+            'updated_at' => $product->updated_at,
+
+            // ✅ AJOUT : Tags globaux
+            'globalTags' => $product->globalTags->map(fn($tag) => [
+                'id' => $tag->id,
+                'name' => $tag->name,
+                'slug' => $tag->slug,
+                'description' => $tag->description,
+                'icon' => $tag->icon,
+                'color' => '#6b7280' // Couleur par défaut
+            ]),
+
+            // ✅ AJOUT : Tags spécifiques via productable
+            'specificTags' => $this->getSpecificTags($product)
         ];
 
         // Ajouter les champs spécifiques pour la liste
@@ -112,6 +135,28 @@ class ProductCollectionProvider implements ProviderInterface
         }
 
         return $data;
+    }
+
+    // ✅ AJOUT : Nouvelle méthode pour récupérer les tags spécifiques
+    private function getSpecificTags($product): array
+    {
+        if (!$product->productable || !method_exists($product->productable, 'specificTags')) {
+            return [];
+        }
+
+        // Charger les tags spécifiques si pas déjà chargés
+        if (!$product->productable->relationLoaded('specificTags')) {
+            $product->productable->load('specificTags');
+        }
+
+        return $product->productable->specificTags->map(fn($tag) => [
+            'id' => $tag->id,
+            'name' => $tag->name,
+            'slug' => $tag->slug,
+            'description' => $tag->description,
+            'icon' => $tag->icon,
+            'color' => '#8b5cf6' // Couleur différente pour les tags spécifiques
+        ])->toArray();
     }
 
     private function getStatusLabel($product): string
