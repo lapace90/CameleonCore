@@ -5,7 +5,7 @@ namespace Tests\Unit;
 use App\Models\Product;
 use App\Models\Activity;
 use App\Models\Category;
-use App\Transformers\ProductTransformer;
+use App\Services\ProductTransformer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

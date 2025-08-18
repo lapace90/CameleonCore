@@ -10,7 +10,7 @@ use App\Models\Menu;
 use App\Models\Dish;
 use App\Models\Ingredient;
 use App\Models\Room;
-use App\Transformers\ProductTransformer;
+use App\Services\ProductTransformer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 

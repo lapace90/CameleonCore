@@ -96,13 +96,13 @@ class MenuObserver
             $ingredients = $dish->ingredients;
             
             // Si un plat n'est pas végétarien, le menu ne l'est pas
-            if (!$ingredients->every('is_vegetarian', true)) {
+            if (!$ingredients->every('is_vegetarian')) {
                 $allVegetarian = false;
                 $allVegan = false;
             }
             
             // Si un plat n'est pas végan, le menu ne l'est pas
-            if (!$ingredients->every('is_vegan', true)) {
+            if (!$ingredients->every('is_vegan')) {
                 $allVegan = false;
             }
             

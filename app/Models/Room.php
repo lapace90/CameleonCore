@@ -5,8 +5,19 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use ApiPlatform\Metadata\ApiResource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Product;
+use App\Models\Option;
+use App\Models\Tag;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Get;
 
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new GetCollection(uriTemplate: '/rooms'),
+        new Get(uriTemplate: '/rooms/{id}')
+        // ✅ PAS de POST/PATCH/DELETE - Read-only
+    ]
+)]
 class Room extends Model
 {
     use HasFactory;

@@ -6,7 +6,7 @@
         <h1 class="page-title">{{ pageTitle }}</h1>
 
         <!-- 🔥 REMPLACEMENT : Votre ancien breadcrumb par le nouveau composant -->
-        <Breadcrumb :breadcrumbs="breadcrumbs" />
+        <Breadcrumb :items="breadcrumbs" />
       </div>
 
       <!-- Right side - Actions and user menu (GARDE VOTRE CODE EXISTANT) -->

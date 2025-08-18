@@ -67,7 +67,8 @@
                   <i class="fas fa-cloud-upload-alt"></i>
                   <p>Ajouter une image</p>
                 </div>
-                <input ref="imageInput" type="file" accept="image/*" @change="handleImageUpload" style="display: none" />
+                <input ref="imageInput" type="file" accept="image/*" @change="handleImageUpload"
+                  style="display: none" />
               </div>
             </div>
           </div>
@@ -121,13 +122,13 @@
             <div v-if="typeConfig.fields.length > 0" class="form-section">
               <h3>Détails {{ typeConfig.singular.toLowerCase() }}</h3>
               <div class="form-grid">
-                
+
                 <!-- ACTIVITÉS - Champs de votre config : guide, duration, meeting_point, max_people, difficulty_level -->
                 <template v-if="productType === 'activity'">
                   <div class="form-group">
                     <label class="form-label required">Guide</label>
-                    <input v-model="form.productable.guide" type="text" class="form-input" 
-                      placeholder="Nom du guide" required />
+                    <input v-model="form.productable.guide" type="text" class="form-input" placeholder="Nom du guide"
+                      required />
                   </div>
                   <div class="form-group">
                     <label class="form-label required">Durée</label>
@@ -139,7 +140,7 @@
                   </div>
                   <div class="form-group full-width">
                     <label class="form-label required">Point de rendez-vous</label>
-                    <input v-model="form.productable.meeting_point" type="text" class="form-input" 
+                    <input v-model="form.productable.meeting_point" type="text" class="form-input"
                       placeholder="Lieu de rendez-vous" required />
                   </div>
                   <div class="form-group">
@@ -166,8 +167,8 @@
                   <div class="form-group">
                     <label class="form-label">Stock</label>
                     <div class="input-group">
-                      <input v-model.number="form.productable.stock" type="number" class="form-input"
-                        placeholder="100" min="0" />
+                      <input v-model.number="form.productable.stock" type="number" class="form-input" placeholder="100"
+                        min="0" />
                       <span class="input-addon">unités</span>
                     </div>
                   </div>
@@ -207,8 +208,8 @@
                   <div class="form-group">
                     <label class="form-label required">Capacité</label>
                     <div class="input-group">
-                      <input v-model.number="form.productable.capacity" type="number" class="form-input"
-                        placeholder="4" min="1" required />
+                      <input v-model.number="form.productable.capacity" type="number" class="form-input" placeholder="4"
+                        min="1" required />
                       <span class="input-addon">pers.</span>
                     </div>
                   </div>
@@ -220,7 +221,8 @@
                         <span class="radio-label">Disponible</span>
                       </label>
                       <label class="radio-item">
-                        <input type="radio" v-model="form.productable.availability" :value="false" name="availability" />
+                        <input type="radio" v-model="form.productable.availability" :value="false"
+                          name="availability" />
                         <span class="radio-label">Non disponible</span>
                       </label>
                     </div>
@@ -233,7 +235,7 @@
             <!-- Relations - SELON VOTRE CONFIG hasRelation -->
             <div v-if="isEditing && typeConfig.hasRelation" class="form-section">
               <h3>{{ getRelationTitle() }}</h3>
-              
+
               <!-- Sélection d'ingrédients pour un plat -->
               <div v-if="typeConfig.hasRelation === 'ingredients'" class="selection-area">
                 <div class="available-items">
@@ -301,7 +303,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import ProductsApi from '@/services/ProductsApi'
 
 export default {
   name: 'ProductForm',
@@ -345,7 +347,7 @@ export default {
       productConfigs: {
         ingredient: {
           label: 'Ingrédients',
-          singular: 'Ingrédient', 
+          singular: 'Ingrédient',
           icon: 'fas fa-seedling',
           color: '#22c55e',
           fields: ['stock', 'is_vegetarian', 'is_vegan', 'is_spicy', 'is_gluten_free', 'is_lactose_free', 'is_nut_free'],
@@ -354,7 +356,7 @@ export default {
         activity: {
           label: 'Activités',
           singular: 'Activité',
-          icon: 'fas fa-hiking', 
+          icon: 'fas fa-hiking',
           color: '#3b82f6',
           fields: ['guide', 'duration', 'meeting_point', 'max_people', 'difficulty_level'],
           hasRelation: false
@@ -363,7 +365,7 @@ export default {
           label: 'Plats',
           singular: 'Plat',
           icon: 'fas fa-drumstick-bite',
-          color: '#f97316', 
+          color: '#f97316',
           fields: [],
           hasRelation: 'ingredients'
         },
@@ -373,7 +375,7 @@ export default {
           icon: 'fas fa-utensils',
           color: '#10b981',
           fields: [],
-          hasRelation: 'dishes'  
+          hasRelation: 'dishes'
         },
         room: {
           label: 'Hébergements',
@@ -423,7 +425,7 @@ export default {
 
       try {
         this.initializeForm()
-        
+
         if (this.isEditing) {
           await this.fetchProduct()
           await this.fetchRelationalData()
@@ -453,38 +455,11 @@ export default {
     async fetchProduct() {
       try {
         console.log('Fetching product for edit:', this.productId)
-
-        const response = await axios.get(`/api/products/${this.productId}`, {
-          headers: {
-            'Accept': 'application/ld+json',
-            'Content-Type': 'application/json'
-          }
-        })
-        this.product = response.data
-
-        // Charger les données productable
-        if (this.product.productable && typeof this.product.productable === 'string') {
-          try {
-            const productableResponse = await axios.get(this.product.productable, {
-              headers: {
-                'Accept': 'application/ld+json',
-                'Content-Type': 'application/json'
-              }
-            })
-            this.product.productableData = productableResponse.data
-          } catch (error) {
-            console.warn('Could not fetch productable data:', error)
-            this.product.productableData = {}
-          }
-        } else {
-          this.product.productableData = this.product.productable || {}
-        }
-
+        this.product = await ProductsApi.getProduct(this.productId)
         this.populateForm()
-        await this.loadRelations()
       } catch (error) {
-        console.error('Erreur lors du chargement du produit:', error)
-        this.error = 'Erreur lors du chargement du produit'
+        console.error('Error fetching product:', error)
+        throw error
       }
     },
 
@@ -508,32 +483,14 @@ export default {
       try {
         // Pour un plat, récupérer les ingrédients disponibles
         if (this.typeConfig.hasRelation === 'ingredients') {
-          const url = `/api/products?type=App\\Models\\Ingredient`
-          const response = await axios.get(url, {
-            headers: {
-              'Accept': 'application/ld+json',
-              'Content-Type': 'application/json'
-            }
-          })
-          
-          if (response.data && response.data.member) {
-            this.availableIngredients = response.data.member
-          }
+          const { data } = await ProductsApi.getRelationProducts('ingredients')
+          this.availableIngredients = data
         }
 
         // Pour un menu ou ingrédient, récupérer les plats disponibles
         if (this.typeConfig.hasRelation === 'dishes') {
-          const url = `/api/products?type=App\\Models\\Dish`
-          const response = await axios.get(url, {
-            headers: {
-              'Accept': 'application/ld+json',
-              'Content-Type': 'application/json'
-            }
-          })
-          
-          if (response.data && response.data.member) {
-            this.availableDishes = response.data.member
-          }
+          const { data } = await ProductsApi.getRelationProducts('dishes')
+          this.availableDishes = data
         }
       } catch (error) {
         console.error('Erreur lors du chargement des données relationnelles:', error)
@@ -546,55 +503,23 @@ export default {
       if (!this.typeConfig.hasRelation) return
 
       try {
-        // Plat → Ingrédients
-        if (this.typeConfig.hasRelation === 'ingredients') {
-          const response = await axios.get(`/api/dishes/${this.product.productableData.id}`, {
-            headers: {
-              'Accept': 'application/ld+json',
-              'Content-Type': 'application/json'
-            }
-          })
-          
-          if (response.data.ingredients && Array.isArray(response.data.ingredients)) {
-            this.form.selectedIngredients = response.data.ingredients.map(ingredientIRI => {
-              const match = ingredientIRI.match(/\/(\d+)$/)
-              return match ? parseInt(match[1]) : null
-            }).filter(Boolean)
-          }
+        const data = await ProductsApi.getProductRelations(
+          this.product.productableData.id,
+          this.getProductableType()
+        )
+
+        if (data.ingredients && Array.isArray(data.ingredients)) {
+          this.form.selectedIngredients = data.ingredients.map(ingredientIRI => {
+            const match = ingredientIRI.match(/\/(\d+)$/)
+            return match ? parseInt(match[1]) : null
+          }).filter(Boolean)
         }
 
-        // Menu → Plats
-        if (this.typeConfig.hasRelation === 'dishes' && this.productType === 'menu') {
-          const response = await axios.get(`/api/menus/${this.product.productableData.id}`, {
-            headers: {
-              'Accept': 'application/ld+json',
-              'Content-Type': 'application/json'
-            }
-          })
-          
-          if (response.data.dishes && Array.isArray(response.data.dishes)) {
-            this.form.selectedDishes = response.data.dishes.map(dishIRI => {
-              const match = dishIRI.match(/\/(\d+)$/)
-              return match ? parseInt(match[1]) : null
-            }).filter(Boolean)
-          }
-        }
-
-        // Ingrédient → Plats (lecture seule pour comprendre les relations)
-        if (this.typeConfig.hasRelation === 'dishes' && this.productType === 'ingredient') {
-          const response = await axios.get(`/api/ingredients/${this.product.productableData.id}`, {
-            headers: {
-              'Accept': 'application/ld+json',
-              'Content-Type': 'application/json'
-            }
-          })
-          
-          if (response.data.dishes && Array.isArray(response.data.dishes)) {
-            this.form.selectedDishes = response.data.dishes.map(dishIRI => {
-              const match = dishIRI.match(/\/(\d+)$/)
-              return match ? parseInt(match[1]) : null
-            }).filter(Boolean)
-          }
+        if (data.dishes && Array.isArray(data.dishes)) {
+          this.form.selectedDishes = data.dishes.map(dishIRI => {
+            const match = dishIRI.match(/\/(\d+)$/)
+            return match ? parseInt(match[1]) : null
+          }).filter(Boolean)
         }
       } catch (error) {
         console.error('Erreur lors du chargement des relations:', error)
@@ -614,26 +539,21 @@ export default {
 
         let response
         if (this.isEditing) {
-          response = await axios.patch(`/api/products/${this.productId}`, payload, {
-            headers: {
-              'Accept': 'application/ld+json',
-              'Content-Type': 'application/json'
-            }
-          })
+          response = await ProductsApi.updateProduct(this.productId, payload)
         } else {
-          response = await axios.post('/api/products', payload, {
-            headers: {
-              'Accept': 'application/ld+json',
-              'Content-Type': 'application/json'
-            }
-          })
+          response = await ProductsApi.createProduct(payload)
         }
 
-        console.log('Product saved:', response.data)
-
+        if (this.form.imageFile) {
+          try {
+            await ProductsApi.uploadImage(this.form.imageFile, response.id)
+          } catch (error) {
+            console.warn('Could not upload image:', error)
+          }
+        }
         // Sauvegarder les relations si besoin
         if (this.isEditing && this.typeConfig.hasRelation) {
-          await this.saveRelations(response.data)
+          await this.saveRelations(response)
         }
 
         // Redirection
@@ -689,7 +609,7 @@ export default {
       if (!product.productable || !this.typeConfig.hasRelation) return
 
       try {
-        const productableId = typeof product.productable === 'string' 
+        const productableId = typeof product.productable === 'string'
           ? product.productable.match(/\/(\d+)$/)?.[1]
           : product.productable.id
 
@@ -698,16 +618,14 @@ export default {
         // Sauvegarder les ingrédients d'un plat
         if (this.typeConfig.hasRelation === 'ingredients' && this.form.selectedIngredients.length > 0) {
           const ingredientIRIs = this.form.selectedIngredients.map(id => `/api/ingredients/${id}`)
-          
+
           try {
-            await axios.patch(`/api/dishes/${productableId}`, {
-              ingredients: ingredientIRIs
-            }, {
-              headers: { 
-                'Accept': 'application/ld+json',
-                'Content-Type': 'application/merge-patch+json' 
-              }
-            })
+            await ProductsApi.updateProductRelations(
+              this.productId,
+              productableId,
+              'App\\Models\\Dish',
+              { ingredients: ingredientIRIs }
+            )
           } catch (error) {
             console.warn('Could not save dish ingredients:', error)
           }
@@ -716,16 +634,14 @@ export default {
         // Sauvegarder les plats d'un menu
         if (this.typeConfig.hasRelation === 'dishes' && this.productType === 'menu' && this.form.selectedDishes.length > 0) {
           const dishIRIs = this.form.selectedDishes.map(id => `/api/dishes/${id}`)
-          
+
           try {
-            await axios.patch(`/api/menus/${productableId}`, {
-              dishes: dishIRIs
-            }, {
-              headers: { 
-                'Accept': 'application/ld+json',
-                'Content-Type': 'application/merge-patch+json' 
-              }
-            })
+            await ProductsApi.updateProductRelations(
+              this.productId,
+              productableId,
+              this.getProductableType(),
+              { dishes: dishIRIs }
+            )
           } catch (error) {
             console.warn('Could not save menu dishes:', error)
           }
@@ -838,9 +754,6 @@ export default {
     removeImage() {
       this.form.image = null
       this.imagePreview = null
-      if (this.$refs.imageInput) {
-        this.$refs.imageInput.value = ''
-      }
     },
 
     handleImageUpload(event) {
@@ -857,8 +770,8 @@ export default {
         this.imagePreview = e.target.result
       }
       reader.readAsDataURL(file)
-
       this.form.imageFile = file
+      this.$refs.imageInput.value = ''
     },
 
     handleImageError(event) {

@@ -5,8 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use ApiPlatform\Metadata\ApiResource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Get;
 
-#[ApiResource]
+
+#[ApiResource(
+    operations: [
+        new GetCollection(uriTemplate: '/menus'),
+        new Get(uriTemplate: '/menus/{id}')
+    ]
+)]
 
 class Menu extends Model
 {

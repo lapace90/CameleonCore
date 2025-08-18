@@ -8,9 +8,16 @@ use App\Models\Product;
 use App\Models\Ingredient;
 use App\Models\Tag;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Get;
 
 
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new GetCollection(uriTemplate: '/dishes'),
+        new Get(uriTemplate: '/dishes/{id}')
+    ]
+)]
 
 class Dish extends Model
 {
@@ -45,37 +52,41 @@ class Dish extends Model
         );
     }
 
-    // Exemple de méthode de calcul des tags
     public function calculateSpecificTags()
     {
         $tags = [];
 
         $ingredients = $this->ingredients;
 
-        // Vegan implique automatiquement végétarien
-        if ($ingredients->every('is_vegan', true)) {
+        // Vegan => tutti gli ingredienti vegani
+        if ($ingredients->every('is_vegan')) {
             $tags[] = 'vegan';
-            $tags[] = 'vegetarian';
-        } elseif ($ingredients->every('is_vegetarian', true)) {
+            $tags[] = 'vegetarian'; // Vegan implica vegetariano
+        } elseif ($ingredients->every('is_vegetarian')) {
             $tags[] = 'vegetarian';
         }
 
-        // Autres tags
-        $checks = [
-            'is_spicy' => 'spicy',
+        // Tag per almeno un ingrediente
+        if ($ingredients->contains('is_spicy', true)) {
+            $tags[] = 'spicy';
+        }
+
+        // Tag per tutti gli ingredienti
+        $everyChecks = [
             'is_gluten_free' => 'gluten_free',
             'is_lactose_free' => 'lactose_free',
             'is_nut_free' => 'nut_free'
         ];
 
-        foreach ($checks as $attribute => $tag) {
-            if ($ingredients->contains($attribute, true)) {
+        foreach ($everyChecks as $attribute => $tag) {
+            if ($ingredients->every($attribute)) {
                 $tags[] = $tag;
             }
         }
 
-        return $tags;
+        return array_unique($tags);
     }
+
 
     public function menus()
     {

@@ -32,7 +32,7 @@
           <i class="fas fa-search"></i>
           <input v-model="filters.search" type="text" placeholder="Rechercher..." @input="debouncedSearch" />
         </div>
-
+        
         <div class="filter-group">
           <select v-model="filters.category" @change="applyFilters" class="filter-select">
             <option value="">Toutes les catégories</option>
@@ -66,11 +66,15 @@
     </div>
 
     <!-- Stats rapides -->
-    <ProductStats :stats="quickStats" :products="products" />
+    <ProductStats :stats="quickStats" />
 
     <!-- Actions en lot -->
-    <BulkActions v-if="selectedProducts.length > 0" :selected-count="selectedProducts.length"
-      @bulk-action="handleBulkAction" @clear-selection="selectedProducts = []" />
+    <BulkActions 
+      v-if="selectedProducts.length > 0"
+      :selected-count="selectedProducts.length"
+      @bulk-action="handleBulkAction"
+      @clear-selection="selectedProducts = []"
+    />
 
     <!-- Message d'erreur -->
     <div v-if="error" class="error-message">
@@ -91,17 +95,34 @@
 
       <!-- Vue grille -->
       <div v-else-if="viewMode === 'grid'" class="products-grid">
-        <ProductCard v-for="product in products" :key="product.id" :product="product"
-          :selected="selectedProducts.includes(product.id)" @select="toggleSelection(product.id)" @view="viewProduct"
-          @edit="editProduct" @duplicate="duplicateProduct" @delete="deleteProduct"
-          @toggle-status="toggleProductStatus" />
+        <ProductCard 
+          v-for="product in products" 
+          :key="product.id"
+          :product="product"
+          :selected="selectedProducts.includes(product.id)"
+          @select="toggleSelection(product.id)"
+          @view="viewProduct"
+          @edit="editProduct"
+          @duplicate="duplicateProduct"
+          @delete="deleteProduct"
+          @toggle-status="toggleProductStatus"
+        />
       </div>
 
       <!-- Vue liste -->
       <div v-else class="products-table">
-        <ProductTable :products="products" :type-config="typeConfig" :selected="selectedProducts"
-          @select="toggleSelection" @select-all="toggleAllSelection" @view="viewProduct" @edit="editProduct"
-          @duplicate="duplicateProduct" @delete="deleteProduct" @sort="handleSort" />
+        <ProductTable 
+          :products="products"
+          :type-config="typeConfig"
+          :selected="selectedProducts"
+          @select="toggleSelection"
+          @select-all="toggleAllSelection"
+          @view="viewProduct"
+          @edit="editProduct"
+          @duplicate="duplicateProduct"
+          @delete="deleteProduct"
+          @sort="handleSort"
+        />
       </div>
 
       <!-- Empty state -->
@@ -119,7 +140,11 @@
     </div>
 
     <!-- Pagination -->
-    <Pagination v-if="pagination.total > pagination.perPage" :pagination="pagination" @page-change="changePage" />
+    <Pagination 
+      v-if="pagination.total > pagination.perPage"
+      :pagination="pagination"
+      @page-change="changePage"
+    />
   </div>
 </template>
 
@@ -136,7 +161,7 @@ export default {
   name: 'ProductsShow',
   components: {
     ProductCard,
-    ProductTable,
+    ProductTable, 
     ProductStats,
     BulkActions,
     Pagination
@@ -225,11 +250,11 @@ export default {
 
     emptyStateMessage() {
       const hasFilters = this.filters.search || this.filters.category || this.filters.status
-
+      
       if (hasFilters) {
         return 'Aucun résultat ne correspond à vos critères de recherche.'
       }
-
+      
       return `Commencez par créer votre premier ${this.typeConfig.singular.toLowerCase()}.`
     },
 
@@ -264,7 +289,7 @@ export default {
         }
 
         const response = await ProductsApi.getProducts(params)
-
+        
         this.products = response.data || []
         this.updatePagination(response)
         this.updateStats()
@@ -296,65 +321,15 @@ export default {
     },
 
     updateStats() {
-      if (!this.products || this.products.length === 0) {
-        this.quickStats = {
-          total: this.pagination.total || 0,
-          active: 0,
-          draft: 0,
-          revenue: 0
-        }
-        return
-      }
-
-      // Filtrer les produits valides
-      const validProducts = this.products.filter(p => p && typeof p.price !== 'undefined')
-
-      const active = validProducts.filter(p => p.status && !p.is_draft).length
-      const draft = validProducts.filter(p => p.is_draft).length
-
-      // Calculer le chiffre d'affaires total (somme des prix)
-      const revenue = validProducts.reduce((sum, p) => {
-        const price = Number(p.price)
-        return sum + (isNaN(price) ? 0 : price)
-      }, 0)
+      const active = this.products.filter(p => p.status && !p.is_draft).length
+      const draft = this.products.filter(p => p.is_draft).length
+      const revenue = this.products.reduce((sum, p) => sum + (p.price || 0), 0)
 
       this.quickStats = {
-        total: this.pagination.total || validProducts.length,
-        active: active,
-        draft: draft,
-        revenue: revenue
-      }
-    },
-
-    // ✅ NOUVEAU : Méthode pour calculer des stats avancées
-    calculateAdvancedStats() {
-      if (!this.products || this.products.length === 0) {
-        return {
-          averagePrice: 0,
-          minPrice: 0,
-          maxPrice: 0,
-          totalValue: 0
-        }
-      }
-
-      const validPrices = this.products
-        .map(p => Number(p.price))
-        .filter(price => !isNaN(price) && isFinite(price))
-
-      if (validPrices.length === 0) {
-        return {
-          averagePrice: 0,
-          minPrice: 0,
-          maxPrice: 0,
-          totalValue: 0
-        }
-      }
-
-      return {
-        averagePrice: validPrices.reduce((sum, price) => sum + price, 0) / validPrices.length,
-        minPrice: Math.min(...validPrices),
-        maxPrice: Math.max(...validPrices),
-        totalValue: validPrices.reduce((sum, price) => sum + price, 0)
+        total: this.pagination.total,
+        active,
+        draft,
+        revenue
       }
     },
 
@@ -476,3 +451,4 @@ export default {
   }
 }
 </script>
+

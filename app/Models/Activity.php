@@ -7,8 +7,16 @@ use ApiPlatform\Metadata\ApiResource;
 use App\Models\Product;
 use App\Models\Tag;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Get;
 
-#[ApiResource]
+
+#[ApiResource(
+    operations: [
+        new GetCollection(uriTemplate: '/activities'),
+        new Get(uriTemplate: '/activities/{id}')
+    ]
+)]
 
 class Activity extends Model
 {

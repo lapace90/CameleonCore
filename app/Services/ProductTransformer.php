@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Transformers;
+namespace App\Services;
 
 use App\Models\Product;
 use Illuminate\Support\Collection;
@@ -323,11 +323,14 @@ class ProductTransformer
         return [
             'views' => $product->views ?? 0,
             'reservations_count' => $product->reservations()->count(),
-            'total_revenue' => $product->reservations()->sum('total_price') ?? 0,
+            'total_revenue' => $product->reservations()->sum('amount'),
             'monthly_revenue' => $product->reservations()
                 ->whereMonth('created_at', now()->month)
-                ->sum('total_price') ?? 0,
-            'average_rating' => round($product->reviews()->avg('rating') ?? 0, 2),
+                ->sum('amount'),
+            'average_rating' => round(
+                method_exists($product, 'reviews') ? ($product->reviews()->avg('rating') ?? 0) : 0,
+                2
+            ),
             'recent_reservations' => $product->reservations()
                 ->latest()
                 ->limit(5)
@@ -335,7 +338,7 @@ class ProductTransformer
                 ->map(fn($r) => [
                     'id' => $r->id,
                     'date' => $r->created_at->format('d/m/Y H:i'),
-                    'total' => number_format($r->total_price, 2, ',', ' ') . ' €'
+                    'total' => number_format($r->amount, 2, ',', ' ') . ' €'
                 ])
         ];
     }
