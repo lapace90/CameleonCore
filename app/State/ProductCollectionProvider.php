@@ -22,13 +22,6 @@ class ProductCollectionProvider implements ProviderInterface
             'globalTags'
         ]);
 
-        // ✅ AJOUT : Charger les tags spécifiques selon le type de productable
-        $query->with([
-            'productable.specificTags' => function ($query) {
-                $query->where('is_global', false);
-            }
-        ]);
-
         // Appliquer les filtres
         $this->applyFilters($query);
 
@@ -38,8 +31,26 @@ class ProductCollectionProvider implements ProviderInterface
 
         $paginator = $query->paginate($perPage, ['*'], 'page', $page);
 
+        // Charger conditionnellement les tags spécifiques pour les modèles qui les supportent
+        $collection = $paginator->getCollection();
+
+        $types = $collection->pluck('productable_type')->unique();
+        $morphMap = [];
+
+        foreach ($types as $type) {
+            if (class_exists($type) && method_exists($type, 'specificTags')) {
+                $morphMap[$type] = ['specificTags' => function ($query) {
+                    $query->where('is_global', false);
+                }];
+            }
+        }
+
+        if (!empty($morphMap)) {
+            $collection->loadMorph('productable', $morphMap);
+        }
+
         // Transformer les données pour le frontend
-        $paginator->getCollection()->transform(function ($product) {
+        $collection->transform(function ($product) {
             return $this->transformProduct($product);
         });
 

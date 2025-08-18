@@ -118,242 +118,242 @@ class ProductController extends Controller
     //     }
     // }
 
-public function index(Request $request)
-{
-    $debug = [
-        'request_type' => $request->input('type'),
-        'has_type' => $request->has('type'),
-        'all_params' => $request->all(),
-        'menu_count' => Product::where('productable_type', 'App\\Models\\Menu')->count(),
-        'total_count' => Product::count()
-    ];
+// public function index(Request $request)
+// {
+//     $debug = [
+//         'request_type' => $request->input('type'),
+//         'has_type' => $request->has('type'),
+//         'all_params' => $request->all(),
+//         'menu_count' => Product::where('productable_type', 'App\\Models\\Menu')->count(),
+//         'total_count' => Product::count()
+//     ];
     
-    return response()->json($debug);
-}
+//     return response()->json($debug);
+// }
 
-    /**
-     * Store a newly created product in storage.
-     *
-     * @param  \App\Http\Requests\StoreProductRequest  $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function store(StoreProductRequest $request)
-    {
-        try {
-            $data = $request->validated();
+//     /**
+//      * Store a newly created product in storage.
+//      *
+//      * @param  \App\Http\Requests\StoreProductRequest  $request
+//      * @return \Illuminate\Http\JsonResponse
+//      */
+//     public function store(StoreProductRequest $request)
+//     {
+//         try {
+//             $data = $request->validated();
 
-            // Handle productable creation if needed
-            // This depends on your specific implementation
+//             // Handle productable creation if needed
+//             // This depends on your specific implementation
 
-            $product = Product::create($data);
+//             $product = Product::create($data);
 
-            // Handle tags or other relationships if needed
-            if ($request->has('tags')) {
-                $product->globalTags()->attach($request->input('tags'));
-            }
+//             // Handle tags or other relationships if needed
+//             if ($request->has('tags')) {
+//                 $product->globalTags()->attach($request->input('tags'));
+//             }
 
-            // Reload with relationships
-            $product->load(['category', 'productable', 'globalTags']);
+//             // Reload with relationships
+//             $product->load(['category', 'productable', 'globalTags']);
 
-            return response()->json($product, Response::HTTP_CREATED);
-        } catch (\Exception $e) {
-            Log::error('Error creating product: ' . $e->getMessage());
-            return response()->json([
-                'error' => 'Failed to create product',
-                'message' => $e->getMessage()
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-    }
+//             return response()->json($product, Response::HTTP_CREATED);
+//         } catch (\Exception $e) {
+//             Log::error('Error creating product: ' . $e->getMessage());
+//             return response()->json([
+//                 'error' => 'Failed to create product',
+//                 'message' => $e->getMessage()
+//             ], Response::HTTP_INTERNAL_SERVER_ERROR);
+//         }
+//     }
 
-    /**
-     * Display the specified product.
-     *
-     * @param  \App\Models\Product  $product
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function show(Product $product)
-    {
-        try {
-            $product->load([
-                'category',
-                'productable',
-                'globalTags',
-                'options'
-            ]);
+//     /**
+//      * Display the specified product.
+//      *
+//      * @param  \App\Models\Product  $product
+//      * @return \Illuminate\Http\JsonResponse
+//      */
+//     public function show(Product $product)
+//     {
+//         try {
+//             $product->load([
+//                 'category',
+//                 'productable',
+//                 'globalTags',
+//                 'options'
+//             ]);
 
-            return response()->json($product);
-        } catch (\Exception $e) {
-            Log::error('Error fetching product: ' . $e->getMessage());
-            return response()->json([
-                'error' => 'Failed to fetch product',
-                'message' => $e->getMessage()
-            ], Response::HTTP_NOT_FOUND);
-        }
-    }
+//             return response()->json($product);
+//         } catch (\Exception $e) {
+//             Log::error('Error fetching product: ' . $e->getMessage());
+//             return response()->json([
+//                 'error' => 'Failed to fetch product',
+//                 'message' => $e->getMessage()
+//             ], Response::HTTP_NOT_FOUND);
+//         }
+//     }
 
-    /**
-     * Update the specified product in storage.
-     *
-     * @param  \App\Http\Requests\UpdateProductRequest  $request
-     * @param  \App\Models\Product  $product
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function update(UpdateProductRequest $request, Product $product)
-    {
-        try {
-            $data = $request->validated();
-            $product->update($data);
+//     /**
+//      * Update the specified product in storage.
+//      *
+//      * @param  \App\Http\Requests\UpdateProductRequest  $request
+//      * @param  \App\Models\Product  $product
+//      * @return \Illuminate\Http\JsonResponse
+//      */
+//     public function update(UpdateProductRequest $request, Product $product)
+//     {
+//         try {
+//             $data = $request->validated();
+//             $product->update($data);
 
-            // Handle tags or other relationships if needed
-            if ($request->has('tags')) {
-                $product->globalTags()->sync($request->input('tags'));
-            }
+//             // Handle tags or other relationships if needed
+//             if ($request->has('tags')) {
+//                 $product->globalTags()->sync($request->input('tags'));
+//             }
 
-            // Reload with relationships
-            $product->load(['category', 'productable', 'globalTags']);
+//             // Reload with relationships
+//             $product->load(['category', 'productable', 'globalTags']);
 
-            return response()->json($product);
-        } catch (\Exception $e) {
-            Log::error('Error updating product: ' . $e->getMessage());
-            return response()->json([
-                'error' => 'Failed to update product',
-                'message' => $e->getMessage()
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-    }
+//             return response()->json($product);
+//         } catch (\Exception $e) {
+//             Log::error('Error updating product: ' . $e->getMessage());
+//             return response()->json([
+//                 'error' => 'Failed to update product',
+//                 'message' => $e->getMessage()
+//             ], Response::HTTP_INTERNAL_SERVER_ERROR);
+//         }
+//     }
 
-    /**
-     * Update specific fields of a product (for PATCH requests)
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Product  $product
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function patch(Request $request, Product $product)
-    {
-        try {
-            // Validate only the fields that are being updated
-            $allowedFields = ['status', 'isDraft', 'name', 'description', 'price'];
-            $data = $request->only($allowedFields);
+//     /**
+//      * Update specific fields of a product (for PATCH requests)
+//      *
+//      * @param  \Illuminate\Http\Request  $request
+//      * @param  \App\Models\Product  $product
+//      * @return \Illuminate\Http\JsonResponse
+//      */
+//     public function patch(Request $request, Product $product)
+//     {
+//         try {
+//             // Validate only the fields that are being updated
+//             $allowedFields = ['status', 'isDraft', 'name', 'description', 'price'];
+//             $data = $request->only($allowedFields);
 
-            // Validate the data
-            $request->validate([
-                'status' => 'sometimes|boolean',
-                'isDraft' => 'sometimes|boolean',
-                'name' => 'sometimes|string|max:255',
-                'description' => 'sometimes|string',
-                'price' => 'sometimes|numeric|min:0'
-            ]);
+//             // Validate the data
+//             $request->validate([
+//                 'status' => 'sometimes|boolean',
+//                 'isDraft' => 'sometimes|boolean',
+//                 'name' => 'sometimes|string|max:255',
+//                 'description' => 'sometimes|string',
+//                 'price' => 'sometimes|numeric|min:0'
+//             ]);
 
-            $product->update($data);
-            $product->load(['category', 'productable', 'globalTags']);
+//             $product->update($data);
+//             $product->load(['category', 'productable', 'globalTags']);
 
-            return response()->json($product);
-        } catch (\Exception $e) {
-            Log::error('Error patching product: ' . $e->getMessage());
-            return response()->json([
-                'error' => 'Failed to update product',
-                'message' => $e->getMessage()
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-    }
+//             return response()->json($product);
+//         } catch (\Exception $e) {
+//             Log::error('Error patching product: ' . $e->getMessage());
+//             return response()->json([
+//                 'error' => 'Failed to update product',
+//                 'message' => $e->getMessage()
+//             ], Response::HTTP_INTERNAL_SERVER_ERROR);
+//         }
+//     }
 
-    /**
-     * Remove the specified product from storage.
-     *
-     * @param  \App\Models\Product  $product
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function destroy(Product $product)
-    {
-        try {
-            $product->delete();
-            return response()->json(null, Response::HTTP_NO_CONTENT);
-        } catch (\Exception $e) {
-            Log::error('Error deleting product: ' . $e->getMessage());
-            return response()->json([
-                'error' => 'Failed to delete product',
-                'message' => $e->getMessage()
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-    }
+//     /**
+//      * Remove the specified product from storage.
+//      *
+//      * @param  \App\Models\Product  $product
+//      * @return \Illuminate\Http\JsonResponse
+//      */
+//     public function destroy(Product $product)
+//     {
+//         try {
+//             $product->delete();
+//             return response()->json(null, Response::HTTP_NO_CONTENT);
+//         } catch (\Exception $e) {
+//             Log::error('Error deleting product: ' . $e->getMessage());
+//             return response()->json([
+//                 'error' => 'Failed to delete product',
+//                 'message' => $e->getMessage()
+//             ], Response::HTTP_INTERNAL_SERVER_ERROR);
+//         }
+//     }
 
-    /**
-     * Search for products based on query parameters.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function search(Request $request)
-    {
-        try {
-            $query = $request->input('query');
+//     /**
+//      * Search for products based on query parameters.
+//      *
+//      * @param  \Illuminate\Http\Request  $request
+//      * @return \Illuminate\Http\JsonResponse
+//      */
+//     public function search(Request $request)
+//     {
+//         try {
+//             $query = $request->input('query');
 
-            if (!$query) {
-                return response()->json([
-                    'error' => 'Query parameter is required'
-                ], Response::HTTP_BAD_REQUEST);
-            }
+//             if (!$query) {
+//                 return response()->json([
+//                     'error' => 'Query parameter is required'
+//                 ], Response::HTTP_BAD_REQUEST);
+//             }
 
-            $products = Product::with(['category', 'productable', 'globalTags'])
-                ->where('name', 'like', "%{$query}%")
-                ->orWhere('description', 'like', "%{$query}%")
-                ->limit(50) // Limit search results
-                ->get();
+//             $products = Product::with(['category', 'productable', 'globalTags'])
+//                 ->where('name', 'like', "%{$query}%")
+//                 ->orWhere('description', 'like', "%{$query}%")
+//                 ->limit(50) // Limit search results
+//                 ->get();
 
-            return response()->json($products);
-        } catch (\Exception $e) {
-            Log::error('Error searching products: ' . $e->getMessage());
-            return response()->json([
-                'error' => 'Failed to search products',
-                'message' => $e->getMessage()
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-    }
+//             return response()->json($products);
+//         } catch (\Exception $e) {
+//             Log::error('Error searching products: ' . $e->getMessage());
+//             return response()->json([
+//                 'error' => 'Failed to search products',
+//                 'message' => $e->getMessage()
+//             ], Response::HTTP_INTERNAL_SERVER_ERROR);
+//         }
+//     }
 
-    /**
-     * Get products statistics
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function stats(Request $request)
-    {
-        try {
-            $query = Product::query();
+//     /**
+//      * Get products statistics
+//      *
+//      * @param  \Illuminate\Http\Request  $request
+//      * @return \Illuminate\Http\JsonResponse
+//      */
+//     public function stats(Request $request)
+//     {
+//         try {
+//             $query = Product::query();
 
-            // Apply same filters as index method
-            if ($request->has('type') && $request->type) {
-                $type = $request->type;
-                $typeMap = [
-                    'activity' => 'App\\Models\\Activity',
-                    'room' => 'App\\Models\\Room',
-                    'menu' => 'App\\Models\\Menu',
-                    'dish' => 'App\\Models\\Dish',
-                    'option' => 'App\\Models\\Option',
-                    'ingredient' => 'App\\Models\\Ingredient'
-                ];
+//             // Apply same filters as index method
+//             if ($request->has('type') && $request->type) {
+//                 $type = $request->type;
+//                 $typeMap = [
+//                     'activity' => 'App\\Models\\Activity',
+//                     'room' => 'App\\Models\\Room',
+//                     'menu' => 'App\\Models\\Menu',
+//                     'dish' => 'App\\Models\\Dish',
+//                     'option' => 'App\\Models\\Option',
+//                     'ingredient' => 'App\\Models\\Ingredient'
+//                 ];
 
-                if (isset($typeMap[$type])) {
-                    $query->where('productable_type', $typeMap[$type]);
-                }
-            }
+//                 if (isset($typeMap[$type])) {
+//                     $query->where('productable_type', $typeMap[$type]);
+//                 }
+//             }
 
-            $stats = [
-                'total' => $query->count(),
-                'active' => $query->where('status', true)->where('isDraft', false)->count(),
-                'inactive' => $query->where('status', false)->count(),
-                'draft' => $query->where('isDraft', true)->count(),
-                'average_price' => $query->avg('price') ?: 0
-            ];
+//             $stats = [
+//                 'total' => $query->count(),
+//                 'active' => $query->where('status', true)->where('isDraft', false)->count(),
+//                 'inactive' => $query->where('status', false)->count(),
+//                 'draft' => $query->where('isDraft', true)->count(),
+//                 'average_price' => $query->avg('price') ?: 0
+//             ];
 
-            return response()->json($stats);
-        } catch (\Exception $e) {
-            Log::error('Error fetching stats: ' . $e->getMessage());
-            return response()->json([
-                'error' => 'Failed to fetch statistics',
-                'message' => $e->getMessage()
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-    }
+//             return response()->json($stats);
+//         } catch (\Exception $e) {
+//             Log::error('Error fetching stats: ' . $e->getMessage());
+//             return response()->json([
+//                 'error' => 'Failed to fetch statistics',
+//                 'message' => $e->getMessage()
+//             ], Response::HTTP_INTERNAL_SERVER_ERROR);
+//         }
+//     }
 }

@@ -1,6 +1,5 @@
 // services/ProductsApi.js
 import axios from 'axios'
-import ProductUtils from '@/utils/ProductUtils'
 
 class ProductsApi {
 

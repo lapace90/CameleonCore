@@ -242,7 +242,7 @@
                   <div v-for="ingredient in availableIngredients" :key="ingredient.id" class="selectable-item"
                     :class="{ 'selected': form.selectedIngredients.includes(ingredient.id) }">
                     <label class="item-checkbox">
-                      <input type="checkbox" :value="ingredient.id" v-model="form.selectedIngredients" />
+                      <input type="checkbox" :value="Number(ingredient.id)" v-model="form.selectedIngredients" />
                       <div class="item-info">
                         <span class="item-name">{{ ingredient.name }}</span>
                         <span class="item-price">{{ formatPrice(ingredient.price) }}</span>
@@ -304,6 +304,17 @@
 
 <script>
 import ProductsApi from '@/services/ProductsApi'
+import {
+  formatPrice,
+  getValidImageUrl,
+  getPlaceholderImage,
+  handleImageUpload,
+  handleImageError,
+  getFieldLabel,
+  selectImage,
+  changeImage,
+  removeImage
+} from '@/utils/ProductUtils'
 
 export default {
   name: 'ProductForm',
@@ -484,13 +495,13 @@ export default {
         // Pour un plat, récupérer les ingrédients disponibles
         if (this.typeConfig.hasRelation === 'ingredients') {
           const { data } = await ProductsApi.getRelationProducts('ingredients')
-          this.availableIngredients = data
+          this.availableIngredients = data.map(i => ({ ...i, id: Number(i.id) }))
         }
 
         // Pour un menu ou ingrédient, récupérer les plats disponibles
         if (this.typeConfig.hasRelation === 'dishes') {
           const { data } = await ProductsApi.getRelationProducts('dishes')
-          this.availableDishes = data
+          this.availableDishes = data.map(d => ({ ...d, id: Number(d.id) }))
         }
       } catch (error) {
         console.error('Erreur lors du chargement des données relationnelles:', error)
@@ -707,84 +718,24 @@ export default {
       return ''
     },
 
-    getFieldLabel(field) {
-      const labels = {
-        guide: 'Guide',
-        duration: 'Durée',
-        meeting_point: 'Point de rendez-vous',
-        max_people: 'Capacité maximum',
-        difficulty_level: 'Niveau de difficulté',
-        capacity: 'Capacité'
-      }
-      return labels[field] || field.charAt(0).toUpperCase() + field.slice(1)
-    },
+    getFieldLabel,
 
     // Gestion des images
-    getValidImageUrl(imageUrl) {
-      if (!imageUrl) return this.getPlaceholderImage()
+    getValidImageUrl,
 
-      try {
-        new URL(imageUrl)
-        return imageUrl
-      } catch (error) {
-        return this.getPlaceholderImage()
-      }
-    },
+    getPlaceholderImage,
 
-    getPlaceholderImage() {
-      const svg = `
-        <svg width="300" height="200" xmlns="http://www.w3.org/2000/svg">
-          <rect width="300" height="200" fill="#f3f4f6"/>
-          <text x="150" y="100" text-anchor="middle" dy=".3em" font-family="Arial, sans-serif" font-size="14" fill="#9ca3af">
-            Aperçu
-          </text>
-        </svg>
-      `
-      return 'data:image/svg+xml;base64,' + btoa(svg)
-    },
+    selectImage,
 
-    selectImage() {
-      this.$refs.imageInput.click()
-    },
+    changeImage,
 
-    changeImage() {
-      this.$refs.imageInput.click()
-    },
+    removeImage,
 
-    removeImage() {
-      this.form.image = null
-      this.imagePreview = null
-    },
+    handleImageUpload,
 
-    handleImageUpload(event) {
-      const file = event.target.files[0]
-      if (!file) return
+    handleImageError,
 
-      if (file.size > 5 * 1024 * 1024) {
-        this.error = 'Fichier trop volumineux (max 5MB)'
-        return
-      }
-
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        this.imagePreview = e.target.result
-      }
-      reader.readAsDataURL(file)
-      this.form.imageFile = file
-      this.$refs.imageInput.value = ''
-    },
-
-    handleImageError(event) {
-      event.target.src = this.getPlaceholderImage()
-      event.target.onerror = null
-    },
-
-    formatPrice(price) {
-      return new Intl.NumberFormat('fr-FR', {
-        style: 'currency',
-        currency: 'EUR'
-      }).format(parseFloat(price) || 0)
-    }
+    formatPrice
   }
 }
 </script>

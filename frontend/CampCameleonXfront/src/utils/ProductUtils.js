@@ -1,95 +1,81 @@
-class ProductUtils {
 
-    /**
-     * Configuration des types de produits
-     */
-    static getTypeConfig(type) {
-        const configs = {
-            activity: {
-                label: 'Activités',
-                singular: 'Activité',
-                icon: 'fas fa-hiking',
-                color: '#3b82f6',
-                class: 'App\\Models\\Activity',
-                hasRelation: false
-            },
-            menu: {
-                label: 'Menus',
-                singular: 'Menu',
-                icon: 'fas fa-utensils',
-                color: '#10b981',
-                class: 'App\\Models\\Menu',
-                hasRelation: 'dishes'
-            },
-            dish: {
-                label: 'Plats',
-                singular: 'Plat',
-                icon: 'fas fa-drumstick-bite',
-                color: '#f97316',
-                class: 'App\\Models\\Dish',
-                hasRelation: 'ingredients'
-            },
-            ingredient: {
-                label: 'Ingrédients',
-                singular: 'Ingrédient',
-                icon: 'fas fa-seedling',
-                color: '#22c55e',
-                class: 'App\\Models\\Ingredient',
-                hasRelation: false
-            },
-            room: {
-                label: 'Hébergements',
-                singular: 'Hébergement',
-                icon: 'fas fa-bed',
-                color: '#f59e0b',
-                class: 'App\\Models\\Room',
-                hasRelation: false
-            }
-        }
-
-        return configs[type] || configs.activity
-    }
-
-    /**
-     * Formater le prix
-     */
-    static formatPrice(price) {
-        return new Intl.NumberFormat('fr-FR', {
-            style: 'currency',
-            currency: 'EUR'
-        }).format(parseFloat(price) || 0)
-    }
-
-    /**
-     * Formater la date
-     */
-    static formatDate(date, options = {}) {
-        const defaultOptions = {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        }
-
-        return new Date(date).toLocaleDateString('fr-FR', { ...defaultOptions, ...options })
-    }
-
-    /**
-     * Obtenir l'URL d'image valide
-     */
-    static getValidImageUrl(imageUrl) {
-        if (!imageUrl) {
-            return '/images/placeholder-product.svg'
-        }
-
-        if (imageUrl.startsWith('http')) {
-            return imageUrl
-        }
-
-        if (imageUrl.startsWith('/')) {
-            return imageUrl
-        }
-
-        return `/storage/${imageUrl}`
-    }
+export function formatPrice(price) {
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'EUR'
+  }).format(parseFloat(price) || 0)
 }
-export default new ProductUtils()
+
+export function getFieldLabel(field) {
+  const labels = {
+    guide: 'Guide',
+    duration: 'Durée',
+    meeting_point: 'Point de rendez-vous',
+    max_people: 'Capacité maximum',
+    difficulty_level: 'Niveau de difficulté',
+    capacity: 'Capacité'
+  }
+  return labels[field] || field.charAt(0).toUpperCase() + field.slice(1)
+}
+
+export function getPlaceholderImage() {
+  const svg = `
+        <svg width="300" height="200" xmlns="http://www.w3.org/2000/svg">
+          <rect width="300" height="200" fill="#f3f4f6"/>
+          <text x="150" y="100" text-anchor="middle" dy=".3em" font-family="Arial, sans-serif" font-size="14" fill="#9ca3af">
+            Aperçu
+          </text>
+        </svg>
+      `
+  return 'data:image/svg+xml;base64,' + btoa(svg)
+}
+
+export function getValidImageUrl(imageUrl) {
+  if (!imageUrl) return getPlaceholderImage()
+
+  try {
+    new URL(imageUrl)
+    return imageUrl
+  } catch (error) {
+    return getPlaceholderImage()
+  }
+}
+
+export function selectImage() {
+  this.$refs.imageInput.click()
+}
+
+export function changeImage() {
+  this.$refs.imageInput.click()
+}
+
+export function removeImage() {
+  this.form.image = null
+  this.imagePreview = null
+  if (this.$refs.imageInput) {
+    this.$refs.imageInput.value = ''
+  }
+}
+
+export function handleImageUpload(event) {
+  const file = event.target.files[0]
+  if (!file) return
+
+  if (file.size > 5 * 1024 * 1024) {
+    this.error = 'Fichier trop volumineux (max 5MB)'
+    return
+  }
+
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    this.imagePreview = e.target.result
+  }
+  reader.readAsDataURL(file)
+
+  this.form.imageFile = file
+}
+
+export function handleImageError(event) {
+  event.target.src = getPlaceholderImage()
+  event.target.onerror = null
+}

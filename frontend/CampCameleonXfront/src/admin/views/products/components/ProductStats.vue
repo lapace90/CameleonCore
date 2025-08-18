@@ -43,6 +43,8 @@
 </template>
 
 <script>
+import { formatPrice } from '@/utils/ProductUtils'
+
 export default {
   name: 'ProductStats',
   props: {
@@ -102,16 +104,7 @@ export default {
       return this.safeNumber(average, 0)
     },
 
-    formatPrice(price) {
-      const safePrice = this.safeNumber(price, 0)
-      
-      return new Intl.NumberFormat('fr-FR', {
-        style: 'currency',
-        currency: 'EUR',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 2
-      }).format(safePrice)
-    }
+    formatPrice
   }
 }
 </script>

@@ -64,17 +64,36 @@ class ProductApiTest extends TestCase
     }
 
     /** @test */
+    public function products_collection_handles_models_without_specific_tags()
+    {
+        // Arrange
+        $ingredient = Ingredient::factory()->create();
+        Product::factory()->create([
+            'productable_type' => Ingredient::class,
+            'productable_id' => $ingredient->id,
+            'status' => true,
+        ]);
+
+        // Act
+        $response = $this->getJson('/api/products');
+
+        // Assert
+        $response->assertStatus(200);
+    }
+
+
+    /** @test */
     public function can_filter_products_by_type()
     {
         // Arrange
         $activity = Activity::factory()->create();
         $room = Room::factory()->create();
-        
+
         Product::factory()->create([
             'productable_type' => Activity::class,
             'productable_id' => $activity->id
         ]);
-        
+
         Product::factory()->create([
             'productable_type' => Room::class,
             'productable_id' => $room->id
@@ -97,7 +116,7 @@ class ProductApiTest extends TestCase
             'duration' => 120,
             'max_people' => 10
         ]);
-        
+
         $product = Product::factory()->create([
             'productable_type' => Activity::class,
             'productable_id' => $activity->id
@@ -253,12 +272,12 @@ class ProductApiTest extends TestCase
         // Arrange
         $dish1 = Dish::factory()->create();
         $dish2 = Dish::factory()->create();
-        
+
         Product::factory()->create([
             'productable_type' => Dish::class,
             'productable_id' => $dish1->id
         ]);
-        
+
         Product::factory()->create([
             'productable_type' => Dish::class,
             'productable_id' => $dish2->id
@@ -278,7 +297,7 @@ class ProductApiTest extends TestCase
 
         // Assert
         $response->assertStatus(201);
-        
+
         $menu = Menu::find($response->json('productable_detail.id'));
         $this->assertCount(2, $menu->dishes);
     }
@@ -304,7 +323,7 @@ class ProductApiTest extends TestCase
             'productable_type' => Activity::class,
             'productable_id' => $activity->id
         ]);
-        
+
         Product::factory()->create([
             'name' => 'Beach Volleyball',
             'productable_type' => Activity::class,
