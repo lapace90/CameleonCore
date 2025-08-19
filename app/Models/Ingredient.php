@@ -20,7 +20,6 @@ class Ingredient extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'name',
         'is_vegetarian',
         'is_spicy',
         'is_gluten_free',

@@ -6,7 +6,6 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use Illuminate\Http\Request;
 use App\Models\Product;
-use Illuminate\Pagination\LengthAwarePaginator;
 
 class ProductCollectionProvider implements ProviderInterface
 {

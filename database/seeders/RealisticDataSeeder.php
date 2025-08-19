@@ -68,17 +68,18 @@ class RealisticDataSeeder extends Seeder
             ['name' => 'Huile d\'olive bio', 'is_vegetarian' => true, 'is_vegan' => true, 'is_gluten_free' => true, 'stock' => 25],
         ];
 
-        $ingredientModels = [];
+         $ingredientModels = [];
         foreach ($ingredients as $ing) {
-            $ingredientModel = Ingredient::create(array_merge([
+            $ingredientData = array_merge([
                 'is_vegetarian' => false,
                 'is_vegan' => false,
                 'is_spicy' => false,
                 'is_gluten_free' => false,
                 'is_lactose_free' => true,
                 'is_nut_free' => true,
-            ], $ing));
+            ], array_diff_key($ing, ['name' => ''])); 
             
+            $ingredientModel = Ingredient::create($ingredientData);
             $ingredientModels[$ing['name']] = $ingredientModel;
             
             // CRÉER LE PRODUCT ASSOCIÉ À CHAQUE INGRÉDIENT

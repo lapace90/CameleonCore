@@ -211,28 +211,6 @@ class ProductsApi {
     }
   }
 
-  /**
-   * Récupérer les statistiques des produits
-   */
-  async getProductStats(params = {}) {
-    try {
-      const searchParams = new URLSearchParams(params)
-      const response = await axios.get(`${this.baseURL}/products/stats?${searchParams.toString()}`, {
-        headers: this.defaultHeaders
-      })
-      return response.data
-    } catch (error) {
-      console.warn('Impossible de charger les statistiques:', error)
-      return {
-        total: 0,
-        active: 0,
-        inactive: 0,
-        draft: 0,
-        average_price: 0
-      }
-    }
-  }
-
   // ==========================================
   // RELATIONS
   // ==========================================
@@ -395,9 +373,9 @@ class ProductsApi {
     }
   }
 
-   /**
-   * Récupérer les relations d'un productable
-   */
+  /**
+  * Récupérer les relations d'un productable
+  */
   async getProductRelations(productableId, productableType) {
     try {
       const endpoints = {
