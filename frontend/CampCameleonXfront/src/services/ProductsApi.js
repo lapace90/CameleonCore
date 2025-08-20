@@ -6,7 +6,7 @@ class ProductsApi {
   constructor() {
     this.baseURL = '/api'
     this.defaultHeaders = {
-      'Accept': 'application/ld+json',
+      'Accept': 'application/json',
       'Content-Type': 'application/json'
     }
     console.log('ProductsApi initialized')
@@ -51,28 +51,90 @@ class ProductsApi {
    */
   async getProduct(id) {
     try {
-      const response = await axios.get(`${this.baseURL}/products/${id}`, {
+      const { data: raw } = await axios.get(`${this.baseURL}/products/${id}`, {
         headers: this.defaultHeaders
       })
+      console.log('Données brutes reçues du backend:', raw)
 
-      const product = response.data
-
-      // ✅ SIMPLIFICATION : Avec la correction backend, 
-      // typeConfig et productableDetail sont maintenant inclus directement
-      // Plus besoin de récupérer productable séparément
-
-      // Assurer la compatibilité avec l'ancien code qui attend productableData
-      if (!product.productableData && product.productableDetail) {
-        product.productableData = product.productableDetail
+      let product
+      if (raw?.['@type'] === 'Collection' && Array.isArray(raw.member)) {
+        // /products/{id} renvoie une collection : on prend la première "row"
+        const first = raw.member[0]
+        product = Array.isArray(first) ? this._rowToProduct(first) : this._normalizeProduct(first || {})
+      } else if (Array.isArray(raw)) {
+        const first = raw[0] || {}
+        product = Array.isArray(first) ? this._rowToProduct(first) : this._normalizeProduct(first)
+      } else {
+        product = this._normalizeProduct(raw || {})
       }
 
-      console.log('✅ Produit récupéré avec typeConfig:', product.typeConfig)
-      console.log('✅ ProductableDetail inclus:', product.productableDetail)
+      // filet de sécurité
+      if (!product.typeConfig && product.productableType) {
+        product.typeConfig = this.buildTypeConfig(product.productableType)
+      }
 
+      console.log('✅ Produit.typeConfig:', product.typeConfig)
+      console.log('✅ Produit.productableDetail:', product.productableDetail)
       return product
     } catch (error) {
       console.error(`Erreur lors de la récupération du produit ${id}:`, error)
       throw this.handleError(error)
+    }
+  }
+
+
+  // ✅ NOUVELLE MÉTHODE : Construire typeConfig côté frontend si nécessaire
+  buildTypeConfig(productableType) {
+    const configs = {
+      'App\\Models\\Activity': {
+        label: 'Activités',
+        singular: 'Activité',
+        icon: 'fas fa-hiking',
+        color: '#3b82f6',
+        fields: ['guide', 'duration', 'meeting_point', 'max_people', 'difficulty_level'],
+        hasRelation: null
+      },
+      'App\\Models\\Menu': {
+        label: 'Menus',
+        singular: 'Menu',
+        icon: 'fas fa-utensils',
+        color: '#10b981',
+        fields: [],
+        hasRelation: 'dishes'
+      },
+      'App\\Models\\Dish': {
+        label: 'Plats',
+        singular: 'Plat',
+        icon: 'fas fa-drumstick-bite',
+        color: '#f97316',
+        fields: [],
+        hasRelation: 'ingredients'
+      },
+      'App\\Models\\Ingredient': {
+        label: 'Ingrédients',
+        singular: 'Ingrédient',
+        icon: 'fas fa-seedling',
+        color: '#22c55e',
+        fields: ['stock', 'is_vegetarian', 'is_vegan', 'is_spicy', 'is_gluten_free', 'is_lactose_free', 'is_nut_free'],
+        hasRelation: 'dishes'
+      },
+      'App\\Models\\Room': {
+        label: 'Hébergements',
+        singular: 'Hébergement',
+        icon: 'fas fa-bed',
+        color: '#f59e0b',
+        fields: ['capacity', 'availability'],
+        hasRelation: null
+      }
+    }
+
+    return configs[productableType] || {
+      label: 'Produit',
+      singular: 'Produit',
+      icon: 'fas fa-box',
+      color: '#6b7280',
+      fields: [],
+      hasRelation: null
     }
   }
 
@@ -221,7 +283,9 @@ class ProductsApi {
     const typeMap = {
       'ingredients': 'App\\Models\\Ingredient',
       'dishes': 'App\\Models\\Dish',
-      'menus': 'App\\Models\\Menu'
+      'menus': 'App\\Models\\Menu',
+      'rooms': 'App\\Models\\Room',
+      'activities': 'App\\Models\\Activity'
     }
 
     const apiType = typeMap[type]
@@ -249,7 +313,9 @@ class ProductsApi {
       const endpoints = {
         'App\\Models\\Menu': 'menus',
         'App\\Models\\Dish': 'dishes',
-        'App\\Models\\Ingredient': 'ingredients'
+        'App\\Models\\Ingredient': 'ingredients',
+        'App\\Models\\Room': 'rooms',
+        'App\\Models\\Activity': 'activities'
       }
 
       const endpoint = endpoints[productableType]
@@ -397,6 +463,48 @@ class ProductsApi {
       console.error('Erreur lors de la récupération des relations:', error)
       return {}
     }
+  }
+  // Convertit une "row" (Array indexé) -> objet produit
+  _rowToProduct(row = []) {
+    const [
+      id, name, description, price, formatted_price,
+      status, is_draft, status_label, status_class,
+      type_config,                 // 9 (objet)
+      productableType,             // 10
+      image,                       // 11
+      _dupType,                    // 12
+      productable_data,            // 13 (objet)
+      productable_detail,          // 14 (objet)
+      globalTags = [],             // 15
+      category = null,             // 16 (objet)
+      specificTags = [],           // 17
+      _unused18,
+      relations = {},              // 19
+      metrics = {},                // 20
+      created_at,                  // 21
+      updated_at                   // 22
+    ] = row
+
+    const p = {
+      id, name, description, price, formatted_price, status, is_draft,
+      status_label, status_class, image, category, globalTags, specificTags,
+      relations, metrics, created_at, updated_at,
+      type_config, productableType, productable_data, productable_detail
+    }
+    // normalisation attendue par tes formulaires
+    p.typeConfig = p.type_config ?? null
+    p.productableDetail = p.productable_detail ?? p.productable_data ?? null
+    p.productableData = p.productableDetail
+    return p
+  }
+
+  // Normalise un objet déjà clé/valeur
+  _normalizeProduct(obj = {}) {
+    const p = { ...obj }
+    p.typeConfig = p.typeConfig ?? p.type_config ?? null
+    p.productableDetail = p.productableDetail ?? p.productable_detail ?? null
+    p.productableData = p.productableData ?? p.productableDetail ?? p.productable_detail ?? null
+    return p
   }
 
 }

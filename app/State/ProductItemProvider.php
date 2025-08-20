@@ -57,9 +57,9 @@ class ProductItemProvider implements ProviderInterface
             }
 
             // Charger les réservations récentes
-            $product->load(['reservations' => function ($query) {
-                $query->latest('created_at')->limit(5);
-            }]);
+            // $product->load(['reservations' => function ($query) {
+            //     $query->latest('created_at')->limit(5);
+            // }]);
             
         } catch (\Exception $e) {
             Log::warning("Erreur lors du chargement des relations pour le produit {$product->id}: " . $e->getMessage());

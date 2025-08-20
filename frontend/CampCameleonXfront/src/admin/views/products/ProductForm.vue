@@ -406,7 +406,20 @@ export default {
     },
 
     typeConfig() {
-      return this.productConfigs[this.productType] || this.productConfigs.activity
+      // ✅ CORRECTION : Ajouter une vérification et une valeur par défaut
+      if (!this.productType) {
+        console.warn('productType non défini, utilisation de la config par défaut')
+        return this.productConfigs.activity // Valeur par défaut
+      }
+
+      const config = this.productConfigs[this.productType]
+      if (!config) {
+        console.warn(`Configuration non trouvée pour le type: ${this.productType}`)
+        return this.productConfigs.activity // Valeur par défaut
+      }
+
+      console.log(`✅ TypeConfig trouvé pour ${this.productType}:`, config)
+      return config
     },
 
     productId() {
