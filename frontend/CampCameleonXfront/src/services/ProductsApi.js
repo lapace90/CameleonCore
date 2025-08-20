@@ -95,10 +95,10 @@ class ProductsApi {
   /**
    * Mettre à jour un produit
    */
-  async updateProduct(id, productData) {
-    try {
+async updateProduct(id, productData) {
+  try {
       const response = await axios.patch(`${this.baseURL}/products/${id}`, productData, {
-        headers: {
+      headers: {
           ...this.defaultHeaders,
           'Content-Type': 'application/merge-patch+json'
         }
@@ -107,8 +107,8 @@ class ProductsApi {
     } catch (error) {
       console.error(`Erreur lors de la mise à jour du produit ${id}:`, error)
       throw this.handleError(error)
-    }
   }
+}
 
   /**
    * Supprimer un produit
