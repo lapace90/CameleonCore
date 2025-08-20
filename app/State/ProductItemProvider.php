@@ -92,7 +92,7 @@ class ProductItemProvider implements ProviderInterface
 
         // Données productable complètes
         if ($product->productable) {
-            $data['productable_detail'] = $product->productable->toArray();
+            $data['productableDetail'] = $product->productable->toArray();
             $data['detail_fields'] = $this->getDetailFields($product);
             
             // Relations spécifiques

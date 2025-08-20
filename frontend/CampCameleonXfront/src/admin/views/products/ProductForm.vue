@@ -570,7 +570,7 @@ export default {
         // Redirection
         this.$router.push({
           name: 'ProductDetail',
-          params: { type: this.productType, id: response.data.id }
+          params: { type: this.productType, id: response.id }
         })
 
       } catch (error) {

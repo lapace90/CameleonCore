@@ -56,7 +56,7 @@ class ProductApiTest extends TestCase
                         'formatted_price',
                         'status',
                         'status_label',
-                        'type_config',
+                        'typeConfig',
                         'category'
                     ]
                 ]

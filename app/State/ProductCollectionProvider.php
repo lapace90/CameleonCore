@@ -120,7 +120,7 @@ class ProductCollectionProvider implements ProviderInterface
                 'id' => $product->category->id,
                 'name' => $product->category->name
             ] : null,
-            'type_config' => $this->getTypeConfig($product->productable_type),
+            'typeConfig' => $this->getTypeConfig($product->productable_type),
             'created_at' => $product->created_at,
             'updated_at' => $product->updated_at,
 
@@ -191,7 +191,7 @@ class ProductCollectionProvider implements ProviderInterface
         return $imageUrl;
     }
 
-    private function getTypeConfig(string $type): array
+    public function getTypeConfig(string $type): array
     {
         $configs = [
             'App\\Models\\Activity' => [

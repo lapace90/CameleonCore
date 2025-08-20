@@ -66,8 +66,8 @@
     </div>
 
     <!-- Stats rapides -->
-    <ProductStats :stats="quickStats" />
-
+    <ProductStats :stats="quickStats" :products="products" />
+    
     <!-- Actions en lot -->
     <BulkActions 
       v-if="selectedProducts.length > 0"

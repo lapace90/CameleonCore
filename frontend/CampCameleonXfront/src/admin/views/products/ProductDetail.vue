@@ -150,7 +150,7 @@
               <!-- Plats du menu -->
               <div v-if="menuDishes && menuDishes.length > 0" class="dishes-list">
                 <div v-for="dish in menuDishes" :key="dish.id" class="relation-item clickable-dish"
-                  @click="goToProduct('dish', dish.product_id)" title="Cliquer pour voir ce plat">
+                  @click="goToProduct('dish', dish.id)" title="Cliquer pour voir ce plat">
                   <div class="relation-header">
                     <h4 class="relation-name">{{ dish.name }}</h4>
                     <span class="relation-price">{{ dish.formatted_price }}</span>
@@ -162,7 +162,7 @@
               <!-- Ingrédients du plat -->
               <div v-if="dishIngredients && dishIngredients.length > 0" class="ingredients-list">
                 <div v-for="ingredient in dishIngredients" :key="ingredient.id"
-                  class="relation-item clickable-ingredient" @click="goToProduct('ingredient', ingredient.product_id)"
+                  class="relation-item clickable-ingredient" @click="goToProduct('ingredient', ingredient.id)"
                   title="Cliquer pour voir cet ingrédient">
                   <div class="relation-header">
                     <h4 class="relation-name">{{ ingredient.name }}</h4>

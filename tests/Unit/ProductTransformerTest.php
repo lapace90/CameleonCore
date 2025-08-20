@@ -48,7 +48,7 @@ class ProductTransformerTest extends TestCase
         $this->assertEquals('Actif', $transformed['status_label']);
         $this->assertEquals('status-active', $transformed['status_class']);
         $this->assertEquals('Test Category', $transformed['category']['name']);
-        $this->assertArrayHasKey('type_config', $transformed);
+        $this->assertArrayHasKey('typeConfig', $transformed);
     }
 
     /** @test */
