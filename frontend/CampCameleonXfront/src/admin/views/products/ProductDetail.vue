@@ -150,9 +150,9 @@
               <!-- Plats du menu -->
               <div v-if="menuDishes && menuDishes.length > 0" class="dishes-list">
                 <div v-for="dish in menuDishes" :key="dish.id" class="relation-item clickable-dish"
-                  @click="goToProduct('dish', dish.id)" title="Cliquer pour voir ce plat">
+                  @click="goToProduct('dish', dish.product.id)" title="Cliquer pour voir ce plat">
                   <div class="relation-header">
-                    <h4 class="relation-name">{{ dish.name }}</h4>
+                    <h4 class="card relation-name p-3">{{ dish.product.name }}</h4>
                     <span class="relation-price">{{ dish.formatted_price }}</span>
                   </div>
                   <p v-if="dish.description" class="relation-description">{{ dish.description }}</p>
@@ -164,8 +164,8 @@
                 <div v-for="ingredient in dishIngredients" :key="ingredient.id"
                   class="relation-item clickable-ingredient" @click="goToProduct('ingredient', ingredient.id)"
                   title="Cliquer pour voir cet ingrédient">
-                  <div class="relation-header">
-                    <h4 class="relation-name">{{ ingredient.name }}</h4>
+                  <div class="card relation-header py-1 px-3">
+                    <h4 class="relation-name">{{ ingredient.product.name }}</h4>
                     <span class="relation-stock">Stock: {{ ingredient.stock }}</span>
                   </div>
                   <div v-if="ingredient.dietary_properties" class="dietary-badges">
@@ -269,7 +269,8 @@ export default {
     },
 
     hasRelations() {
-      return this.product?.productableDetail?.dishes || this.product?.productableDetail?.ingredients
+      return (this.product?.relations?.dishes && this.product.relations.dishes.length > 0) ||
+        (this.product?.relations?.ingredients && this.product.relations.ingredients.length > 0)
     }
   },
 

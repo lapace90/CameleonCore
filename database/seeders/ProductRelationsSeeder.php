@@ -17,6 +17,9 @@ class ProductRelationsSeeder extends Seeder
         // 1. Associer les ingrédients aux plats existants (table pivot dish_ingredient)
         $this->createDishIngredientRelations();
 
+        // 2. ✅ AJOUT : Associer les plats aux menus (table pivot dish_menu)
+        $this->createMenuDishRelations();
+
         $this->command->info('✅ Relations créées avec succès !');
     }
 
@@ -61,5 +64,47 @@ class ProductRelationsSeeder extends Seeder
             }
         }
     }
-}
 
+    // ✅ MÉTHODE MANQUANTE À AJOUTER
+    private function createMenuDishRelations()
+    {
+        // Récupérer tous les menus et plats
+        $menuProducts = Product::where('productable_type', 'App\\Models\\Menu')->get();
+        $dishProducts = Product::where('productable_type', 'App\\Models\\Dish')->get();
+
+        if ($menuProducts->isEmpty() || $dishProducts->isEmpty()) {
+            $this->command->warn('⚠️ Pas de menus ou de plats trouvés pour créer les relations menu-plats');
+            return;
+        }
+
+        $this->command->info("🥘 Association de {$menuProducts->count()} menus avec {$dishProducts->count()} plats...");
+
+        foreach ($menuProducts as $menuProduct) {
+            // Récupérer le modèle Menu correspondant
+            $menu = Menu::find($menuProduct->productable_id);
+            if (!$menu) continue;
+
+            // Sélectionner 2 à 4 plats aléatoires pour chaque menu
+            $randomDishProducts = $dishProducts->random(rand(2, min(4, $dishProducts->count())));
+            
+            $dishIds = [];
+            $dishNames = [];
+            
+            foreach ($randomDishProducts as $dishProduct) {
+                // Trouver le plat correspondant via productable_id
+                $dish = Dish::find($dishProduct->productable_id);
+                if ($dish) {
+                    $dishIds[] = $dish->id;
+                    $dishNames[] = $dishProduct->name; // Nom du Product
+                }
+            }
+
+            // Associer les plats au menu via la table pivot dish_menu
+            if (!empty($dishIds)) {
+                $menu->dishes()->sync($dishIds);
+                
+                $this->command->info("  📋 {$menuProduct->name} → " . implode(', ', $dishNames));
+            }
+        }
+    }
+}

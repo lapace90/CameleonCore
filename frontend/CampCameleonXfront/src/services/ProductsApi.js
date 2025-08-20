@@ -52,23 +52,22 @@ class ProductsApi {
   async getProduct(id) {
     try {
       const response = await axios.get(`${this.baseURL}/products/${id}`, {
-        headers: this.defaultHeaders // Retour aux headers ApiPlatform
+        headers: this.defaultHeaders
       })
+
       const product = response.data
 
-      if (product.productable && typeof product.productable === 'string') {
-        try {
-          const productableResponse = await axios.get(product.productable, {
-            headers: this.defaultHeaders
-          })
-          product.productableData = productableResponse.data
-        } catch (error) {
-          console.warn('Could not fetch productable data:', error)
-          product.productableData = {}
-        }
-      } else {
-        product.productableData = product.productable || {}
+      // ✅ SIMPLIFICATION : Avec la correction backend, 
+      // typeConfig et productableDetail sont maintenant inclus directement
+      // Plus besoin de récupérer productable séparément
+
+      // Assurer la compatibilité avec l'ancien code qui attend productableData
+      if (!product.productableData && product.productableDetail) {
+        product.productableData = product.productableDetail
       }
+
+      console.log('✅ Produit récupéré avec typeConfig:', product.typeConfig)
+      console.log('✅ ProductableDetail inclus:', product.productableDetail)
 
       return product
     } catch (error) {

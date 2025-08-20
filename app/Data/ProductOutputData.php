@@ -30,8 +30,6 @@ class ProductOutputData extends Data
     
     public static function fromProduct(\App\Models\Product $product): array
     {
-        // Retourner un ARRAY directement, pas un objet Data
-        // API Platform Laravel sait sérialiser les arrays
         return [
             'id' => $product->id,
             'name' => $product->name,
@@ -40,9 +38,21 @@ class ProductOutputData extends Data
             'formatted_price' => number_format((float) $product->price, 2, ',', ' ') . ' €',
             'status' => $product->status,
             'is_draft' => $product->is_draft,
+            
+            // Champs pour le frontend
+            'status_label' => self::getStatusLabel($product),
+            'status_class' => self::getStatusClass($product),
+            'typeConfig' => self::getTypeConfig($product->productable_type),
+            'productableType' => $product->productable_type,
+            
             'image' => $product->image,
             'productable_type' => $product->productable_type,
             'productable_detail' => $product->productable?->toArray() ?? [],
+            'productableDetail' => $product->productable?->toArray() ?? [],
+            
+            // Detail fields pour les activités, rooms, etc.
+            'detail_fields' => self::getDetailFields($product),
+            
             'category' => $product->category ? [
                 'id' => $product->category->id,
                 'name' => $product->category->name,
@@ -86,7 +96,7 @@ class ProductOutputData extends Data
                         'product_id' => $dish->product->id ?? null,
                         'name' => $dish->product->name ?? 'N/A',
                         'price' => $dish->product->price ?? 0,
-                        'formatted_price' => number_format((float) $dish->product->price ?? 0, 2, ',', ' ') . ' €'
+                        'formatted_price' => number_format((float) ($dish->product->price ?? 0), 2, ',', ' ') . ' €'
                     ])->toArray();
                 }
                 break;
@@ -97,12 +107,125 @@ class ProductOutputData extends Data
                         'id' => $ingredient->id,
                         'product_id' => $ingredient->product->id ?? null,
                         'name' => $ingredient->product->name ?? 'N/A',
-                        // 'stock' => $ingredient->stock ?? 0
+                        'stock' => $ingredient->stock ?? 0
                     ])->toArray();
                 }
                 break;
         }
         
         return $relations;
+    }
+
+    private static function getDetailFields(\App\Models\Product $product): array
+    {
+        $fields = [];
+        $productable = $product->productable;
+        
+        if (!$productable) return $fields;
+
+        switch ($product->productable_type) {
+            case 'App\\Models\\Activity':
+                $fields['guide'] = ['label' => 'Guide', 'value' => $productable->guide ?? 'N/A'];
+                $fields['duration'] = ['label' => 'Durée', 'value' => ($productable->duration ?? 0) . ' min'];
+                $fields['meeting_point'] = ['label' => 'Point RDV', 'value' => $productable->meeting_point ?? 'N/A'];
+                $fields['max_people'] = ['label' => 'Capacité max', 'value' => ($productable->max_people ?? 0) . ' pers.'];
+                $fields['difficulty_level'] = ['label' => 'Difficulté', 'value' => self::formatDifficulty($productable->difficulty_level ?? 1)];
+                break;
+                
+            case 'App\\Models\\Room':
+                $fields['capacity'] = ['label' => 'Capacité', 'value' => ($productable->capacity ?? 0) . ' pers.'];
+                $fields['availability'] = ['label' => 'Disponibilité', 'value' => ($productable->availability ?? false) ? 'Disponible' : 'Non disponible'];
+                break;
+                
+            case 'App\\Models\\Ingredient':
+                $fields['stock'] = ['label' => 'Stock', 'value' => ($productable->stock ?? 0) . ' unités'];
+                $fields['dietary_info'] = ['label' => 'Info diététique', 'value' => self::formatDietaryInfo($productable)];
+                break;
+        }
+
+        return $fields;
+    }
+
+    private static function getTypeConfig(string $productableType): array
+    {
+        $typeConfigs = [
+            'App\\Models\\Activity' => [
+                'label' => 'Activités',
+                'singular' => 'Activité',
+                'icon' => 'fas fa-hiking',
+                'color' => '#3b82f6',
+                'class' => 'App\\Models\\Activity'
+            ],
+            'App\\Models\\Dish' => [
+                'label' => 'Plats',
+                'singular' => 'Plat',
+                'icon' => 'fas fa-drumstick-bite',
+                'color' => '#f97316',
+                'class' => 'App\\Models\\Dish'
+            ],
+            'App\\Models\\Menu' => [
+                'label' => 'Menus',
+                'singular' => 'Menu',
+                'icon' => 'fas fa-utensils',
+                'color' => '#10b981',
+                'class' => 'App\\Models\\Menu'
+            ],
+            'App\\Models\\Ingredient' => [
+                'label' => 'Ingrédients',
+                'singular' => 'Ingrédient',
+                'icon' => 'fas fa-seedling',
+                'color' => '#22c55e',
+                'class' => 'App\\Models\\Ingredient'
+            ],
+            'App\\Models\\Room' => [
+                'label' => 'Hébergements',
+                'singular' => 'Hébergement',
+                'icon' => 'fas fa-bed',
+                'color' => '#f59e0b',
+                'class' => 'App\\Models\\Room'
+            ]
+        ];
+
+        return $typeConfigs[$productableType] ?? $typeConfigs['App\\Models\\Activity'];
+    }
+
+    private static function getStatusLabel(\App\Models\Product $product): string
+    {
+        if ($product->is_draft) return 'Brouillon';
+        return $product->status ? 'Actif' : 'Inactif';
+    }
+
+    private static function getStatusClass(\App\Models\Product $product): string
+    {
+        if ($product->is_draft) return 'status-draft';
+        return $product->status ? 'status-active' : 'status-inactive';
+    }
+
+    private static function formatDifficulty(int $level): string
+    {
+        $difficulties = [
+            1 => 'Très facile',
+            2 => 'Facile', 
+            3 => 'Moyen',
+            4 => 'Difficile',
+            5 => 'Très difficile'
+        ];
+
+        return $difficulties[$level] ?? 'Non défini';
+    }
+
+    private static function formatDietaryInfo($ingredient): string
+    {
+        $info = [];
+        
+        if ($ingredient->is_vegan) $info[] = 'Vegan';
+        elseif ($ingredient->is_vegetarian) $info[] = 'Végétarien';
+        
+        if ($ingredient->is_spicy) $info[] = 'Épicé';
+        if ($ingredient->is_gluten_free) $info[] = 'Sans gluten';
+        if ($ingredient->is_lactose_free) $info[] = 'Sans lactose';
+        if ($ingredient->is_nut_free) $info[] = 'Sans noix';
+        
+        return empty($info) ? 'Aucune restriction' : implode(', ', $info);
     }
 }

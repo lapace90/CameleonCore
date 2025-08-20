@@ -485,7 +485,7 @@ export default {
         image: this.product.image || null,
         selectedIngredients: [],
         selectedDishes: [],
-        productable: { ...this.product.productableData }
+        productable: { ...this.product.productableDetail }
       }
     },
 
@@ -510,12 +510,12 @@ export default {
 
     // Charger les relations existantes selon VOTRE structure
     async loadRelations() {
-      if (!this.product.productableData || !this.product.productableData.id) return
+      if (!this.product.productableDetail || !this.product.productableDetail.id) return
       if (!this.typeConfig.hasRelation) return
 
       try {
         const data = await ProductsApi.getProductRelations(
-          this.product.productableData.id,
+          this.product.productableDetail.id,
           this.getProductableType()
         )
 

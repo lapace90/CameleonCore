@@ -20,6 +20,8 @@ class DatabaseSeeder extends Seeder
             
             // 2. Puis créer les relations entre produits
             $this->call(ProductRelationsSeeder::class);
+
+            $this->call(TagsSeeder::class);
             
             // 3. Optionnel : créer des utilisateurs et autres données
             $this->seedAdditionalData();
