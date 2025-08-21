@@ -1,5 +1,5 @@
 <template>
-  <div class="form-section">
+  <div class="form-section" v-if="config.hasRelation">
     <h3>{{ getRelationTitle() }}</h3>
     
     <!-- Loading -->
@@ -70,9 +70,11 @@ export default {
   props: {
     type: { type: String, required: true },
     config: { type: Object, required: true },
-    productId: { type: [String, Number], required: true },
+    productId: { type: [String, Number], default: null },
     modelValue: { type: Object, default: () => ({}) }
   },
+
+  emits: ['update:modelValue'],
 
   data() {
     return {
@@ -107,9 +109,9 @@ export default {
       return this.selectedIds.length
     },
 
+    // ✅ CORRECTION : Ajout des computed manquants
     filteredIngredients() {
       if (!this.searchTerm) return this.availableIngredients
-      
       return this.availableIngredients.filter(ingredient =>
         ingredient.name.toLowerCase().includes(this.searchTerm.toLowerCase())
       )
@@ -117,40 +119,19 @@ export default {
 
     filteredDishes() {
       if (!this.searchTerm) return this.availableDishes
-      
       return this.availableDishes.filter(dish =>
         dish.name.toLowerCase().includes(this.searchTerm.toLowerCase())
       )
     }
   },
 
-  async created() {
-    await this.fetchRelationData()
+  async mounted() {
+    await this.loadRelationData()
   },
 
   methods: {
-    async fetchRelationData() {
-      this.loading = true
-      
-      try {
-        if (this.config.hasRelation === 'ingredients') {
-          const response = await axios.get('/api/products?type=App%5CModels%5CIngredient')
-          this.availableIngredients = response.data.member || []
-        } else if (this.config.hasRelation === 'dishes') {
-          const response = await axios.get('/api/products?type=App%5CModels%5CDish')
-          this.availableDishes = response.data.member || []
-        }
-      } catch (error) {
-        console.error('Erreur lors du chargement des relations:', error)
-      } finally {
-        this.loading = false
-      }
-    },
-
     getRelationTitle() {
-      if (this.config.hasRelation === 'ingredients') {
-        return 'Ingrédients du plat'
-      }
+      if (this.config.hasRelation === 'ingredients') return 'Ingrédients'
       if (this.config.hasRelation === 'dishes') {
         return this.type === 'ingredient' 
           ? 'Plats utilisant cet ingrédient' 
@@ -178,12 +159,69 @@ export default {
         ...this.localValue,
         [relationKey]: currentIds
       }
+    },
+
+    // ✅ CORRECTION : Implémentation de loadRelationData
+    async loadRelationData() {
+      this.loading = true
+      try {
+        if (this.config.hasRelation === 'ingredients') {
+          await this.loadIngredients()
+        } else if (this.config.hasRelation === 'dishes') {
+          await this.loadDishes()
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des relations:', error)
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async loadIngredients() {
+      try {
+        const response = await axios.get('/api/ingredients')
+        this.availableIngredients = response.data.map(ingredient => ({
+          ...ingredient,
+          formatted_price: this.formatPrice(ingredient.price)
+        }))
+      } catch (error) {
+        console.error('Erreur lors du chargement des ingrédients:', error)
+      }
+    },
+
+    async loadDishes() {
+      try {
+        const response = await axios.get('/api/dishes')
+        this.availableDishes = response.data.map(dish => ({
+          ...dish,
+          formatted_price: this.formatPrice(dish.price)
+        }))
+      } catch (error) {
+        console.error('Erreur lors du chargement des plats:', error)
+      }
+    },
+
+    formatPrice(price) {
+      return new Intl.NumberFormat('fr-FR', {
+        style: 'currency',
+        currency: 'EUR'
+      }).format(price)
     }
   }
 }
 </script>
 
 <style scoped>
+.form-section {
+  margin-bottom: 24px;
+}
+
+.form-section h3 {
+  margin-bottom: 16px;
+  color: #374151;
+  font-weight: 600;
+}
+
 .loading-relations {
   text-align: center;
   padding: 20px;
@@ -209,6 +247,12 @@ export default {
   border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 14px;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .available-items {
@@ -249,7 +293,7 @@ export default {
 .item-info {
   flex: 1;
   display: flex;
-  justify-content: between;
+  justify-content: space-between;
   align-items: center;
 }
 

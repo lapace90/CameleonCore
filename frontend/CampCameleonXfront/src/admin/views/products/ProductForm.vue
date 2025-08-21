@@ -47,228 +47,22 @@
       <form @submit.prevent="submitForm" class="product-form">
         <div class="form-content">
           <!-- Colonne gauche - Image -->
-          <div class="form-left">
-            <div class="image-upload-section">
-              <h3>Image</h3>
-              <div class="image-upload-area">
-                <div v-if="imagePreview || form.image" class="main-image current-image">
-                  <img :src="getValidImageUrl(product.image || form.image)" :alt="form.name || 'Image'"
-                    @error="handleImageError" />
-                  <div class="image-overlay">
-                    <button type="button" @click="changeImage" class="overlay-btn">
-                      <i class="fas fa-edit"></i>
-                    </button>
-                    <button type="button" @click="removeImage" class="overlay-btn">
-                      <i class="fas fa-trash"></i>
-                    </button>
-                  </div>
-                </div>
-                <div v-else class="upload-placeholder" @click="selectImage">
-                  <i class="fas fa-cloud-upload-alt"></i>
-                  <p>Ajouter une image</p>
-                </div>
-                <input ref="imageInput" type="file" accept="image/*" @change="handleImageUpload"
-                  style="display: none" />
-              </div>
-            </div>
-          </div>
+          <ProductImageUpload v-model="form.image" />
 
           <!-- Colonne droite - Formulaires -->
           <div class="form-right">
             <!-- Informations de base -->
             <div class="form-section">
-              <h3>Informations générales</h3>
-              <div class="form-grid">
-                <div class="form-group">
-                  <label class="form-label required">Nom</label>
-                  <input v-model="form.name" type="text" class="form-input" placeholder="Nom du produit" required
-                    :class="{ 'error': errors.name }" />
-                  <span v-if="errors.name" class="error-message">{{ errors.name }}</span>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label required">Prix</label>
-                  <div class="input-group">
-                    <input v-model.number="form.price" type="number" step="0.01" min="0" class="form-input"
-                      placeholder="0.00" required :class="{ 'error': errors.price }" />
-                    <span class="input-addon">€</span>
-                  </div>
-                  <span v-if="errors.price" class="error-message">{{ errors.price }}</span>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">Statut</label>
-                  <div class="radio-group">
-                    <label class="radio-item">
-                      <input type="radio" v-model="form.status" :value="true" name="status" />
-                      <span class="radio-label">Actif</span>
-                    </label>
-                    <label class="radio-item">
-                      <input type="radio" v-model="form.status" :value="false" name="status" />
-                      <span class="radio-label">Inactif</span>
-                    </label>
-                  </div>
-                </div>
-
-                <div class="form-group full-width">
-                  <label class="form-label">Description</label>
-                  <textarea v-model="form.description" class="form-textarea" rows="3"
-                    placeholder="Description du produit..."></textarea>
-                </div>
-              </div>
+              <ProductBasicFields :type="productType" v-model="form" :errors="errors" />
             </div>
 
             <!-- Champs spécifiques - SELON VOTRE CONFIG EXACTE -->
-            <div v-if="typeConfig.fields.length > 0" class="form-section">
-              <h3>Détails {{ typeConfig.singular.toLowerCase() }}</h3>
-              <div class="form-grid">
-
-                <!-- ACTIVITÉS - Champs de votre config : guide, duration, meeting_point, max_people, difficulty_level -->
-                <template v-if="productType === 'activity'">
-                  <div class="form-group">
-                    <label class="form-label required">Guide</label>
-                    <input v-model="form.productable.guide" type="text" class="form-input" placeholder="Nom du guide"
-                      required />
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label required">Durée</label>
-                    <div class="input-group">
-                      <input v-model.number="form.productable.duration" type="number" class="form-input"
-                        placeholder="120" min="1" required />
-                      <span class="input-addon">min</span>
-                    </div>
-                  </div>
-                  <div class="form-group full-width">
-                    <label class="form-label required">Point de rendez-vous</label>
-                    <input v-model="form.productable.meeting_point" type="text" class="form-input"
-                      placeholder="Lieu de rendez-vous" required />
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label required">Capacité maximum</label>
-                    <div class="input-group">
-                      <input v-model.number="form.productable.max_people" type="number" class="form-input"
-                        placeholder="10" min="1" required />
-                      <span class="input-addon">pers.</span>
-                    </div>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label required">Niveau de difficulté</label>
-                    <select v-model="product.productableDetail.difficulty_level" class="form-select" required>
-                      <option value="">Choisir</option>
-                      <option value="easy">Facile</option>
-                      <option value="medium">Moyen</option>
-                      <option value="hard">Difficile</option>
-                    </select>
-                  </div>
-                </template>
-
-                <!-- INGRÉDIENTS - Champs de votre config : stock, is_vegetarian, is_vegan, is_spicy, is_gluten_free, is_lactose_free, is_nut_free -->
-                <template v-if="productType === 'ingredient'">
-                  <div class="form-group">
-                    <label class="form-label">Stock</label>
-                    <div class="input-group">
-                      <input v-model.number="form.productable.stock" type="number" class="form-input" placeholder="100"
-                        min="0" />
-                      <span class="input-addon">unités</span>
-                    </div>
-                  </div>
-                  <div class="form-group full-width">
-                    <label class="form-label">Propriétés diététiques</label>
-                    <div class="checkbox-grid">
-                      <label class="checkbox-item">
-                        <input type="checkbox" v-model="form.productable.is_vegetarian" />
-                        <span class="checkbox-label">Végétarien</span>
-                      </label>
-                      <label class="checkbox-item">
-                        <input type="checkbox" v-model="form.productable.is_vegan" />
-                        <span class="checkbox-label">Végan</span>
-                      </label>
-                      <label class="checkbox-item">
-                        <input type="checkbox" v-model="form.productable.is_spicy" />
-                        <span class="checkbox-label">Épicé</span>
-                      </label>
-                      <label class="checkbox-item">
-                        <input type="checkbox" v-model="form.productable.is_gluten_free" />
-                        <span class="checkbox-label">Sans gluten</span>
-                      </label>
-                      <label class="checkbox-item">
-                        <input type="checkbox" v-model="form.productable.is_lactose_free" />
-                        <span class="checkbox-label">Sans lactose</span>
-                      </label>
-                      <label class="checkbox-item">
-                        <input type="checkbox" v-model="form.productable.is_nut_free" />
-                        <span class="checkbox-label">Sans noix</span>
-                      </label>
-                    </div>
-                  </div>
-                </template>
-
-                <!-- HÉBERGEMENTS - Champs de votre config : capacity, availability -->
-                <template v-if="productType === 'room'">
-                  <div class="form-group">
-                    <label class="form-label required">Capacité</label>
-                    <div class="input-group">
-                      <input v-model.number="form.productable.capacity" type="number" class="form-input" placeholder="4"
-                        min="1" required />
-                      <span class="input-addon">pers.</span>
-                    </div>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Disponibilité</label>
-                    <div class="radio-group">
-                      <label class="radio-item">
-                        <input type="radio" v-model="form.productable.availability" :value="true" name="availability" />
-                        <span class="radio-label">Disponible</span>
-                      </label>
-                      <label class="radio-item">
-                        <input type="radio" v-model="form.productable.availability" :value="false"
-                          name="availability" />
-                        <span class="radio-label">Non disponible</span>
-                      </label>
-                    </div>
-                  </div>
-                </template>
-
-              </div>
-            </div>
+            <ProductTypeFields v-if="typeConfig.fields.length > 0" :type="productType" :config="typeConfig"
+              v-model="form.productable" />
 
             <!-- Relations - SELON VOTRE CONFIG hasRelation -->
-            <div v-if="isEditing && typeConfig.hasRelation" class="form-section">
-              <h3>{{ getRelationTitle() }}</h3>
-
-              <!-- Sélection d'ingrédients pour un plat -->
-              <div v-if="typeConfig.hasRelation === 'ingredients'" class="selection-area">
-                <div class="available-items">
-                  <div v-for="ingredient in availableIngredients" :key="ingredient.id" class="selectable-item"
-                    :class="{ 'selected': form.selectedIngredients.includes(ingredient.id) }">
-                    <label class="item-checkbox">
-                      <input type="checkbox" :value="Number(ingredient.id)" v-model="form.selectedIngredients" />
-                      <div class="item-info">
-                        <span class="item-name">{{ ingredient.name }}</span>
-                        <span class="item-price">{{ formatPrice(ingredient.price) }}</span>
-                      </div>
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Sélection de plats pour un menu OU plats utilisant un ingrédient -->
-              <div v-if="typeConfig.hasRelation === 'dishes'" class="selection-area">
-                <div class="available-items">
-                  <div v-for="dish in availableDishes" :key="dish.id" class="selectable-item"
-                    :class="{ 'selected': form.selectedDishes.includes(dish.id) }">
-                    <label class="item-checkbox">
-                      <input type="checkbox" :value="dish.id" v-model="form.selectedDishes" />
-                      <div class="item-info">
-                        <span class="item-name">{{ dish.name }}</span>
-                        <span class="item-price">{{ formatPrice(dish.price) }}</span>
-                      </div>
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-            </div>
+            <ProductRelations v-if="isEditing && typeConfig.hasRelation" :type="productType" :config="typeConfig"
+              :product-id="productId" v-model="relationData" />
 
             <!-- Message pour les types sans relations en création -->
             <div v-if="!isEditing && typeConfig.hasRelation" class="form-section">
@@ -282,21 +76,8 @@
         </div>
 
         <!-- Actions -->
-        <div class="form-actions">
-          <div class="actions-left">
-            <button type="button" @click="resetForm" class="btn btn-outline" :disabled="saving">
-              <i class="fas fa-undo"></i>
-              Réinitialiser
-            </button>
-          </div>
-          <div class="actions-right">
-            <button type="submit" class="btn btn-primary" :disabled="saving || !isFormValid">
-              <i v-if="saving" class="fas fa-spinner fa-spin"></i>
-              <i v-else class="fas fa-check"></i>
-              {{ isEditing ? 'Mettre à jour' : 'Créer' }}
-            </button>
-          </div>
-        </div>
+        <ProductFormActions :is-editing="isEditing" :saving="saving" :is-form-valid="isFormValid"
+          @reset="resetForm" @submit="submitForm" />
       </form>
     </div>
   </div>
@@ -304,6 +85,12 @@
 
 <script>
 import ProductsApi from '@/services/ProductsApi'
+import ProductRelations from './ProductRelations.vue'
+import ProductTypeFields from './ProductTypeFields.vue'
+import ProductImageUpload from './components/ProductImageUpload.vue'
+import ProductBasicFields from './components/ProductBasicFields.vue'
+import ProductFormActions from './components/ProductFormActions.vue'
+
 import {
   formatPrice,
   getValidImageUrl,
@@ -332,12 +119,14 @@ export default {
     return {
       loading: false,
       saving: false,
-      imagePreview: null,
+      // imagePreview: null,
       product: null,
+      relationData: {},
       // Données pour les relations
       availableIngredients: [],
       availableDishes: [],
       error: null,
+
 
       // Formulaire
       form: {
@@ -440,6 +229,14 @@ export default {
 
   async created() {
     await this.initializeComponent()
+  },
+
+  components: {
+    ProductRelations,
+    ProductTypeFields,
+    ProductImageUpload,
+    ProductBasicFields,
+    ProductFormActions
   },
 
   methods: {
