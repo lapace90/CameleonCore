@@ -212,7 +212,7 @@ class RealisticDataSeeder extends Seeder
                 'duration' => 180,
                 'meeting_point' => 'Parking du camping à 9h00',
                 'max_people' => 12,
-                'difficulty_level' => 3,
+                'difficulty_level' => 5,
                 'category' => 'Randonnée'
             ],
             [
@@ -223,7 +223,7 @@ class RealisticDataSeeder extends Seeder
                 'duration' => 120,
                 'meeting_point' => 'Base nautique, 10h00',
                 'max_people' => 8,
-                'difficulty_level' => 2,
+                'difficulty_level' => 3,
                 'category' => 'Sports nautiques'
             ],
             [

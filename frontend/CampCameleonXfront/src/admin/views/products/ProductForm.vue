@@ -153,7 +153,7 @@
                   </div>
                   <div class="form-group">
                     <label class="form-label required">Niveau de difficulté</label>
-                    <select v-model="form.productable.difficulty_level" class="form-select" required>
+                    <select v-model="product.productableDetail.difficulty_level" class="form-select" required>
                       <option value="">Choisir</option>
                       <option value="easy">Facile</option>
                       <option value="medium">Moyen</option>

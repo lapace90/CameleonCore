@@ -57,7 +57,7 @@ class ProductableData extends Data
         $mappings = [
             'meetingPoint' => 'meeting_point',
             'maxPeople' => 'max_people',
-            'difficultyLevel' => 'difficulty_level',
+            'difficulty_level' => 'difficulty_level',
             'isVegetarian' => 'is_vegetarian',
             'isVegan' => 'is_vegan',
             'isSpicy' => 'is_spicy',

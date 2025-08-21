@@ -33,11 +33,12 @@
         </div>
         <div class="form-group">
           <label class="form-label required">Niveau de difficulté</label>
-          <select v-model="localValue.difficulty_level" class="form-select" required>
+          <select v-model="difficultyProxy" class="form-select" required>
             <option value="">Choisir</option>
             <option value="easy">Facile</option>
             <option value="medium">Moyen</option>
             <option value="hard">Difficile</option>
+            <option value="extreme">Extreme</option>
           </select>
         </div>
       </template>
@@ -113,37 +114,54 @@
 </template>
 
 <script>
-export default {
-  name: 'ProductTypeFields',
-  props: {
-    type: { type: String, required: true },
-    config: { type: Object, required: true },
-    modelValue: { type: Object, default: () => ({}) }
-  },
+ export default {
+   name: 'ProductTypeFields',
+   props: {
+     type: { type: String, required: true },
+     config: { type: Object, required: true },
+     modelValue: { type: Object, default: () => ({}) }
+   },
 
-  computed: {
-    localValue: {
+   computed: {
+     localValue: {
+       get() {
+         return this.modelValue
+       },
+       set(value) {
+         this.$emit('update:modelValue', value)
+       }
+     },
+    // v-model pour le <select> difficulté, accepte 1/2/3 ↔ easy/medium/hard
+    difficultyProxy: {
       get() {
-        return this.modelValue
+        const DIFF_MAP = { 1: 'easy', 2: 'medium', 3: 'hard' }
+        const v = this.localValue?.difficulty_level
+        if (typeof v === 'number') return DIFF_MAP[v] ?? ''
+        if (v === null || v === undefined) return ''
+        return String(v) // déjà 'easy' | 'medium' | 'hard'
       },
-      set(value) {
-        this.$emit('update:modelValue', value)
+      set(val) {
+        const DIFF_UNMAP = { easy: 1, medium: 2, hard: 3 }
+        const next = { ...(this.localValue || {}) }
+        next.difficulty_level = typeof val === 'string' ? (DIFF_UNMAP[val] ?? val) : val
+        this.localValue = next
       }
     }
-  },
+   },
 
-  watch: {
-    localValue: {
-      handler(newValue) {
-        this.$emit('update:modelValue', newValue)
-      },
-      deep: true
-    }
-  }
-}
+   watch: {
+     localValue: {
+       handler(newValue) {
+         this.$emit('update:modelValue', newValue)
+       },
+       deep: true
+     }
+   }
+ }
+
 </script>
 
-<style scoped>
+<!-- <style scoped>
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -188,4 +206,4 @@ export default {
     grid-template-columns: 1fr;
   }
 }
-</style>
+</style> -->
