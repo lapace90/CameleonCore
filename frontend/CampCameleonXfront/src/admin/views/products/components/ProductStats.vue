@@ -43,7 +43,7 @@
 </template>
 
 <script>
-import { formatPrice } from '@/utils/ProductUtils'
+import { formatPrice } from '@/shared/utils/ProductUtils'
 
 export default {
   name: 'ProductStats',

@@ -188,7 +188,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<!-- <style scoped>
 .form-section {
   margin-bottom: 24px;
 }
@@ -277,4 +277,4 @@ export default {
     grid-template-columns: 1fr;
   }
 }
-</style>
+</style> -->
