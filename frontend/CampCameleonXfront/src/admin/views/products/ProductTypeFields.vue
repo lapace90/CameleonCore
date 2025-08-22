@@ -1,52 +1,36 @@
 <template>
+  <!-- Dans ProductTypeFields.vue -->
+  <div v-if="['ingredient'].includes(type)" class="form-group">
+    <label class="form-label">Stock</label>
+    <input type="number" class="form-input" v-model.number="localValue.stock" min="0" placeholder="Quantité en stock" />
+  </div>
+
   <div class="form-section" v-if="config.fields && config.fields.length > 0">
     <h3>{{ sectionTitle }}</h3>
-    
+
     <div class="form-grid">
       <!-- Champs pour Activity -->
       <template v-if="type === 'activity'">
         <div class="form-group">
           <label class="form-label">Guide</label>
-          <input 
-            type="text" 
-            class="form-input" 
-            v-model="localValue.guide"
-            placeholder="Nom du guide"
-          />
+          <input type="text" class="form-input" v-model="localValue.guide" placeholder="Nom du guide" />
         </div>
-        
+
         <div class="form-group">
           <label class="form-label">Durée (minutes)</label>
-          <input 
-            type="number" 
-            class="form-input" 
-            v-model.number="localValue.duration"
-            placeholder="120"
-            min="0"
-          />
+          <input type="number" class="form-input" v-model.number="localValue.duration" placeholder="120" min="0" />
         </div>
-        
+
         <div class="form-group">
           <label class="form-label">Point de rendez-vous</label>
-          <input 
-            type="text" 
-            class="form-input" 
-            v-model="localValue.meeting_point"
-            placeholder="Lieu de rendez-vous"
-          />
+          <input type="text" class="form-input" v-model="localValue.meeting_point" placeholder="Lieu de rendez-vous" />
         </div>
-        
+
         <div class="form-group">
           <label class="form-label">Nombre max de personnes</label>
-          <input 
-            type="number" 
-            class="form-input" 
-            v-model.number="localValue.max_people"
-            placeholder="10"
-            min="1"
-          />
+          <input type="number" class="form-input" v-model.number="localValue.max_people" placeholder="10" min="1" />
         </div>
-        
+
         <div class="form-group">
           <label class="form-label">Niveau de difficulté</label>
           <select class="form-input" v-model="difficultyProxy">
@@ -57,34 +41,25 @@
           </select>
         </div>
       </template>
-      
+
       <!-- Champs pour Room -->
       <template v-if="type === 'room'">
         <div class="form-group">
           <label class="form-label">Capacité</label>
-          <input 
-            type="number" 
-            class="form-input" 
-            v-model.number="localValue.capacity"
-            placeholder="4"
-            min="1"
-          />
+          <input type="number" class="form-input" v-model.number="localValue.capacity" placeholder="4" min="1" />
         </div>
-        
+
         <div class="form-group full-width">
           <label class="form-label">
-            <input 
-              type="checkbox" 
-              v-model="localValue.availability"
-              class="form-checkbox"
-            />
+            <input type="checkbox" v-model="localValue.availability" class="form-checkbox" />
             Disponible
           </label>
         </div>
       </template>
-      
-      <!-- Champs pour Dish/Ingredient -->
-      <template v-if="['dish', 'ingredient'].includes(type)">
+
+      <!-- Champs pour Ingredient -->
+      <template v-if="['ingredient'].includes(type)">
+
         <div class="form-group full-width">
           <label class="form-label">Propriétés alimentaires</label>
           <div class="checkbox-grid">
@@ -115,7 +90,7 @@
           </div>
         </div>
       </template>
-      
+
       <!-- Pour Menu - pas de champs spécifiques pour l'instant -->
       <template v-if="type === 'menu'">
         <div class="form-note">
@@ -152,7 +127,7 @@ export default {
       const titles = {
         activity: 'Détails de l\'activité',
         room: 'Détails de l\'hébergement',
-        dish: 'Propriétés du plat',
+        // dish: 'Propriétés du plat',
         ingredient: 'Propriétés de l\'ingrédient',
         menu: 'Détails du menu'
       }
@@ -187,6 +162,7 @@ export default {
   }
 }
 </script>
+
 
 <!-- <style scoped>
 .form-section {

@@ -44,7 +44,7 @@
             <span class="item-name">{{ dish.name }}</span>
             <span class="item-price">{{ dish.formatted_price }}</span>
           </div>
-          <button class="btn-add">
+          <button type="button" class="btn-add">
             <i class="fas fa-plus"></i>
           </button>
         </div>
@@ -176,95 +176,107 @@ export default {
     }
   },
 
-  methods: {
-    getRelationTitle() {
-      if (this.config.hasRelation === 'ingredients') return 'Ingrédients'
-      if (this.config.hasRelation === 'dishes') {
-        return this.type === 'ingredient' ? 'Plats utilisant cet ingrédient' : 'Plats du menu'
-      }
-      return 'Relations'
-    },
+// Remplacer les méthodes dans ProductRelations.vue
 
-    // ✅ AJOUTER : Initialiser les relations locales
-    initializeLocalRelations() {
-      this.localDishes = [...(this.product.relations?.dishes || [])]
-      this.localIngredients = [...(this.product.relations?.ingredients || [])]
-    },
+methods: {
+  getRelationTitle() {
+    if (this.config.hasRelation === 'ingredients') return 'Ingrédients'
+    if (this.config.hasRelation === 'dishes') {
+      return this.type === 'ingredient' ? 'Plats utilisant cet ingrédient' : 'Plats du menu'
+    }
+    return 'Relations'
+  },
 
-    async loadAvailableDishes() {
-      if (this.availableDishes.length > 0) return
+  // Initialiser les relations locales
+  initializeLocalRelations() {
+    this.localDishes = [...(this.product.relations?.dishes || [])]
+    this.localIngredients = [...(this.product.relations?.ingredients || [])]
+  },
 
-      try {
-        const { data } = await ProductsApi.getRelationProducts('dishes')
-        this.availableDishes = data
-      } catch (error) {
-        console.error('Erreur lors du chargement des plats disponibles:', error)
-      }
-    },
+  async loadAvailableDishes() {
+    if (this.availableDishes.length > 0) return
 
-    async loadAvailableIngredients() {
-      if (this.availableIngredients.length > 0) return
-
-      try {
-        const { data } = await ProductsApi.getRelationProducts('ingredients')
-        this.availableIngredients = data
-      } catch (error) {
-        console.error('Erreur lors du chargement des ingrédients disponibles:', error)
-      }
-    },
-
-    // ✅ MODIFIER : Mode édition 
-    async addDish(dish) {
-      if (this.editMode) {
-        // Mode édition : ajouter localement
-        this.localDishes.push(dish)
-        this.emitRelationsChanged()
-      } 
-      
-    },
-
-    async removeDish(dishId) {
-      if (this.editMode) {
-        // Mode édition : supprimer localement
-        this.localDishes = this.localDishes.filter(d => d.id !== dishId)
-        this.emitRelationsChanged()
-      
-      }
-    },
-
-    async addIngredient(ingredient) {
-      if (this.editMode) {
-        // Mode édition : ajouter localement
-        this.localIngredients.push(ingredient)
-        this.emitRelationsChanged()
-      
-      }
-    },
-
-    async removeIngredient(ingredientId) {
-      if (this.editMode) {
-        // Mode édition : supprimer localement
-        this.localIngredients = this.localIngredients.filter(i => i.id !== ingredientId)
-        this.emitRelationsChanged()
-      } 
-    },
-
-    // Émettre les changements vers le parent
-    emitRelationsChanged() {
-      this.$emit('relations-changed', {
-        dishes: this.localDishes.map(d => d.id),
-        ingredients: this.localIngredients.map(i => i.id)
-      })
-    },
-
-    // Méthode publique pour récupérer les relations
-    getLocalRelations() {
-      return {
-        dishes: this.localDishes.map(d => d.id),
-        ingredients: this.localIngredients.map(i => i.id)
-      }
+    try {
+      const { data } = await ProductsApi.getRelationProducts('dishes')
+      this.availableDishes = data
+    } catch (error) {
+      console.error('Erreur lors du chargement des plats disponibles:', error)
     }
   },
+
+  async loadAvailableIngredients() {
+    if (this.availableIngredients.length > 0) return
+
+    try {
+      const { data } = await ProductsApi.getRelationProducts('ingredients')
+      this.availableIngredients = data
+    } catch (error) {
+      console.error('Erreur lors du chargement des ingrédients disponibles:', error)
+    }
+  },
+
+  // ✅ MÉTHODES CORRIGÉES - Mode édition seulement
+addDish(dish) {
+  if (this.editMode) {
+    this.localDishes.push(dish)
+    this.emitRelationsChanged()
+  }
+},
+
+  removeDish(dishId) {
+    if (!this.editMode) {
+      console.warn('removeDish appelé sans mode édition')
+      return
+    }
+    
+    // Supprimer localement uniquement
+    this.localDishes = this.localDishes.filter(d => d.id !== dishId)
+    this.emitRelationsChanged()
+  },
+
+  addIngredient(ingredient) {
+    if (!this.editMode) {
+      console.warn('addIngredient appelé sans mode édition')
+      return
+    }
+    
+    // Vérifier si l'ingrédient n'est pas déjà ajouté
+    if (this.localIngredients.some(i => i.id === ingredient.id)) {
+      return
+    }
+    
+    // Ajouter localement uniquement
+    this.localIngredients.push(ingredient)
+    this.emitRelationsChanged()
+  },
+
+  removeIngredient(ingredientId) {
+    if (!this.editMode) {
+      console.warn('removeIngredient appelé sans mode édition')
+      return
+    }
+    
+    // Supprimer localement uniquement
+    this.localIngredients = this.localIngredients.filter(i => i.id !== ingredientId)
+    this.emitRelationsChanged()
+  },
+
+  // Émettre les changements vers le parent
+  emitRelationsChanged() {
+    this.$emit('relations-changed', {
+      dishes: this.localDishes.map(d => d.id),
+      ingredients: this.localIngredients.map(i => i.id)
+    })
+  },
+
+  // Méthode publique pour récupérer les relations
+  getLocalRelations() {
+    return {
+      dishes: this.localDishes.map(d => d.id),
+      ingredients: this.localIngredients.map(i => i.id)
+    }
+  }
+},
 
   watch: {
     showAvailableDishes(show) {
@@ -278,8 +290,6 @@ export default {
 </script>
 
 <style scoped>
-
-
 .form-section h4 {
   margin-bottom: 12px;
   color: #6b7280;

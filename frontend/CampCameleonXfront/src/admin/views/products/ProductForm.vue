@@ -58,12 +58,12 @@
             <ProductBasicFields :type="productType" v-model="form" :errors="errors" />
 
             <!-- Champs spécifiques -->
-            <ProductTypeFields v-if="typeConfig.fields.length > 0" :type="productType" :config="typeConfig"
-              v-model="form.productable" />
+            <ProductTypeFields v-if="typeConfig.fields.length > 0 && productType !== 'dish'" :type="productType"
+              :config="typeConfig" v-model="form.productable" />
 
-            <!-- Relations -->
+            <!-- Dans ProductForm.vue -->
             <ProductRelations v-if="isEditing && typeConfig.hasRelation && product" :type="productType"
-              :config="typeConfig" :product="product" @relations-updated="reloadProduct" />
+              :config="typeConfig" :product="product" :edit-mode="true" @relations-changed="onRelationsChanged" />
 
             <!-- Message pour création -->
             <div v-if="!isEditing && typeConfig.hasRelation" class="form-section">
@@ -116,8 +116,12 @@ export default {
     return {
       loading: false,
       saving: false,
-      product: null, // ✅ SIMPLIFIER : Juste le produit, pas de relationData complexe
+      product: null,
       error: null,
+      localRelations: {
+        dishes: [],
+        ingredients: []
+      },
 
       form: {
         name: '',
@@ -258,8 +262,59 @@ export default {
         productable: { ...this.product.productableDetail }
       }
     },
+    // Gérer les changements de relations locales
+    onRelationsChanged(relations) {
+      this.localRelations = relations
+    },
+    // Modifier buildPayload pour inclure les relations
+    buildPayload() {
+      const payload = {
+        name: this.form.name,
+        description: this.form.description,
+        price: this.form.price,
+        status: this.form.status,
+        productableType: this.getProductableType()
+      }
 
-    // ✅ NOUVEAU : Méthode pour recharger le produit après modification des relations
+      if (this.form.image) {
+        payload.image = this.form.image
+      }
+
+      if (Object.keys(this.form.productable).length > 0) {
+        payload.productable = { ...this.form.productable }
+      }
+
+      // ✅ AJOUTER : Inclure les relations locales
+      if (this.typeConfig.hasRelation) {
+        payload.relations = this.localRelations
+      }
+
+      return payload
+    },
+
+    // Initialiser les relations locales lors du chargement
+    async loadProduct() {
+      try {
+        this.loading = true
+        const { data } = await ProductsApi.getProduct(this.productType, this.$route.params.id)
+        this.product = data
+        this.populateForm()
+
+        // ✅ AJOUTER : Initialiser les relations locales
+        this.localRelations = {
+          dishes: data.relations?.dishes?.map(d => d.id) || [],
+          ingredients: data.relations?.ingredients?.map(i => i.id) || []
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement du produit:', error)
+        this.error = 'Erreur lors du chargement du produit'
+      } finally {
+        this.loading = false
+      }
+    },
+
+
+    // Méthode pour recharger le produit après modification des relations
     async reloadProduct() {
       try {
         this.product = await ProductsApi.getProduct(this.productId)
