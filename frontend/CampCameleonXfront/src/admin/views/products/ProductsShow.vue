@@ -32,7 +32,7 @@
           <i class="fas fa-search"></i>
           <input v-model="filters.search" type="text" placeholder="Rechercher..." @input="debouncedSearch" />
         </div>
-        
+
         <div class="filter-group">
           <select v-model="filters.category" @change="applyFilters" class="filter-select">
             <option value="">Toutes les catégories</option>
@@ -67,14 +67,10 @@
 
     <!-- Stats rapides -->
     <ProductStats :stats="quickStats" :products="products" />
-    
+
     <!-- Actions en lot -->
-    <BulkActions 
-      v-if="selectedProducts.length > 0"
-      :selected-count="selectedProducts.length"
-      @bulk-action="handleBulkAction"
-      @clear-selection="selectedProducts = []"
-    />
+    <BulkActions v-if="selectedProducts.length > 0" :selected-count="selectedProducts.length"
+      @bulk-action="handleBulkAction" @clear-selection="selectedProducts = []" />
 
     <!-- Message d'erreur -->
     <div v-if="error" class="error-message">
@@ -95,34 +91,17 @@
 
       <!-- Vue grille -->
       <div v-else-if="viewMode === 'grid'" class="products-grid">
-        <ProductCard 
-          v-for="product in products" 
-          :key="product.id"
-          :product="product"
-          :selected="selectedProducts.includes(product.id)"
-          @select="toggleSelection(product.id)"
-          @view="viewProduct"
-          @edit="editProduct"
-          @duplicate="duplicateProduct"
-          @delete="deleteProduct"
-          @toggle-status="toggleProductStatus"
-        />
+        <ProductCard v-for="product in products" :key="product.id" :product="product"
+          :selected="selectedProducts.includes(product.id)" @select="toggleSelection(product.id)" @view="viewProduct"
+          @edit="editProduct" @duplicate="duplicateProduct" @delete="deleteProduct"
+          @toggle-status="toggleProductStatus" />
       </div>
 
       <!-- Vue liste -->
       <div v-else class="products-table">
-        <ProductTable 
-          :products="products"
-          :type-config="typeConfig"
-          :selected="selectedProducts"
-          @select="toggleSelection"
-          @select-all="toggleAllSelection"
-          @view="viewProduct"
-          @edit="editProduct"
-          @duplicate="duplicateProduct"
-          @delete="deleteProduct"
-          @sort="handleSort"
-        />
+        <ProductTable :products="products" :type-config="typeConfig" :selected="selectedProducts"
+          @select="toggleSelection" @select-all="toggleAllSelection" @view="viewProduct" @edit="editProduct"
+          @duplicate="duplicateProduct" @delete="deleteProduct" @sort="handleSort" />
       </div>
 
       <!-- Empty state -->
@@ -140,11 +119,7 @@
     </div>
 
     <!-- Pagination -->
-    <Pagination 
-      v-if="pagination.total > pagination.perPage"
-      :pagination="pagination"
-      @page-change="changePage"
-    />
+    <Pagination v-if="pagination.total > pagination.perPage" :pagination="pagination" @page-change="changePage" />
   </div>
 </template>
 
@@ -156,12 +131,13 @@ import ProductTable from './components/ProductTable.vue'
 import ProductStats from './components/ProductStats.vue'
 import BulkActions from './components/BulkActions.vue'
 import Pagination from './components/Pagination.vue'
+import { PRODUCT_CONFIGS } from '@/shared/configs/productConfigs'
 
 export default {
   name: 'ProductsShow',
   components: {
     ProductCard,
-    ProductTable, 
+    ProductTable,
     ProductStats,
     BulkActions,
     Pagination
@@ -197,49 +173,17 @@ export default {
         active: 0,
         draft: 0,
         revenue: 0
-      },
-
-      // Configuration simplifiée des types
-      productConfigs: {
-        activity: {
-          label: 'Activités',
-          singular: 'Activité',
-          icon: 'fas fa-hiking',
-          color: '#3b82f6'
-        },
-        menu: {
-          label: 'Menus',
-          singular: 'Menu',
-          icon: 'fas fa-utensils',
-          color: '#10b981'
-        },
-        dish: {
-          label: 'Plats',
-          singular: 'Plat',
-          icon: 'fas fa-drumstick-bite',
-          color: '#f97316'
-        },
-        ingredient: {
-          label: 'Ingrédients',
-          singular: 'Ingrédient',
-          icon: 'fas fa-seedling',
-          color: '#22c55e'
-        },
-        room: {
-          label: 'Hébergements',
-          singular: 'Hébergement',
-          icon: 'fas fa-bed',
-          color: '#f59e0b'
-        }
       }
     }
   },
 
   computed: {
     typeConfig() {
-      return this.productConfigs[this.type] || this.productConfigs.activity
+      console.log('PRODUCT_CONFIGS:', PRODUCT_CONFIGS)
+      console.log('this.type:', this.type)
+      console.log('PRODUCT_CONFIGS[this.type]:', PRODUCT_CONFIGS[this.type])
+      return PRODUCT_CONFIGS[this.type] || PRODUCT_CONFIGS.activity
     },
-
     createRoute() {
       return { name: 'ProductCreate', params: { type: this.type } }
     },
@@ -250,11 +194,11 @@ export default {
 
     emptyStateMessage() {
       const hasFilters = this.filters.search || this.filters.category || this.filters.status
-      
+
       if (hasFilters) {
         return 'Aucun résultat ne correspond à vos critères de recherche.'
       }
-      
+
       return `Commencez par créer votre premier ${this.typeConfig.singular.toLowerCase()}.`
     },
 
@@ -267,6 +211,8 @@ export default {
     this.debouncedSearch = debounce(this.applyFilters, 500)
     this.initialize()
   },
+
+
 
   methods: {
     async initialize() {
@@ -289,7 +235,7 @@ export default {
         }
 
         const response = await ProductsApi.getProducts(params)
-        
+
         this.products = response.data || []
         this.updatePagination(response)
         this.updateStats()
@@ -451,4 +397,3 @@ export default {
   }
 }
 </script>
-

@@ -92,8 +92,7 @@ import ProductTypeFields from './ProductTypeFields.vue'
 import ProductImageUpload from './components/ProductImageUpload.vue'
 import ProductBasicFields from './components/ProductBasicFields.vue'
 import ProductFormActions from './components/ProductFormActions.vue'
-
-// ✅ GARDER seulement formatPrice et getFieldLabel
+import { PRODUCT_CONFIGS, getProductableType } from '@/shared/configs/productConfigs'
 import { formatPrice, getFieldLabel } from '@/shared/utils/ProductUtils.js'
 
 export default {
@@ -134,49 +133,6 @@ export default {
 
       errors: {},
 
-      // VOTRE CONFIGURATION EXACTE (garder)
-      productConfigs: {
-        ingredient: {
-          label: 'Ingrédients',
-          singular: 'Ingrédient',
-          icon: 'fas fa-seedling',
-          color: '#22c55e',
-          fields: ['stock', 'is_vegetarian', 'is_vegan', 'is_spicy', 'is_gluten_free', 'is_lactose_free', 'is_nut_free'],
-          hasRelation: false
-        },
-        dish: {
-          label: 'Plats',
-          singular: 'Plat',
-          icon: 'fas fa-drumstick-bite',
-          color: '#f97316',
-          fields: ['is_vegetarian', 'is_vegan', 'is_spicy', 'is_gluten_free', 'is_lactose_free', 'is_nut_free'],
-          hasRelation: 'ingredients'
-        },
-        menu: {
-          label: 'Menus',
-          singular: 'Menu',
-          icon: 'fas fa-utensils',
-          color: '#10b981',
-          fields: [],
-          hasRelation: 'dishes'
-        },
-        room: {
-          label: 'Hébergements',
-          singular: 'Hébergement',
-          icon: 'fas fa-bed',
-          color: '#f59e0b',
-          fields: ['capacity', 'availability'],
-          hasRelation: false
-        },
-        activity: {
-          label: 'Activités',
-          singular: 'Activité',
-          icon: 'fas fa-hiking',
-          color: '#3b82f6',
-          fields: ['guide', 'duration', 'meeting_point', 'max_people', 'difficulty_level'],
-          hasRelation: false
-        }
-      }
     }
   },
 
@@ -186,8 +142,7 @@ export default {
     },
 
     typeConfig() {
-      const config = this.productConfigs[this.productType]
-      return config || this.productConfigs.activity
+      return PRODUCT_CONFIGS[this.productType] || PRODUCT_CONFIGS.activity
     },
 
     productId() {
@@ -385,14 +340,7 @@ export default {
     },
 
     getProductableType() {
-      const typeMap = {
-        'activity': 'App\\Models\\Activity',
-        'ingredient': 'App\\Models\\Ingredient',
-        'dish': 'App\\Models\\Dish',
-        'menu': 'App\\Models\\Menu',
-        'room': 'App\\Models\\Room'
-      }
-      return typeMap[this.productType] || 'App\\Models\\Activity'
+      return getProductableType(this.productType)
     },
 
     validateForm() {

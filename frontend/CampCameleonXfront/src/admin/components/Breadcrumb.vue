@@ -1,19 +1,18 @@
 <template>
-  
   <!-- Mode navigation pour Header.vue -->
- <nav v-if="!productType && breadcrumbs.length" class="breadcrumb">
-
-    <router-link 
-      v-for="(crumb, index) in breadcrumbs" 
-      :key="index"
-      :to="crumb.path"
-      class="breadcrumb-item"
-      :class="{ 'active': index === breadcrumbs.length - 1 }"
-    >
-      {{ crumb.name }}
-    </router-link>
+  <nav v-if="!productType && breadcrumbs.length" class="breadcrumb">
+    <template v-for="(crumb, index) in breadcrumbs" :key="index">
+      <!-- Lien actif -->
+      <router-link v-if="crumb.path" :to="crumb.path" class="breadcrumb-item">
+        {{ crumb.name }}
+      </router-link>
+      <!-- Élément final (pas de lien) -->
+      <span v-else class="breadcrumb-item active">
+        {{ crumb.name }}
+      </span>
+    </template>
   </nav>
-
+  
   <!-- Mode simple pour ProductForm.vue -->
   <div v-else class="breadcrumb">
     <span>{{ typeConfig.label }}</span>
@@ -23,27 +22,29 @@
 </template>
 
 <script>
+import { PRODUCT_CONFIGS } from '@/shared/configs/productConfigs'
+
 export default {
   name: 'Breadcrumb',
-  
+
   props: {
     // Pour le mode Header
     items: {
       type: Array,
       default: () => []
     },
-    
+
     // Pour le mode ProductForm  
     productType: {
       type: String,
       default: null
     },
-    
+
     isEditing: {
       type: Boolean,
       default: false
     },
-    
+
     product: {
       type: Object,
       default: null
@@ -52,44 +53,13 @@ export default {
 
   data() {
     return {
-      productConfigs: {
-        ingredient: {
-          label: 'Ingrédients',
-          singular: 'Ingrédient',
-          icon: 'fas fa-seedling',
-          color: '#22c55e'
-        },
-        activity: {
-          label: 'Activités',
-          singular: 'Activité',
-          icon: 'fas fa-hiking',
-          color: '#3b82f6'
-        },
-        dish: {
-          label: 'Plats',
-          singular: 'Plat',
-          icon: 'fas fa-drumstick-bite',
-          color: '#f97316'
-        },
-        menu: {
-          label: 'Menus',
-          singular: 'Menu',
-          icon: 'fas fa-utensils',
-          color: '#10b981'
-        },
-        room: {
-          label: 'Hébergements',
-          singular: 'Hébergement',
-          icon: 'fas fa-bed',
-          color: '#f59e0b'
-        }
-      }
+
     }
   },
 
   computed: {
     typeConfig() {
-      return this.productConfigs[this.productType] || this.productConfigs.activity
+      return PRODUCT_CONFIGS[this.productType] || PRODUCT_CONFIGS.activity
     },
 
     breadcrumbs() {
@@ -110,7 +80,7 @@ export default {
 
       // Pas de breadcrumb sur dashboard
       if (route.name === 'AdminDashboard') {
-        return 
+        return
       }
 
       // Dashboard en premier
@@ -122,8 +92,7 @@ export default {
       // Routes produits
       if (route.path.includes('/products/')) {
         const productType = route.params.type
-        const config = this.productConfigs[productType]
-        
+        const config = PRODUCT_CONFIGS[productType]
         if (config) {
           breadcrumbs.push({
             name: config.label,
@@ -161,4 +130,3 @@ export default {
   }
 }
 </script>
-

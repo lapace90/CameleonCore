@@ -1,5 +1,6 @@
 // services/ProductsApi.js
 import axios from 'axios'
+import { buildTypeConfigFromProductableType } from '@/shared/configs/productConfigs'
 
 class ProductsApi {
 
@@ -82,60 +83,8 @@ class ProductsApi {
     }
   }
 
-
-  // ✅ NOUVELLE MÉTHODE : Construire typeConfig côté frontend si nécessaire
   buildTypeConfig(productableType) {
-    const configs = {
-      'App\\Models\\Activity': {
-        label: 'Activités',
-        singular: 'Activité',
-        icon: 'fas fa-hiking',
-        color: '#3b82f6',
-        fields: ['guide', 'duration', 'meeting_point', 'max_people', 'difficulty_level'],
-        hasRelation: null
-      },
-      'App\\Models\\Menu': {
-        label: 'Menus',
-        singular: 'Menu',
-        icon: 'fas fa-utensils',
-        color: '#10b981',
-        fields: [],
-        hasRelation: 'dishes'
-      },
-      'App\\Models\\Dish': {
-        label: 'Plats',
-        singular: 'Plat',
-        icon: 'fas fa-drumstick-bite',
-        color: '#f97316',
-        fields: [],
-        hasRelation: 'ingredients'
-      },
-      'App\\Models\\Ingredient': {
-        label: 'Ingrédients',
-        singular: 'Ingrédient',
-        icon: 'fas fa-seedling',
-        color: '#22c55e',
-        fields: ['stock', 'is_vegetarian', 'is_vegan', 'is_spicy', 'is_gluten_free', 'is_lactose_free', 'is_nut_free'],
-        hasRelation: 'dishes'
-      },
-      'App\\Models\\Room': {
-        label: 'Hébergements',
-        singular: 'Hébergement',
-        icon: 'fas fa-bed',
-        color: '#f59e0b',
-        fields: ['capacity', 'availability'],
-        hasRelation: null
-      }
-    }
-
-    return configs[productableType] || {
-      label: 'Produit',
-      singular: 'Produit',
-      icon: 'fas fa-box',
-      color: '#6b7280',
-      fields: [],
-      hasRelation: null
-    }
+    return buildTypeConfigFromProductableType(productableType)
   }
 
   /**
