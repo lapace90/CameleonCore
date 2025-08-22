@@ -15,6 +15,9 @@ class DatabaseSeeder extends Seeder
         try {
             $this->command->info('🌱 Démarrage du seeding avec des données réalistes...');
             
+            // 0. Créer les catégories spécifiques au camping
+            $this->call(CampCategoriesSeeder::class);
+
             // 1. Créer d'abord les données de base avec des vraies données
             $this->call(RealisticDataSeeder::class);
             

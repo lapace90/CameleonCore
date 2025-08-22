@@ -45,6 +45,12 @@ export default [
         name: 'FullAgenda',
         component: FullCalendar
       },
+      // Routes catégories
+      {
+        path: 'categories',
+        name: 'AdminCategories',
+        component: () => import('../views/Categories.vue')
+      },
       // Routes produits
       {
         path: 'products/:type',

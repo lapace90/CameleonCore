@@ -21,7 +21,7 @@
 
     <div class="card-content">
       <h3 class="product-name">{{ product.name }}</h3>
-      <p v-if="product.category" class="product-category">{{ product.category.name }}</p>
+      <CategoryBadge v-if="product.category" :category="product.category" />
       <p v-if="product.description" class="product-description">
         {{ truncateText(product.description, 80) }}
       </p>
@@ -64,6 +64,8 @@
 </template>
 
 <script>
+import CategoryBadge from './CategoryBadge.vue'
+
 export default {
   name: 'ProductCard',
   props: {
@@ -98,6 +100,10 @@ export default {
       return names[tagName] || tagName
     }
   },
+  composants: {
+    CategoryBadge
+  },
+  
   computed: {
     hasProductTags() {
       return (this.product.globalTags && this.product.globalTags.length > 0) ||

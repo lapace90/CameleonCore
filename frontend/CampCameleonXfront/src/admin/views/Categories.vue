@@ -1,0 +1,386 @@
+// frontend/CampCameleonXfront/src/admin/views/Categories.vue
+<template>
+  <div class="categories-page">
+    <!-- Header -->
+    <div class="page-header">
+      <div class="header-left">
+        <h1 class="page-title">
+          <i class="fas fa-tags"></i>
+          Gestion des Catégories
+        </h1>
+        <p class="page-subtitle">{{ totalCategories }} catégories organisées par type</p>
+      </div>
+      <div class="header-actions">
+        <!-- TODO: Réactiver quand CategoryModal sera créé -->
+        <!-- <button @click="showCreateModal = true" class="btn btn-primary">
+          <i class="fas fa-plus"></i>
+          Nouvelle catégorie
+        </button> -->
+        <span class="text-muted">Gestion en lecture seule pour l'instant</span>
+      </div>
+    </div>
+
+    <!-- Filtres -->
+    <div class="categories-filters">
+      <div class="filter-group">
+        <select v-model="selectedType" @change="filterByType" class="filter-select">
+          <option value="">Tous les types</option>
+          <option value="Activity">🏕️ Activités</option>
+          <option value="Menu">🍽️ Menus</option>
+          <option value="Dish">🍲 Plats</option>
+          <option value="Room">🏠 Hébergements</option>
+          <option value="Ingredient">🌿 Ingrédients</option>
+        </select>
+        
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input 
+            v-model="searchTerm" 
+            type="text" 
+            placeholder="Rechercher une catégorie..." 
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Vue par type -->
+    <div class="categories-content">
+      <div 
+        v-for="(typeCategories, typeName) in filteredGroupedCategories" 
+        :key="typeName"
+        class="category-type-section"
+      >
+        <div class="type-header">
+          <div class="type-info">
+            <h3>{{ getTypeLabel(typeName) }}</h3>
+            <span class="count">{{ typeCategories.length }} catégories</span>
+          </div>
+          <!-- TODO: Réactiver quand CategoryModal sera créé -->
+          <!-- <button @click="createCategory(typeName)" class="btn btn-outline btn-sm">
+            <i class="fas fa-plus"></i>
+            Ajouter
+          </button> -->
+        </div>
+
+        <div class="categories-grid">
+          <div 
+            v-for="category in typeCategories" 
+            :key="category.id"
+            class="category-card"
+          >
+            <div class="category-content">
+              <div class="category-header">
+                <CategoryBadge :category="category" size="normal" />
+                <div class="category-actions">
+                  <!-- TODO: Réactiver quand les modales seront créées -->
+                  <!-- <button @click="editCategory(category)" class="btn-icon" title="Modifier">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button @click="deleteCategory(category)" class="btn-icon btn-danger" title="Supprimer">
+                    <i class="fas fa-trash"></i>
+                  </button> -->
+                  <small class="text-muted">Actions à venir</small>
+                </div>
+              </div>
+              
+              <p class="category-description">{{ category.description }}</p>
+              
+              <div class="category-stats">
+                <span class="stat-item">
+                  <i class="fas fa-box"></i>
+                  {{ getCategoryProductCount(category.id) }} produits
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TODO: Ajouter les modales plus tard -->
+    <!-- Modal de création/édition -->
+    <!-- Modal de confirmation suppression -->
+  </div>
+</template>
+
+<script>
+import CategoryBadge from '@/admin/views/products/components/CategoryBadge.vue'
+import ProductsApi from '@/services/ProductsApi'  // Utiliser l'API existante
+
+export default {
+  name: 'Categories',
+  components: {
+    CategoryBadge
+    // CategoryModal,  // À ajouter plus tard
+    // ConfirmModal   // À ajouter plus tard
+  },
+  
+  data() {
+    return {
+      categories: [],
+      selectedType: '',
+      searchTerm: '',
+      loading: false,
+      
+      // Modals
+      showCreateModal: false,
+      showEditModal: false,
+      showDeleteModal: false,
+      selectedCategory: null,
+      categoryToDelete: null,
+      modalMode: 'create'
+    }
+  },
+
+  computed: {
+    totalCategories() {
+      return this.categories.length
+    },
+
+    groupedCategories() {
+      const grouped = {}
+      this.categories.forEach(category => {
+        if (!grouped[category.type]) {
+          grouped[category.type] = []
+        }
+        grouped[category.type].push(category)
+      })
+      return grouped
+    },
+
+    filteredGroupedCategories() {
+      let filtered = { ...this.groupedCategories }
+      
+      // Filtrer par type
+      if (this.selectedType) {
+        filtered = { [this.selectedType]: filtered[this.selectedType] || [] }
+      }
+      
+      // Filtrer par recherche
+      if (this.searchTerm) {
+        Object.keys(filtered).forEach(type => {
+          filtered[type] = filtered[type].filter(cat =>
+            cat.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+            cat.description?.toLowerCase().includes(this.searchTerm.toLowerCase())
+          )
+        })
+      }
+      
+      return filtered
+    }
+  },
+
+  mounted() {
+    this.fetchCategories()
+  },
+
+  methods: {
+    async fetchCategories() {
+      this.loading = true
+      try {
+        this.categories = await ProductsApi.getCategories()  // Utiliser l'API existante
+      } catch (error) {
+        console.error('Erreur lors du chargement des catégories:', error)
+      } finally {
+        this.loading = false
+      }
+    },
+
+    getTypeLabel(type) {
+      const labels = {
+        'Activity': '🏕️ Activités',
+        'Menu': '🍽️ Menus',
+        'Dish': '🍲 Plats', 
+        'Room': '🏠 Hébergements',
+        'Ingredient': '🌿 Ingrédients'
+      }
+      return labels[type] || type
+    },
+
+    getCategoryProductCount(categoryId) {
+      // TODO: Implémenter le comptage des produits par catégorie
+      return Math.floor(Math.random() * 20) // Placeholder
+    },
+
+    createCategory(type = null) {
+      this.selectedCategory = type ? { type } : null
+      this.modalMode = 'create'
+      this.showCreateModal = true
+    },
+
+    editCategory(category) {
+      this.selectedCategory = { ...category }
+      this.modalMode = 'edit'
+      this.showEditModal = true
+    },
+
+    deleteCategory(category) {
+      this.categoryToDelete = category
+      this.showDeleteModal = true
+    },
+
+    async handleSaveCategory(categoryData) {
+      // TODO: Implémenter avec ProductsApi ou créer CategoriesApi
+      console.log('Sauvegarder catégorie:', categoryData)
+      this.closeModal()
+    },
+
+    async confirmDelete() {
+      // TODO: Implémenter avec ProductsApi ou créer CategoriesApi  
+      console.log('Supprimer catégorie:', this.categoryToDelete)
+      this.showDeleteModal = false
+      this.categoryToDelete = null
+    },
+
+    closeModal() {
+      this.showCreateModal = false
+      this.showEditModal = false
+      this.selectedCategory = null
+    },
+
+    filterByType() {
+      // La réactivité se charge du filtrage
+    }
+  }
+}
+</script>
+
+<style scoped>
+.categories-page {
+  padding: 1.5rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+}
+
+.categories-filters {
+  background: white;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid #e9ecef;
+  margin-bottom: 1.5rem;
+}
+
+.filter-group {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.category-type-section {
+  background: white;
+  border-radius: 0.75rem;
+  border: 1px solid #e9ecef;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+.type-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: #f8f9fe;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.type-info h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  color: #32325d;
+}
+
+.count {
+  font-size: 0.875rem;
+  color: #8898aa;
+}
+
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+  padding: 1.5rem;
+}
+
+.category-card {
+  border: 1px solid #e9ecef;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.category-card:hover {
+  border-color: #5e72e4;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.category-content {
+  padding: 1rem;
+}
+
+.category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.category-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-icon {
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 0.375rem;
+  background: #f8f9fe;
+  color: #8898aa;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-icon:hover {
+  background: #e9ecef;
+  color: #32325d;
+}
+
+.btn-icon.btn-danger:hover {
+  background: #f56565;
+  color: white;
+}
+
+.category-description {
+  color: #8898aa;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  margin-bottom: 1rem;
+}
+
+.category-stats {
+  display: flex;
+  gap: 1rem;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: #8898aa;
+}
+
+.stat-item i {
+  font-size: 0.875rem;
+}
+
+.text-muted {
+  color: #8898aa;
+  font-size: 0.875rem;
+}
+</style>

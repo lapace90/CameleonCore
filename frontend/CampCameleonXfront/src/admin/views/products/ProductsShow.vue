@@ -36,9 +36,11 @@
         <div class="filter-group">
           <select v-model="filters.category" @change="applyFilters" class="filter-select">
             <option value="">Toutes les catégories</option>
-            <option v-for="category in categories" :key="category.id" :value="category.id">
-              {{ category.name }}
-            </option>
+            <optgroup v-for="(typeCategories, typeName) in groupedCategories" :key="typeName" :label="typeName">
+              <option v-for="category in typeCategories" :key="category.id" :value="category.id">
+                {{ category.name }}
+              </option>
+            </optgroup>
           </select>
 
           <select v-model="filters.status" @change="applyFilters" class="filter-select">
@@ -184,6 +186,39 @@ export default {
       console.log('PRODUCT_CONFIGS[this.type]:', PRODUCT_CONFIGS[this.type])
       return PRODUCT_CONFIGS[this.type] || PRODUCT_CONFIGS.activity
     },
+    groupedCategories() {
+      const typeLabels = {
+        'Activity': '🏕️ Activités',
+        'Menu': '🍽️ Menus',
+        'Dish': '🍲 Plats',
+        'Room': '🏠 Hébergements',
+        'Ingredient': '🌿 Ingrédients'
+      }
+
+      const grouped = {}
+
+      // Filtrer les catégories selon le type de produit actuel
+      const relevantCategories = this.categories.filter(cat => {
+        // Mapper les types de produits vers les types de catégories
+        const productToCategoryType = {
+          'activity': 'Activity',
+          'menu': 'Menu',
+          'dish': 'Dish',
+          'room': 'Room',
+          'ingredient': 'Ingredient'
+        }
+        return cat.type === productToCategoryType[this.type]
+      })
+      relevantCategories.forEach(category => {
+        const typeLabel = typeLabels[category.type] || category.type
+        if (!grouped[typeLabel]) {
+          grouped[typeLabel] = []
+        }
+        grouped[typeLabel].push(category)
+      })
+      return grouped
+    },
+
     createRoute() {
       return { name: 'ProductCreate', params: { type: this.type } }
     },
@@ -251,8 +286,9 @@ export default {
 
     async fetchCategories() {
       try {
-        const categories = await ProductsApi.getCategories()
-        this.categories = categories
+        // Récupérer TOUTES les catégories puis filtrer côté client
+        const allCategories = await ProductsApi.getAllCategories()
+        this.categories = allCategories
       } catch (error) {
         console.warn('Impossible de charger les catégories')
         this.categories = []

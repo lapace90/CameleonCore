@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('categories', function (Blueprint $table) {
             $table->id(); 
-            $table->enum('type', ['Activity', 'Menu']);
+            $table->enum('type', ['Activity', 'Menu', 'Dish', 'Room', 'Ingredient']);
             $table->string('name', 50);
             $table->string('photo', 255)->nullable();
             $table->text('description')->nullable();

@@ -23,18 +23,23 @@
           <span>Services</span>
         </li>
         <!-- Restauration avec sous-menu -->
-         <li class="nav-item">
+        <li class="nav-item">
           <a @click="toggleSubmenu('restauration')" class="nav-link" style="cursor: pointer;">
             <i class="fa-solid fa-utensils"></i>
             <span>Restauration</span>
-            <i class="fas fa-chevron-down" :class="{ rotated: openSubmenu === 'restauration' }" style="margin-left: auto; font-size: 0.8rem;"></i>
+            <i class="fas fa-chevron-down" :class="{ rotated: openSubmenu === 'restauration' }"
+              style="margin-left: auto; font-size: 0.8rem;"></i>
           </a>
           <ul v-show="openSubmenu === 'restauration'" style="list-style: none; padding-left: 2rem; margin: 0;">
-            <li><router-link to="/admin/products/menu" class="nav-link" style="padding-left: 2rem; font-size: 0.9rem;">Gérer les Menus</router-link></li>
-            <li><router-link to="/admin/products/dish" class="nav-link" style="padding-left: 2rem; font-size: 0.9rem;">Gérer les Plats</router-link></li>
-            <li><router-link to="/admin/products/ingredient" class="nav-link" style="padding-left: 2rem; font-size: 0.9rem;">Ingrédients</router-link></li>
-            <!-- <li><router-link to="/admin/restauration/reservations" class="nav-link" style="padding-left: 2rem; font-size: 0.9rem;">Réservations</router-link></li> Penser à l'URL -->
-            <li><router-link to="/admin/products/stock" class="nav-link" style="padding-left: 2rem; font-size: 0.9rem;">Stock et Courses</router-link></li>
+            <li><router-link to="/admin/products/menu" class="nav-link"
+                style="padding-left: 2rem; font-size: 0.9rem;">Gérer les Menus</router-link></li>
+            <li><router-link to="/admin/products/dish" class="nav-link"
+                style="padding-left: 2rem; font-size: 0.9rem;">Gérer les Plats</router-link></li>
+            <li><router-link to="/admin/products/ingredient" class="nav-link"
+                style="padding-left: 2rem; font-size: 0.9rem;">Ingrédients</router-link></li>
+           
+            <li><router-link to="/admin/products/stock" class="nav-link"
+                style="padding-left: 2rem; font-size: 0.9rem;">Stock et Courses</router-link></li>
           </ul>
         </li>
         <!-- Activités -->
@@ -51,6 +56,20 @@
             <span>Chambres</span>
           </router-link>
         </li>
+         <!-- Gestion des catégories -->
+            <li class="nav-item">
+              <router-link to="/admin/categories" class="nav-link">
+                <i class="fas fa-tags"></i>
+                <span>Catégories</span>
+              </router-link>
+            </li>
+            <!-- Tags et étiquettes -->
+            <li class="nav-item">
+              <router-link to="/admin/tags" class="nav-link">
+                <i class="fas fa-bookmark"></i>
+                <span>Tags</span>
+              </router-link>
+            </li>
         <!-- Divider -->
         <li class="nav-divider">
           <hr>
@@ -124,16 +143,20 @@ export default {
 .submenu-toggle {
   justify-content: space-between;
 }
+
 .submenu {
   list-style: none;
   padding-left: 2rem;
 }
+
 .submenu-link {
   display: block;
   padding: 0.5rem 1rem;
   color: #9ca3af;
   text-decoration: none;
 }
+
 .rotated {
   transform: rotate(180deg);
-}</style>
+}
+</style>
