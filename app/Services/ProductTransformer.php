@@ -181,7 +181,7 @@ class ProductTransformer
     /**
      * ✅ CORRECTION : Configuration des types robuste
      */
-    private static function getTypeConfig(?string $type): array
+    public static function getTypeConfig(?string $type): array
     {
         $configs = [
             'App\\Models\\Activity' => [

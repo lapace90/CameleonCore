@@ -6,6 +6,7 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use Illuminate\Http\Request;
 use App\Models\Product;
+use App\Services\ProductTransformer;
 
 class ProductCollectionProvider implements ProviderInterface
 {
@@ -193,40 +194,8 @@ class ProductCollectionProvider implements ProviderInterface
 
     public function getTypeConfig(string $type): array
     {
-        $configs = [
-            'App\\Models\\Activity' => [
-                'label' => 'Activités',
-                'singular' => 'Activité',
-                'icon' => 'fas fa-hiking',
-                'color' => '#3b82f6'
-            ],
-            'App\\Models\\Menu' => [
-                'label' => 'Menus',
-                'singular' => 'Menu',
-                'icon' => 'fas fa-utensils',
-                'color' => '#10b981'
-            ],
-            'App\\Models\\Dish' => [
-                'label' => 'Plats',
-                'singular' => 'Plat',
-                'icon' => 'fas fa-drumstick-bite',
-                'color' => '#f97316'
-            ],
-            'App\\Models\\Ingredient' => [
-                'label' => 'Ingrédients',
-                'singular' => 'Ingrédient',
-                'icon' => 'fas fa-seedling',
-                'color' => '#22c55e'
-            ],
-            'App\\Models\\Room' => [
-                'label' => 'Hébergements',
-                'singular' => 'Hébergement',
-                'icon' => 'fas fa-bed',
-                'color' => '#f59e0b'
-            ]
-        ];
-
-        return $configs[$type] ?? $configs['App\\Models\\Activity'];
+        // Utiliser la méthode existante de ProductTransformer
+        return ProductTransformer::getTypeConfig($type);
     }
 
     private function getListFields($product): array
