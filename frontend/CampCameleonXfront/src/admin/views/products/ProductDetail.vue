@@ -116,7 +116,9 @@
               </div>
               <div v-if="product.category" class="info-item">
                 <label>Catégorie</label>
-                <span>{{ product.category.name }}</span>
+                <div v-foreach="product.category" :key="product.category.id" class="info-item">
+                  <CategoryBadge v-if="product.category" :category="product.category" />
+                </div>
               </div>
               <div class="info-item">
                 <label>Statut</label>
@@ -229,6 +231,7 @@
 
 <script>
 import axios from 'axios'
+import CategoryBadge from './components/CategoryBadge.vue'
 
 export default {
   name: 'ProductDetail',
@@ -242,6 +245,9 @@ export default {
       product: null,
       error: null
     }
+  },
+  components: {
+    CategoryBadge
   },
 
   computed: {

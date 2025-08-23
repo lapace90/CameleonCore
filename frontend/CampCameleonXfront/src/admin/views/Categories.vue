@@ -1,5 +1,6 @@
 // frontend/CampCameleonXfront/src/admin/views/Categories.vue
 <template>
+    
   <div class="categories-page">
     <!-- Header -->
     <div class="page-header">
@@ -41,6 +42,11 @@
           />
         </div>
       </div>
+    </div>
+          <!-- Loading -->
+    <div v-if="loading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Chargement...</p>
     </div>
 
     <!-- Vue par type -->

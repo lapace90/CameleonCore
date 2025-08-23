@@ -16,7 +16,9 @@
   transition: all $transition-base;
 
   // Icône dans le badge
-  .fa, .fas, .far {
+  .fa,
+  .fas,
+  .far {
     font-size: 0.75em;
   }
 }
@@ -163,7 +165,7 @@
 
 .badge-clickable {
   cursor: pointer;
-  
+
   &:hover {
     transform: translateY(-1px);
     box-shadow: $shadow-soft;
@@ -189,6 +191,44 @@
 }
 
 // ========================================
+// BADGES CATÉGORIES - Couleurs par défaut
+// ========================================
+.category-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.85rem;
+  font-weight: 600 !important;
+  color: white !important;
+  width: fit-content;
+}
+
+.type-activity {
+  background-color: #3b82f6;
+}
+
+.type-menu {
+  background-color: #10b981;
+}
+
+.type-dish {
+  background-color: #f97316;
+}
+
+.type-room {
+  background-color: #f59e0b;
+}
+
+.type-ingredient {
+  background-color: #22c55e;
+}
+
+/* Sécurité si la clé est vide/inconnue */
+.type-default {
+  background-color: $primary-dark;
+}
+
+// ========================================
 // BADGES DANS LES RELATIONS
 // ========================================
 
@@ -211,7 +251,7 @@
   .dietary-badges {
     gap: 0.25rem;
   }
-  
+
   .badge {
     font-size: $font-size-xs;
     padding: 0.125rem 0.5rem;

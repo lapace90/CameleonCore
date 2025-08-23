@@ -1,35 +1,19 @@
-<!-- src/admin/views/products/components/CategoryBadge.vue -->
+<!-- classes: type-<base>, ex: type-room -->
 <template>
-  <span v-if="category" class="category-badge" :class="`type-${category.type.toLowerCase()}`">
-    {{ category.name }}
-  </span>
+  <span class="category-badge" :class="`type-${base || 'default'}`">{{ label }}</span>
 </template>
 
 <script>
 export default {
-  name: 'CategoryBadge',
-  props: {
-    category: {
-      type: Object,
-      required: true
+  props:{ category:[Object,String], baseType:{type:String,default:''}},
+  computed:{
+    label(){ const c=this.category; return (c?.name ?? c?.type ?? c ?? '').toString() },
+    base(){
+      const b=(this.baseType||'').toLowerCase()
+      if (b) return b
+      const c=this.category; const key=(c?.type??c?.slug??c?.name??c??'').toString().toLowerCase()
+      return ['activity','menu','dish','room','ingredient'].find(t=>key.includes(t)) || ''
     }
   }
 }
 </script>
-
-<style scoped>
-.category-badge {
-  display: inline-block;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.375rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: white;
-}
-
-.type-activity { background-color: #3b82f6; }
-.type-menu { background-color: #10b981; }
-.type-dish { background-color: #f97316; }
-.type-room { background-color: #f59e0b; }
-.type-ingredient { background-color: #22c55e; }
-</style>

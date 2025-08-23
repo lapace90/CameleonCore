@@ -88,7 +88,7 @@
 <script>
 import ProductsApi from '@/services/ProductsApi'
 import ProductRelations from './ProductRelations.vue'
-import ProductTypeFields from './ProductTypeFields.vue'
+import ProductTypeFields from './components/ProductTypeFields.vue'
 import ProductImageUpload from './components/ProductImageUpload.vue'
 import ProductBasicFields from './components/ProductBasicFields.vue'
 import ProductFormActions from './components/ProductFormActions.vue'
@@ -216,12 +216,14 @@ export default {
         image: this.product.image || null,
         productable: { ...this.product.productableDetail }
       }
+      this.form.categoryIds = this.extractCategoryIds(this.product)
+
     },
     // Gérer les changements de relations locales
     onRelationsChanged(relations) {
       this.localRelations = relations
     },
-    // Modifier buildPayload pour inclure les relations
+
     buildPayload() {
       const payload = {
         name: this.form.name,
@@ -239,12 +241,44 @@ export default {
         payload.productable = { ...this.form.productable }
       }
 
-      // ✅ AJOUTER : Inclure les relations locales
+      // Inclure les relations locales
       if (this.typeConfig.hasRelation) {
         payload.relations = this.localRelations
       }
+      const ids = Array.isArray(this.form.categoryIds) ? this.form.categoryIds : []
+
+      // si le backend renvoie déjà "categories" -> on répond "categories"
+      // sinon: si 0/1 sélection -> on garde "category" (compat)
+      const backendIsMulti = Array.isArray(this.product?.categories)
+
+      if (backendIsMulti || ids.length > 1) {
+        payload.categories = ids.map(id => `/api/categories/${id}`)
+        // ⚠ si ton backend est strict "allow_extra_attributes=false", ne PAS aussi envoyer 'category'
+      } else {
+        payload.category = ids[0] ? `/api/categories/${ids[0]}` : null
+      }
 
       return payload
+    },
+
+    extractIdFromIri(iri) {
+      if (!iri) return null
+      const m = String(iri).match(/\/(\d+)$|(\d+)(?=\D*$)/)
+      return m ? Number(m[1] || m[2]) : null
+    },
+    extractCategoryIds(product) {
+      if (!product) return []
+      // cas multi: product.categories (IRIs ou objets)
+      if (Array.isArray(product.categories)) {
+        return product.categories
+          .map(c => typeof c === 'string' ? this.extractIdFromIri(c) : Number(c?.id))
+          .filter(id => Number.isFinite(id))
+      }
+      // compat single: product.category
+      const single =
+        typeof product.category === 'string' ? this.extractIdFromIri(product.category)
+          : (product.category && Number(product.category.id)) || null
+      return single ? [single] : []
     },
 
     // Initialiser les relations locales lors du chargement

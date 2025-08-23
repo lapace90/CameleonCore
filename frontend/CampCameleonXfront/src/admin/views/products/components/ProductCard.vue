@@ -21,7 +21,8 @@
 
     <div class="card-content">
       <h3 class="product-name">{{ product.name }}</h3>
-      <CategoryBadge v-if="product.category" :category="product.category" />
+      <CategoryBadge v-if="product.category" :category="product.category" class="mb-2" />
+      
       <p v-if="product.description" class="product-description">
         {{ truncateText(product.description, 80) }}
       </p>
@@ -71,6 +72,9 @@ export default {
   props: {
     product: { type: Object, required: true },
     selected: { type: Boolean, default: false }
+  },
+  components: {
+    CategoryBadge
   },
     mounted() {
     // ✅ TEMPORAIRE : pour déboguer
