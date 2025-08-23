@@ -34,13 +34,12 @@
         </div>
 
         <div class="filter-group">
+          <!-- Catégories (dérivées des produits courants) -->
           <select v-model="filters.category" @change="applyFilters" class="filter-select">
             <option value="">Toutes les catégories</option>
-            <optgroup v-for="(typeCategories, typeName) in groupedCategories" :key="typeName" :label="typeName">
-              <option v-for="category in typeCategories" :key="category.id" :value="category.id">
-                {{ category.name }}
-              </option>
-            </optgroup>
+            <option v-for="c in availableCategories" :key="c.id" :value="c.id">
+              {{ c.name }} ({{ c.count }})
+            </option>
           </select>
 
           <select v-model="filters.status" @change="applyFilters" class="filter-select">
@@ -93,7 +92,7 @@
 
       <!-- Vue grille -->
       <div v-else-if="viewMode === 'grid'" class="products-grid">
-        <ProductCard v-for="product in products" :key="product.id" :product="product"
+        <ProductCard v-for="product in visibleProducts" :key="product.id" :product="product"
           :selected="selectedProducts.includes(product.id)" @select="toggleSelection(product.id)" @view="viewProduct"
           @edit="editProduct" @duplicate="duplicateProduct" @delete="deleteProduct"
           @toggle-status="toggleProductStatus" />
@@ -101,7 +100,7 @@
 
       <!-- Vue liste -->
       <div v-else class="products-table">
-        <ProductTable :products="products" :type-config="typeConfig" :selected="selectedProducts"
+        <ProductTable :products="visibleProducts" :type-config="typeConfig" :selected="selectedProducts"
           @select="toggleSelection" @select-all="toggleAllSelection" @view="viewProduct" @edit="editProduct"
           @duplicate="duplicateProduct" @delete="deleteProduct" @sort="handleSort" />
       </div>
@@ -133,6 +132,7 @@ import ProductTable from './components/ProductTable.vue'
 import ProductStats from './components/ProductStats.vue'
 import BulkActions from './components/BulkActions.vue'
 import Pagination from './components/Pagination.vue'
+import CategoryBadge from './components/CategoryBadge.vue'
 import { PRODUCT_CONFIGS } from '@/shared/configs/productConfigs'
 
 export default {
@@ -140,6 +140,7 @@ export default {
   components: {
     ProductCard,
     ProductTable,
+    CategoryBadge,
     ProductStats,
     BulkActions,
     Pagination
@@ -153,9 +154,12 @@ export default {
       loading: false,
       viewMode: 'grid',
       products: [],
-      categories: [],
       selectedProducts: [],
       error: null,
+      sort: {
+        by: 'createdAt',   // 'name' | 'price' | 'createdAt' | etc.
+        dir: 'desc'        // 'asc' | 'desc'
+      },
 
       filters: {
         search: '',
@@ -175,7 +179,8 @@ export default {
         active: 0,
         draft: 0,
         revenue: 0
-      }
+      },
+      sort: { by: '', dir: 'asc' } // 'name' | 'price' | 'createdAt'... + 'asc' | 'desc'
     }
   },
 
@@ -186,38 +191,79 @@ export default {
       console.log('PRODUCT_CONFIGS[this.type]:', PRODUCT_CONFIGS[this.type])
       return PRODUCT_CONFIGS[this.type] || PRODUCT_CONFIGS.activity
     },
-    groupedCategories() {
-      const typeLabels = {
-        'Activity': '🏕️ Activités',
-        'Menu': '🍽️ Menus',
-        'Dish': '🍲 Plats',
-        'Room': '🏠 Hébergements',
-        'Ingredient': '🌿 Ingrédients'
+    /** Catégories présentes dans les produits actuellement listés
+     *  -> tableau trié: [{ id, name, count }]
+     */
+    availableCategories() {
+      const toCategory = (p) => {
+        const c = p?.category
+        if (!c || (!c.id && !c.name)) return { id: 'null', name: 'Sans catégorie' }
+        return { id: String(c.id ?? c.slug ?? c.name), name: c.name ?? String(c.id) }
+      }
+      const map = new Map()
+      for (const p of this.products) {
+        const c = toCategory(p)
+        if (!map.has(c.id)) map.set(c.id, { ...c, count: 0 })
+        map.get(c.id).count++
+      }
+      return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name))
+    },
+
+    visibleProducts() {
+      const search = (this.filters.search || '').toLowerCase().trim()
+      const wantedCat = this.filters.category ? String(this.filters.category) : ''
+      const wantedStatus = this.filters.status // '', 'active', 'inactive', 'draft'
+
+      // helper catégorie robuste
+      const catOf = (p) => {
+        const c = p?.category
+        if (!c || (!c.id && !c.name)) return 'null'
+        return String(c.id ?? c.slug ?? c.name)
       }
 
-      const grouped = {}
+      // 1) filtre
+      let list = this.products.filter(p => {
+        // statut
+        if (wantedStatus === 'active' && !(p.status && !p.is_draft && !p.isDraft)) return false
+        if (wantedStatus === 'inactive' && (p.status)) return false
+        if (wantedStatus === 'draft' && !(p.is_draft || p.isDraft)) return false
 
-      // Filtrer les catégories selon le type de produit actuel
-      const relevantCategories = this.categories.filter(cat => {
-        // Mapper les types de produits vers les types de catégories
-        const productToCategoryType = {
-          'activity': 'Activity',
-          'menu': 'Menu',
-          'dish': 'Dish',
-          'room': 'Room',
-          'ingredient': 'Ingredient'
+        // catégorie
+        if (wantedCat && catOf(p) !== wantedCat) return false
+
+        // recherche (nom + desc)
+        if (search) {
+          const hay = `${p.name || ''} ${p.description || ''}`.toLowerCase()
+          if (!hay.includes(search)) return false
         }
-        return cat.type === productToCategoryType[this.type]
+
+        return true
       })
-      relevantCategories.forEach(category => {
-        const typeLabel = typeLabels[category.type] || category.type
-        if (!grouped[typeLabel]) {
-          grouped[typeLabel] = []
-        }
-        grouped[typeLabel].push(category)
-      })
-      return grouped
+
+      // 2) tri
+      const { by, dir } = this.sort
+      if (by) {
+        const sign = dir === 'desc' ? -1 : 1
+        list = [...list].sort((a, b) => {
+          const av = (a?.[by] ?? '')
+          const bv = (b?.[by] ?? '')
+          // num ou date ?
+          const aNum = typeof av === 'number' ? av : Number.isFinite(+av) ? +av : null
+          const bNum = typeof bv === 'number' ? bv : Number.isFinite(+bv) ? +bv : null
+
+          if (aNum !== null && bNum !== null) return (aNum - bNum) * sign
+          // tentative date
+          const aTime = Date.parse(av); const bTime = Date.parse(bv)
+          if (!Number.isNaN(aTime) && !Number.isNaN(bTime)) return (aTime - bTime) * sign
+
+          // fallback alpha
+          return String(av).localeCompare(String(bv)) * sign
+        })
+      }
+
+      return list
     },
+
 
     createRoute() {
       return { name: 'ProductCreate', params: { type: this.type } }
@@ -253,7 +299,6 @@ export default {
     async initialize() {
       await Promise.all([
         this.fetchProducts(),
-        this.fetchCategories()
       ])
     },
 
@@ -281,17 +326,6 @@ export default {
         this.products = []
       } finally {
         this.loading = false
-      }
-    },
-
-    async fetchCategories() {
-      try {
-        // Récupérer TOUTES les catégories puis filtrer côté client
-        const allCategories = await ProductsApi.getAllCategories()
-        this.categories = allCategories
-      } catch (error) {
-        console.warn('Impossible de charger les catégories')
-        this.categories = []
       }
     },
 
@@ -345,6 +379,7 @@ export default {
     handleSort(sortBy, direction) {
       // Implémentation du tri
       console.log('Tri par:', sortBy, direction)
+      this.sort = { by: sortBy, dir: direction || 'asc' }
     },
 
     // Actions sur les produits
