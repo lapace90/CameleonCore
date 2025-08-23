@@ -1,106 +1,74 @@
-// frontend/CampCameleonXfront/src/services/CategoriesApi.js
-import ApiService from './ApiService'
+// src/services/CategoriesApi.js - FIX SIMPLE
+import axios from 'axios'
 
 class CategoriesApi {
-  /**
-   * Récupérer toutes les catégories
-   */
+  static defaultHeaders = {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json'
+  }
+
   static async getAll() {
     try {
-      const response = await ApiService.get('/categories')
+      const response = await axios.get('/api/categories', {
+        headers: this.defaultHeaders
+      })
       return response.data
     } catch (error) {
-      console.error('Erreur lors de la récupération des catégories:', error)
+      console.error('Erreur categories:', error)
       throw error
     }
   }
 
-  /**
-   * Récupérer les catégories par type
-   */
   static async getByType(type) {
     try {
-      const response = await ApiService.get(`/categories?type=${type}`)
+      const response = await axios.get(`/api/categories?type=${type}`, {
+        headers: this.defaultHeaders
+      })
       return response.data
     } catch (error) {
-      console.error(`Erreur lors de la récupération des catégories ${type}:`, error)
       throw error
     }
   }
 
-  /**
-   * Récupérer une catégorie par ID
-   */
   static async getById(id) {
     try {
-      const response = await ApiService.get(`/categories/${id}`)
+      const response = await axios.get(`/api/categories/${id}`, {
+        headers: this.defaultHeaders
+      })
       return response.data
     } catch (error) {
-      console.error(`Erreur lors de la récupération de la catégorie ${id}:`, error)
       throw error
     }
   }
 
-  /**
-   * Créer une nouvelle catégorie
-   */
-  static async create(categoryData) {
+  static async create(data) {
     try {
-      const response = await ApiService.post('/categories', categoryData)
+      const response = await axios.post('/api/categories', data, {
+        headers: this.defaultHeaders
+      })
       return response.data
     } catch (error) {
-      console.error('Erreur lors de la création de la catégorie:', error)
       throw error
     }
   }
 
-  /**
-   * Mettre à jour une catégorie
-   */
-  static async update(id, categoryData) {
+  static async update(id, data) {
     try {
-      const response = await ApiService.put(`/categories/${id}`, categoryData)
+      const response = await axios.put(`/api/categories/${id}`, data, {
+        headers: this.defaultHeaders
+      })
       return response.data
     } catch (error) {
-      console.error(`Erreur lors de la mise à jour de la catégorie ${id}:`, error)
       throw error
     }
   }
 
-  /**
-   * Supprimer une catégorie
-   */
   static async delete(id) {
     try {
-      await ApiService.delete(`/categories/${id}`)
+      await axios.delete(`/api/categories/${id}`, {
+        headers: this.defaultHeaders
+      })
     } catch (error) {
-      console.error(`Erreur lors de la suppression de la catégorie ${id}:`, error)
-      throw error
-    }
-  }
-
-  /**
-   * Obtenir les statistiques des catégories
-   */
-  static async getStats() {
-    try {
-      const response = await ApiService.get('/categories/stats')
-      return response.data
-    } catch (error) {
-      console.error('Erreur lors de la récupération des statistiques:', error)
-      throw error
-    }
-  }
-
-  /**
-   * Récupérer le nombre de produits par catégorie
-   */
-  static async getProductCounts() {
-    try {
-      const response = await ApiService.get('/categories/product-counts')
-      return response.data
-    } catch (error) {
-      console.error('Erreur lors de la récupération des compteurs de produits:', error)
       throw error
     }
   }

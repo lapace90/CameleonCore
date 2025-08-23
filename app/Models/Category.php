@@ -1,13 +1,65 @@
 <?php
-// app/Models/Category.php - VERSION MISE À JOUR
+// app/Models/Category.php - VERSION API PLATFORM
 
 namespace App\Models;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\QueryParameter;
+use ApiPlatform\Laravel\Eloquent\Filter\EqualsFilter;
+use App\State\CategoryCollectionProvider;
+use App\State\CategoryItemProvider;
+use App\State\CategoryProcessor;
+use App\Data\CategoryOutputData;
+use App\Data\CategoryData;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new GetCollection(
+            uriTemplate: '/categories',
+            provider: CategoryCollectionProvider::class,
+            output: CategoryOutputData::class,
+            parameters: [
+                'type' => new QueryParameter(
+                    filter: EqualsFilter::class,
+                    description: 'Filter by category type'
+                ),
+                'search' => new QueryParameter(
+                    description: 'Search in name and description'
+                )
+            ]
+        ),
+        new Get(
+            uriTemplate: '/categories/{id}',
+            provider: CategoryItemProvider::class,
+            output: CategoryOutputData::class
+        ),
+        new Post(
+            uriTemplate: '/categories',
+            processor: CategoryProcessor::class,
+            output: CategoryOutputData::class,
+            input: CategoryData::class
+        ),
+        new Patch(
+            uriTemplate: '/categories/{id}',
+            processor: CategoryProcessor::class,
+            output: CategoryOutputData::class,
+            input: CategoryData::class
+        ),
+        new Delete(
+            uriTemplate: '/categories/{id}',
+            processor: CategoryProcessor::class
+        )
+    ],
+    paginationEnabled: true,
+    paginationItemsPerPage: 50
+)]
 class Category extends Model
 {
     use HasFactory;
@@ -38,6 +90,14 @@ class Category extends Model
         return $query->where('type', $type);
     }
 
+    public function scopeSearch($query, string $search)
+    {
+        return $query->where(function ($q) use ($search) {
+            $q->where('name', 'like', "%{$search}%")
+              ->orWhere('description', 'like', "%{$search}%");
+        });
+    }
+
     public function getPhotoUrlAttribute()
     {
         return $this->photo ? asset('storage/' . $this->photo) : null;
@@ -46,6 +106,11 @@ class Category extends Model
     public function getTypeLabelAttribute()
     {
         return self::TYPES[$this->type] ?? $this->type;
+    }
+
+    public function getProductCountAttribute()
+    {
+        return $this->products()->count();
     }
 
     public static function rules()
@@ -79,5 +144,22 @@ class Category extends Model
     public static function getAvailableTypes()
     {
         return self::TYPES;
+    }
+
+    // Helper pour obtenir les statistiques
+    public static function getStats()
+    {
+        $stats = [];
+        foreach (self::TYPES as $type => $label) {
+            $stats[$type] = [
+                'label' => $label,
+                'count' => self::where('type', $type)->count(),
+                'products_count' => self::where('type', $type)
+                    ->withCount('products')
+                    ->get()
+                    ->sum('products_count')
+            ];
+        }
+        return $stats;
     }
 }
