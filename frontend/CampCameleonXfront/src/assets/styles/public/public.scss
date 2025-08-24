@@ -1,10 +1,11 @@
-// public/public.scss - CORRIGÉ avec vos vraies variables
+// public/public.scss - on importe les composant du site clients
 @import '../variables';
 @import '../mixins';
 @import '../public-sections/menu';
 @import '../public-sections/devis';
 @import '../public-sections/services';
-// @import '../public-sections/contact';
+@import '../public-sections/contact';
+@import '../public-sections/activities';
 @import '../public-sections/landingpage';
 
 // ========================================
@@ -12,7 +13,7 @@
 // ========================================
 .about-section {
   padding: 8rem 0;
-  background: $bg-secondary; // Utilise votre $cream-light
+  background: $bg-secondary; 
 
   .about-content {
     display: grid;

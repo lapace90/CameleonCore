@@ -32,6 +32,3 @@ export default {
   }
 }
 </script>
-<style>
-@import './src/assets/styles/shared.scss';
-</style>

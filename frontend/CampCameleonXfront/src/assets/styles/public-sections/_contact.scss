@@ -93,8 +93,8 @@
 }
 
 /* Form Styles */
-.contact-form {
-  background: rgba(white, 0.9);
+.contact-form-section .contact-form {
+  background: rgba(white, 0.9) !important;
   padding: 2.5rem;
   border-radius: $border-radius-2xl;
   border: 1px solid $border-color;
@@ -112,7 +112,7 @@
   }
 }
 
-.form-group {
+.contact-form-group {
   margin-bottom: 1.5rem;
 
   label {
@@ -217,8 +217,7 @@
 }
 
 /* Button */
-.btn {
-  background: $gradient-warm;
+.btn-send {
   border: none;
   color: white;
   padding: 1rem 2rem;
