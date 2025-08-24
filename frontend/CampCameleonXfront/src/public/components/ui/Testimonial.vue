@@ -60,7 +60,7 @@
     <Transition name="modal">
       <div v-if="showImageModal" class="image-modal" @click="closeImageModal">
         <div class="modal-content" @click.stop>
-          <button class="close-btn" @click="closeImageModal">
+          <button class="testimonial-close-btn" @click="closeImageModal">
             <i class="fas fa-times"></i>
           </button>
           <img :src="selectedImage?.url" :alt="selectedImage?.alt" class="zoomed-image" />
@@ -526,7 +526,7 @@ export default {
     overflow: hidden;
     box-shadow: $shadow-strong;
     
-    .close-btn {
+    .testimonial-close-btn {
       position: absolute;
       top: 1rem;
       right: 1rem;

@@ -25,14 +25,14 @@
 
             <form @submit.prevent="submitForm" class="contact-form">
               <div class="form-row">
-                <div class="form-group">
+                <div class="contact-form-group">
                   <label for="firstName">Prénom *</label>
                   <input type="text" id="firstName" v-model="form.firstName" :class="{ 'error': errors.firstName }"
                     required>
                   <span v-if="errors.firstName" class="error-message">{{ errors.firstName }}</span>
                 </div>
 
-                <div class="form-group">
+                <div class="contact-form-group ">
                   <label for="lastName">Nom *</label>
                   <input type="text" id="lastName" v-model="form.lastName" :class="{ 'error': errors.lastName }"
                     required>
@@ -41,19 +41,19 @@
               </div>
 
               <div class="form-row">
-                <div class="form-group">
+                <div class="contact-form-group">
                   <label for="email">Email *</label>
                   <input type="email" id="email" v-model="form.email" :class="{ 'error': errors.email }" required>
                   <span v-if="errors.email" class="error-message">{{ errors.email }}</span>
                 </div>
 
-                <div class="form-group">
+                <div class="contact-form-group">
                   <label for="phone">Téléphone</label>
                   <input type="tel" id="phone" v-model="form.phone">
                 </div>
               </div>
 
-              <div class="form-group">
+              <div class="contact-form-group">
                 <label for="subject">Sujet *</label>
                 <select id="subject" v-model="form.subject" :class="{ 'error': errors.subject }" required>
                   <option value="">Choisissez un sujet</option>
@@ -66,14 +66,14 @@
                 <span v-if="errors.subject" class="error-message">{{ errors.subject }}</span>
               </div>
 
-              <div class="form-group">
+              <div class="contact-form-group">
                 <label for="message">Message *</label>
                 <textarea id="message" v-model="form.message" :class="{ 'error': errors.message }" rows="6"
                   placeholder="Décrivez votre demande en détail..." required></textarea>
                 <span v-if="errors.message" class="error-message">{{ errors.message }}</span>
               </div>
 
-              <div class="form-group checkbox-group">
+              <div class="contact-form-group checkbox-group">
                 <label class="checkbox-label">
                   <input type="checkbox" v-model="form.newsletter">
                   <span class="checkmark"></span>
@@ -81,7 +81,7 @@
                 </label>
               </div>
 
-              <div class="form-group checkbox-group">
+              <div class="contact-form-group checkbox-group">
                 <label class="checkbox-label">
                   <input type="checkbox" v-model="form.privacy" :class="{ 'error': errors.privacy }" required>
                   <span class="checkmark"></span>
@@ -90,7 +90,7 @@
                 <span v-if="errors.privacy" class="error-message">{{ errors.privacy }}</span>
               </div>
 
-              <button type="submit" class="btn btn-primary btn-lg" :disabled="submitting">
+              <button type="submit" class="btn-send btn-primary" :disabled="submitting">
                 <i v-if="submitting" class="fas fa-spinner fa-spin"></i>
                 <i v-else class="fas fa-paper-plane"></i>
                 {{ submitting ? 'Envoi en cours...' : 'Envoyer le message' }}
@@ -432,8 +432,8 @@ export default {
 }
 
 /* Form Styles */
-.contact-form {
-  background: rgba(white, 0.9);
+.contact-form-section .contact-form {
+  background: rgba(white, 0.9) !important;
   padding: 2.5rem;
   border-radius: $border-radius-2xl;
   border: 1px solid $border-color;
@@ -451,7 +451,7 @@ export default {
   }
 }
 
-.form-group {
+.contact-form-group {
   margin-bottom: 1.5rem;
 
   label {
@@ -556,8 +556,7 @@ export default {
 }
 
 /* Button */
-.btn {
-  background: $gradient-warm;
+.btn-send {
   border: none;
   color: white;
   padding: 1rem 2rem;

@@ -371,10 +371,6 @@ export default {
   gap: 1.5rem;
 }
 
-.calendar-section {
-  /* Le widget prend sa taille naturelle */
-}
-
 .chart-card,
 .activity-card {
   background: white;
@@ -483,113 +479,6 @@ export default {
 .activity-time {
   color: #8898aa;
   font-size: 0.875rem;
-}
-
-/* Event Modal */
-.event-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.event-modal {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-  width: 90%;
-  max-width: 400px;
-  overflow: hidden;
-}
-
-.modal-header {
-  padding: 1.25rem 1.5rem;
-  background: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.modal-header h5 {
-  margin: 0;
-  font-weight: 600;
-  color: #374151;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 1.2rem;
-  color: #6b7280;
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 4px;
-}
-
-.close-btn:hover {
-  background: #e5e7eb;
-}
-
-.modal-body {
-  padding: 1.5rem;
-}
-
-.modal-body p {
-  margin: 0 0 0.75rem 0;
-  font-size: 0.9rem;
-  color: #374151;
-}
-
-.modal-body p:last-child {
-  margin-bottom: 0;
-}
-
-.modal-footer {
-  padding: 1rem 1.5rem;
-  background: #f9fafb;
-  border-top: 1px solid #e5e7eb;
-  display: flex;
-  gap: 0.75rem;
-  justify-content: flex-end;
-}
-
-.btn-cancel,
-.btn-edit {
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 0.875rem;
-  text-decoration: none;
-  display: inline-block;
-  text-align: center;
-  border: none;
-}
-
-.btn-cancel {
-  background: #f3f4f6;
-  color: #374151;
-}
-
-.btn-cancel:hover {
-  background: #e5e7eb;
-}
-
-.btn-edit {
-  background: #3b82f6;
-  color: white;
-}
-
-.btn-edit:hover {
-  background: #2563eb;
 }
 
 /* Responsive */
