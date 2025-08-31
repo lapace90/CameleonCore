@@ -15,6 +15,11 @@ const routes = [
     name: 'AdminLogin',
     component: () => import('../admin/views/Login.vue')
   },
+   {
+    path: '/admin/register',
+    name: 'AdminRegister',
+    component: () => import('../admin/views/Register.vue')
+  },
   // Routes publiques
   ...publicRoutes,
 

@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
@@ -53,6 +54,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'admin@campcanteloup.fr',
             'password' => 'password',
             'email_verified_at' => now(),
+            'remember_token' => Str::random(10),
         ]);
 
         // Créer quelques utilisateurs normaux

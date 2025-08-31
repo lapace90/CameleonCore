@@ -67,6 +67,7 @@ export default {
 
 <style scoped>
 .input-group {
+  width: 100%;
   margin-bottom: 1rem;
 }
 
@@ -84,6 +85,7 @@ export default {
 
 .input-wrapper {
   position: relative;
+  width: 100%;
 }
 
 .input-icon {

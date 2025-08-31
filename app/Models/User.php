@@ -8,8 +8,10 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use ApiPlatform\Metadata\ApiResource;
 use Laravel\Sanctum\HasApiTokens;
+use ApiPlatform\Metadata\GetCollection;
 
 #[ApiResource]
+#[GetCollection(uriTemplate: '/admin/users')]
 
 class User extends Authenticatable
 {

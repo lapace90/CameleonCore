@@ -2,13 +2,15 @@
     <div class="login-page">
         <form class="login-form" @submit.prevent="handleLogin">
             <h1>Connexion administrateur</h1>
-            <BaseInput v-model="email" type="email" label="Email" required />
-            <BaseInput v-model="password" type="password" label="Mot de passe" required />
+            <BaseInput v-model="email" type="email" placeholder="Email" required />
+            <BaseInput v-model="password" type="password" placeholder="Mot de passe" required />
             <BaseButton type="submit" variant="primary" block :loading="auth.loading">
                 Se connecter
             </BaseButton>
             <p v-if="auth.error" class="error-message">{{ auth.error }}</p>
+            <p class="switch-auth">Pas de compte ? <router-link to="/admin/register">Inscription</router-link></p>
         </form>
+
     </div>
 </template>
 
@@ -43,7 +45,7 @@ const handleLogin = async () => {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #f8f9fe;
+    background: var(--sand);
 }
 
 .login-form {
@@ -67,6 +69,10 @@ const handleLogin = async () => {
 
 .error-message {
     color: #f5365c;
+    margin-top: 1rem;
+    text-align: center;
+}
+.switch-auth {
     margin-top: 1rem;
     text-align: center;
 }

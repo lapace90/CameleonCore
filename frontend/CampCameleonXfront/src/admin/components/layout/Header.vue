@@ -36,7 +36,9 @@
 
         <!-- User menu -->
         <div class="user-menu">
-          <!-- Votre menu utilisateur existant -->
+          <button class="logout-btn btn-sm" @click="handleLogout">
+            <i class="fas fa-sign-out-alt"></i>
+          </button>
         </div>
       </div>
     </div>
@@ -45,12 +47,17 @@
 
 <script>
 import Breadcrumb from '@/admin/components/Breadcrumb.vue'
+import { useAuthStore } from '@/shared/stores/auth'
 
 export default {
   name: 'AdminHeader',
 
   components: {
     Breadcrumb
+  },
+  setup() {
+    const auth = useAuthStore()
+    return { auth }
   },
   data() {
     return {
@@ -156,20 +163,19 @@ export default {
       this.showUserMenu = !this.showUserMenu;
       this.showNotifications = false;
     },
-    logout() {
-      // Logique de déconnexion
-      console.log('Déconnexion');
-      this.$router.push('/home');
+    handleLogout() {
+      this.auth.logout()
+      this.$router.push('/admin/login')
+    },
+    mounted() {
+      // Fermer les dropdowns en cliquant ailleurs
+      document.addEventListener('click', (e) => {
+        if (!this.$el.contains(e.target)) {
+          this.showNotifications = false;
+          this.showUserMenu = false;
+        }
+      });
     }
-  },
-  mounted() {
-    // Fermer les dropdowns en cliquant ailleurs
-    document.addEventListener('click', (e) => {
-      if (!this.$el.contains(e.target)) {
-        this.showNotifications = false;
-        this.showUserMenu = false;
-      }
-    });
   }
 }
 </script>

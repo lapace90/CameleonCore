@@ -207,7 +207,7 @@
       </form>
 
       <div class="modal-footer">
-        <button @click="$emit('close')" type="button" class="btn btn-secondary">
+        <button @click="$emit('close')" type="button" class="btn btn-secondary btn-sm">
           <i class="fas fa-times"></i>
           Annuler
         </button>
@@ -223,7 +223,7 @@
             Supprimer
           </button>
           
-          <button @click="handleSubmit" type="button" class="btn btn-primary">
+          <button @click="handleSubmit" type="button" class="btn btn-primary btn-sm">
             <i class="fas fa-save"></i>
             {{ isEditing ? 'Modifier' : 'Créer' }}
           </button>
