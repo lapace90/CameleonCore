@@ -21,22 +21,23 @@
 
 
     </div>
+    <div class="table-container mx-6">
     <div v-if="loading" class="table-placeholder">
       <i class="fas fa-spinner fa-spin table-icon"></i>
       <h3>Chargement des utilisateurs...</h3>
     </div>
-
     <div v-else-if="error" class="table-placeholder">
       <i class="fas fa-exclamation-triangle table-icon"></i>
       <h3>{{ error }}</h3>
     </div>
 
-    <table v-else class="users-table">
+    <table v-else class="users-table table">
       <thead>
         <tr>
           <th>Nom</th>
           <th>Email</th>
           <th>Rôle</th>
+          <th>Action</th>
         </tr>
       </thead>
       <tbody>
@@ -44,11 +45,19 @@
           <td>{{ user.name }}</td>
           <td>{{ user.email }}</td>
           <td>{{ user.role?.name || '—' }}</td>
+          <td class="actions-col">
+            <button class="btn btn-sm btn-secondary">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn btn-sm btn-danger">
+              <i class="fas fa-trash-alt"></i>
+            </button>
+          </td>
         </tr>
       </tbody>
     </table>
   </div>
-
+</div>
 </template>
 
 <script>
