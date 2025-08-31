@@ -73,7 +73,7 @@
                             <div class="card-content">
                                 <h3>{{ activity.title }}</h3>
                                 <p>{{ activity.description }}</p>
-                                
+
                                 <!-- Informations supplémentaires pour la vue détaillée -->
                                 <div v-if="activity.features" class="activity-features">
                                     <h4>Inclus :</h4>
@@ -84,7 +84,7 @@
                                         </li>
                                     </ul>
                                 </div>
-                                
+
                                 <div v-if="activity.duration || activity.difficulty" class="activity-meta">
                                     <span v-if="activity.duration" class="meta-item">
                                         <i class="fas fa-clock"></i>
@@ -95,7 +95,7 @@
                                         {{ activity.difficulty }}
                                     </span>
                                 </div>
-                                
+
                                 <button class="cta-button">
                                     En savoir plus
                                     <i class="fas fa-arrow-right"></i>

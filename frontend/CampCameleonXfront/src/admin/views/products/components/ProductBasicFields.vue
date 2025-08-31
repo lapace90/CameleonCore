@@ -45,24 +45,23 @@
             <i class="fas fa-tag"></i> {{ c.name }}
           </button>
         </div>
-
         <!-- Actions -->
-        <div class="flex items-center gap-2 mt-2">
-          <router-link class="btn btn-secondary" :to="categoriesManageTo" target="_blank" title="Gérer les catégories">
+        <div class="flex text-center items-center gap-2 mt-2" style="border: 1px solid var(--sand); padding: 1rem .4rem; border-radius: 8px; ">
+          <router-link class="btn btn-primary btn-sm" :to="categoriesManageTo" target="_blank"
+            title="Gérer les catégories">
             <i class="fas fa-folder-tree"></i>
           </router-link>
 
-          <button type="button" class="btn btn-light mx-2" @click="fetchCategories" :disabled="loadingCategories"
+          <button type="button" class="btn btn-light mx-2 btn-sm" @click="fetchCategories" :disabled="loadingCategories"
             title="Rafraîchir">
             <i class="fas fa-rotate"></i>
           </button>
 
-          <button type="button" class="btn btn-light" @click="clearCategories" :disabled="!selectedCategories.length"
-            title="Vider">
+          <button type="button" class="btn btn-light btn-sm" @click="clearCategories"
+            :disabled="!selectedCategories.length" title="Vider">
             <i class="fas fa-xmark"></i>
           </button>
         </div>
-
         <!-- Résumé sélection (tes pastilles existantes) -->
         <div v-if="selectedCategories.length" class="badges-container mt-2">
           <span v-for="c in selectedCategories" :key="c.id" class="badge">
@@ -112,7 +111,7 @@ export default {
       set(v) { this.$emit('update:modelValue', v) }
     },
     filteredCategories() {
-      const map = { activity:'Activity', menu:'Menu', dish:'Dish', room:'Room', ingredient:'Ingredient' }
+      const map = { activity: 'Activity', menu: 'Menu', dish: 'Dish', room: 'Room', ingredient: 'Ingredient' }
       const wanted = map[String(this.type || '').toLowerCase()]
       return this.categories.filter(c => !wanted || c.type === wanted)
     },
@@ -168,4 +167,3 @@ export default {
   }
 }
 </script>
-

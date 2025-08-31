@@ -30,15 +30,15 @@
         </div>
 
         <div class="header-actions">
-          <button @click="duplicateProduct" class="btn btn-secondary">
+          <button @click="duplicateProduct" class="btn btn-secondary btn-sm">
             <i class="fas fa-copy"></i>
             Dupliquer
           </button>
-          <router-link :to="editRoute" class="btn btn-primary">
+          <router-link :to="editRoute" class="btn btn-primary btn-sm">
             <i class="fas fa-edit"></i>
             Modifier
           </router-link>
-          <button @click="deleteProduct" class="btn btn-danger">
+          <button @click="deleteProduct" class="btn btn-danger btn-sm">
             <i class="fas fa-trash"></i>
             Supprimer
           </button>
@@ -219,7 +219,7 @@
           </span>
         </div>
         <div class="actions-right">
-          <router-link :to="editRoute" class="btn btn-primary">
+          <router-link :to="editRoute" class="btn btn-primary btn-sm">
             <i class="fas fa-edit"></i>
             Modifier
           </router-link>

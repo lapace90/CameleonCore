@@ -90,7 +90,7 @@
                 <span v-if="errors.privacy" class="error-message">{{ errors.privacy }}</span>
               </div>
 
-              <button type="submit" class="btn-send btn-primary" :disabled="submitting">
+              <button type="submit" class="btn-send" :disabled="submitting">
                 <i v-if="submitting" class="fas fa-spinner fa-spin"></i>
                 <i v-else class="fas fa-paper-plane"></i>
                 {{ submitting ? 'Envoi en cours...' : 'Envoyer le message' }}

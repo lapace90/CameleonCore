@@ -14,11 +14,11 @@
         </div>
       </div>
       <div class="header-actions">
-        <button @click="exportProducts" class="btn btn-secondary">
+        <button @click="exportProducts" class="btn btn-secondary btn-sm">
           <i class="fas fa-download"></i>
           Exporter
         </button>
-        <router-link :to="createRoute" class="btn btn-primary">
+        <router-link :to="createRoute" class="btn btn-primary btn-sm">
           <i class="fas fa-plus"></i>
           Nouveau {{ typeConfig.singular }}
         </router-link>

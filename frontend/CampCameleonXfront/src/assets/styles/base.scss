@@ -41,20 +41,7 @@ img {
   height: auto;
 }
 
-// Container global
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
 
-  @include media-breakpoint-up(sm) {
-    padding: 0 1.5rem;
-  }
-
-  @include media-breakpoint-up(lg) {
-    padding: 0 2rem;
-  }
-}
 
 // Scrollbar personnalisée
 ::-webkit-scrollbar {

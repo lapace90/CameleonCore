@@ -4,17 +4,17 @@
       <button 
         type="button" 
         @click="resetForm" 
-        class="btn btn-outline" 
+        class="btn btn-outline btn-sm" 
         :disabled="saving"
       >
         <i class="fas fa-undo"></i>
         Réinitialiser
       </button>
     </div>
-    <div class="actions-right">
+    <div class="actions-right ">
       <button 
         type="submit" 
-        class="btn btn-primary" 
+        class="btn btn-primary btn-sm" 
         :disabled="saving || !isFormValid"
         @click="submitForm"
       >

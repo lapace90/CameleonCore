@@ -377,24 +377,6 @@ export default {
   background: white;
 }
 
-.section-header {
-  text-align: center;
-  margin-bottom: 4rem;
-
-  h2 {
-    font-size: $font-size-4xl;
-    color: $text-primary;
-    margin-bottom: 1rem;
-    font-family: $font-family-display;
-    font-weight: 400;
-  }
-
-  p {
-    color: $text-secondary;
-    font-size: $font-size-lg;
-  }
-}
-
 .values-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

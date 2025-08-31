@@ -4,12 +4,6 @@
   margin-top: -120px; // Background remonte sous header transparent
 }
 
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
-}
-
 /* Hero Section */
 .contact-hero {
   background: $gradient-hero;
@@ -220,6 +214,7 @@
 .btn-send {
   border: none;
   color: white;
+  background-color: $primary;
   padding: 1rem 2rem;
   border-radius: $border-radius-lg;
   font-size: $font-size-lg;
@@ -305,7 +300,8 @@
     font-size: $font-size-xl;
     font-family: $font-family-display;
     font-weight: 400;
-    font-size: $font-size-4xl;;
+    font-size: $font-size-4xl;
+    ;
   }
 }
 
@@ -313,6 +309,7 @@
   font-size: $font-size-4xl;
   text-align: center;
 }
+
 .contact-item {
   display: flex;
   gap: 1rem;
@@ -393,16 +390,17 @@
     text-decoration: none;
     font-size: $font-size-xl;
     font-weight: $font-weight-semibold;
+    background: rgba($sand, 0.4);
     margin: 1rem 0 0.5rem 0;
     padding: 1rem 1.5rem;
-    background: rgba($sand, 0.3);
     border-radius: $border-radius-lg;
     transition: all $transition-base;
     font-family: $font-family-primary;
 
     &:hover {
-      background: rgba($sand, 0.4);
       transform: translateY(-2px);
+      background: rgba($terracotta, 0.7);
+
     }
   }
 
@@ -451,17 +449,14 @@
 
 /* Map Section */
 .map-section {
-  padding: 5rem 0;
+  padding: 5rem 5rem;
   background: $bg-warm;
 
   .section-header {
-    text-align: center;
-    margin-bottom: 3rem;
-
     h2 {
       font-size: $font-size-4xl;
       color: $text-primary;
-      margin-bottom: 1rem;
+
       font-family: $font-family-display;
       font-weight: 400;
     }
@@ -471,6 +466,13 @@
       font-size: $font-size-lg;
       font-family: $font-family-primary;
     }
+  }
+
+  .map-section .map-placeholder .map-directions {
+
+    left: 0;
+    font-size: 1rem;
+    padding: 35rem !important;
   }
 
   .map-container {
@@ -502,7 +504,7 @@
     h3 {
       color: $text-primary;
       font-family: $font-family-display;
-      
+
     }
 
     p {
