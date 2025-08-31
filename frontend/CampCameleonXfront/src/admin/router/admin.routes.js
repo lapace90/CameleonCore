@@ -15,6 +15,7 @@ export default [
   {
     path: '',
     component: AdminApp,
+    meta: { requiresAuth: true },
     children: [
       {
         path: '',

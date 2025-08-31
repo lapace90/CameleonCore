@@ -21,7 +21,7 @@
           </button>
         </div>
       </div>
-      <button type="button" @click="showAvailableDishes = !showAvailableDishes" class="btn btn-outline">
+      <button type="button" @click="showAvailableDishes = !showAvailableDishes" class="btn btn-outline btn-sm">
         <i class="fas fa-plus" style="margin-right: 6px;"></i>
         {{ showAvailableDishes ? 'Masquer les plats disponibles' : 'Ajouter des plats' }}
       </button>
@@ -44,7 +44,7 @@
             <span class="item-name">{{ dish.name }}</span>
             <span class="item-price">{{ dish.formatted_price }}</span>
           </div>
-          <button type="button" class="btn-add">
+          <button type="button" class="btn-add btn-sm">
             <i class="fas fa-plus"></i>
           </button>
         </div>
@@ -72,7 +72,7 @@
           </button>
         </div>
       </div>
-      <button type="button" @click="showAvailableIngredients = !showAvailableIngredients" class="btn btn-outline">
+      <button type="button" @click="showAvailableIngredients = !showAvailableIngredients" class="btn btn-outline btn-sm">
         <i class="fas fa-plus" style="margin-right: 6px;"></i>
         {{ showAvailableIngredients ? 'Masquer les ingrédients disponibles' : 'Ajouter des ingrédients' }}
       </button>

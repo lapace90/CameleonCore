@@ -49,7 +49,7 @@
             <option value="draft">Brouillon</option>
           </select>
 
-          <button @click="resetFilters" class="btn btn-outline">
+          <button @click="resetFilters" class="btn btn-outline btn-sm">
             <i class="fas fa-times"></i>
             Reset
           </button>

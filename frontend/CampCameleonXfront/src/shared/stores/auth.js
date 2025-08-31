@@ -6,7 +6,8 @@ export const useAuthStore = defineStore('auth', {
     token: null,
     isAuthenticated: false,
     loading: false,
-    error: null
+    error: null,
+    users: JSON.parse(localStorage.getItem('users') || '[]')
   }),
 
   getters: {
@@ -24,97 +25,123 @@ export const useAuthStore = defineStore('auth', {
       this.error = null;
 
       try {
-        // Simulation d'appel API
-        const response = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(credentials),
-        });
+        if (
+          credentials.email === 'admin@campcanteloup.fr' &&
+          credentials.password === 'password'
+        ) {
+          const user = {
+            email: credentials.email,
+            role: 'admin',
+            firstName: 'Admin',
+            lastName: 'CampCameleonX'
+          }
+          const token = 'dummy-token'
 
-        if (!response.ok) {
-          throw new Error('Identifiants invalides');
+          this.user = user
+          this.token = token
+          this.isAuthenticated = true
+
+          localStorage.setItem('auth_token', token)
+          localStorage.setItem('user', JSON.stringify(user))
+
+          return { user, token }
         }
 
-        const data = await response.json();
-        
-        this.user = data.user;
-        this.token = data.token;
-        this.isAuthenticated = true;
+        const registered = this.users.find(
+          (u) => u.email === credentials.email && u.password === credentials.password
+        )
 
-        // Sauvegarder dans localStorage
-        localStorage.setItem('auth_token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        if (registered) {
+          const token = 'dummy-user-token'
+          this.user = { ...registered }
+          this.token = token
+          this.isAuthenticated = true
+          localStorage.setItem('auth_token', token)
+          localStorage.setItem('user', JSON.stringify(this.user))
+          return { user: this.user, token }
+        }
 
-        return data;
+        throw new Error('Identifiants invalides')
       } catch (error) {
-        this.error = error.message;
-        throw error;
+        this.error = error.message
+        throw error
       } finally {
-        this.loading = false;
+        this.loading = false
+      }
+    },
+
+    async register(payload) {
+      this.loading = true
+      this.error = null
+
+      try {
+        if (this.users.some((u) => u.email === payload.email)) {
+          throw new Error('Email déjà utilisé')
+        }
+
+        const newUser = {
+          firstName: payload.firstName,
+          lastName: payload.lastName,
+          email: payload.email,
+          password: payload.password,
+          role: 'user'
+        }
+
+        this.users.push(newUser)
+        localStorage.setItem('users', JSON.stringify(this.users))
+
+        const token = 'dummy-user-token'
+        this.user = { ...newUser }
+        this.token = token
+        this.isAuthenticated = true
+        localStorage.setItem('auth_token', token)
+        localStorage.setItem('user', JSON.stringify(this.user))
+
+        return { user: this.user, token }
+      } catch (error) {
+        this.error = error.message
+        throw error
+      } finally {
+        this.loading = false
       }
     },
 
     async logout() {
-      try {
-        // Simulation d'appel API
-        await fetch('/api/auth/logout', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${this.token}`,
-          },
-        });
-      } catch (error) {
-        console.error('Erreur lors de la déconnexion:', error);
-      }
-
       // Reset du store
-      this.user = null;
-      this.token = null;
-      this.isAuthenticated = false;
-      this.error = null;
+      this.user = null
+      this.token = null
+      this.isAuthenticated = false
+      this.error = null
 
       // Nettoyer localStorage
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('user');
+      localStorage.removeItem('auth_token')
+      localStorage.removeItem('user')
     },
 
     async checkAuth() {
-      const token = localStorage.getItem('auth_token');
-      const user = localStorage.getItem('user');
+      // Vérifier si un token est stocké
+      const token = localStorage.getItem('auth_token')
+      const user = localStorage.getItem('user')
 
       if (token && user) {
         try {
-          this.token = token;
-          this.user = JSON.parse(user);
-          this.isAuthenticated = true;
+          this.token = token
+          this.user = JSON.parse(user)
+          this.isAuthenticated = true
 
           // Vérifier la validité du token
-          await this.verifyToken();
+          await this.verifyToken()
         } catch (error) {
-          console.error('Token invalide:', error);
-          this.logout();
+          console.error('Token invalide:', error)
+          this.logout()
         }
       }
     },
 
     async verifyToken() {
-      try {
-        const response = await fetch('/api/auth/verify', {
-          headers: {
-            'Authorization': `Bearer ${this.token}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error('Token invalide');
-        }
-
-        const data = await response.json();
-        this.user = data.user;
-      } catch (error) {
-        throw error;
+      // Simuler une vérification de token
+      if (!['dummy-token', 'dummy-user-token'].includes(this.token)) {
+        throw new Error('Token invalide')
       }
     },
 

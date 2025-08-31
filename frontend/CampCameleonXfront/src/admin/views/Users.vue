@@ -1,7 +1,7 @@
 <template>
   <div class="users-page">
     <div class="page-header">
-      <button id="add-user" class="btn btn-primary">
+      <button id="add-user" class="btn btn-primary btn-sm">
         <i class="fas fa-plus"></i>
         Nouvel utilisateur
       </button>

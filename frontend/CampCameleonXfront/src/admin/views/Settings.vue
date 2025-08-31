@@ -49,18 +49,18 @@
         <h3>Sécurité</h3>
         <div class="settings-section">
           <label>Changer le mot de passe</label>
-          <button class="btn btn-outline">Modifier</button>
+          <button class="btn btn-outline btn-sm">Modifier</button>
         </div>
         <div class="settings-section">
           <label>Authentification à deux facteurs</label>
-          <button class="btn btn-primary">Activer 2FA</button>
+          <button class="btn btn-primary btn-sm">Activer 2FA</button>
         </div>
       </div>
     </div>
     
     <div class="settings-actions">
-      <button class="btn btn-success">Sauvegarder</button>
-      <button class="btn btn-outline">Annuler</button>
+      <button class="btn btn-success btn-sm">Sauvegarder</button>
+      <button class="btn btn-outline btn-sm">Annuler</button>
     </div>
   </div>
 </template>
