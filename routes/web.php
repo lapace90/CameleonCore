@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Admin\UserController;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 
@@ -10,19 +9,7 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 // });
 
 Route::get('/', [App\Http\Controllers\WelcomeController::class, 'index']);
-
-Route::middleware(['api'])
-    ->prefix('auth')
-    ->withoutMiddleware([VerifyCsrfToken::class])
-    ->group(function () {
-        Route::post('/login', [AuthController::class, 'login']);
-        Route::middleware('auth:sanctum')->group(function () {
-            Route::post('/logout', [AuthController::class, 'logout']);
-            Route::get('/verify', [AuthController::class, 'verify']);
-        });
-    });
-
-    
+  
 Route::prefix('api/admin')
     ->middleware(['auth:sanctum'])  // Protection par authentification
     ->withoutMiddleware([VerifyCsrfToken::class])

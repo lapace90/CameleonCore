@@ -15,6 +15,7 @@ use Illuminate\Support\Collection;
 
 #[ApiResource]
 #[GetCollection(uriTemplate: '/admin/users')]
+
 class User extends Authenticatable
 {
     use HasFactory, Notifiable, HasApiTokens, SoftDeletes;

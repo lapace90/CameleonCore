@@ -7,7 +7,7 @@ class ApiClient {
 
   async request(endpoint, options = {}) {
     const authStore = useAuthStore();
-
+    
     const config = {
       headers: {
         'Content-Type': 'application/json',
@@ -23,7 +23,7 @@ class ApiClient {
 
     try {
       const response = await fetch(`${this.baseURL}${endpoint}`, config);
-
+      
       // Gestion des erreurs HTTP
       if (!response.ok) {
         if (response.status === 401) {
@@ -31,7 +31,7 @@ class ApiClient {
           authStore.logout();
           throw new Error('Session expirée');
         }
-
+        
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || `Erreur HTTP ${response.status}`);
       }
@@ -74,7 +74,7 @@ export const apiClient = new ApiClient();
 
 // Méthodes d'aide pour les appels API spécifiques
 export const authAPI = {
-  login: (credentials) => apiClient.post('/auth/login', credentials), 
+  login: (credentials) => apiClient.post('/auth/login', credentials),
   logout: () => apiClient.post('/auth/logout'),
   register: (userData) => apiClient.post('/auth/register', userData),
   verifyToken: () => apiClient.get('/auth/verify'),

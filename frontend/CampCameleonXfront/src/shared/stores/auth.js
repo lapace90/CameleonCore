@@ -72,7 +72,7 @@ export const useAuthStore = defineStore('auth', () => {
     
     try {
       // CORRECTION : utiliser /auth/login (pas /api/auth/login)
-      const response = await axios.post('/auth/login', credentials)
+      const response = await axios.post('/api/auth/login', credentials)
       const { user: userData, token: userToken } = response.data
       
       setToken(userToken)
@@ -119,7 +119,7 @@ export const useAuthStore = defineStore('auth', () => {
     
     try {
       // CORRECTION : utiliser /auth/verify (pas /api/auth/verify)
-      const response = await axios.get('/auth/verify')
+      const response = await axios.get('/api/auth/verify')
       const userData = response.data.user
       
       user.value = userData

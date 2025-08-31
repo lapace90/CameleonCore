@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Admin\SettingsController;
+use App\Http\Controllers\Api\AuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,6 +18,15 @@ use App\Http\Controllers\Api\Admin\SettingsController;
 | - DELETE /api/products/{id} (delete)
 |
 */
+
+// Authentication routes
+Route::prefix('auth')->group(function () {
+    Route::post('login', [AuthController::class, 'login']);
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('logout', [AuthController::class, 'logout']);
+        Route::get('verify', [AuthController::class, 'verify']);
+    });
+});
 
 // Paramètres système (pour super admin seulement)
 Route::prefix('settings')->middleware(['role:super-admin'])->group(function () {

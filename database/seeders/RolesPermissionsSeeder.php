@@ -19,24 +19,23 @@ class RolesPermissionsSeeder extends Seeder
         $this->command->info('🔐 Création des permissions et rôles...');
 
         DB::beginTransaction();
-        
+
         try {
             // 1. Créer les permissions de base
             $this->createPermissions();
-            
+
             // 2. Créer les rôles
             $this->createRoles();
-            
+
             // 3. Assigner les permissions aux rôles
             $this->assignPermissionsToRoles();
-            
-            // 4. Créer un utilisateur admin de base
-            $this->createAdminUser();
-            
+
+            // 4. Créer des utilisateurs admin de base
+            $this->createAdminUsers();
+
             DB::commit();
-            
+
             $this->command->info('✅ Rôles et permissions créés avec succès !');
-            
         } catch (\Exception $e) {
             DB::rollBack();
             $this->command->error('❌ Erreur : ' . $e->getMessage());
@@ -58,65 +57,65 @@ class RolesPermissionsSeeder extends Seeder
             ['name' => 'Modifier les utilisateurs', 'action' => 'update'],
             ['name' => 'Supprimer les utilisateurs', 'action' => 'delete'],
             ['name' => 'Gérer les utilisateurs', 'action' => 'manage'],
-            
+
             // Permissions rôles
             ['name' => 'Voir les rôles', 'action' => 'read'],
             ['name' => 'Créer des rôles', 'action' => 'create'],
             ['name' => 'Modifier les rôles', 'action' => 'update'],
             ['name' => 'Supprimer les rôles', 'action' => 'delete'],
             ['name' => 'Gérer les rôles', 'action' => 'manage'],
-            
+
             // Permissions permissions
             ['name' => 'Voir les permissions', 'action' => 'read'],
             ['name' => 'Créer des permissions', 'action' => 'create'],
             ['name' => 'Modifier les permissions', 'action' => 'update'],
             ['name' => 'Supprimer les permissions', 'action' => 'delete'],
             ['name' => 'Gérer les permissions', 'action' => 'manage'],
-            
+
             // Permissions produits
             ['name' => 'Voir les produits', 'action' => 'read'],
             ['name' => 'Créer des produits', 'action' => 'create'],
             ['name' => 'Modifier les produits', 'action' => 'update'],
             ['name' => 'Supprimer les produits', 'action' => 'delete'],
             ['name' => 'Publier les produits', 'action' => 'publish'],
-            
+
             // Permissions catégories
             ['name' => 'Voir les catégories', 'action' => 'read'],
             ['name' => 'Créer des catégories', 'action' => 'create'],
             ['name' => 'Modifier les catégories', 'action' => 'update'],
             ['name' => 'Supprimer les catégories', 'action' => 'delete'],
-            
+
             // Permissions tags
             ['name' => 'Voir les tags', 'action' => 'read'],
             ['name' => 'Créer des tags', 'action' => 'create'],
             ['name' => 'Modifier les tags', 'action' => 'update'],
             ['name' => 'Supprimer les tags', 'action' => 'delete'],
-            
+
             // Permissions commandes/réservations
             ['name' => 'Voir les commandes', 'action' => 'read'],
             ['name' => 'Créer des commandes', 'action' => 'create'],
             ['name' => 'Modifier les commandes', 'action' => 'update'],
             ['name' => 'Annuler les commandes', 'action' => 'cancel'],
             ['name' => 'Traiter les commandes', 'action' => 'process'],
-            
+
             // Permissions clients
             ['name' => 'Voir les clients', 'action' => 'read'],
             ['name' => 'Créer des clients', 'action' => 'create'],
             ['name' => 'Modifier les clients', 'action' => 'update'],
             ['name' => 'Supprimer les clients', 'action' => 'delete'],
-            
+
             // Permissions analytics
             ['name' => 'Voir les statistiques', 'action' => 'read'],
             ['name' => 'Exporter les données', 'action' => 'export'],
             ['name' => 'Voir les rapports avancés', 'action' => 'advanced-read'],
-            
+
             // Permissions système
             ['name' => 'Accès administration', 'action' => 'admin'],
             ['name' => 'Gérer les paramètres', 'action' => 'manage'],
             ['name' => 'Mode maintenance', 'action' => 'maintenance'],
             ['name' => 'Vider le cache', 'action' => 'clear-cache'],
             ['name' => 'Voir les logs', 'action' => 'read-logs'],
-            
+
             // Permissions spécifiques camping
             ['name' => 'Gérer les réservations', 'action' => 'manage'],
             ['name' => 'Check-in clients', 'action' => 'checkin'],
@@ -219,13 +218,25 @@ class RolesPermissionsSeeder extends Seeder
         $manager = Role::where('slug', 'manager')->first();
         if ($manager) {
             $managerPermissions = Permission::whereIn('name', [
-                'Voir les produits', 'Créer des produits', 'Modifier les produits',
-                'Voir les commandes', 'Créer des commandes', 'Modifier les commandes', 'Traiter les commandes',
-                'Voir les clients', 'Créer des clients', 'Modifier les clients',
-                'Gérer les réservations', 'Check-in clients', 'Check-out clients',
-                'Voir la disponibilité', 'Gérer le planning',
-                'Voir les statistiques', 'Exporter les données',
-                'Voir les catégories', 'Voir les tags'
+                'Voir les produits',
+                'Créer des produits',
+                'Modifier les produits',
+                'Voir les commandes',
+                'Créer des commandes',
+                'Modifier les commandes',
+                'Traiter les commandes',
+                'Voir les clients',
+                'Créer des clients',
+                'Modifier les clients',
+                'Gérer les réservations',
+                'Check-in clients',
+                'Check-out clients',
+                'Voir la disponibilité',
+                'Gérer le planning',
+                'Voir les statistiques',
+                'Exporter les données',
+                'Voir les catégories',
+                'Voir les tags'
             ])->pluck('id')->toArray();
             $manager->permissions()->sync($managerPermissions);
         }
@@ -235,9 +246,15 @@ class RolesPermissionsSeeder extends Seeder
         if ($receptionist) {
             $receptionistPermissions = Permission::whereIn('name', [
                 'Voir les produits',
-                'Voir les commandes', 'Créer des commandes', 'Modifier les commandes',
-                'Voir les clients', 'Créer des clients', 'Modifier les clients',
-                'Gérer les réservations', 'Check-in clients', 'Check-out clients',
+                'Voir les commandes',
+                'Créer des commandes',
+                'Modifier les commandes',
+                'Voir les clients',
+                'Créer des clients',
+                'Modifier les clients',
+                'Gérer les réservations',
+                'Check-in clients',
+                'Check-out clients',
                 'Voir la disponibilité'
             ])->pluck('id')->toArray();
             $receptionist->permissions()->sync($receptionistPermissions);
@@ -269,11 +286,18 @@ class RolesPermissionsSeeder extends Seeder
         $moderator = Role::where('slug', 'moderator')->first();
         if ($moderator) {
             $moderatorPermissions = Permission::whereIn('name', [
-                'Voir les produits', 'Modifier les produits',
-                'Voir les catégories', 'Créer des catégories', 'Modifier les catégories',
-                'Voir les tags', 'Créer des tags', 'Modifier les tags',
-                'Voir les clients', 'Modifier les clients',
-                'Voir les commandes', 'Modifier les commandes'
+                'Voir les produits',
+                'Modifier les produits',
+                'Voir les catégories',
+                'Créer des catégories',
+                'Modifier les catégories',
+                'Voir les tags',
+                'Créer des tags',
+                'Modifier les tags',
+                'Voir les clients',
+                'Modifier les clients',
+                'Voir les commandes',
+                'Modifier les commandes'
             ])->pluck('id')->toArray();
             $moderator->permissions()->sync($moderatorPermissions);
         }
@@ -282,33 +306,40 @@ class RolesPermissionsSeeder extends Seeder
     }
 
     /**
-     * Créer un utilisateur administrateur de base
+     * Créer des utilisateurs administrateurs de base
      */
-    private function createAdminUser(): void
+    private function createAdminUsers(): void
     {
-        $this->command->info('👤 Création de l\'utilisateur administrateur...');
+        $this->command->info('👤 Création des utilisateurs administrateurs...');
 
-        $adminRole = Role::where('slug', 'super-admin')->first();
-        
-        $adminUser = User::firstOrCreate(
-            ['email' => 'admin@campcanteloup.fr'],
+        $superAdminRole = Role::where('slug', 'super-admin')->first();
+        $adminRole = Role::where('slug', 'admin')->first();
+
+        // Super administrateur
+        User::updateOrCreate(
+            ['email' => 'admin1@campcanteloup.fr'],
             [
                 'name' => 'Super Admin',
                 'password' => Hash::make('admin123456'),
                 'email_verified_at' => now(),
                 'status' => 'active',
-                'role_id' => $adminRole->id
+                'role_id' => $superAdminRole?->id,
             ]
         );
 
-        if ($adminUser->wasRecentlyCreated) {
-            $this->command->info("✅ Utilisateur admin créé :");
-            $this->command->info("   Email: admin@campcanteloup.fr");
-            $this->command->info("   Mot de passe: admin123456");
-            $this->command->warn("   ⚠️  Changez ce mot de passe en production !");
-        } else {
-            $this->command->info("ℹ️  Utilisateur admin existant mis à jour");
-        }
+        // Administrateur standard
+        User::updateOrCreate(
+            ['email' => 'admin2@campcanteloup.fr'],
+            [
+                'name' => 'Admin',
+                'password' => Hash::make('admin123456'),
+                'email_verified_at' => now(),
+                'status' => 'active',
+                'role_id' => $adminRole?->id,
+            ]
+        );
+
+        $this->command->info("✅ Utilisateurs administrateurs prêts (admin@campcanteloup.fr / admin2@campcanteloup.fr)");
     }
 
     /**
@@ -319,10 +350,11 @@ class RolesPermissionsSeeder extends Seeder
         $this->command->info("\n📊 RÉSUMÉ :");
         $this->command->info("Permissions : " . Permission::count());
         $this->command->info("Rôles : " . Role::count());
-        $this->command->info("Utilisateurs admin : " . User::whereHas('role', function($query) {
+        $this->command->info("Utilisateurs admin : " . User::whereHas('role', function ($query) {
             $query->whereIn('slug', ['super-admin', 'admin']);
         })->count());
-        
+
         $this->command->info("\n🚀 Système prêt pour la gestion des utilisateurs !");
     }
+
 }
