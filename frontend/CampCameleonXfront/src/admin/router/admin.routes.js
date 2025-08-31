@@ -2,6 +2,8 @@
 import AdminApp from '../AdminApp.vue'
 import Dashboard from '../views/Dashboard.vue'
 import Users from '../views/Users.vue'
+import UserForm from '../views/UserForm.vue'
+import Categories from '../views/Categories.vue'  
 import Settings from '../views/Settings.vue'
 import Analytics from '../views/Analytics.vue'
 import FullCalendar from '@/shared/components/calendar/FullCalendar.vue'
@@ -10,6 +12,7 @@ import FullCalendar from '@/shared/components/calendar/FullCalendar.vue'
 import ProductsShow from '../views/products/ProductsShow.vue'
 import ProductDetail from '../views/products/ProductDetail.vue'
 import ProductForm from '../views/products/ProductForm.vue'
+import path from 'path'
 
 export default [
   {
@@ -32,6 +35,18 @@ export default [
         component: Users
       },
       {
+        path: 'users/create',
+        name: 'UserCreate',
+        component: UserForm,
+        props: { action: 'create' }
+      },
+      {
+        path: 'users/:id/edit',
+        name: 'UserEdit',
+        component: UserForm,
+        props: route => ({ id: route.params.id, action: 'edit' })
+      },
+      {
         path: 'analytics',
         name: 'AdminAnalytics',
         component: Analytics
@@ -50,7 +65,7 @@ export default [
       {
         path: 'categories',
         name: 'AdminCategories',
-        component: () => import('../views/Categories.vue')
+        component: Categories
       },
       // Routes produits
       {

@@ -29,7 +29,9 @@ class DatabaseSeeder extends Seeder
             
             // 3. Optionnel : créer des utilisateurs et autres données
             $this->seedAdditionalData();
-
+            
+            $this->call(RolesPermissionsSeeder::class);
+            
             DB::commit();
             
             $this->command->info('✅ Seeding terminé avec succès !');

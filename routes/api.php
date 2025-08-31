@@ -1,10 +1,7 @@
 <?php
 
-// routes/api.php
-
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\Admin\SettingsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,19 +18,11 @@ use App\Http\Controllers\Api\AuthController;
 |
 */
 
-// Routes personnalisées qui ne sont pas gérées par API Platform
-Route::prefix('custom')->group(function () {
-    // Stats endpoint personnalisé
-    Route::get('/products/stats', [ProductController::class, 'stats']);
-
-    // Debug endpoint (dev only)
-    if (app()->environment('local')) {
-        Route::get('/products/debug', [ProductController::class, 'index']);
-    }
-});
-
-// Si tu veux garder tes anciennes routes pour la compatibilité
-Route::prefix('legacy')->group(function () {
-    Route::get('/products', [ProductController::class, 'index']);
-    Route::get('/products/search', [ProductController::class, 'search']);
+// Paramètres système (pour super admin seulement)
+Route::prefix('settings')->middleware(['role:super-admin'])->group(function () {
+    Route::get('/', [SettingsController::class, 'index']);
+    Route::get('/maintenance-status', [SettingsController::class, 'maintenanceStatus']);
+    Route::post('/maintenance', [SettingsController::class, 'maintenance']);
+    Route::post('/cache/clear', [SettingsController::class, 'clearCache']);
+    Route::get('/system-info', [SettingsController::class, 'systemInfo']);
 });
