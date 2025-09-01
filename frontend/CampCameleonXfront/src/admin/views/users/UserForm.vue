@@ -214,7 +214,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import UsersApi from '@/services/UsersApi'
 
 export default {
   name: 'UserForm',
@@ -257,18 +257,13 @@ export default {
   methods: {
     async loadRolesAndPermissions() {
       try {
-        const [rolesResponse, permissionsResponse] = await Promise.all([
-          axios.get('/api/roles'),
-          axios.get('/api/permissions')
+        const [roles, permissions] = await Promise.all([
+          UsersApi.getRoles(),
+          UsersApi.getPermissions()
         ])
 
-        this.roles = Array.isArray(rolesResponse.data)
-          ? rolesResponse.data
-          : rolesResponse.data['hydra:member'] || []
-
-        this.permissions = Array.isArray(permissionsResponse.data)
-          ? permissionsResponse.data
-          : permissionsResponse.data['hydra:member'] || []
+        this.roles = roles
+        this.permissions = permissions
       } catch (error) {
         console.error('Erreur lors du chargement des rôles/permissions:', error)
         this.error = 'Impossible de charger les rôles et permissions'
@@ -278,8 +273,7 @@ export default {
     async loadUser() {
       this.loading = true
       try {
-        const response = await axios.get(`/api/admin/users/${this.userId}`)
-        this.user = response.data
+        this.user = await UsersApi.getById(this.userId)
 
         // Remplir le formulaire avec les données existantes
         this.form = {
@@ -306,12 +300,6 @@ export default {
       this.errors = {}
 
       try {
-        const url = this.isEditing
-          ? `/api/admin/users/${this.userId}`
-          : '/api/admin/users'
-
-        const method = this.isEditing ? 'put' : 'post'
-
         const payload = { ...this.form }
 
         // Si on édite, on ne envoie le mot de passe que s'il est rempli
@@ -320,7 +308,11 @@ export default {
           delete payload.password_confirmation
         }
 
-        const response = await axios[method](url, payload)
+        if (this.isEditing) {
+          await UsersApi.update(this.userId, payload)
+        } else {
+          await UsersApi.create(payload)
+        }
 
         // Message de succès
         this.$router.push({
@@ -349,7 +341,7 @@ export default {
 
       this.saving = true
       try {
-        await axios.delete(`/api/admin/users/${this.userId}`)
+        await UsersApi.delete(this.userId)
         this.$router.push({
           path: '/admin/users',
           query: { success: 'Utilisateur supprimé avec succès' }

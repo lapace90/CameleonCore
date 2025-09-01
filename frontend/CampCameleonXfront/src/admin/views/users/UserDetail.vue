@@ -37,12 +37,9 @@
             <i class="fas fa-edit"></i>
             Modifier
           </router-link>
-          
-          <button 
-            @click="toggleUserStatus" 
-            class="btn btn-sm"
-            :class="user.status === 'active' ? 'btn-warning' : 'btn-success'"
-          >
+
+          <button @click="toggleUserStatus" class="btn btn-sm"
+            :class="user.status === 'active' ? 'btn-warning' : 'btn-success'">
             <i :class="user.status === 'active' ? 'fas fa-pause' : 'fas fa-play'"></i>
             {{ user.status === 'active' ? 'Suspendre' : 'Activer' }}
           </button>
@@ -56,27 +53,27 @@
             <i class="fas fa-user"></i>
             <div class="status-indicator" :class="getStatusClass(user.status)"></div>
           </div>
-          
+
           <div class="user-info-main">
             <h1 class="user-name">{{ user.name }}</h1>
             <div class="user-email">{{ user.email }}</div>
-            
+
             <div class="user-meta">
               <div class="meta-item">
                 <i class="fas fa-calendar-plus"></i>
                 <span>Inscrit le {{ formatDate(user.created_at) }}</span>
               </div>
-              
+
               <div v-if="user.last_login_at" class="meta-item">
                 <i class="fas fa-clock"></i>
                 <span>Dernière connexion {{ getRelativeTime(user.last_login_at) }}</span>
               </div>
-              
+
               <div v-if="user.email_verified_at" class="meta-item">
                 <i class="fas fa-check-circle text-success"></i>
                 <span>Email vérifié</span>
               </div>
-              
+
               <div v-else class="meta-item">
                 <i class="fas fa-exclamation-triangle text-warning"></i>
                 <span>Email non vérifié</span>
@@ -103,7 +100,7 @@
               <i class="fas fa-shield-alt"></i>
               Rôles
             </h3>
-            
+
             <div v-if="user.role || (user.additional_roles && user.additional_roles.length > 0)" class="roles-display">
               <!-- Rôle principal -->
               <div v-if="user.role" class="role-item role-primary">
@@ -116,15 +113,11 @@
                   {{ user.role.description }}
                 </div>
               </div>
-              
+
               <!-- Rôles additionnels -->
               <div v-if="user.additional_roles && user.additional_roles.length > 0" class="additional-roles">
                 <h4 class="subsection-title">Rôles additionnels</h4>
-                <div 
-                  v-for="role in user.additional_roles" 
-                  :key="role.id"
-                  class="role-item role-secondary"
-                >
+                <div v-for="role in user.additional_roles" :key="role.id" class="role-item role-secondary">
                   <div class="role-header">
                     <i class="fas fa-plus-circle"></i>
                     <span class="role-name">{{ role.name }}</span>
@@ -135,7 +128,7 @@
                 </div>
               </div>
             </div>
-            
+
             <div v-else class="empty-state-small">
               <i class="fas fa-shield-alt"></i>
               <p>Aucun rôle assigné</p>
@@ -149,26 +142,19 @@
               Permissions
               <span class="section-count">({{ user.all_permissions ? user.all_permissions.length : 0 }})</span>
             </h3>
-            
+
             <div v-if="user.all_permissions && user.all_permissions.length > 0" class="permissions-display">
               <!-- Permissions par catégorie -->
-              <div 
-                v-for="(categoryPerms, category) in permissionsByCategory" 
-                :key="category"
-                class="permission-category"
-              >
+              <div v-for="(categoryPerms, category) in permissionsByCategory" :key="category"
+                class="permission-category">
                 <h4 class="permission-category-title">
                   <i :class="getCategoryIcon(category)"></i>
                   {{ getCategoryLabel(category) }}
                   <span class="category-count">({{ categoryPerms.length }})</span>
                 </h4>
-                
+
                 <div class="permissions-grid">
-                  <div 
-                    v-for="permission in categoryPerms" 
-                    :key="permission.id"
-                    class="permission-item"
-                  >
+                  <div v-for="permission in categoryPerms" :key="permission.id" class="permission-item">
                     <span class="permission-name">{{ permission.name }}</span>
                     <span class="permission-action" :class="getActionClass(permission.action)">
                       {{ permission.action }}
@@ -177,7 +163,7 @@
                 </div>
               </div>
             </div>
-            
+
             <div v-else class="empty-state-small">
               <i class="fas fa-key"></i>
               <p>Aucune permission</p>
@@ -193,13 +179,13 @@
               <i class="fas fa-info-circle"></i>
               Informations générales
             </h3>
-            
+
             <div class="info-grid">
               <div class="info-item">
                 <label>ID utilisateur</label>
                 <value>#{{ user.id }}</value>
               </div>
-              
+
               <div class="info-item">
                 <label>Statut</label>
                 <value>
@@ -208,22 +194,22 @@
                   </span>
                 </value>
               </div>
-              
+
               <div class="info-item">
                 <label>Date d'inscription</label>
                 <value>{{ formatDateTime(user.created_at) }}</value>
               </div>
-              
+
               <div class="info-item">
                 <label>Dernière mise à jour</label>
                 <value>{{ formatDateTime(user.updated_at) }}</value>
               </div>
-              
+
               <div v-if="user.last_login_at" class="info-item">
                 <label>Dernière connexion</label>
                 <value>{{ formatDateTime(user.last_login_at) }}</value>
               </div>
-              
+
               <div v-if="user.last_login_ip" class="info-item">
                 <label>Dernière IP</label>
                 <value class="font-mono">{{ user.last_login_ip }}</value>
@@ -237,11 +223,12 @@
               <i class="fas fa-lock"></i>
               Sécurité
             </h3>
-            
+
             <div class="security-info">
               <div class="security-item">
                 <div class="security-icon">
-                  <i :class="user.email_verified_at ? 'fas fa-check-circle text-success' : 'fas fa-exclamation-triangle text-warning'"></i>
+                  <i
+                    :class="user.email_verified_at ? 'fas fa-check-circle text-success' : 'fas fa-exclamation-triangle text-warning'"></i>
                 </div>
                 <div class="security-content">
                   <span class="security-label">Vérification email</span>
@@ -250,10 +237,11 @@
                   </span>
                 </div>
               </div>
-              
+
               <div class="security-item">
                 <div class="security-icon">
-                  <i :class="user.password_reset_required ? 'fas fa-exclamation-circle text-warning' : 'fas fa-key text-success'"></i>
+                  <i
+                    :class="user.password_reset_required ? 'fas fa-exclamation-circle text-warning' : 'fas fa-key text-success'"></i>
                 </div>
                 <div class="security-content">
                   <span class="security-label">Mot de passe</span>
@@ -269,7 +257,7 @@
                 <i class="fas fa-key"></i>
                 Forcer réinitialisation
               </button>
-              
+
               <button v-if="!user.email_verified_at" @click="sendVerificationEmail" class="btn btn-outline btn-sm">
                 <i class="fas fa-envelope"></i>
                 Renvoyer vérification
@@ -283,23 +271,23 @@
               <i class="fas fa-bolt"></i>
               Actions rapides
             </h3>
-            
+
             <div class="quick-actions">
               <router-link :to="`/admin/users/${user.id}/edit`" class="quick-action-btn">
                 <i class="fas fa-edit"></i>
                 <span>Modifier</span>
               </router-link>
-              
+
               <button @click="duplicateUser" class="quick-action-btn">
                 <i class="fas fa-copy"></i>
                 <span>Dupliquer</span>
               </button>
-              
+
               <button @click="exportUserData" class="quick-action-btn">
                 <i class="fas fa-download"></i>
                 <span>Exporter</span>
               </button>
-              
+
               <button @click="viewUserActivity" class="quick-action-btn">
                 <i class="fas fa-history"></i>
                 <span>Activité</span>
@@ -313,7 +301,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import UsersApi from '@/services/UsersApi'
 
 export default {
   name: 'UserDetail',
@@ -328,10 +316,10 @@ export default {
     userId() {
       return this.$route.params.id
     },
-    
+
     permissionsByCategory() {
       if (!this.user?.all_permissions) return {}
-      
+
       const categories = {}
       this.user.all_permissions.forEach(permission => {
         const category = this.getPermissionCategory(permission.action)
@@ -340,7 +328,7 @@ export default {
         }
         categories[category].push(permission)
       })
-      
+
       return categories
     }
   },
@@ -353,8 +341,7 @@ export default {
       this.error = null
 
       try {
-        const response = await axios.get(`/api/admin/users/${this.userId}`)
-        this.user = response.data
+        this.user = await UsersApi.getById(this.userId)
       } catch (error) {
         console.error('Erreur lors du chargement de l\'utilisateur:', error)
         if (error.response?.status === 404) {
@@ -370,13 +357,13 @@ export default {
     async toggleUserStatus() {
       const newStatus = this.user.status === 'active' ? 'inactive' : 'active'
       const action = newStatus === 'active' ? 'activer' : 'suspendre'
-      
+
       if (!confirm(`${action} l'utilisateur "${this.user.name}" ?`)) {
         return
       }
 
       try {
-        await axios.patch(`/api/admin/users/${this.user.id}/status`, { status: newStatus })
+        await UsersApi.toggleStatus(this.user.id, newStatus)
         this.user.status = newStatus
       } catch (error) {
         console.error('Erreur lors du changement de statut:', error)
@@ -390,18 +377,19 @@ export default {
       }
 
       try {
-        await axios.post(`/api/admin/users/${this.user.id}/reset-password`)
+        await UsersApi.resetPassword(this.user.id)
         this.user.password_reset_required = true
         alert('L\'utilisateur devra changer son mot de passe à la prochaine connexion')
       } catch (error) {
         console.error('Erreur lors de la réinitialisation:', error)
         alert('Impossible de forcer la réinitialisation du mot de passe')
       }
-    },
+    }
+    ,
 
     async sendVerificationEmail() {
       try {
-        await axios.post(`/api/admin/users/${this.user.id}/send-verification`)
+        await UsersApi.sendVerificationEmail(this.user.id)
         alert('Email de vérification envoyé')
       } catch (error) {
         console.error('Erreur lors de l\'envoi:', error)
@@ -415,8 +403,8 @@ export default {
       }
 
       try {
-        const response = await axios.post(`/api/admin/users/${this.user.id}/duplicate`)
-        this.$router.push(`/admin/users/${response.data.user.id}/edit`)
+        const response = await UsersApi.duplicate(this.user.id)
+        this.$router.push(`/admin/users/${response.user.id}/edit`)
       } catch (error) {
         console.error('Erreur lors de la duplication:', error)
         alert('Impossible de dupliquer l\'utilisateur')
@@ -465,7 +453,7 @@ export default {
       const now = new Date()
       const diffMs = now - date
       const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-      
+
       if (diffDays === 0) return 'aujourd\'hui'
       if (diffDays === 1) return 'hier'
       if (diffDays < 7) return `il y a ${diffDays} jours`
@@ -476,7 +464,7 @@ export default {
     getStatusClass(status) {
       const classes = {
         'active': 'status-active',
-        'inactive': 'status-warning', 
+        'inactive': 'status-warning',
         'blocked': 'status-danger'
       }
       return classes[status] || 'status-unknown'
@@ -502,13 +490,13 @@ export default {
 
     getPermissionCategory(action) {
       const action_lower = action.toLowerCase()
-      
+
       if (['create', 'add', 'store'].includes(action_lower)) return 'create'
       if (['read', 'view', 'show', 'list', 'index'].includes(action_lower)) return 'read'
-      if (['update', 'edit', 'modify'].includes(action_lower)) return 'update'  
+      if (['update', 'edit', 'modify'].includes(action_lower)) return 'update'
       if (['delete', 'destroy', 'remove'].includes(action_lower)) return 'delete'
       if (['manage', 'admin', 'control'].includes(action_lower)) return 'admin'
-      
+
       return 'other'
     },
 

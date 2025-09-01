@@ -99,11 +99,11 @@
 </template>
 
 <script>
-import axios from 'axios'
 import UserStats from './components/UserStats.vue'
 import UserFilters from './components/UserFilters.vue'
 import UserTable from './components/UserTable.vue'
 import UserModal from './components/UserModal.vue'
+import UsersApi from '@/services/UsersApi'
 
 export default {
   name: 'AdminUsers',
@@ -246,10 +246,7 @@ export default {
       this.error = null
 
       try {
-        const response = await axios.get('/api/admin/users')
-        this.users = Array.isArray(response.data)
-          ? response.data
-          : response.data['hydra:member'] || []
+        this.users = await UsersApi.getAll()
       } catch (error) {
         console.error('Erreur lors du chargement des utilisateurs:', error)
         this.error = 'Impossible de charger les utilisateurs'
@@ -260,10 +257,7 @@ export default {
 
     async fetchRoles() {
       try {
-        const response = await axios.get('/api/roles')
-        this.availableRoles = Array.isArray(response.data)
-          ? response.data
-          : response.data['hydra:member'] || []
+        this.availableRoles = await UsersApi.getRoles()
       } catch (error) {
         console.error('Erreur lors du chargement des rôles:', error)
       }
@@ -314,7 +308,7 @@ export default {
       }
 
       try {
-        await axios.patch(`/api/admin/users/${user.id}/status`, { status: newStatus })
+        await UsersApi.toggleStatus(user.id, newStatus)
         user.status = newStatus
         this.successMessage = `Utilisateur ${action === 'activer' ? 'activé' : 'suspendu'} avec succès`
       } catch (error) {
@@ -329,7 +323,7 @@ export default {
       }
 
       try {
-        await axios.delete(`/api/admin/users/${user.id}`)
+        await UsersApi.delete(user.id)
         this.successMessage = 'Utilisateur supprimé avec succès'
         this.fetchUsers()
       } catch (error) {
@@ -370,7 +364,7 @@ export default {
           ...(this.bulkAction === 'assign-role' && { role_id: this.bulkRoleId })
         }
 
-        await axios.post('/api/admin/users/bulk-action', payload)
+        await UsersApi.bulkAction(payload)
 
         this.successMessage = `Action "${this.getBulkActionLabel()}" appliquée à ${this.selectedUsers.length} utilisateur(s)`
         this.selectedUsers = []
