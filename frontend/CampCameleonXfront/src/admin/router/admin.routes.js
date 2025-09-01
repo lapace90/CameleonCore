@@ -1,9 +1,9 @@
 // Import des vues admin
 import AdminApp from '../AdminApp.vue'
 import Dashboard from '../views/Dashboard.vue'
-import Users from '../views/Users.vue'
-import UserForm from '../views/UserForm.vue'
-import UserDetail from '../views/UserDetail.vue'
+import Users from '../views/users/Users.vue'
+import UserForm from '../views/users/UserForm.vue'
+import UserDetail from '../views/users/UserDetail.vue'
 import Categories from '../views/Categories.vue'  
 import Settings from '../views/Settings.vue'
 import Analytics from '../views/Analytics.vue'
@@ -59,6 +59,24 @@ export default [
         path: 'users/:id',
         name: 'UserDetail',
         component: UserDetail,
+        props: route => ({ id: route.params.id, action: 'view' })
+      },
+      {
+        path: 'roles/create',
+        name: 'RoleCreate',
+        component: RoleForm,
+        props: { action: 'create' }
+      },
+      {
+        path: 'roles/:id/edit',
+        name: 'RoleEdit',
+        component: RoleForm,
+        props: route => ({ id: route.params.id, action: 'edit' })
+      },
+      {
+        path: 'roles',
+        name: 'AdminRoles',
+        component: AdminRoles,
         props: route => ({ id: route.params.id, action: 'view' })
       },
       {

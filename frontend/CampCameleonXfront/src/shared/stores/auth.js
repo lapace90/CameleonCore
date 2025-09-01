@@ -8,13 +8,14 @@ export const useAuthStore = defineStore('auth', () => {
   // ===========================
   const user = ref(null)
   const token = ref(localStorage.getItem('auth-token'))
-  // 🔧 CORRECTION : Commencer authentifié si token existe
-  const isAuthenticated = ref(!!token.value)
   const permissions = ref([])
   const roles = ref([])
   const loading = ref(false)
-  const initializing = ref(!!token.value) // True si token à vérifier
   const error = ref(null)
+  
+  // 🔧 AMÉLIORATION : État d'initialisation plus précis
+  const initializing = ref(!!token.value) // True seulement si un token existe
+  const isAuthenticated = ref(false) // False par défaut, sera mis à true après vérification
 
   // ===========================
   // GETTERS
@@ -48,13 +49,13 @@ export const useAuthStore = defineStore('auth', () => {
   // ACTIONS
   // ===========================
   
-  // Configuration du token
+  // 🔧 AMÉLIORATION : Configuration du token plus robuste
   const setToken = (newToken) => {
     token.value = newToken
     if (newToken) {
       localStorage.setItem('auth-token', newToken)
       axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`
-      isAuthenticated.value = true
+      // Ne pas changer isAuthenticated ici, le faire après vérification
     } else {
       localStorage.removeItem('auth-token')
       delete axios.defaults.headers.common['Authorization']
@@ -62,9 +63,11 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  // Configurer le token initial si présent
-  if (token.value) {
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token.value}`
+  // 🔧 INITIALISATION : Configuration du token au démarrage (appelée par main.js)
+  const initializeToken = () => {
+    if (token.value) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token.value}`
+    }
   }
 
   const login = async (credentials) => {
@@ -77,6 +80,7 @@ export const useAuthStore = defineStore('auth', () => {
       
       setToken(userToken)
       user.value = userData
+      isAuthenticated.value = true
       
       // Charger les permissions/rôles si disponibles
       await loadUserPermissions()
@@ -86,6 +90,7 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (err) {
       const message = err.response?.data?.message || 'Erreur de connexion'
       error.value = message
+      isAuthenticated.value = false
       throw err
     } finally {
       loading.value = false
@@ -94,21 +99,24 @@ export const useAuthStore = defineStore('auth', () => {
 
   const logout = async () => {
     try {
-      await axios.post('/api/auth/logout')
+      if (token.value) {
+        await axios.post('/api/auth/logout')
+      }
     } catch (err) {
-      // Ignorer les erreurs de logout côté serveur
+      console.warn('Erreur lors du logout côté serveur:', err)
     } finally {
-      // Nettoyer côté client
+      // 🔧 NETTOYAGE COMPLET
       setToken(null)
       user.value = null
       permissions.value = []
       roles.value = []
       error.value = null
       initializing.value = false
+      isAuthenticated.value = false
     }
   }
 
-  // 🔧 CORRECTION : checkAuth complète et fonctionnelle
+  // 🔧 CORRECTION : checkAuth plus robuste avec gestion d'erreur améliorée
   const checkAuth = async () => {
     // Pas de token = pas connecté
     if (!token.value) {
@@ -120,9 +128,13 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true
     
     try {
+      console.log('🔄 Vérification du token avec le backend...')
+      
       // Vérifier le token avec le backend
       const response = await axios.get('/api/auth/verify')
       const userData = response.data.user
+      
+      console.log('✅ Token valide, utilisateur:', userData)
       
       // Token valide, restaurer l'état
       user.value = userData
@@ -133,12 +145,15 @@ export const useAuthStore = defineStore('auth', () => {
       
       return true
     } catch (err) {
-      // Token invalide, nettoyer
-      console.warn('Token invalide, déconnexion:', err)
+      console.warn('⚠️ Token invalide ou expiré:', err.response?.status, err.response?.data?.message)
+      
+      // 🔧 NETTOYAGE en cas de token invalide
       setToken(null)
       user.value = null
       permissions.value = []
       roles.value = []
+      isAuthenticated.value = false
+      
       return false
     } finally {
       loading.value = false
@@ -150,68 +165,45 @@ export const useAuthStore = defineStore('auth', () => {
     if (!user.value) return
     
     try {
-      // Charger rôles depuis les données utilisateur
-      if (user.value.role) {
-        roles.value = [user.value.role]
-      }
-      if (user.value.additional_roles) {
-        roles.value = [...roles.value, ...user.value.additional_roles]
-      }
+      // 🔧 AMÉLIORATION : Charger les permissions depuis l'API si nécessaire
+      // Pour l'instant, utiliser les données utilisateur
       if (user.value.permissions) {
         permissions.value = user.value.permissions
       }
-      
-      // Permissions basiques selon le rôle
-      const rolePermissions = {
-        'super-admin': ['admin', 'create', 'read', 'update', 'delete', 'manage'],
-        'admin': ['admin', 'create', 'read', 'update', 'delete'],
-        'manager': ['read', 'update', 'create'],
-        'user': ['read']
+      if (user.value.roles) {
+        roles.value = user.value.roles
       }
       
-      const userRole = user.value.role?.slug || user.value.role || 'user'
-      permissions.value = rolePermissions[userRole] || ['read']
-      
+      console.log('📋 Permissions chargées:', permissions.value.length)
+      console.log('👥 Rôles chargés:', roles.value.length)
     } catch (err) {
-      console.error('Erreur lors du chargement des permissions:', err)
+      console.warn('Erreur lors du chargement des permissions:', err)
     }
   }
 
-  // Fonctions utilitaires
-  const hasPermission = (permission) => {
-    if (!user.value) return false
-    if (isSuperAdmin.value) return true
-    return userPermissions.value.includes(permission)
-  }
-
-  const hasRole = (roleSlug) => {
-    if (!user.value) return false
-    return userRoles.value.includes(roleSlug)
-  }
-
-  const hasAnyRole = (roleSlugs) => {
-    if (!user.value) return false
-    return roleSlugs.some(slug => userRoles.value.includes(slug))
-  }
-
-  const clearError = () => {
-    error.value = null
+  // 🔧 NOUVELLE MÉTHODE : Force refresh de l'état d'authentification
+  const refreshAuth = async () => {
+    if (!token.value) return false
+    return await checkAuth()
   }
 
   // ===========================
-  // RETURN
+  // INITIALISATION
   // ===========================
   
+  // Configurer axios avec le token au démarrage
+  initializeToken()
+
   return {
     // State
     user,
     token,
-    isAuthenticated,
     permissions,
     roles,
     loading,
-    initializing,
     error,
+    initializing,
+    isAuthenticated,
     
     // Getters
     currentUser,
@@ -229,11 +221,7 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     logout,
     checkAuth,
-    loadUserPermissions,
-    hasPermission,
-    hasRole,
-    hasAnyRole,
-    clearError,
-    setToken
+    refreshAuth,
+    loadUserPermissions
   }
 })

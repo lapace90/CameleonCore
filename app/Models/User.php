@@ -13,8 +13,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Collection;
 
-#[ApiResource]
-#[GetCollection(uriTemplate: '/admin/users')]
+// #[ApiResource]
+// #[GetCollection(uriTemplate: '/admin/users')]
 
 class User extends Authenticatable
 {
