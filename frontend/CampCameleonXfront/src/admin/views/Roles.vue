@@ -98,20 +98,20 @@
           <thead>
             <tr>
               <th>
-                <button @click="sortBy('name')" class="sort-button">
+                <button @click="sortBy('name')" class="sort-button btn btn-sm">
                   Rôle
                   <i :class="getSortIcon('name')"></i>
                 </button>
               </th>
               <th>Description</th>
               <th>
-                <button @click="sortBy('permissions_count')" class="sort-button">
+                <button @click="sortBy('permissions_count')" class="sort-button btn btn-sm">
                   Permissions
                   <i :class="getSortIcon('permissions_count')"></i>
                 </button>
               </th>
               <th>
-                <button @click="sortBy('users_count')" class="sort-button">
+                <button @click="sortBy('users_count')" class="sort-button btn btn-sm">
                   Utilisateurs
                   <i :class="getSortIcon('users_count')"></i>
                 </button>
@@ -351,33 +351,33 @@ export default {
       let filtered = [...this.roles]
       
       // Recherche textuelle
-      if (this.searchQuery) {
-        const query = this.searchQuery.toLowerCase()
-        filtered = filtered.filter(role => 
-          role.name.toLowerCase().includes(query) ||
-          role.slug.toLowerCase().includes(query) ||
-          (role.description && role.description.toLowerCase().includes(query))
-        )
-      }
+      // if (this.searchQuery) {
+      //   const query = this.searchQuery.toLowerCase()
+      //   filtered = filtered.filter(role => 
+      //     role.name.toLowerCase().includes(query) ||
+      //     role.slug.toLowerCase().includes(query) ||
+      //     (role.description && role.description.toLowerCase().includes(query))
+      //   )
+      // }
       
       // Filtre par permission
-      if (this.permissionFilter) {
-        filtered = filtered.filter(role => 
-          role.permissions && role.permissions.some(perm => 
-            perm.action.toLowerCase().includes(this.permissionFilter.toLowerCase())
-          )
-        )
-      }
+      // if (this.permissionFilter) {
+      //   filtered = filtered.filter(role => 
+      //     role.permissions && role.permissions.some(perm => 
+      //       perm.action.toLowerCase().includes(this.permissionFilter.toLowerCase())
+      //     )
+      //   )
+      // }
       
       // Tri
       filtered.sort((a, b) => {
         let aValue = this.getSortValue(a, this.sortField)
         let bValue = this.getSortValue(b, this.sortField)
         
-        if (typeof aValue === 'string') {
-          aValue = aValue.toLowerCase()
-          bValue = bValue.toLowerCase()
-        }
+        // if (typeof aValue === 'string') {
+        //   aValue = aValue.toLowerCase()
+        //   bValue = bValue.toLowerCase()
+        // }
         
         if (this.sortDirection === 'asc') {
           return aValue > bValue ? 1 : -1
@@ -438,7 +438,7 @@ export default {
       this.error = null
 
       try {
-        const response = await axios.get('/api/admin/roles')
+        const response = await axios.get('/api/roles')
         this.roles = Array.isArray(response.data)
           ? response.data
           : response.data['hydra:member'] || []
@@ -515,7 +515,7 @@ export default {
           permissions: role.permissions?.map(p => p.id) || []
         }
 
-        await axios.post('/api/admin/roles', duplicatedRole)
+        await axios.post('/api/roles', duplicatedRole)
         this.successMessage = 'Rôle dupliqué avec succès'
         this.fetchRoles()
       } catch (error) {
@@ -535,7 +535,7 @@ export default {
       }
 
       try {
-        await axios.delete(`/api/admin/roles/${role.id}`)
+        await axios.delete(`/api/roles/${role.id}`)
         this.successMessage = 'Rôle supprimé avec succès'
         this.fetchRoles()
       } catch (error) {
@@ -564,7 +564,7 @@ export default {
         'admin': 'badge-primary'
       }
       
-      return classes[action.toLowerCase()] || 'badge-secondary'
+      return classes[action] || 'badge-secondary'
     }
   }
 }

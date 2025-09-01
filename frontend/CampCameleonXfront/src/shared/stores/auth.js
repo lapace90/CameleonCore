@@ -169,7 +169,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (user.value.permissions && user.value.permissions.length) {
         permissions.value = user.value.permissions
       } else {
-        const permRes = await axios.get('/api/admin/permissions')
+        const permRes = await axios.get('/api/permissions')
         permissions.value = Array.isArray(permRes.data)
           ? permRes.data
           : permRes.data['hydra:member'] || []
@@ -177,7 +177,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (user.value.roles && user.value.roles.length) {
         roles.value = user.value.roles
       } else {
-        const rolesRes = await axios.get('/api/admin/roles')
+        const rolesRes = await axios.get('/api/roles')
         roles.value = Array.isArray(rolesRes.data)
           ? rolesRes.data
           : rolesRes.data['hydra:member'] || []

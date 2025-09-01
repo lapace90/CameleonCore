@@ -260,7 +260,7 @@ export default {
 
     async fetchRoles() {
       try {
-        const response = await axios.get('/api/admin/roles')
+        const response = await axios.get('/api/roles')
         this.availableRoles = Array.isArray(response.data)
           ? response.data
           : response.data['hydra:member'] || []

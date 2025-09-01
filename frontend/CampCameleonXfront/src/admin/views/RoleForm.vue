@@ -333,7 +333,7 @@ export default {
   methods: {
     async loadPermissions() {
       try {
-        const response = await axios.get('/api/admin/permissions')
+        const response = await axios.get('/api/permissions')
         this.permissions = Array.isArray(response.data) 
           ? response.data 
           : response.data['hydra:member'] || []
@@ -346,7 +346,7 @@ export default {
     async loadRole() {
       this.loading = true
       try {
-        const response = await axios.get(`/api/admin/roles/${this.roleId}`)
+        const response = await axios.get(`/api/roles/${this.roleId}`)
         this.role = response.data
         
         // Remplir le formulaire
@@ -370,8 +370,8 @@ export default {
       
       try {
         const url = this.isEditing 
-          ? `/api/admin/roles/${this.roleId}`
-          : '/api/admin/roles'
+          ? `/api/roles/${this.roleId}`
+          : '/api/roles'
           
         const method = this.isEditing ? 'put' : 'post'
         
@@ -404,7 +404,7 @@ export default {
       
       this.saving = true
       try {
-        await axios.delete(`/api/admin/roles/${this.roleId}`)
+        await axios.delete(`/api/roles/${this.roleId}`)
         this.$router.push({
           path: '/admin/roles',
           query: { success: 'Rôle supprimé avec succès' }
