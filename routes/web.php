@@ -21,3 +21,4 @@ Route::get('/', [App\Http\Controllers\WelcomeController::class, 'index']);
 | Pour ajouter des routes personnalisées, utilisez routes/api.php avec un préfixe
 | différent (ex: /api/auth, /api/admin) pour éviter les conflits.
 */
+

@@ -7,9 +7,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\Role;
 use App\Models\User;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 
 #[ApiResource(
-    normalizationContext: ['groups' => ['permission:read']]
+    operations: [
+        new Get(),
+        new GetCollection()
+    ]
 )]
 
 class Permission extends Model

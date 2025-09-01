@@ -2,82 +2,91 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GetCollection;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Laravel\Eloquent\Filter\EqualsFilter;
+use ApiPlatform\Laravel\Eloquent\Filter\OrderFilter;
+use ApiPlatform\Metadata\QueryParameter;
+use App\State\UserCollectionProvider;
+use App\State\UserItemProvider;
+use App\State\UserProcessor;
+use App\Data\UserOutputData;
+use App\Data\UserData;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Support\Collection;
-use ApiPlatform\Metadata\Get;
-
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[ApiResource(
     operations: [
-        new Get(),
-        new GetCollection()
+        new GetCollection(
+            uriTemplate: '/admin/users',
+            provider: UserCollectionProvider::class,
+            output: UserOutputData::class
+        ),
+        new Get(
+            uriTemplate: '/admin/users/{id}',
+            provider: UserItemProvider::class,
+            output: UserOutputData::class
+        ),
+        new Post(
+            uriTemplate: '/admin/users',
+            processor: UserProcessor::class,
+            output: UserOutputData::class,
+            input: UserData::class,
+            deserialize: false
+        ),
+        new Patch(
+            uriTemplate: '/admin/users/{id}',
+            processor: UserProcessor::class,
+            output: UserOutputData::class,
+            input: UserData::class,
+            deserialize: false
+        ),
+        new Delete(
+            uriTemplate: '/admin/users/{id}',
+            processor: UserProcessor::class
+        ),
+    ],
+    filters: [
+        QueryParameter::class => ['name' => 'partial', 'email' => 'partial'],
+        EqualsFilter::class => ['status', 'role_id'],
+        OrderFilter::class => ['id', 'name', 'email', 'created_at', 'last_login_at']
     ]
 )]
-
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasApiTokens, SoftDeletes;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'name',
         'email',
+        'email_verified_at',
         'password',
         'status',
         'role_id',
         'last_login_at',
         'last_login_ip',
-        'password_reset_required',
-        'metadata',
-        'email_verified_at'
+        'password_reset_required'
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'last_login_at' => 'datetime',
-            'password_reset_required' => 'boolean',
-            'metadata' => 'array'
-        ];
-    }
-
-    /**
-     * Les valeurs par défaut des attributs
-     *
-     * @var array
-     */
-    protected $attributes = [
-        'status' => 'active',
-        'password_reset_required' => false,
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'last_login_at' => 'datetime',
+        'password_reset_required' => 'boolean',
     ];
 
     // ===========================
@@ -93,12 +102,11 @@ class User extends Authenticatable
     }
 
     /**
-     * Rôles additionnels de l'utilisateur (many-to-many)
+     * Rôles additionnels (many-to-many)
      */
     public function roles(): BelongsToMany
     {
-        return $this->belongsToMany(Role::class, 'role_user')
-                    ->withTimestamps();
+        return $this->belongsToMany(Role::class, 'role_user');
     }
 
     /**
@@ -106,88 +114,79 @@ class User extends Authenticatable
      */
     public function permissions(): BelongsToMany
     {
-        return $this->belongsToMany(Permission::class, 'permission_user')
-                    ->withTimestamps();
-    }
-
-    // ===========================
-    // SCOPES
-    // ===========================
-
-    /**
-     * Scope pour les utilisateurs actifs
-     */
-    public function scopeActive($query)
-    {
-        return $query->where('status', 'active');
+        return $this->belongsToMany(Permission::class, 'permission_user');
     }
 
     /**
-     * Scope pour les utilisateurs avec un rôle spécifique
+     * Réservations créées par cet utilisateur (admin)
      */
-    public function scopeWithRole($query, $roleSlug)
+    public function createdReservations()
     {
-        return $query->whereHas('role', function($q) use ($roleSlug) {
-            $q->where('slug', $roleSlug);
-        });
-    }
-
-    /**
-     * Scope pour les utilisateurs avec une permission spécifique
-     */
-    public function scopeWithPermission($query, $permissionAction)
-    {
-        return $query->where(function($q) use ($permissionAction) {
-            $q->whereHas('permissions', function($subQ) use ($permissionAction) {
-                $subQ->where('action', $permissionAction);
-            })
-            ->orWhereHas('role.permissions', function($subQ) use ($permissionAction) {
-                $subQ->where('action', $permissionAction);
-            })
-            ->orWhereHas('roles.permissions', function($subQ) use ($permissionAction) {
-                $subQ->where('action', $permissionAction);
-            });
-        });
+        return $this->hasMany(Reservation::class, 'user_id');
     }
 
     // ===========================
-    // MÉTHODES DE GESTION DES PERMISSIONS
+    // MÉTHODES D'AUTORISATION
     // ===========================
-
-    /**
-     * Vérifier si l'utilisateur a une permission spécifique
-     */
-    public function hasPermission(string $permissionAction): bool
-    {
-        // Super admin a toutes les permissions
-        if ($this->isSuperAdmin()) {
-            return true;
-        }
-
-        return $this->getAllPermissions()->contains('action', $permissionAction);
-    }
 
     /**
      * Vérifier si l'utilisateur a un rôle spécifique
      */
-    public function hasRole(string $roleSlug): bool
+    public function hasRole(string $role): bool
     {
         // Vérifier le rôle principal
-        if ($this->role && $this->role->slug === $roleSlug) {
+        if ($this->role && $this->role->slug === $role) {
             return true;
         }
 
         // Vérifier les rôles additionnels
-        return $this->roles()->where('slug', $roleSlug)->exists();
+        return $this->roles()->where('slug', $role)->exists();
     }
 
     /**
-     * Vérifier si l'utilisateur a au moins un des rôles spécifiés
+     * Vérifier si l'utilisateur a au moins un des rôles
      */
-    public function hasAnyRole(array $roleSlugs): bool
+    public function hasAnyRole(array $roles): bool
     {
-        foreach ($roleSlugs as $roleSlug) {
-            if ($this->hasRole($roleSlug)) {
+        foreach ($roles as $role) {
+            if ($this->hasRole($role)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Obtenir tous les rôles de l'utilisateur
+     */
+    public function getAllRoles()
+    {
+        $roles = collect();
+        
+        // Ajouter le rôle principal
+        if ($this->role) {
+            $roles->push($this->role);
+        }
+        
+        // Ajouter les rôles additionnels
+        $roles = $roles->merge($this->roles);
+        
+        return $roles->unique('id');
+    }
+
+    /**
+     * Vérifier une permission spécifique
+     */
+    public function hasPermission(string $permission): bool
+    {
+        // Permissions directes
+        if ($this->permissions()->where('action', $permission)->exists()) {
+            return true;
+        }
+
+        // Permissions via les rôles
+        foreach ($this->getAllRoles() as $role) {
+            if ($role->hasPermission($permission)) {
                 return true;
             }
         }
@@ -196,11 +195,37 @@ class User extends Authenticatable
     }
 
     /**
-     * Vérifier si l'utilisateur est super admin
+     * Obtenir toutes les permissions de l'utilisateur
      */
-    public function isSuperAdmin(): bool
+    public function getAllPermissions()
     {
-        return $this->hasRole('super-admin');
+        $permissions = collect();
+        
+        // Permissions directes
+        $permissions = $permissions->merge($this->permissions);
+        
+        // Permissions via les rôles
+        foreach ($this->getAllRoles() as $role) {
+            $permissions = $permissions->merge($role->permissions);
+        }
+        
+        return $permissions->unique('id');
+    }
+
+    /**
+     * Grouper les permissions par catégorie
+     */
+    public function getPermissionsByCategory(): array
+    {
+        $permissions = $this->getAllPermissions();
+        $grouped = [];
+
+        foreach ($permissions as $permission) {
+            $category = $this->getPermissionCategory($permission->action);
+            $grouped[$category][] = $permission;
+        }
+
+        return $grouped;
     }
 
     /**
@@ -212,166 +237,25 @@ class User extends Authenticatable
     }
 
     /**
-     * Obtenir toutes les permissions de l'utilisateur
+     * Vérifier si l'utilisateur est super-admin
      */
-    public function getAllPermissions(): Collection
+    public function isSuperAdmin(): bool
     {
-        $permissions = collect();
-
-        // Permissions du rôle principal
-        if ($this->role) {
-            $permissions = $permissions->merge($this->role->permissions);
-        }
-
-        // Permissions des rôles additionnels
-        foreach ($this->roles as $role) {
-            $permissions = $permissions->merge($role->permissions);
-        }
-
-        // Permissions directes
-        $permissions = $permissions->merge($this->permissions);
-
-        // Supprimer les doublons basés sur l'ID
-        return $permissions->unique('id');
-    }
-
-    /**
-     * Obtenir les permissions groupées par catégorie
-     */
-    public function getPermissionsByCategory(): array
-    {
-        $permissions = $this->getAllPermissions();
-        $categorized = [];
-
-        foreach ($permissions as $permission) {
-            $category = $this->getPermissionCategory($permission->action);
-            
-            if (!isset($categorized[$category])) {
-                $categorized[$category] = [];
-            }
-            
-            $categorized[$category][] = $permission;
-        }
-
-        return $categorized;
-    }
-
-    /**
-     * Assigner un rôle principal
-     */
-    public function assignRole(Role $role): void
-    {
-        $this->update(['role_id' => $role->id]);
-    }
-
-    /**
-     * Ajouter un rôle additionnel
-     */
-    public function addRole(Role $role): void
-    {
-        if (!$this->roles()->where('role_id', $role->id)->exists()) {
-            $this->roles()->attach($role->id);
-        }
-    }
-
-    /**
-     * Retirer un rôle additionnel
-     */
-    public function removeRole(Role $role): void
-    {
-        $this->roles()->detach($role->id);
-    }
-
-    /**
-     * Synchroniser les rôles additionnels
-     */
-    public function syncRoles(array $roleIds): void
-    {
-        $this->roles()->sync($roleIds);
-    }
-
-    /**
-     * Assigner une permission directe
-     */
-    public function givePermission(Permission $permission): void
-    {
-        if (!$this->permissions()->where('permission_id', $permission->id)->exists()) {
-            $this->permissions()->attach($permission->id);
-        }
-    }
-
-    /**
-     * Retirer une permission directe
-     */
-    public function revokePermission(Permission $permission): void
-    {
-        $this->permissions()->detach($permission->id);
-    }
-
-    /**
-     * Synchroniser les permissions directes
-     */
-    public function syncPermissions(array $permissionIds): void
-    {
-        $this->permissions()->sync($permissionIds);
+        return $this->hasRole('super-admin');
     }
 
     // ===========================
-    // MÉTHODES DE STATUT
+    // MÉTHODES UTILITAIRES
     // ===========================
 
     /**
-     * Vérifier si l'utilisateur est actif
+     * Marquer la dernière connexion
      */
-    public function isActive(): bool
-    {
-        return $this->status === 'active';
-    }
-
-    /**
-     * Vérifier si l'utilisateur est bloqué
-     */
-    public function isBlocked(): bool
-    {
-        return $this->status === 'blocked';
-    }
-
-    /**
-     * Activer l'utilisateur
-     */
-    public function activate(): void
-    {
-        $this->update(['status' => 'active']);
-    }
-
-    /**
-     * Suspendre l'utilisateur
-     */
-    public function suspend(): void
-    {
-        $this->update(['status' => 'inactive']);
-    }
-
-    /**
-     * Bloquer l'utilisateur
-     */
-    public function block(): void
-    {
-        $this->update(['status' => 'blocked']);
-    }
-
-    // ===========================
-    // MÉTHODES DE CONNEXION
-    // ===========================
-
-    /**
-     * Enregistrer la dernière connexion
-     */
-    public function recordLogin(string $ip = null): void
+    public function markAsLoggedIn(): void
     {
         $this->update([
             'last_login_at' => now(),
-            'last_login_ip' => $ip ?? request()->ip(),
+            'last_login_ip' => request()->ip(),
             'password_reset_required' => false
         ]);
     }
@@ -383,10 +267,6 @@ class User extends Authenticatable
     {
         $this->update(['password_reset_required' => true]);
     }
-
-    // ===========================
-    // MÉTHODES UTILITAIRES
-    // ===========================
 
     /**
      * Obtenir la catégorie d'une permission

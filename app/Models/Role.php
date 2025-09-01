@@ -8,11 +8,13 @@ use App\Models\Permission;
 use App\Models\User;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Get;
 
-#[ApiResource]
-#[GetCollection(
-    uriTemplate: '/admin/roles',
-    normalizationContext: ['groups' => ['role:read']]
+#[ApiResource(
+    operations: [
+        new Get(),
+        new GetCollection()
+    ]
 )]
 
 class Role extends Model
