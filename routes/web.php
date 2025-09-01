@@ -1,39 +1,23 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\Admin\UserController;
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 
-// Route::get('/', function () {
-//     return view('welcome');
-// });
-
+// Page d'accueil simple
 Route::get('/', [App\Http\Controllers\WelcomeController::class, 'index']);
-  
-Route::prefix('api/admin')
-    ->middleware(['auth:sanctum'])  // Protection par authentification
-    ->withoutMiddleware([VerifyCsrfToken::class])
-    ->group(function () {
-        
-        // 🔧 Routes pour les utilisateurs (hors API Platform)
-        Route::prefix('users')->group(function () {
-            Route::get('/', [UserController::class, 'index']);
-            Route::post('/', [UserController::class, 'store']);
-            Route::get('/{user}', [UserController::class, 'show']);
-            Route::put('/{user}', [UserController::class, 'update']);
-            Route::delete('/{user}', [UserController::class, 'destroy']);
-            Route::patch('/{user}/status', [UserController::class, 'updateStatus']);
-        });
-        
-        // 🔧 Endpoints de stats (optionnels - créer si nécessaires)
-        Route::get('stats/users', function() {
-            return response()->json(['total_users' => \App\Models\User::count()]);
-        });
-        
-        Route::get('stats/basic', function() {
-            return response()->json([
-                'users_count' => \App\Models\User::count(),
-                'products_count' => 0, // À adapter selon vos besoins
-            ]);
-        });
-    });
+
+/*
+|--------------------------------------------------------------------------  
+| ⚠️ IMPORTANT pour API Platform
+|--------------------------------------------------------------------------
+|
+| N'ajoutez PAS de routes API ici ! Toutes vos entités (Product, Dish, Menu, etc.)
+| sont déjà exposées automatiquement par API Platform via les annotations.
+|
+| Les routes se trouvent à :
+| - /api/products (géré par ProductCollectionProvider/ProductProcessor)
+| - /api/dishes (géré par les annotations dans Dish.php) 
+| - /api/menus, /api/activities, /api/rooms, etc.
+|
+| Pour ajouter des routes personnalisées, utilisez routes/api.php avec un préfixe
+| différent (ex: /api/auth, /api/admin) pour éviter les conflits.
+*/

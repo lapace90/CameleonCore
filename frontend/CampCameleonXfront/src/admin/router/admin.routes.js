@@ -3,16 +3,20 @@ import AdminApp from '../AdminApp.vue'
 import Dashboard from '../views/Dashboard.vue'
 import Users from '../views/Users.vue'
 import UserForm from '../views/UserForm.vue'
+import UserDetail from '../views/UserDetail.vue'
 import Categories from '../views/Categories.vue'  
 import Settings from '../views/Settings.vue'
 import Analytics from '../views/Analytics.vue'
 import FullCalendar from '@/shared/components/calendar/FullCalendar.vue'
+import RoleForm from '../views/RoleForm.vue'
+import AdminRoles from '../views/Roles.vue'
 
 // Import des composants produits
 import ProductsShow from '../views/products/ProductsShow.vue'
 import ProductDetail from '../views/products/ProductDetail.vue'
 import ProductForm from '../views/products/ProductForm.vue'
 import path from 'path'
+import Roles from '../views/Roles.vue'
 
 export default [
   {
@@ -35,6 +39,11 @@ export default [
         component: Users
       },
       {
+        path: 'roles',
+        name: 'AdminRoles',
+        component: Roles
+      },
+      {
         path: 'users/create',
         name: 'UserCreate',
         component: UserForm,
@@ -45,6 +54,12 @@ export default [
         name: 'UserEdit',
         component: UserForm,
         props: route => ({ id: route.params.id, action: 'edit' })
+      },
+      {
+        path: 'users/:id',
+        name: 'UserDetail',
+        component: UserDetail,
+        props: route => ({ id: route.params.id, action: 'view' })
       },
       {
         path: 'analytics',

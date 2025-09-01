@@ -181,13 +181,13 @@
                 />
               </th>
               <th>
-                <button @click="sortBy('name')" class="sort-button">
+                <button @click="sortBy('name')" class="sort-button btn btn-sm">
                   Utilisateur
                   <i :class="getSortIcon('name')"></i>
                 </button>
               </th>
               <th>
-                <button @click="sortBy('email')" class="sort-button">
+                <button @click="sortBy('email')" class="sort-button btn btn-sm">
                   Email
                   <i :class="getSortIcon('email')"></i>
                 </button>
@@ -195,13 +195,13 @@
               <th>Rôles</th>
               <th>Statut</th>
               <th>
-                <button @click="sortBy('created_at')" class="sort-button">
+                <button @click="sortBy('created_at')" class="sort-button btn btn-sm">
                   Inscription
                   <i :class="getSortIcon('created_at')"></i>
                 </button>
               </th>
               <th>
-                <button @click="sortBy('last_login')" class="sort-button">
+                <button @click="sortBy('last_login')" class="sort-button btn btn-sm">
                   Dernière connexion
                   <i :class="getSortIcon('last_login')"></i>
                 </button>
@@ -899,3 +899,14 @@ export default {
   }
 }
 </script>
+
+<style scoped lang="scss">
+
+.users-stats {
+  display: grid;
+  gap: 1rem;
+  min-width: 100%;
+  margin-bottom: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+</style>

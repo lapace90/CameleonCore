@@ -1,5 +1,3 @@
-// stores/auth.js - Store Pinia corrigé pour votre architecture
-
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import axios from 'axios'
@@ -10,11 +8,12 @@ export const useAuthStore = defineStore('auth', () => {
   // ===========================
   const user = ref(null)
   const token = ref(localStorage.getItem('auth-token'))
-  const isAuthenticated = ref(false)
+  // 🔧 CORRECTION : Commencer authentifié si token existe
+  const isAuthenticated = ref(!!token.value)
   const permissions = ref([])
   const roles = ref([])
   const loading = ref(false)
-  const initializing = ref(true)
+  const initializing = ref(!!token.value) // True si token à vérifier
   const error = ref(null)
 
   // ===========================
@@ -55,9 +54,11 @@ export const useAuthStore = defineStore('auth', () => {
     if (newToken) {
       localStorage.setItem('auth-token', newToken)
       axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`
+      isAuthenticated.value = true
     } else {
       localStorage.removeItem('auth-token')
       delete axios.defaults.headers.common['Authorization']
+      isAuthenticated.value = false
     }
   }
 
@@ -71,17 +72,16 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
     
     try {
-      // CORRECTION : utiliser /auth/login (pas /api/auth/login)
       const response = await axios.post('/api/auth/login', credentials)
       const { user: userData, token: userToken } = response.data
       
       setToken(userToken)
       user.value = userData
-      isAuthenticated.value = true
       
       // Charger les permissions/rôles si disponibles
       await loadUserPermissions()
       
+      initializing.value = false
       return { success: true, user: userData }
     } catch (err) {
       const message = err.response?.data?.message || 'Erreur de connexion'
@@ -94,45 +94,51 @@ export const useAuthStore = defineStore('auth', () => {
 
   const logout = async () => {
     try {
-      // CORRECTION : utiliser /auth/logout (pas /api/auth/logout)
-      await axios.post('/auth/logout')
+      await axios.post('/api/auth/logout')
     } catch (err) {
-      console.warn('Erreur lors de la déconnexion:', err)
+      // Ignorer les erreurs de logout côté serveur
     } finally {
+      // Nettoyer côté client
       setToken(null)
       user.value = null
-      isAuthenticated.value = false
       permissions.value = []
       roles.value = []
       error.value = null
-      loading.value = false
+      initializing.value = false
     }
   }
 
+  // 🔧 CORRECTION : checkAuth complète et fonctionnelle
   const checkAuth = async () => {
+    // Pas de token = pas connecté
     if (!token.value) {
+      isAuthenticated.value = false
       initializing.value = false
       return false
     }
-    
+
     loading.value = true
     
     try {
-      // CORRECTION : utiliser /auth/verify (pas /api/auth/verify)
+      // Vérifier le token avec le backend
       const response = await axios.get('/api/auth/verify')
       const userData = response.data.user
       
+      // Token valide, restaurer l'état
       user.value = userData
       isAuthenticated.value = true
       
+      // Charger permissions/rôles
       await loadUserPermissions()
       
       return true
     } catch (err) {
-      console.warn('Token invalide:', err)
+      // Token invalide, nettoyer
+      console.warn('Token invalide, déconnexion:', err)
       setToken(null)
       user.value = null
-      isAuthenticated.value = false
+      permissions.value = []
+      roles.value = []
       return false
     } finally {
       loading.value = false
@@ -144,34 +150,37 @@ export const useAuthStore = defineStore('auth', () => {
     if (!user.value) return
     
     try {
-      // Pour l'instant, utilisation simple basée sur le rôle
-      // À adapter selon vos besoins futurs
+      // Charger rôles depuis les données utilisateur
       if (user.value.role) {
         roles.value = [user.value.role]
-        
-        // Permissions basiques selon le rôle
-        const rolePermissions = {
-          'admin': ['admin', 'create', 'read', 'update', 'delete'],
-          'manager': ['read', 'update', 'create'],
-          'user': ['read']
-        }
-        
-        permissions.value = rolePermissions[user.value.role] || ['read']
       }
+      if (user.value.additional_roles) {
+        roles.value = [...roles.value, ...user.value.additional_roles]
+      }
+      if (user.value.permissions) {
+        permissions.value = user.value.permissions
+      }
+      
+      // Permissions basiques selon le rôle
+      const rolePermissions = {
+        'super-admin': ['admin', 'create', 'read', 'update', 'delete', 'manage'],
+        'admin': ['admin', 'create', 'read', 'update', 'delete'],
+        'manager': ['read', 'update', 'create'],
+        'user': ['read']
+      }
+      
+      const userRole = user.value.role?.slug || user.value.role || 'user'
+      permissions.value = rolePermissions[userRole] || ['read']
       
     } catch (err) {
       console.error('Erreur lors du chargement des permissions:', err)
     }
   }
 
-  // ===========================
-  // FONCTIONS UTILITAIRES
-  // ===========================
-  
+  // Fonctions utilitaires
   const hasPermission = (permission) => {
     if (!user.value) return false
     if (isSuperAdmin.value) return true
-    
     return userPermissions.value.includes(permission)
   }
 
@@ -190,7 +199,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   // ===========================
-  // RETURN (équivalent aux getters/actions exportés)
+  // RETURN
   // ===========================
   
   return {

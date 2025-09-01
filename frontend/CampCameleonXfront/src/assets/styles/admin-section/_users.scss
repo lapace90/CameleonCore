@@ -15,8 +15,6 @@ $permission-color: #dc2626;
 .roles-page,
 .permissions-page {
   padding: 2rem;
-  max-width: 1400px;
-  margin: 0 auto;
 }
 
 .page-header {
@@ -178,6 +176,12 @@ $permission-color: #dc2626;
   padding: 1.5rem;
   border-bottom: 1px solid #e5e7eb;
   background: #f9fafb;
+}
+
+.table-placeholder {
+  padding: 2rem;
+  text-align: center;
+  color: #6b7280;
 }
 
 .search-filter {

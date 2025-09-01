@@ -35,19 +35,37 @@ const router = createRouter({
   routes
 })
 
-router.beforeEach((to, from, next) => {
+// 🔧 CORRECTION : Router guard qui attend l'initialisation
+router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
 
+  // Si on va vers login et qu'on est déjà connecté, rediriger
   if (to.name === 'AdminLogin' && authStore.isAuthenticated) {
     next('/admin/dashboard')
     return
   }
 
-  if (to.matched.some(record => record.meta.requiresAuth) && !authStore.isAuthenticated) {
-    next({ name: 'AdminLogin', query: { redirect: to.fullPath } })
-  } else {
-    next()
+  // Si la route nécessite une auth
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    
+    // ⏳ ATTENDRE que l'initialisation soit terminée
+    if (authStore.initializing) {
+      try {
+        // Attendre la vérification de l'auth
+        await authStore.checkAuth()
+      } catch (err) {
+        console.warn('Erreur lors de la vérification auth:', err)
+      }
+    }
+    
+    // Maintenant vérifier l'authentification
+    if (!authStore.isAuthenticated) {
+      next({ name: 'AdminLogin', query: { redirect: to.fullPath } })
+      return
+    }
   }
+
+  next()
 })
 
 export default router
