@@ -4,6 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Role;
+use App\Models\User;
+use ApiPlatform\Metadata\ApiResource;
+
+#[ApiResource(
+    normalizationContext: ['groups' => ['permission:read']]
+)]
 
 class Permission extends Model
 {

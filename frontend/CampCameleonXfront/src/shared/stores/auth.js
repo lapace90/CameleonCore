@@ -12,7 +12,7 @@ export const useAuthStore = defineStore('auth', () => {
   const roles = ref([])
   const loading = ref(false)
   const error = ref(null)
-  
+
   // 🔧 AMÉLIORATION : État d'initialisation plus précis
   const initializing = ref(!!token.value) // True seulement si un token existe
   const isAuthenticated = ref(false) // False par défaut, sera mis à true après vérification
@@ -24,31 +24,31 @@ export const useAuthStore = defineStore('auth', () => {
   const isLoading = computed(() => loading.value)
   const isInitializing = computed(() => initializing.value)
   const authError = computed(() => error.value)
-  
+
   const userPermissions = computed(() => permissions.value.map(p => p.action || p))
   const userRoles = computed(() => roles.value.map(r => r.slug || r))
   const userRoleNames = computed(() => roles.value.map(r => r.name || r))
-  
+
   const isAdmin = computed(() => {
     if (!user.value) return false
     return userRoles.value.some(r => ['super-admin', 'admin'].includes(r))
   })
-  
+
   const isSuperAdmin = computed(() => {
     if (!user.value) return false
     return userRoles.value.some(r => r === 'super-admin')
   })
-  
+
   const canAccessAdmin = computed(() => {
     if (!user.value) return false
     return userRoles.value.some(r => ['super-admin', 'admin', 'manager'].includes(r)) ||
-           userPermissions.value.includes('admin')
+      userPermissions.value.includes('admin')
   })
 
   // ===========================
   // ACTIONS
   // ===========================
-  
+
   // 🔧 AMÉLIORATION : Configuration du token plus robuste
   const setToken = (newToken) => {
     token.value = newToken
@@ -73,18 +73,18 @@ export const useAuthStore = defineStore('auth', () => {
   const login = async (credentials) => {
     loading.value = true
     error.value = null
-    
+
     try {
       const response = await axios.post('/api/auth/login', credentials)
       const { user: userData, token: userToken } = response.data
-      
+
       setToken(userToken)
       user.value = userData
       isAuthenticated.value = true
-      
+
       // Charger les permissions/rôles si disponibles
       await loadUserPermissions()
-      
+
       initializing.value = false
       return { success: true, user: userData }
     } catch (err) {
@@ -126,34 +126,34 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     loading.value = true
-    
+
     try {
       console.log('🔄 Vérification du token avec le backend...')
-      
+
       // Vérifier le token avec le backend
       const response = await axios.get('/api/auth/verify')
       const userData = response.data.user
-      
+
       console.log('✅ Token valide, utilisateur:', userData)
-      
+
       // Token valide, restaurer l'état
       user.value = userData
       isAuthenticated.value = true
-      
+
       // Charger permissions/rôles
       await loadUserPermissions()
-      
+
       return true
     } catch (err) {
       console.warn('⚠️ Token invalide ou expiré:', err.response?.status, err.response?.data?.message)
-      
+
       // 🔧 NETTOYAGE en cas de token invalide
       setToken(null)
       user.value = null
       permissions.value = []
       roles.value = []
       isAuthenticated.value = false
-      
+
       return false
     } finally {
       loading.value = false
@@ -163,21 +163,33 @@ export const useAuthStore = defineStore('auth', () => {
 
   const loadUserPermissions = async () => {
     if (!user.value) return
-    
+    loading.value = true
+    error.value = null
     try {
-      // 🔧 AMÉLIORATION : Charger les permissions depuis l'API si nécessaire
-      // Pour l'instant, utiliser les données utilisateur
-      if (user.value.permissions) {
+      if (user.value.permissions && user.value.permissions.length) {
         permissions.value = user.value.permissions
+      } else {
+        const permRes = await axios.get('/api/admin/permissions')
+        permissions.value = Array.isArray(permRes.data)
+          ? permRes.data
+          : permRes.data['hydra:member'] || []
       }
-      if (user.value.roles) {
+      if (user.value.roles && user.value.roles.length) {
         roles.value = user.value.roles
+      } else {
+        const rolesRes = await axios.get('/api/admin/roles')
+        roles.value = Array.isArray(rolesRes.data)
+          ? rolesRes.data
+          : rolesRes.data['hydra:member'] || []
       }
-      
+
       console.log('📋 Permissions chargées:', permissions.value.length)
       console.log('👥 Rôles chargés:', roles.value.length)
     } catch (err) {
-      console.warn('Erreur lors du chargement des permissions:', err)
+      console.warn('Erreur lors du chargement des permissions ou rôles:', err)
+      error.value = err.response?.data?.message || 'Impossible de charger permissions/roles'
+    } finally {
+      loading.value = false
     }
   }
 
@@ -190,7 +202,7 @@ export const useAuthStore = defineStore('auth', () => {
   // ===========================
   // INITIALISATION
   // ===========================
-  
+
   // Configurer axios avec le token au démarrage
   initializeToken()
 
@@ -204,7 +216,7 @@ export const useAuthStore = defineStore('auth', () => {
     error,
     initializing,
     isAuthenticated,
-    
+
     // Getters
     currentUser,
     isLoading,
@@ -216,7 +228,7 @@ export const useAuthStore = defineStore('auth', () => {
     isAdmin,
     isSuperAdmin,
     canAccessAdmin,
-    
+
     // Actions
     login,
     logout,

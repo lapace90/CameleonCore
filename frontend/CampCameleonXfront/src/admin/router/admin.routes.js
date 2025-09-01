@@ -15,8 +15,7 @@ import AdminRoles from '../views/Roles.vue'
 import ProductsShow from '../views/products/ProductsShow.vue'
 import ProductDetail from '../views/products/ProductDetail.vue'
 import ProductForm from '../views/products/ProductForm.vue'
-import path from 'path'
-import Roles from '../views/Roles.vue'
+
 
 export default [
   {
@@ -41,7 +40,7 @@ export default [
       {
         path: 'roles',
         name: 'AdminRoles',
-        component: Roles
+        component: AdminRoles
       },
       {
         path: 'users/create',
@@ -72,12 +71,6 @@ export default [
         name: 'RoleEdit',
         component: RoleForm,
         props: route => ({ id: route.params.id, action: 'edit' })
-      },
-      {
-        path: 'roles',
-        name: 'AdminRoles',
-        component: AdminRoles,
-        props: route => ({ id: route.params.id, action: 'view' })
       },
       {
         path: 'analytics',

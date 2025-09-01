@@ -12,9 +12,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Collection;
+use ApiPlatform\Metadata\Get;
 
-// #[ApiResource]
-// #[GetCollection(uriTemplate: '/admin/users')]
+
+#[ApiResource(
+    operations: [
+        new Get(),
+        new GetCollection()
+    ]
+)]
 
 class User extends Authenticatable
 {

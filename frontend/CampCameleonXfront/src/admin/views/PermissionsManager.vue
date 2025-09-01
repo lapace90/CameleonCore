@@ -18,14 +18,14 @@
           Définissez les permissions disponibles dans le système
         </p>
       </div>
-      
+
       <div class="header-actions">
-        <button @click="showCreateForm = true" class="btn btn-primary btn-sm">
+        <button @click="showCreateForm = true" class="btn btn-primary btn-sm" :disabled="!canManage">
           <i class="fas fa-plus"></i>
           Nouvelle permission
         </button>
-        
-        <button @click="generateStandardPermissions" class="btn btn-outline btn-sm">
+
+        <button @click="generateStandardPermissions" class="btn btn-outline btn-sm" :disabled="!canManage">
           <i class="fas fa-magic"></i>
           Générer permissions standards
         </button>
@@ -43,7 +43,7 @@
           <div class="stat-label">Permissions totales</div>
         </div>
       </div>
-      
+
       <div class="stat-card">
         <div class="stat-icon">
           <i class="fas fa-plus"></i>
@@ -53,7 +53,7 @@
           <div class="stat-label">Permissions Création</div>
         </div>
       </div>
-      
+
       <div class="stat-card">
         <div class="stat-icon">
           <i class="fas fa-eye"></i>
@@ -63,7 +63,7 @@
           <div class="stat-label">Permissions Lecture</div>
         </div>
       </div>
-      
+
       <div class="stat-card">
         <div class="stat-icon">
           <i class="fas fa-edit"></i>
@@ -73,7 +73,7 @@
           <div class="stat-label">Permissions Modification</div>
         </div>
       </div>
-      
+
       <div class="stat-card">
         <div class="stat-icon">
           <i class="fas fa-trash"></i>
@@ -95,29 +95,18 @@
           </h3>
           <button @click="closeForm" class="btn-close">&times;</button>
         </div>
-        
+
         <form @submit.prevent="savePermission" class="permission-form">
           <div class="form-group">
             <label class="form-label required">Nom de la permission</label>
-            <input 
-              v-model="form.name" 
-              type="text" 
-              class="form-input" 
-              placeholder="Ex: Créer des utilisateurs"
-              required
-              :class="{ 'error': errors.name }"
-            />
+            <input v-model="form.name" type="text" class="form-input" placeholder="Ex: Créer des utilisateurs" required
+              :class="{ 'error': errors.name }" />
             <span v-if="errors.name" class="error-message">{{ errors.name }}</span>
           </div>
 
           <div class="form-group">
             <label class="form-label required">Action</label>
-            <select 
-              v-model="form.action" 
-              class="form-input" 
-              required
-              :class="{ 'error': errors.action }"
-            >
+            <select v-model="form.action" class="form-input" required :class="{ 'error': errors.action }">
               <option value="">Sélectionner une action</option>
               <optgroup label="Actions CRUD">
                 <option value="create">create</option>
@@ -145,12 +134,8 @@
 
           <div class="form-group">
             <label class="form-label">Ressource concernée</label>
-            <input 
-              v-model="form.resource" 
-              type="text" 
-              class="form-input" 
-              placeholder="Ex: users, products, orders..."
-            />
+            <input v-model="form.resource" type="text" class="form-input"
+              placeholder="Ex: users, products, orders..." />
             <div class="form-text">
               Optionnel : spécifiez la ressource concernée par cette permission
             </div>
@@ -161,7 +146,7 @@
               <i class="fas fa-times"></i>
               Annuler
             </button>
-            
+
             <button type="submit" class="btn btn-primary btn-sm" :disabled="saving">
               <i v-if="saving" class="fas fa-spinner fa-spin"></i>
               <i v-else class="fas fa-check"></i>
@@ -178,14 +163,9 @@
         <div class="search-filter">
           <div class="search-box">
             <i class="fas fa-search search-icon"></i>
-            <input 
-              v-model="searchQuery"
-              type="text" 
-              placeholder="Rechercher une permission..." 
-              class="search-input"
-            >
+            <input v-model="searchQuery" type="text" placeholder="Rechercher une permission..." class="search-input">
           </div>
-          
+
           <select v-model="actionFilter" class="filter-select">
             <option value="">Toutes les actions</option>
             <option value="create">Création</option>
@@ -232,23 +212,17 @@
 
         <!-- Permissions groupées par action -->
         <div v-else class="permissions-categories">
-          <div 
-            v-for="(categoryPerms, category) in permissionsByCategory" 
-            :key="category"
-            class="permission-category"
-          >
+          <div v-for="(categoryPerms, category) in permissionsByCategory" :key="category" class="permission-category">
             <div class="category-header">
               <h3 class="category-title">
                 <i :class="getCategoryIcon(category)"></i>
                 {{ getCategoryLabel(category) }}
                 <span class="category-count">({{ categoryPerms.length }})</span>
               </h3>
-              
+
               <div class="category-actions">
-                <button 
-                  @click="expandedCategories[category] = !expandedCategories[category]"
-                  class="btn btn-ghost btn-sm"
-                >
+                <button @click="expandedCategories[category] = !expandedCategories[category]"
+                  class="btn btn-ghost btn-sm">
                   <i :class="expandedCategories[category] ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"></i>
                 </button>
               </div>
@@ -256,11 +230,7 @@
 
             <!-- Liste des permissions de cette catégorie -->
             <div v-if="expandedCategories[category] !== false" class="permissions-list">
-              <div 
-                v-for="permission in categoryPerms" 
-                :key="permission.id"
-                class="permission-item"
-              >
+              <div v-for="permission in categoryPerms" :key="permission.id" class="permission-item">
                 <div class="permission-info">
                   <div class="permission-name">{{ permission.name }}</div>
                   <div class="permission-details">
@@ -272,27 +242,19 @@
                     </span>
                   </div>
                 </div>
-                
+
                 <div class="permission-usage" v-if="permission.roles_count !== undefined">
                   <i class="fas fa-shield-alt"></i>
                   {{ permission.roles_count || 0 }} rôle(s)
                 </div>
-                
+
                 <div class="permission-actions">
-                  <button 
-                    @click="editPermission(permission)" 
-                    class="btn-icon" 
-                    title="Modifier"
-                  >
+                  <button @click="editPermission(permission)" class="btn-icon" title="Modifier">
                     <i class="fas fa-edit"></i>
                   </button>
-                  
-                  <button 
-                    @click="deletePermission(permission)" 
-                    class="btn-icon text-danger" 
-                    title="Supprimer"
-                    :disabled="permission.roles_count > 0"
-                  >
+
+                  <button @click="deletePermission(permission)" class="btn-icon text-danger" title="Supprimer"
+                    :disabled="permission.roles_count > 0">
                     <i class="fas fa-trash"></i>
                   </button>
                 </div>
@@ -307,9 +269,16 @@
 
 <script>
 import axios from 'axios'
+import { useAuthStore } from '@/shared/stores/auth'
 
 export default {
   name: 'PermissionsManager',
+  setup() {
+    const authStore = useAuthStore()
+    // S'assurer que les permissions/rôles sont chargés
+    authStore.loadUserPermissions()
+    return { authStore }
+  },
   data() {
     return {
       permissions: [],
@@ -317,7 +286,7 @@ export default {
       saving: false,
       error: null,
       successMessage: null,
-      
+
       // Formulaire
       showCreateForm: false,
       editingPermission: null,
@@ -327,11 +296,11 @@ export default {
         resource: ''
       },
       errors: {},
-      
+
       // Filtres
       searchQuery: '',
       actionFilter: '',
-      
+
       // UI
       expandedCategories: {}
     }
@@ -339,28 +308,28 @@ export default {
   computed: {
     filteredPermissions() {
       let filtered = [...this.permissions]
-      
+
       if (this.searchQuery) {
         const query = this.searchQuery.toLowerCase()
-        filtered = filtered.filter(perm => 
+        filtered = filtered.filter(perm =>
           perm.name.toLowerCase().includes(query) ||
           perm.action.toLowerCase().includes(query) ||
           (perm.resource && perm.resource.toLowerCase().includes(query))
         )
       }
-      
+
       if (this.actionFilter) {
-        filtered = filtered.filter(perm => 
+        filtered = filtered.filter(perm =>
           perm.action.toLowerCase().includes(this.actionFilter.toLowerCase())
         )
       }
-      
+
       return filtered.sort((a, b) => a.name.localeCompare(b.name))
     },
-    
+
     permissionsByCategory() {
       const categories = {}
-      
+
       this.filteredPermissions.forEach(permission => {
         const category = this.getPermissionCategory(permission.action)
         if (!categories[category]) {
@@ -368,14 +337,19 @@ export default {
         }
         categories[category].push(permission)
       })
-      
+
       return categories
+       },
+
+    canManage() {
+      return this.authStore.isAdmin ||
+             this.authStore.userPermissions.includes('manage-permissions')
     }
   },
   created() {
     this.checkSuccessMessage()
     this.fetchPermissions()
-    
+
     // Toutes les catégories sont ouvertes par défaut
     this.expandedCategories = {
       create: true,
@@ -422,18 +396,18 @@ export default {
         { name: 'Voir les utilisateurs', action: 'read', resource: 'users' },
         { name: 'Modifier les utilisateurs', action: 'update', resource: 'users' },
         { name: 'Supprimer les utilisateurs', action: 'delete', resource: 'users' },
-        
+
         // Rôles
         { name: 'Gérer les rôles', action: 'manage', resource: 'roles' },
         { name: 'Créer des rôles', action: 'create', resource: 'roles' },
         { name: 'Modifier les rôles', action: 'update', resource: 'roles' },
-        
+
         // Produits
         { name: 'Créer des produits', action: 'create', resource: 'products' },
         { name: 'Voir les produits', action: 'read', resource: 'products' },
         { name: 'Modifier les produits', action: 'update', resource: 'products' },
         { name: 'Supprimer les produits', action: 'delete', resource: 'products' },
-        
+
         // Administration
         { name: 'Administration générale', action: 'admin', resource: 'system' },
         { name: 'Voir les statistiques', action: 'read', resource: 'analytics' },
@@ -441,7 +415,7 @@ export default {
       ]
 
       try {
-        const promises = standardPermissions.map(perm => 
+        const promises = standardPermissions.map(perm =>
           axios.post('/api/admin/permissions', perm).catch(err => {
             // Ignorer les erreurs de doublons
             if (err.response?.status !== 422) {
@@ -449,9 +423,9 @@ export default {
             }
           })
         )
-        
+
         await Promise.all(promises)
-        
+
         this.successMessage = 'Permissions standards générées avec succès'
         this.fetchPermissions()
       } catch (error) {
@@ -485,7 +459,7 @@ export default {
     async savePermission() {
       this.saving = true
       this.errors = {}
-      
+
       try {
         if (this.editingPermission) {
           await axios.put(`/api/admin/permissions/${this.editingPermission.id}`, this.form)
@@ -494,12 +468,12 @@ export default {
           await axios.post('/api/admin/permissions', this.form)
           this.successMessage = 'Permission créée avec succès'
         }
-        
+
         this.closeForm()
         this.fetchPermissions()
       } catch (error) {
         console.error('Erreur lors de la sauvegarde:', error)
-        
+
         if (error.response?.status === 422 && error.response.data.errors) {
           this.errors = error.response.data.errors
         } else {
@@ -532,7 +506,7 @@ export default {
 
     // Utilitaires
     getPermissionsByAction(action) {
-      return this.permissions.filter(perm => 
+      return this.permissions.filter(perm =>
         perm.action.toLowerCase().includes(action.toLowerCase())
       )
     },
@@ -540,7 +514,7 @@ export default {
     getPermissionCategory(action) {
       const categories = {
         'create': 'create',
-        'read': 'read', 
+        'read': 'read',
         'view': 'read',
         'list': 'read',
         'update': 'update',
@@ -554,7 +528,7 @@ export default {
         'publish': 'other',
         'approve': 'other'
       }
-      
+
       return categories[action.toLowerCase()] || 'other'
     },
 
@@ -567,7 +541,7 @@ export default {
         'admin': 'Administration',
         'other': 'Autres actions'
       }
-      
+
       return labels[category] || category
     },
 
@@ -580,7 +554,7 @@ export default {
         'admin': 'fas fa-cog',
         'other': 'fas fa-star'
       }
-      
+
       return icons[category] || 'fas fa-key'
     },
 
@@ -601,7 +575,7 @@ export default {
         'publish': 'badge-success',
         'approve': 'badge-success'
       }
-      
+
       return classes[action.toLowerCase()] || 'badge-secondary'
     }
   }
