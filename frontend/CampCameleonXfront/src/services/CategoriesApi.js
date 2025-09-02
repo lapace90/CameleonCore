@@ -1,28 +1,40 @@
-// src/services/CategoriesApi.js - FIX SIMPLE
-import axios from 'axios'
+// src/services/CategoriesApi.js - VERSIONE SEMPLIFICATA
+import httpClient from './httpClient'
 
 class CategoriesApi {
-  static defaultHeaders = {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json'
-  }
+  // Cache semplice con TTL
+  static cache = new Map()
+  static CACHE_TTL = 5 * 60 * 1000 // 5 minuti
 
   static async getAll() {
+    const cacheKey = 'all_categories'
+    const cached = this.cache.get(cacheKey)
+    
+    if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
+      return cached.data
+    }
+
     try {
-      const response = await axios.get('/api/categories', {
-        headers: this.defaultHeaders
+      const response = await httpClient.get('/categories')
+      const data = response.data
+      
+      // Salva in cache
+      this.cache.set(cacheKey, {
+        data,
+        timestamp: Date.now()
       })
-      return response.data
+      
+      return data
     } catch (error) {
-      console.error('Erreur categories:', error)
+      console.error('Errore categories:', error)
       throw error
     }
   }
 
   static async getByType(type) {
     try {
-      const response = await axios.get(`/api/categories?type=${type}`, {
-        headers: this.defaultHeaders
+      const response = await httpClient.get('/categories', {
+        params: { type }
       })
       return response.data
     } catch (error) {
@@ -32,9 +44,7 @@ class CategoriesApi {
 
   static async getById(id) {
     try {
-      const response = await axios.get(`/api/categories/${id}`, {
-        headers: this.defaultHeaders
-      })
+      const response = await httpClient.get(`/categories/${id}`)
       return response.data
     } catch (error) {
       throw error
@@ -43,9 +53,8 @@ class CategoriesApi {
 
   static async create(data) {
     try {
-      const response = await axios.post('/api/categories', data, {
-        headers: this.defaultHeaders
-      })
+      const response = await httpClient.post('/categories', data)
+      this.clearCache() // Invalida cache dopo modifica
       return response.data
     } catch (error) {
       throw error
@@ -54,9 +63,8 @@ class CategoriesApi {
 
   static async update(id, data) {
     try {
-      const response = await axios.put(`/api/categories/${id}`, data, {
-        headers: this.defaultHeaders
-      })
+      const response = await httpClient.put(`/categories/${id}`, data)
+      this.clearCache() // Invalida cache dopo modifica
       return response.data
     } catch (error) {
       throw error
@@ -65,12 +73,20 @@ class CategoriesApi {
 
   static async delete(id) {
     try {
-      await axios.delete(`/api/categories/${id}`, {
-        headers: this.defaultHeaders
-      })
+      await httpClient.delete(`/categories/${id}`)
+      this.clearCache() // Invalida cache dopo modifica
     } catch (error) {
       throw error
     }
+  }
+
+  // Metodi di cache management
+  static clearCache() {
+    this.cache.clear()
+  }
+
+  static clearCacheByKey(key) {
+    this.cache.delete(key)
   }
 }
 

@@ -99,6 +99,7 @@
 </template>
 
 <script>
+import axios from 'axios'
 import UserStats from './components/UserStats.vue'
 import UserFilters from './components/UserFilters.vue'
 import UserTable from './components/UserTable.vue'

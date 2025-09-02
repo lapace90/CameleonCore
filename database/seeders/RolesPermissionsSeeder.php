@@ -12,30 +12,30 @@ use Illuminate\Support\Facades\Hash;
 class RolesPermissionsSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
+     * Architecture RBAC : Users ↔ Roles ↔ Permissions
+     * PAS de permissions directes aux utilisateurs
      */
     public function run(): void
     {
-        $this->command->info('🔐 Création des permissions et rôles...');
+        $this->command->info('🏕️ Création du système RBAC pour CampCameleonX...');
 
         DB::beginTransaction();
 
         try {
-            // 1. Créer les permissions de base
-            $this->createPermissions();
+            // 1. Créer les permissions réalistes
+            $this->createRealisticPermissions();
 
-            // 2. Créer les rôles
-            $this->createRoles();
+            // 2. Créer les rôles adaptés à une maison d'hôte
+            $this->createRealisticRoles();
 
-            // 3. Assigner les permissions aux rôles
+            // 3. Assigner les permissions AUX RÔLES UNIQUEMENT
             $this->assignPermissionsToRoles();
 
-            // 4. Créer des utilisateurs admin de base
-            $this->createAdminUsers();
+            // 4. Créer des utilisateurs de test avec des RÔLES
+            $this->createTestUsers();
 
             DB::commit();
-
-            $this->command->info('✅ Rôles et permissions créés avec succès !');
+            $this->command->info('✅ Système RBAC créé : Users → Roles → Permissions');
         } catch (\Exception $e) {
             DB::rollBack();
             $this->command->error('❌ Erreur : ' . $e->getMessage());
@@ -44,90 +44,92 @@ class RolesPermissionsSeeder extends Seeder
     }
 
     /**
-     * Créer les permissions de base du système
+     * Créer les permissions adaptées à une maison d'hôte
      */
-    private function createPermissions(): void
+    private function createRealisticPermissions(): void
     {
-        $this->command->info('📝 Création des permissions...');
+        $this->command->info('🔑 Création des permissions réalistes...');
 
         $permissions = [
-            // Permissions utilisateurs
-            ['name' => 'Voir les utilisateurs', 'action' => 'read'],
-            ['name' => 'Créer des utilisateurs', 'action' => 'create'],
-            ['name' => 'Modifier les utilisateurs', 'action' => 'update'],
-            ['name' => 'Supprimer les utilisateurs', 'action' => 'delete'],
-            ['name' => 'Gérer les utilisateurs', 'action' => 'manage'],
-
-            // Permissions rôles
-            ['name' => 'Voir les rôles', 'action' => 'read'],
-            ['name' => 'Créer des rôles', 'action' => 'create'],
-            ['name' => 'Modifier les rôles', 'action' => 'update'],
-            ['name' => 'Supprimer les rôles', 'action' => 'delete'],
-            ['name' => 'Gérer les rôles', 'action' => 'manage'],
-
-            // Permissions permissions
-            ['name' => 'Voir les permissions', 'action' => 'read'],
-            ['name' => 'Créer des permissions', 'action' => 'create'],
-            ['name' => 'Modifier les permissions', 'action' => 'update'],
-            ['name' => 'Supprimer les permissions', 'action' => 'delete'],
-            ['name' => 'Gérer les permissions', 'action' => 'manage'],
-
-            // Permissions produits
-            ['name' => 'Voir les produits', 'action' => 'read'],
-            ['name' => 'Créer des produits', 'action' => 'create'],
-            ['name' => 'Modifier les produits', 'action' => 'update'],
-            ['name' => 'Supprimer les produits', 'action' => 'delete'],
-            ['name' => 'Publier les produits', 'action' => 'publish'],
-
-            // Permissions catégories
-            ['name' => 'Voir les catégories', 'action' => 'read'],
-            ['name' => 'Créer des catégories', 'action' => 'create'],
-            ['name' => 'Modifier les catégories', 'action' => 'update'],
-            ['name' => 'Supprimer les catégories', 'action' => 'delete'],
-
-            // Permissions tags
-            ['name' => 'Voir les tags', 'action' => 'read'],
-            ['name' => 'Créer des tags', 'action' => 'create'],
-            ['name' => 'Modifier les tags', 'action' => 'update'],
-            ['name' => 'Supprimer les tags', 'action' => 'delete'],
-
-            // Permissions commandes/réservations
-            ['name' => 'Voir les commandes', 'action' => 'read'],
-            ['name' => 'Créer des commandes', 'action' => 'create'],
-            ['name' => 'Modifier les commandes', 'action' => 'update'],
-            ['name' => 'Annuler les commandes', 'action' => 'cancel'],
-            ['name' => 'Traiter les commandes', 'action' => 'process'],
-
-            // Permissions clients
-            ['name' => 'Voir les clients', 'action' => 'read'],
-            ['name' => 'Créer des clients', 'action' => 'create'],
-            ['name' => 'Modifier les clients', 'action' => 'update'],
-            ['name' => 'Supprimer les clients', 'action' => 'delete'],
-
-            // Permissions analytics
-            ['name' => 'Voir les statistiques', 'action' => 'read'],
-            ['name' => 'Exporter les données', 'action' => 'export'],
-            ['name' => 'Voir les rapports avancés', 'action' => 'advanced-read'],
-
-            // Permissions système
-            ['name' => 'Accès administration', 'action' => 'admin'],
-            ['name' => 'Gérer les paramètres', 'action' => 'manage'],
-            ['name' => 'Mode maintenance', 'action' => 'maintenance'],
+            // === SYSTÈME ET ADMINISTRATION ===
+            ['name' => 'Administration système', 'action' => 'system-admin'],
+            ['name' => 'Accès interface admin', 'action' => 'admin-access'],
+            ['name' => 'Mode maintenance', 'action' => 'maintenance-mode'],
             ['name' => 'Vider le cache', 'action' => 'clear-cache'],
-            ['name' => 'Voir les logs', 'action' => 'read-logs'],
+            ['name' => 'Voir les logs système', 'action' => 'view-logs'],
 
-            // Permissions spécifiques camping
-            ['name' => 'Gérer les réservations', 'action' => 'manage'],
-            ['name' => 'Check-in clients', 'action' => 'checkin'],
-            ['name' => 'Check-out clients', 'action' => 'checkout'],
-            ['name' => 'Voir la disponibilité', 'action' => 'availability'],
-            ['name' => 'Gérer le planning', 'action' => 'planning']
+            // === GESTION DES UTILISATEURS ===
+            ['name' => 'Voir les utilisateurs', 'action' => 'users-read'],
+            ['name' => 'Créer des utilisateurs', 'action' => 'users-create'],
+            ['name' => 'Modifier les utilisateurs', 'action' => 'users-update'],
+            ['name' => 'Supprimer les utilisateurs', 'action' => 'users-delete'],
+            ['name' => 'Gérer les rôles', 'action' => 'roles-manage'],
+
+            // === HÉBERGEMENTS ET ACTIVITÉS ===
+            ['name' => 'Voir les hébergements', 'action' => 'accommodations-read'],
+            ['name' => 'Gérer les hébergements', 'action' => 'accommodations-manage'],
+            ['name' => 'Voir les activités', 'action' => 'activities-read'],
+            ['name' => 'Gérer les activités', 'action' => 'activities-manage'],
+            ['name' => 'Publier sur le site', 'action' => 'products-publish'],
+
+            // === RÉSERVATIONS ===
+            ['name' => 'Voir toutes les réservations', 'action' => 'bookings-read-all'],
+            ['name' => 'Créer des réservations', 'action' => 'bookings-create'],
+            ['name' => 'Modifier les réservations', 'action' => 'bookings-update'],
+            ['name' => 'Annuler les réservations', 'action' => 'bookings-cancel'],
+            ['name' => 'Confirmer les réservations', 'action' => 'bookings-confirm'],
+            ['name' => 'Gérer le planning', 'action' => 'planning-manage'],
+
+            // === ACCUEIL ET CHECK-IN/OUT ===
+            ['name' => 'Check-in des clients', 'action' => 'checkin'],
+            ['name' => 'Check-out des clients', 'action' => 'checkout'],
+            ['name' => 'Voir les arrivées du jour', 'action' => 'arrivals-today'],
+            ['name' => 'Voir les départs du jour', 'action' => 'departures-today'],
+            ['name' => 'Gérer les clés', 'action' => 'keys-manage'],
+
+            // === CLIENTS ===
+            ['name' => 'Voir les clients', 'action' => 'customers-read'],
+            ['name' => 'Créer des clients', 'action' => 'customers-create'],
+            ['name' => 'Modifier les clients', 'action' => 'customers-update'],
+            ['name' => 'Historique des clients', 'action' => 'customers-history'],
+
+            // === RESTAURANT ===
+            ['name' => 'Voir les menus', 'action' => 'menus-read'],
+            ['name' => 'Gérer les menus', 'action' => 'menus-manage'],
+            ['name' => 'Gérer les plats', 'action' => 'dishes-manage'],
+            ['name' => 'Prendre les commandes', 'action' => 'orders-take'],
+            ['name' => 'Gérer les commandes', 'action' => 'orders-manage'],
+
+            // === MAINTENANCE ET ENTRETIEN ===
+            ['name' => 'Voir les tâches de maintenance', 'action' => 'maintenance-read'],
+            ['name' => 'Signaler un problème', 'action' => 'maintenance-report'],
+            ['name' => 'Gérer la maintenance', 'action' => 'maintenance-manage'],
+            ['name' => 'État des hébergements', 'action' => 'rooms-status'],
+
+            // === FINANCE ET FACTURATION ===
+            ['name' => 'Voir les paiements', 'action' => 'payments-read'],
+            ['name' => 'Encaisser les paiements', 'action' => 'payments-collect'],
+            ['name' => 'Gérer la facturation', 'action' => 'invoicing-manage'],
+            ['name' => 'Voir les statistiques financières', 'action' => 'finance-stats'],
+
+            // === STATISTIQUES ET RAPPORTS ===
+            ['name' => 'Voir le tableau de bord', 'action' => 'dashboard-view'],
+            ['name' => 'Statistiques d\'occupation', 'action' => 'occupancy-stats'],
+            ['name' => 'Rapports de revenus', 'action' => 'revenue-reports'],
+            ['name' => 'Exporter les données', 'action' => 'data-export'],
+
+            // === COMMUNICATION ===
+            ['name' => 'Messages clients', 'action' => 'messages-customers'],
+            ['name' => 'Notifications équipe', 'action' => 'notifications-team'],
         ];
 
         foreach ($permissions as $permissionData) {
             Permission::firstOrCreate(
-                ['name' => $permissionData['name']],
-                ['action' => $permissionData['action']]
+                ['action' => $permissionData['action']],
+                [
+                    'name' => $permissionData['name'],
+                    'action' => $permissionData['action']
+                ]
             );
         }
 
@@ -135,47 +137,42 @@ class RolesPermissionsSeeder extends Seeder
     }
 
     /**
-     * Créer les rôles de base
+     * Créer les rôles adaptés à une maison d'hôte
      */
-    private function createRoles(): void
+    private function createRealisticRoles(): void
     {
-        $this->command->info('👥 Création des rôles...');
+        $this->command->info('👥 Création des rôles réalistes...');
 
         $roles = [
             [
-                'name' => 'Super Administrateur',
-                'slug' => 'super-admin',
-                'description' => 'Accès complet à toutes les fonctionnalités du système'
-            ],
-            [
-                'name' => 'Administrateur',
-                'slug' => 'admin',
-                'description' => 'Gestion complète du camping et des utilisateurs'
+                'name' => 'Propriétaire/Directeur',
+                'slug' => 'owner',
+                'description' => 'Accès complet à toutes les fonctionnalités de la maison d\'hôte'
             ],
             [
                 'name' => 'Gestionnaire',
                 'slug' => 'manager',
-                'description' => 'Gestion des réservations et des opérations quotidiennes'
+                'description' => 'Gestion opérationnelle quotidienne, réservations et équipe'
             ],
             [
                 'name' => 'Réceptionniste',
                 'slug' => 'receptionist',
-                'description' => 'Accueil clients, check-in/out, gestion des réservations'
+                'description' => 'Accueil clients, check-in/out, réservations et informations'
             ],
             [
-                'name' => 'Agent d\'entretien',
-                'slug' => 'maintenance',
-                'description' => 'Maintenance et préparation des emplacements'
+                'name' => 'Chef de cuisine',
+                'slug' => 'chef',
+                'description' => 'Gestion de la cuisine, menus et service restauration'
             ],
             [
-                'name' => 'Client',
-                'slug' => 'client',
-                'description' => 'Accès client pour réservations et compte personnel'
+                'name' => 'Guide d\'activités',
+                'slug' => 'guide',
+                'description' => 'Organisation et encadrement des activités du désert'
             ],
             [
-                'name' => 'Modérateur',
-                'slug' => 'moderator',
-                'description' => 'Modération du contenu et support client'
+                'name' => 'Comptable/Finance',
+                'slug' => 'accountant',
+                'description' => 'Gestion financière, facturation et paiements'
             ]
         ];
 
@@ -184,6 +181,7 @@ class RolesPermissionsSeeder extends Seeder
                 ['slug' => $roleData['slug']],
                 [
                     'name' => $roleData['name'],
+                    'slug' => $roleData['slug'],
                     'description' => $roleData['description']
                 ]
             );
@@ -193,168 +191,171 @@ class RolesPermissionsSeeder extends Seeder
     }
 
     /**
-     * Assigner les permissions aux rôles
+     * Assigner les permissions AUX RÔLES UNIQUEMENT
      */
     private function assignPermissionsToRoles(): void
     {
         $this->command->info('🔗 Attribution des permissions aux rôles...');
 
-        // Super Admin : toutes les permissions
-        $superAdmin = Role::where('slug', 'super-admin')->first();
-        if ($superAdmin) {
+        // === PROPRIÉTAIRE/DIRECTEUR - Accès complet ===
+        $owner = Role::where('slug', 'owner')->first();
+        if ($owner) {
             $allPermissions = Permission::all()->pluck('id')->toArray();
-            $superAdmin->permissions()->sync($allPermissions);
+            $owner->permissions()->sync($allPermissions);
+            $this->command->info("→ Propriétaire : " . count($allPermissions) . " permissions");
         }
 
-        // Admin : toutes sauf système critique
-        $admin = Role::where('slug', 'admin')->first();
-        if ($admin) {
-            $adminPermissions = Permission::whereNotIn('action', ['maintenance', 'clear-cache'])
-                ->pluck('id')->toArray();
-            $admin->permissions()->sync($adminPermissions);
-        }
-
-        // Gestionnaire : gestion opérationnelle
+        // === GESTIONNAIRE - Gestion opérationnelle ===
         $manager = Role::where('slug', 'manager')->first();
         if ($manager) {
-            $managerPermissions = Permission::whereIn('name', [
-                'Voir les produits',
-                'Créer des produits',
-                'Modifier les produits',
-                'Voir les commandes',
-                'Créer des commandes',
-                'Modifier les commandes',
-                'Traiter les commandes',
-                'Voir les clients',
-                'Créer des clients',
-                'Modifier les clients',
-                'Gérer les réservations',
-                'Check-in clients',
-                'Check-out clients',
-                'Voir la disponibilité',
-                'Gérer le planning',
-                'Voir les statistiques',
-                'Exporter les données',
-                'Voir les catégories',
-                'Voir les tags'
+            $managerPermissions = Permission::whereIn('action', [
+                'admin-access', 'dashboard-view',
+                'users-read', 'users-create', 'users-update',
+                'accommodations-read', 'accommodations-manage',
+                'activities-read', 'activities-manage', 'products-publish',
+                'bookings-read-all', 'bookings-create', 'bookings-update', 'bookings-cancel', 'bookings-confirm', 'planning-manage',
+                'checkin', 'checkout', 'arrivals-today', 'departures-today', 'keys-manage',
+                'customers-read', 'customers-create', 'customers-update', 'customers-history',
+                'menus-read', 'menus-manage', 'dishes-manage', 'orders-manage',
+                'maintenance-read', 'maintenance-manage', 'rooms-status',
+                'payments-read', 'payments-collect', 'invoicing-manage', 'finance-stats',
+                'occupancy-stats', 'revenue-reports', 'data-export',
+                'messages-customers', 'notifications-team'
             ])->pluck('id')->toArray();
             $manager->permissions()->sync($managerPermissions);
+            $this->command->info("→ Gestionnaire : " . count($managerPermissions) . " permissions");
         }
 
-        // Réceptionniste : accueil et réservations
+        // === RÉCEPTIONNISTE - Accueil et réservations ===
         $receptionist = Role::where('slug', 'receptionist')->first();
         if ($receptionist) {
-            $receptionistPermissions = Permission::whereIn('name', [
-                'Voir les produits',
-                'Voir les commandes',
-                'Créer des commandes',
-                'Modifier les commandes',
-                'Voir les clients',
-                'Créer des clients',
-                'Modifier les clients',
-                'Gérer les réservations',
-                'Check-in clients',
-                'Check-out clients',
-                'Voir la disponibilité'
+            $receptionistPermissions = Permission::whereIn('action', [
+                'admin-access', 'dashboard-view',
+                'accommodations-read', 'activities-read',
+                'bookings-read-all', 'bookings-create', 'bookings-update', 'bookings-confirm', 'planning-manage',
+                'checkin', 'checkout', 'arrivals-today', 'departures-today', 'keys-manage',
+                'customers-read', 'customers-create', 'customers-update', 'customers-history',
+                'maintenance-report', 'rooms-status',
+                'payments-collect',
+                'messages-customers'
             ])->pluck('id')->toArray();
             $receptionist->permissions()->sync($receptionistPermissions);
+            $this->command->info("→ Réceptionniste : " . count($receptionistPermissions) . " permissions");
         }
 
-        // Agent d'entretien : maintenance
+        // === SERVEUR/RESTAURATION ===
+        $waiter = Role::where('slug', 'waiter')->first();
+        if ($waiter) {
+            $waiterPermissions = Permission::whereIn('action', [
+                'admin-access', 'dashboard-view',
+                'customers-read',
+                'menus-read', 'menus-manage', 'dishes-manage', 'orders-take', 'orders-manage',
+                'maintenance-report'
+            ])->pluck('id')->toArray();
+            $waiter->permissions()->sync($waiterPermissions);
+            $this->command->info("→ Serveur : " . count($waiterPermissions) . " permissions");
+        }
+
+        // === GUIDE D'ACTIVITÉS ===
+        $guide = Role::where('slug', 'guide')->first();
+        if ($guide) {
+            $guidePermissions = Permission::whereIn('action', [
+                'admin-access', 'dashboard-view',
+                'activities-read', 'activities-manage',
+                'bookings-read-all', 'customers-read',
+                'maintenance-report'
+            ])->pluck('id')->toArray();
+            $guide->permissions()->sync($guidePermissions);
+            $this->command->info("→ Guide : " . count($guidePermissions) . " permissions");
+        }
+
+        // === AGENT D'ENTRETIEN ===
         $maintenance = Role::where('slug', 'maintenance')->first();
         if ($maintenance) {
-            $maintenancePermissions = Permission::whereIn('name', [
-                'Voir les produits',
-                'Voir les commandes',
-                'Voir la disponibilité',
-                'Gérer le planning'
+            $maintenancePermissions = Permission::whereIn('action', [
+                'admin-access', 'dashboard-view',
+                'accommodations-read', 'rooms-status',
+                'maintenance-read', 'maintenance-report', 'maintenance-manage',
+                'checkin', 'checkout' // Pour l'état des hébergements
             ])->pluck('id')->toArray();
             $maintenance->permissions()->sync($maintenancePermissions);
+            $this->command->info("→ Maintenance : " . count($maintenancePermissions) . " permissions");
         }
 
-        // Client : accès minimal
-        $client = Role::where('slug', 'client')->first();
-        if ($client) {
-            $clientPermissions = Permission::whereIn('name', [
-                'Voir les produits',
-                'Voir la disponibilité'
+        // === COMPTABLE/FINANCE ===
+        $accountant = Role::where('slug', 'accountant')->first();
+        if ($accountant) {
+            $accountantPermissions = Permission::whereIn('action', [
+                'admin-access', 'dashboard-view',
+                'bookings-read-all', 'customers-read',
+                'payments-read', 'payments-collect', 'invoicing-manage', 'finance-stats',
+                'occupancy-stats', 'revenue-reports', 'data-export'
             ])->pluck('id')->toArray();
-            $client->permissions()->sync($clientPermissions);
+            $accountant->permissions()->sync($accountantPermissions);
+            $this->command->info("→ Comptable : " . count($accountantPermissions) . " permissions");
         }
 
-        // Modérateur : contenu et support
-        $moderator = Role::where('slug', 'moderator')->first();
-        if ($moderator) {
-            $moderatorPermissions = Permission::whereIn('name', [
-                'Voir les produits',
-                'Modifier les produits',
-                'Voir les catégories',
-                'Créer des catégories',
-                'Modifier les catégories',
-                'Voir les tags',
-                'Créer des tags',
-                'Modifier les tags',
-                'Voir les clients',
-                'Modifier les clients',
-                'Voir les commandes',
-                'Modifier les commandes'
-            ])->pluck('id')->toArray();
-            $moderator->permissions()->sync($moderatorPermissions);
-        }
-
-        $this->command->info("✅ Permissions attribuées aux rôles");
+        $this->command->info('✅ Permissions assignées aux rôles uniquement');
     }
 
     /**
-     * Créer des utilisateurs administrateurs de base
+     * Créer des utilisateurs de test avec des RÔLES
      */
-    private function createAdminUsers(): void
+    private function createTestUsers(): void
     {
-        $this->command->info('👤 Création des utilisateurs administrateurs...');
+        $this->command->info('👤 Création des utilisateurs de test...');
 
-        $superAdminRole = Role::where('slug', 'super-admin')->first();
-        $adminRole = Role::where('slug', 'admin')->first();
+        // Récupérer les rôles
+        $ownerRole = Role::where('slug', 'owner')->first();
+        $managerRole = Role::where('slug', 'manager')->first();
+        $receptionistRole = Role::where('slug', 'receptionist')->first();
+        $chefRole = Role::where('slug', 'chef')->first();
 
-        // Super administrateur
-        User::updateOrCreate(
-            ['email' => 'admin1@campcanteloup.fr'],
+        $users = [
             [
-                'name' => 'Super Admin',
-                'password' => Hash::make('admin123456'),
-                'email_verified_at' => now(),
+                'name' => 'Amina Bensalem',
+                'email' => 'amina@campcanteloup.ma',
+                'password' => Hash::make('password'),
+                'role_id' => $ownerRole?->id, // Rôle principal
                 'status' => 'active',
-                'role_id' => $superAdminRole?->id,
-            ]
-        );
-
-        // Administrateur standard
-        User::updateOrCreate(
-            ['email' => 'admin2@campcanteloup.fr'],
+                'email_verified_at' => now(),
+            ],
             [
-                'name' => 'Admin',
-                'password' => Hash::make('admin123456'),
-                'email_verified_at' => now(),
+                'name' => 'Youssef Tazi',
+                'email' => 'youssef@campcanteloup.ma',
+                'password' => Hash::make('password'),
+                'role_id' => $managerRole?->id, // Rôle principal
                 'status' => 'active',
-                'role_id' => $adminRole?->id,
+                'email_verified_at' => now(),
+            ],
+            [
+                'name' => 'Fatima Ouali',
+                'email' => 'fatima@campcanteloup.ma',
+                'password' => Hash::make('password'),
+                'role_id' => $receptionistRole?->id, // Rôle principal
+                'status' => 'active',
+                'email_verified_at' => now(),
             ]
-        );
+        ];
 
-        $this->command->info("✅ Utilisateurs administrateurs prêts (admin@campcanteloup.fr / admin2@campcanteloup.fr)");
+        foreach ($users as $userData) {
+            $user = User::firstOrCreate(
+                ['email' => $userData['email']],
+                $userData
+            );
+
+            // Exemple de rôles additionnels pour Youssef (Gestionnaire + Chef parfois)
+            if ($user->email === 'youssef@campcanteloup.ma' && $chefRole) {
+                $user->roles()->syncWithoutDetaching([$chefRole->id]);
+                $this->command->info("→ {$user->name} : rôle additionnel Chef de cuisine");
+            }
+        }
+
+        $this->command->info('✅ Utilisateurs de test créés avec des rôles');
+        $this->command->info('📧 Emails de test :');
+        $this->command->info('   - amina@campcanteloup.ma (Propriétaire)');
+        $this->command->info('   - youssef@campcanteloup.ma (Gestionnaire + Chef)');
+        $this->command->info('   - fatima@campcanteloup.ma (Réceptionniste)');
+        $this->command->info('🔑 Mot de passe : password');
     }
-
-    /**
-     * Afficher un résumé des données créées
-     */
-    private function showSummary(): void
-    {
-        $this->command->info("\n📊 RÉSUMÉ :");
-        $this->command->info("Permissions : " . Permission::count());
-        $this->command->info("Rôles : " . Role::count());
-        $this->command->info("Utilisateurs admin : " . User::whereHas('role', function ($query) {
-            $query->whereIn('slug', ['super-admin', 'admin']);
-        })->count());
-
-        $this->command->info("\n🚀 Système prêt pour la gestion des utilisateurs !");
-    }
-
 }
