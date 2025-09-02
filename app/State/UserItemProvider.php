@@ -41,9 +41,8 @@ class UserItemProvider implements ProviderInterface
         // Récupérer l'utilisateur avec toutes les relations nécessaires
         $user = User::with([
             'role.permissions:id,name,action',
-            'roles.permissions:id,name,action',
-            'permissions:id,name,action'
-        ])->withCount(['roles', 'permissions'])
+            'roles.permissions:id,name,action'
+        ])->withCount(['roles'])
           ->find($userId);
 
         if (!$user) {
@@ -54,7 +53,6 @@ class UserItemProvider implements ProviderInterface
             'user_id' => $user->id,
             'name' => $user->name,
             'roles_count' => $user->roles_count,
-            'permissions_count' => $user->permissions_count,
             'viewed_by' => $currentUser->name
         ]);
 

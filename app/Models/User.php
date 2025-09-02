@@ -102,14 +102,6 @@ class User extends Authenticatable
     }
 
     /**
-     * Permissions directes de l'utilisateur
-     */
-    public function permissions(): BelongsToMany
-    {
-        return $this->belongsToMany(Permission::class, 'permission_user');
-    }
-
-    /**
      * Réservations créées par cet utilisateur (admin)
      */
     public function createdReservations()
@@ -164,60 +156,6 @@ class User extends Authenticatable
         $roles = $roles->merge($this->roles);
         
         return $roles->unique('id');
-    }
-
-    /**
-     * Vérifier une permission spécifique
-     */
-    public function hasPermission(string $permission): bool
-    {
-        // Permissions directes
-        if ($this->permissions()->where('action', $permission)->exists()) {
-            return true;
-        }
-
-        // Permissions via les rôles
-        foreach ($this->getAllRoles() as $role) {
-            if ($role->hasPermission($permission)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Obtenir toutes les permissions de l'utilisateur
-     */
-    public function getAllPermissions()
-    {
-        $permissions = collect();
-        
-        // Permissions directes
-        $permissions = $permissions->merge($this->permissions);
-        
-        // Permissions via les rôles
-        foreach ($this->getAllRoles() as $role) {
-            $permissions = $permissions->merge($role->permissions);
-        }
-        
-        return $permissions->unique('id');
-    }
-
-    /**
-     * Grouper les permissions par catégorie
-     */
-    public function getPermissionsByCategory(): array
-    {
-        $permissions = $this->getAllPermissions();
-        $grouped = [];
-
-        foreach ($permissions as $permission) {
-            $category = $this->getPermissionCategory($permission->action);
-            $grouped[$category][] = $permission;
-        }
-
-        return $grouped;
     }
 
     /**
@@ -283,30 +221,30 @@ class User extends Authenticatable
     }
 
     /**
-     * Obtenir un résumé des permissions de l'utilisateur
+     * Obtenir un résumé des permissions de l'utilisateur selon le rôle
      */
-    public function getPermissionsSummary(): array
-    {
-        $permissions = $this->getAllPermissions();
+    // public function getPermissionsSummary(): array
+    // {
+    //     $permissions = $this->getAllPermissions();
         
-        return [
-            'total_permissions' => $permissions->count(),
-            'by_category' => $this->getPermissionsByCategory(),
-            'roles' => [
-                'primary' => $this->role ? $this->role->name : null,
-                'additional' => $this->roles->pluck('name')->toArray()
-            ],
-            'direct_permissions' => $this->permissions->count(),
-            'inherited_permissions' => $permissions->count() - $this->permissions->count()
-        ];
-    }
+    //     return [
+    //         'total_permissions' => $permissions->count(),
+    //         'by_category' => $this->getPermissionsByCategory(),
+    //         'roles' => [
+    //             'primary' => $this->role ? $this->role->name : null,
+    //             'additional' => $this->roles->pluck('name')->toArray()
+    //         ],
+    //         'direct_permissions' => $this->permissions->count(),
+    //         'inherited_permissions' => $permissions->count() - $this->permissions->count()
+    //     ];
+    // }
 
     /**
      * Vérifier si l'utilisateur peut accéder à l'administration
      */
     public function canAccessAdmin(): bool
     {
-        return $this->hasPermission('admin') || $this->isAdmin();
+        return $this->isAdmin();
     }
 
     /**
@@ -333,7 +271,6 @@ class User extends Authenticatable
                 'name' => $this->role->name,
                 'slug' => $this->role->slug
             ] : null,
-            'permissions_count' => $this->getAllPermissions()->count(),
             'last_login_at' => $this->last_login_at?->toISOString(),
             'created_at' => $this->created_at->toISOString(),
             'is_admin' => $this->isAdmin()

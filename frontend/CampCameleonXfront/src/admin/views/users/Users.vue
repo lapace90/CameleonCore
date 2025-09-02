@@ -301,22 +301,22 @@ export default {
     },
 
     async toggleUserStatus(user) {
-      const newStatus = user.status === 'active' ? 'inactive' : 'active'
-      const action = newStatus === 'active' ? 'activer' : 'suspendre'
+  const newStatus = user.status === 'active' ? 'inactive' : 'active'
+  const action = newStatus === 'active' ? 'activer' : 'suspendre'
 
-      if (!confirm(`${action} l'utilisateur "${user.name}" ?`)) {
-        return
-      }
+  if (!confirm(`${action} l'utilisateur "${user.name}" ?`)) {
+    return
+  }
 
-      try {
-        await UsersApi.toggleStatus(user.id, newStatus)
-        user.status = newStatus
-        this.successMessage = `Utilisateur ${action === 'activer' ? 'activé' : 'suspendu'} avec succès`
-      } catch (error) {
-        console.error('Erreur lors du changement de statut:', error)
-        this.error = 'Impossible de modifier le statut de l\'utilisateur'
-      }
-    },
+  try {
+    await UsersApi.toggleStatus(user.id, newStatus)
+    user.status = newStatus
+    this.successMessage = `Utilisateur ${action === 'activer' ? 'activé' : 'suspendu'} avec succès`
+  } catch (error) {
+    console.error('Erreur lors du changement de statut:', error)
+    this.error = 'Impossible de modifier le statut de l\'utilisateur'
+  }
+},
 
     async deleteUser(user) {
       if (!confirm(`Supprimer définitivement l'utilisateur "${user.name}" ?`)) {

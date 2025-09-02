@@ -245,7 +245,6 @@ class UserProcessor implements ProcessorInterface
 
         // Détacher toutes les relations avant la suppression
         $user->roles()->detach();
-        $user->permissions()->detach();
         
         // Supprimer les tokens d'API
         $user->tokens()->delete();
@@ -349,13 +348,11 @@ class UserProcessor implements ProcessorInterface
                     'existing' => $existingPermissions
                 ]);
             }
-            
-            $user->permissions()->sync($existingPermissions);
-            
-            Log::info('UserProcessor - Permissions directes synchronisées', [
+                        
+            Log::info('UserProcessor', [
                 'user_id' => $user->id,
-                'permissions' => $existingPermissions,
                 'synced_by' => $currentUser->name
+
             ]);
         }
     }

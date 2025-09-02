@@ -4,7 +4,6 @@ namespace App\Data;
 
 use Spatie\LaravelData\Data;
 use App\Models\User;
-use Carbon\Carbon;
 
 class UserOutputData extends Data
 {
@@ -16,11 +15,9 @@ class UserOutputData extends Data
         public string $status,
         public ?array $role,
         public array $additionalRoles,
-        public array $directPermissions,
         public array $allPermissions,
         public array $permissionsSummary,
         public int $rolesCount,
-        public int $permissionsCount,
         public ?string $lastLoginAt,
         public ?string $lastLoginIp,
         public bool $passwordResetRequired,
@@ -39,13 +36,12 @@ class UserOutputData extends Data
     {
         // S'assurer que les relations sont chargées
         $user->loadMissing([
-            'role', 
-            'roles.permissions', 
-            'permissions'
+            'role',
+            'roles.permissions'
         ]);
 
         // Compter les relations
-        $user->loadCount(['roles', 'permissions']);
+        $user->loadCount(['roles']);
 
         return new self(
             id: $user->id,
@@ -75,11 +71,7 @@ class UserOutputData extends Data
                     'action' => $perm->action
                 ])->toArray()
             ])->toArray(),
-            directPermissions: $user->permissions->map(fn($perm) => [
-                'id' => $perm->id,
-                'name' => $perm->name,
-                'action' => $perm->action
-            ])->toArray(),
+
             allPermissions: $user->getAllPermissions()->map(fn($perm) => [
                 'id' => $perm->id,
                 'name' => $perm->name,
@@ -87,7 +79,6 @@ class UserOutputData extends Data
             ])->toArray(),
             permissionsSummary: $user->getPermissionsSummary(),
             rolesCount: $user->roles_count ?? 0,
-            permissionsCount: $user->permissions_count ?? 0,
             lastLoginAt: $user->last_login_at?->toISOString(),
             lastLoginIp: $user->last_login_ip,
             passwordResetRequired: $user->password_reset_required ?? false,
@@ -106,7 +97,7 @@ class UserOutputData extends Data
     public static function fromUserSimple(User $user): self
     {
         $user->loadMissing(['role', 'roles']);
-        $user->loadCount(['roles', 'permissions']);
+        $user->loadCount(['roles']);
 
         return new self(
             id: $user->id,
@@ -124,11 +115,9 @@ class UserOutputData extends Data
                 'name' => $role->name,
                 'slug' => $role->slug
             ])->toArray(),
-            directPermissions: [],
             allPermissions: [],
             permissionsSummary: [],
             rolesCount: $user->roles_count ?? 0,
-            permissionsCount: $user->permissions_count ?? 0,
             lastLoginAt: $user->last_login_at?->toISOString(),
             lastLoginIp: $user->last_login_ip,
             passwordResetRequired: $user->password_reset_required ?? false,
@@ -154,11 +143,9 @@ class UserOutputData extends Data
             'status' => $this->status,
             'role' => $this->role,
             'additional_roles' => $this->additionalRoles,
-            'direct_permissions' => $this->directPermissions,
             'all_permissions' => $this->allPermissions,
             'permissions_summary' => $this->permissionsSummary,
             'roles_count' => $this->rolesCount,
-            'permissions_count' => $this->permissionsCount,
             'last_login_at' => $this->lastLoginAt,
             'last_login_ip' => $this->lastLoginIp,
             'password_reset_required' => $this->passwordResetRequired,
