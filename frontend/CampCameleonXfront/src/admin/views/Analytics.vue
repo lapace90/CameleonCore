@@ -3,7 +3,7 @@
     <div class="page-header">
       <div class="date-range">
         <label for="date-select">Trier par: </label>
-        <select class="date-select">
+        <select class="date-select filter-select">
           <option>7 derniers jours</option>
           <option>30 derniers jours</option>
           <option>3 derniers mois</option>

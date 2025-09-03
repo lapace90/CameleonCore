@@ -99,7 +99,6 @@
 </template>
 
 <script>
-import axios from 'axios'
 import UserStats from './components/UserStats.vue'
 import UserFilters from './components/UserFilters.vue'
 import UserTable from './components/UserTable.vue'
@@ -243,11 +242,24 @@ export default {
     },
 
     async fetchUsers() {
+      // 🚀 CACHE : Éviter requête si fetch récent (2 minutes)
+      const now = Date.now()
+      if (this.lastUsersFetch && (now - this.lastUsersFetch < 2 * 60 * 1000)) {
+        console.log('🚀 Users cache hit - pas de requête backend')
+        return
+      }
+
       this.loading = true
       this.error = null
 
       try {
+        console.log('🔄 Chargement des utilisateurs...')
         this.users = await UsersApi.getAll()
+
+        // 🚀 CACHE : Marquer le fetch comme réussi
+        this.lastUsersFetch = now
+        console.log(`✅ ${this.users.length} utilisateurs chargés et mis en cache`)
+
       } catch (error) {
         console.error('Erreur lors du chargement des utilisateurs:', error)
         this.error = 'Impossible de charger les utilisateurs'
@@ -257,13 +269,25 @@ export default {
     },
 
     async fetchRoles() {
+      // 🚀 CACHE : Éviter requête si fetch récent (5 minutes)
+      const now = Date.now()
+      if (this.lastRolesFetch && (now - this.lastRolesFetch < 5 * 60 * 1000)) {
+        console.log('🚀 Roles cache hit - pas de requête backend')
+        return
+      }
+
       try {
+        console.log('🔄 Chargement des rôles...')
         this.availableRoles = await UsersApi.getRoles()
+
+        // 🚀 CACHE : Marquer le fetch comme réussi
+        this.lastRolesFetch = now
+        console.log(`✅ ${this.availableRoles.length} rôles chargés et mis en cache`)
+
       } catch (error) {
         console.error('Erreur lors du chargement des rôles:', error)
       }
     },
-
     // Tri
     sortBy(field) {
       if (this.sortField === field) {
@@ -301,22 +325,22 @@ export default {
     },
 
     async toggleUserStatus(user) {
-  const newStatus = user.status === 'active' ? 'inactive' : 'active'
-  const action = newStatus === 'active' ? 'activer' : 'suspendre'
+      const newStatus = user.status === 'active' ? 'inactive' : 'active'
+      const action = newStatus === 'active' ? 'activer' : 'suspendre'
 
-  if (!confirm(`${action} l'utilisateur "${user.name}" ?`)) {
-    return
-  }
+      if (!confirm(`${action} l'utilisateur "${user.name}" ?`)) {
+        return
+      }
 
-  try {
-    await UsersApi.toggleStatus(user.id, newStatus)
-    user.status = newStatus
-    this.successMessage = `Utilisateur ${action === 'activer' ? 'activé' : 'suspendu'} avec succès`
-  } catch (error) {
-    console.error('Erreur lors du changement de statut:', error)
-    this.error = 'Impossible de modifier le statut de l\'utilisateur'
-  }
-},
+      try {
+        await UsersApi.toggleStatus(user.id, newStatus)
+        user.status = newStatus
+        this.successMessage = `Utilisateur ${action === 'activer' ? 'activé' : 'suspendu'} avec succès`
+      } catch (error) {
+        console.error('Erreur lors du changement de statut:', error)
+        this.error = 'Impossible de modifier le statut de l\'utilisateur'
+      }
+    },
 
     async deleteUser(user) {
       if (!confirm(`Supprimer définitivement l'utilisateur "${user.name}" ?`)) {

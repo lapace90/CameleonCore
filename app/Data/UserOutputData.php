@@ -15,8 +15,6 @@ class UserOutputData extends Data
         public string $status,
         public ?array $role,
         public array $additionalRoles,
-        public array $allPermissions,
-        public array $permissionsSummary,
         public int $rolesCount,
         public ?string $lastLoginAt,
         public ?string $lastLoginIp,
@@ -71,13 +69,6 @@ class UserOutputData extends Data
                     'action' => $perm->action
                 ])->toArray()
             ])->toArray(),
-
-            allPermissions: $user->getAllPermissions()->map(fn($perm) => [
-                'id' => $perm->id,
-                'name' => $perm->name,
-                'action' => $perm->action
-            ])->toArray(),
-            permissionsSummary: $user->getPermissionsSummary(),
             rolesCount: $user->roles_count ?? 0,
             lastLoginAt: $user->last_login_at?->toISOString(),
             lastLoginIp: $user->last_login_ip,
@@ -115,8 +106,6 @@ class UserOutputData extends Data
                 'name' => $role->name,
                 'slug' => $role->slug
             ])->toArray(),
-            allPermissions: [],
-            permissionsSummary: [],
             rolesCount: $user->roles_count ?? 0,
             lastLoginAt: $user->last_login_at?->toISOString(),
             lastLoginIp: $user->last_login_ip,
@@ -143,8 +132,6 @@ class UserOutputData extends Data
             'status' => $this->status,
             'role' => $this->role,
             'additional_roles' => $this->additionalRoles,
-            'all_permissions' => $this->allPermissions,
-            'permissions_summary' => $this->permissionsSummary,
             'roles_count' => $this->rolesCount,
             'last_login_at' => $this->lastLoginAt,
             'last_login_ip' => $this->lastLoginIp,

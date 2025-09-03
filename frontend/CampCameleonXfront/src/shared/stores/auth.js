@@ -116,13 +116,23 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  // 🔧 CORRECTION : checkAuth plus robuste avec gestion d'erreur améliorée
+  const lastCheck = ref(null)
+  const CACHE_TIME = 5 * 60 * 1000 // 5 minutes
+
+  // REMPLACER ta méthode checkAuth par celle-ci :
   const checkAuth = async () => {
     // Pas de token = pas connecté
     if (!token.value) {
       isAuthenticated.value = false
       initializing.value = false
       return false
+    }
+
+    // 🚀 CACHE : Éviter requête si vérification récente
+    const now = Date.now()
+    if (lastCheck.value && (now - lastCheck.value < CACHE_TIME)) {
+      console.log('🚀 Cache auth hit - pas de vérification backend')
+      return isAuthenticated.value
     }
 
     loading.value = true
@@ -134,7 +144,7 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await axios.get('/api/auth/verify')
       const userData = response.data.user
 
-      console.log('✅ Token valide, utilisateur:', userData)
+      console.log('✅ Token valide, utilisateur:', userData.name)
 
       // Token valide, restaurer l'état
       user.value = userData
@@ -143,11 +153,17 @@ export const useAuthStore = defineStore('auth', () => {
       // Charger permissions/rôles
       await loadUserPermissions()
 
+      // 🚀 CACHE : Marquer la vérification comme réussie
+      lastCheck.value = now
+
       return true
     } catch (err) {
       console.warn('⚠️ Token invalide ou expiré:', err.response?.status, err.response?.data?.message)
 
-      // 🔧 NETTOYAGE en cas de token invalide
+      // 🚀 CACHE : Invalider le cache en cas d'erreur
+      lastCheck.value = null
+
+      // NETTOYAGE en cas de token invalide
       setToken(null)
       user.value = null
       permissions.value = []
