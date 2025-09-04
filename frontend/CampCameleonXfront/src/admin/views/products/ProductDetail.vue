@@ -12,7 +12,7 @@
         <i class="fas fa-exclamation-triangle"></i>
       </div>
       <h3>{{ error }}</h3>
-      <router-link :to="backRoute" class="btn btn-primary">
+      <router-link :to="backRoute" class="btn btn-primary btn-sm mt-6">
         <i class="fas fa-arrow-left"></i>
         Retour à la liste
       </router-link>
@@ -230,7 +230,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import ProductsApi from '@/services/ProductsApi'
 import CategoryBadge from './components/CategoryBadge.vue'
 
 export default {
@@ -290,8 +290,8 @@ export default {
       this.error = null
 
       try {
-        const response = await axios.get(`/api/products/${this.productId}`)
-        this.product = response.data
+        const response = await ProductsApi.getProduct(this.productId)
+        this.product = response
 
 
         // 🐛 DÉBOGAGE : Ajoutez ces logs
@@ -299,9 +299,9 @@ export default {
         console.log('🔍 Type:', this.product.productableType)
         console.log('🔍 Productable detail:', this.product.productableDetail)
 
-        if (this.product.productable_detail) {
-          console.log('🔍 Dishes:', this.product.productable_detail.dishes)
-          console.log('🔍 Ingredients:', this.product.productable_detail.ingredients)
+        if (this.product.productableDetail) {
+          console.log('🔍 Dishes:', this.product.productableDetail.dishes)
+          console.log('🔍 Ingredients:', this.product.productableDetail.ingredients)
         }
       } catch (error) {
         console.error('Erreur lors du chargement du produit:', error)
@@ -316,7 +316,8 @@ export default {
     async toggleStatus() {
       try {
         const newStatus = !this.product.status
-        await axios.patch(`/api/products/${this.productId}`, { status: newStatus })
+     
+        await ProductsApi.updateProduct(this.productId, { status: newStatus })
         this.product.status = newStatus
         this.product.status_label = newStatus ? 'Actif' : 'Inactif'
         this.product.status_class = newStatus ? 'status-active' : 'status-inactive'
@@ -335,10 +336,10 @@ export default {
           price: this.product.price,
           category_id: this.product.category?.id,
           productableType: this.product.typeConfig.class,
-          productable: this.product.productable_detail
+          productable: this.product.productableDetail
         }
-
-        await axios.post('/api/products', duplicateData)
+        
+        await ProductsApi.createProduct(duplicateData)
         this.$router.push(this.backRoute)
       } catch (error) {
         console.error('Erreur lors de la duplication:', error)
@@ -349,8 +350,9 @@ export default {
       if (!confirm(`Supprimer "${this.product.name}" ?`)) return
 
       try {
-        await axios.delete(`/api/products/${this.productId}`)
+        await ProductsApi.deleteProduct(this.productId)
         this.$router.push(this.backRoute)
+        
       } catch (error) {
         console.error('Erreur lors de la suppression:', error)
       }
