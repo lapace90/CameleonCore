@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import router from './router'
 import axios from 'axios'
+import { showToast } from './shared/utils/toast'
 
 import '@fortawesome/fontawesome-free/css/all.css'
 // Import des styles
@@ -39,9 +40,15 @@ async function initializeApp() {
     axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`
   }
 
-  // 🔧 INTERCEPTEUR : Gérer les erreurs 401 APRÈS initialisation du store
+  // 🔧 INTERCEPTEUR : Gérer les erreurs 401 APRÈS initialisation du store avec toasts de confirmation
   axios.interceptors.response.use(
-    response => response,
+     response => {
+      const method = response.config?.method?.toLowerCase()
+      if (['post', 'put', 'patch', 'delete'].includes(method)) {
+        showToast('Action réalisée avec succès')
+      }
+      return response
+    },
     error => {
       if (error.response?.status === 401) {
         // Éviter la boucle infinie si on est déjà en train de se déconnecter
@@ -52,6 +59,11 @@ async function initializeApp() {
             router.push('/admin/login')
           }
         }
+      }
+       const method = error.config?.method?.toLowerCase()
+      if (['post', 'put', 'patch', 'delete'].includes(method)) {
+        const message = error.response?.data?.message || 'Une erreur est survenue'
+        showToast(message, 'error')
       }
       return Promise.reject(error)
     }

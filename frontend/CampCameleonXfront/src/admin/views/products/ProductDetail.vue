@@ -62,9 +62,9 @@
               <!-- <i class="fas fa-circle"></i> -->
               {{ product.status_label }}
             </div>
-            <button @click="toggleStatus" class="btn btn-sm" :class="product.status ? 'btn-warning' : 'btn-success'">
-              <i :class="product.status ? 'fas fa-pause' : 'fas fa-play'"></i>
-              {{ product.status ? 'Désactiver' : 'Activer' }}
+            <button @click="toggleStatus" class="btn btn-sm" :class="statusButtonClass">
+              <i :class="statusButtonIcon"></i>
+              {{ statusButtonText }}
             </button>
           </div>
           <div class="product-price-display">
@@ -135,7 +135,7 @@
 
           <!-- Détails spécifiques -->
           <div v-if="hasDetailFields" class="info-section">
-            <h3>Détails {{ product.typeConfig.singular.toLowerCase() }}</h3>
+            <h3>Détails {{ lowercaseTypeSingular }}</h3>
             <div class="info-grid">
               <div v-for="(field, key) in product.detail_fields" :key="key" class="info-item">
                 <label>{{ field.label }}</label>
@@ -146,7 +146,7 @@
 
           <!-- Relations -->
           <div v-if="hasRelations" class="info-section">
-            <h3>{{ getRelationTitle() }}</h3>
+            <h3>{{ relationTitle }}</h3>
             <div class="relations-content">
 
               <!-- Plats du menu -->
@@ -215,7 +215,7 @@
       <div class="quick-actions-bar">
         <div class="actions-left">
           <span class="last-updated">
-            Dernière modification : {{ formatDate(product.updated_at) }}
+            Dernière modification : {{ formattedUpdatedAt }}
           </span>
         </div>
         <div class="actions-right">
@@ -232,6 +232,8 @@
 <script>
 import ProductsApi from '@/services/ProductsApi'
 import CategoryBadge from './components/CategoryBadge.vue'
+import { getStatIcon, getStatLabel, formatStatValue } from '@/shared/utils/ProductUtils'
+import { formatDate } from '@/shared/utils/helpers'
 
 export default {
   name: 'ProductDetail',
@@ -277,6 +279,32 @@ export default {
     hasRelations() {
       return (this.product?.relations?.dishes && this.product.relations.dishes.length > 0) ||
         (this.product?.relations?.ingredients && this.product.relations.ingredients.length > 0)
+    },
+
+    statusButtonClass() {
+      return this.product?.status ? 'btn-warning' : 'btn-success'
+    },
+
+    statusButtonIcon() {
+      return this.product?.status ? 'fas fa-pause' : 'fas fa-play'
+    },
+
+    statusButtonText() {
+      return this.product?.status ? 'Désactiver' : 'Activer'
+    },
+
+    formattedUpdatedAt() {
+      return formatDate(this.product?.updated_at)
+    },
+
+    lowercaseTypeSingular() {
+      return this.product?.typeConfig?.singular?.toLowerCase() || ''
+    },
+
+    relationTitle() {
+      if (this.product?.productableDetail?.dishes) return 'Plats du menu'
+      if (this.product?.productableDetail?.ingredients) return 'Ingrédients'
+      return 'Relations'
     }
   },
 
@@ -285,6 +313,9 @@ export default {
   },
 
   methods: {
+    getStatIcon,
+    getStatLabel,
+    formatStatValue,
     async fetchProduct() {
       this.loading = true
       this.error = null
@@ -293,8 +324,7 @@ export default {
         const response = await ProductsApi.getProduct(this.productId)
         this.product = response
 
-
-        // 🐛 DÉBOGAGE : Ajoutez ces logs
+        // 🐛 DÉBOGAGE 
         console.log('🔍 Produit reçu:', this.product)
         console.log('🔍 Type:', this.product.productableType)
         console.log('🔍 Productable detail:', this.product.productableDetail)
@@ -316,7 +346,7 @@ export default {
     async toggleStatus() {
       try {
         const newStatus = !this.product.status
-     
+
         await ProductsApi.updateProduct(this.productId, { status: newStatus })
         this.product.status = newStatus
         this.product.status_label = newStatus ? 'Actif' : 'Inactif'
@@ -338,7 +368,7 @@ export default {
           productableType: this.product.typeConfig.class,
           productable: this.product.productableDetail
         }
-        
+
         await ProductsApi.createProduct(duplicateData)
         this.$router.push(this.backRoute)
       } catch (error) {
@@ -352,7 +382,7 @@ export default {
       try {
         await ProductsApi.deleteProduct(this.productId)
         this.$router.push(this.backRoute)
-        
+
       } catch (error) {
         console.error('Erreur lors de la suppression:', error)
       }
@@ -362,52 +392,6 @@ export default {
       this.$router.push({
         name: 'ProductDetail',
         params: { type, id: productId }
-      })
-    },
-
-    getRelationTitle() {
-      if (this.product?.productableDetail?.dishes) return 'Plats du menu'
-      if (this.product?.productableDetail?.ingredients) return 'Ingrédients'
-      return 'Relations'
-    },
-
-    getStatIcon(key) {
-      const icons = {
-        views: 'fas fa-eye',
-        reservations_count: 'fas fa-shopping-cart',
-        total_revenue: 'fas fa-euro-sign',
-        monthly_revenue: 'fas fa-chart-line',
-        average_rating: 'fas fa-star'
-      }
-      return icons[key] || 'fas fa-info'
-    },
-
-    getStatLabel(key) {
-      const labels = {
-        views: 'Vues',
-        reservations_count: 'Réservations',
-        total_revenue: 'CA total',
-        monthly_revenue: 'CA mensuel',
-        average_rating: 'Note moyenne'
-      }
-      return labels[key] || key
-    },
-
-    formatStatValue(value, key) {
-      if (key.includes('revenue')) {
-        return new Intl.NumberFormat('fr-FR', {
-          style: 'currency',
-          currency: 'EUR'
-        }).format(value)
-      }
-      return value
-    },
-
-    formatDate(date) {
-      return new Date(date).toLocaleDateString('fr-FR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
       })
     }
   }

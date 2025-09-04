@@ -1,0 +1,27 @@
+.toast-container {
+  position: fixed;
+  bottom: 1rem;
+  z-index: 1055;
+  text-align: center;
+}
+
+.toast {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  margin-bottom: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  color: #fff;
+}
+
+.toast.show {
+  opacity: 1;
+}
+
+.toast-success {
+  background-color: var(--success);
+}
+
+.toast-error {
+  background-color: var(--danger);
+}

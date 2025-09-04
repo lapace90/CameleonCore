@@ -26,7 +26,7 @@ class ProductProcessor implements ProcessorInterface
             try {
                 // 1) Récupérer le payload depuis la request
                 $payload = $this->getDataFromRequest($context);
-                
+
                 Log::info('ProductProcessor - Payload reçu', [
                     'payload' => $payload,
                     'operation' => get_class($operation)
@@ -34,7 +34,7 @@ class ProductProcessor implements ProcessorInterface
 
                 // 2) Créer ProductData avec votre architecture - GARDÉE !
                 $productData = ProductData::from($payload);
-                
+
                 Log::info('ProductProcessor - ProductData créé', [
                     'productData' => $productData->toArray()
                 ]);
@@ -48,7 +48,6 @@ class ProductProcessor implements ProcessorInterface
                 // 4) SOLUTION : Retourner un ARRAY, pas un objet ProductOutputData
                 // Ça évite le problème de sérialisation d'API Platform Laravel
                 return ProductOutputData::fromProduct($product);
-
             } catch (ValidationException $e) {
                 Log::error('Erreur de validation', ['errors' => $e->errors(), 'payload' => $payload ?? null]);
                 throw $e;
@@ -71,7 +70,7 @@ class ProductProcessor implements ProcessorInterface
         // Méthode 1: Depuis le contexte API Platform
         if (isset($context['request']) && $context['request'] instanceof Request) {
             $request = $context['request'];
-            
+
             // Essayer le contenu JSON de la request
             $content = $request->getContent();
             if ($content) {
@@ -80,7 +79,7 @@ class ProductProcessor implements ProcessorInterface
                     return $this->normalizePayloadFromFrontend($decoded);
                 }
             }
-            
+
             // Fallback sur all()
             $requestData = $request->all();
             if (!empty($requestData)) {
@@ -98,13 +97,13 @@ class ProductProcessor implements ProcessorInterface
                     return $this->normalizePayloadFromFrontend($decoded);
                 }
             }
-            
+
             $requestData = $request->all();
             if (!empty($requestData)) {
                 return $this->normalizePayloadFromFrontend($requestData);
             }
         }
-        
+
         throw new \InvalidArgumentException('Impossible de récupérer les données de la request HTTP');
     }
 
@@ -114,49 +113,53 @@ class ProductProcessor implements ProcessorInterface
     private function normalizePayloadFromFrontend(array $payload): array
     {
         $normalized = [];
-        
+
         // Champs directs du produit
-        $normalized['name'] = $payload['name'] ?? '';
+        $normalized['name'] = $payload['name'] ?? null;
         $normalized['description'] = $payload['description'] ?? null;
-        $normalized['price'] = (float) ($payload['price'] ?? 0);
-        $normalized['status'] = (bool) ($payload['status'] ?? true);
-        $normalized['is_draft'] = (bool) ($payload['is_draft'] ?? false);
-        $normalized['category_id'] = $payload['category_id'] ?? null;
-        $normalized['image'] = $payload['image'] ?? null;
-        
+        $normalized['price'] = array_key_exists('price', $payload) ? (float) $payload['price'] : null;
+        $normalized['status'] = array_key_exists('status', $payload) ? (bool) $payload['status'] : null;
+        $normalized['is_draft'] = array_key_exists('is_draft', $payload)
+            ? (bool) $payload['is_draft']
+            : (array_key_exists('isDraft', $payload) ? (bool) $payload['isDraft'] : null);
+        $normalized['category_id'] = $payload['category_id']
+            ?? ($payload['categoryId'] ?? null);
+        $normalized['image'] = array_key_exists('image', $payload) ? $payload['image'] : null;
+
         // Gestion du type productable (frontend envoie "productableType" au lieu de "productable_type")
-        $normalized['productable_type'] = $payload['productable_type'] 
-            ?? $payload['productableType'] 
-            ?? '';
-        
+        $normalized['productable_type'] = $payload['productable_type']
+            ?? ($payload['productableType'] ?? null);
+
         // Traitement de l'objet productable - GARDER votre logique
-        $productableData = $payload['productable'] ?? [];
-        
+        $productableData = $payload['productable'] ?? null;
+
         // Nettoyer les métadonnées API Platform
-        if (isset($productableData['@context']) || isset($productableData['@id'])) {
-            $cleanedData = array_filter($productableData, function($key) {
-                return !str_starts_with($key, '@');
-            }, ARRAY_FILTER_USE_KEY);
-            $productableData = $cleanedData;
+        if (is_array($productableData)) {
+            if (isset($productableData['@context']) || isset($productableData['@id'])) {
+                $cleanedData = array_filter($productableData, function ($key) {
+                    return !str_starts_with($key, '@');
+                }, ARRAY_FILTER_USE_KEY);
+                $productableData = $cleanedData;
+            }
         }
-        
+
         $normalized['productable'] = $productableData;
-        
+
         // Relations, tags, options
-        $normalized['relations'] = $payload['relations'] ?? [];
-        $normalized['tags'] = $payload['tags'] ?? [];
-        $normalized['options'] = $payload['options'] ?? [];
-        
+        $normalized['relations'] = $payload['relations'] ?? null;
+        $normalized['tags'] = $payload['tags'] ?? null;
+        $normalized['options'] = $payload['options'] ?? null;
+
         return $normalized;
     }
 
     private function createProduct(ProductData $data): Product
     {
         Log::info('Création du produit avec ProductData', ['product_data' => $data->toArray()]);
-        
+
         // Créer l'entité productable en utilisant VOTRE logique ProductableData
         $productable = $this->createProductable($data->productableType, $data->productable);
-        
+
         // Créer le produit
         $product = Product::create([
             'name' => $data->name,
@@ -185,7 +188,7 @@ class ProductProcessor implements ProcessorInterface
     private function updateProduct(ProductData $data, int $productId): Product
     {
         $product = Product::findOrFail($productId);
-        
+
         // Mettre à jour les champs du produit
         $updates = [
             'name' => $data->name,
@@ -196,17 +199,17 @@ class ProductProcessor implements ProcessorInterface
             'category_id' => $data->categoryId,
             'image' => $data->image,
         ];
-        
+
         $product->update(array_filter($updates, fn($value) => $value !== null));
-        
+
         // Mettre à jour le productable en utilisant VOTRE logique ProductableData
         if ($product->productable) {
             $this->updateProductable($product->productable, $data->productable, $data->productableType);
         }
-        
+
         // Gérer les relations
         $this->handleRelations($product, $product->productable, $data);
-        
+
         return $product->loadMissing(['category', 'productable', 'globalTags', 'options']);
     }
 
@@ -235,25 +238,62 @@ class ProductProcessor implements ProcessorInterface
             'App\\Models\\Activity' => $productableData->toActivityArray(),
             'App\\Models\\Room' => $productableData->toRoomArray(),
             'App\\Models\\Ingredient' => $productableData->toIngredientArray(),
-            'App\\Models\\Menu', 'App\\Models\\Dish' => [],
+            'App\\Models\\Menu' => $this->mapMenuData($productableData),
+            'App\\Models\\Dish' => $this->mapDishData($productableData),
+
             default => []
         };
-        
+        $updateData = array_filter($updateData, fn($value) => $value !== null);
         if (!empty($updateData)) {
             $productable->update($updateData);
         }
     }
 
+    /**
+     * Extrait et normalise les champs spécifiques aux menus.
+     */
+    private function mapMenuData($productableData): array
+    {
+        $data = is_array($productableData)
+            ? $productableData
+            : (array) $productableData;
+
+        return [
+            'type' => $data['type'] ?? null,
+            'is_active' => $data['is_active'] ?? null,
+        ];
+    }
+
+    /**
+     * Extrait et normalise les champs spécifiques aux plats.
+     */
+    private function mapDishData($productableData): array
+    {
+        $data = is_array($productableData)
+            ? $productableData
+            : (array) $productableData;
+
+        return [
+            'course' => $data['course'] ?? null,
+            'is_vegetarian' => $data['is_vegetarian'] ?? null,
+            'is_vegan' => $data['is_vegan'] ?? null,
+            'is_spicy' => $data['is_spicy'] ?? null,
+            'is_gluten_free' => $data['is_gluten_free'] ?? null,
+            'is_lactose_free' => $data['is_lactose_free'] ?? null,
+            'is_nut_free' => $data['is_nut_free'] ?? null,
+        ];
+    }
+
     private function handleRelations(Product $product, mixed $productable, ProductData $data): void
     {
         // GARDER votre logique de relations !
-        
+
         // Relations des plats (Dish -> Ingredients)
         if ($productable instanceof Dish && isset($data->relations['ingredients'])) {
             $ingredientIds = $this->extractIds($data->relations['ingredients']);
             $productable->ingredients()->sync($ingredientIds);
             Log::info("Relations plat-ingrédients mises à jour", [
-                'dish_id' => $productable->id, 
+                'dish_id' => $productable->id,
                 'ingredient_ids' => $ingredientIds
             ]);
         }

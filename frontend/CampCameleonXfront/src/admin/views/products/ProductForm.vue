@@ -353,26 +353,6 @@ export default {
       }
     },
 
-    buildPayload() {
-      const payload = {
-        name: this.form.name,
-        description: this.form.description,
-        price: this.form.price,
-        status: this.form.status,
-        productableType: this.getProductableType()
-      }
-
-      if (this.form.image) {
-        payload.image = this.form.image
-      }
-
-      if (Object.keys(this.form.productable).length > 0) {
-        payload.productable = { ...this.form.productable }
-      }
-
-      return payload
-    },
-
     getProductableType() {
       return getProductableType(this.productType)
     },

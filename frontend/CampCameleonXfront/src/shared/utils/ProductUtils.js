@@ -39,3 +39,32 @@ export function getValidImageUrl(imageUrl) {
     return getPlaceholderImage()
   }
 }
+
+export function getStatIcon(key) {
+  const icons = {
+    views: 'fas fa-eye',
+    reservations_count: 'fas fa-shopping-cart',
+    total_revenue: 'fas fa-euro-sign',
+    monthly_revenue: 'fas fa-chart-line',
+    average_rating: 'fas fa-star'
+  }
+  return icons[key] || 'fas fa-info'
+}
+
+export function getStatLabel(key) {
+  const labels = {
+    views: 'Vues',
+    reservations_count: 'Réservations',
+    total_revenue: 'CA total',
+    monthly_revenue: 'CA mensuel',
+    average_rating: 'Note moyenne'
+  }
+  return labels[key] || key
+}
+
+export function formatStatValue(value, key) {
+  if (key.includes('revenue')) {
+    return formatPrice(value)
+  }
+  return value
+}
