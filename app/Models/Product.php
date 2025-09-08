@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use App\Models\Category;
 use App\Models\Reservation;
 use App\Models\Option;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\Tag;
 
 #[ApiResource(
@@ -58,6 +59,8 @@ use App\Models\Tag;
 #[QueryParameter(key: 'type', filter: EqualsFilter::class, property: 'productable_type')]
 class Product extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'name',
         'description',

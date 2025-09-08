@@ -1,4 +1,5 @@
 <?php
+// app/Models/Permission.php - Modifié pour API Platform
 
 namespace App\Models;
 
@@ -8,14 +9,19 @@ use App\Models\Role;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use App\State\PermissionCollectionProvider;
 
 #[ApiResource(
     operations: [
+        new GetCollection(
+            uriTemplate: '/admin/permissions/grouped',
+            provider: PermissionCollectionProvider::class,
+            // ✅ Pas de output car on retourne un array custom
+        ),
         new Get(),
         new GetCollection()
     ]
 )]
-
 class Permission extends Model
 {
     use HasFactory;
@@ -38,7 +44,7 @@ class Permission extends Model
     }
 
     // ===========================
-    // MÉTHODES UTILITAIRES
+    // MÉTHODES MÉTIER (gardées pour compatibilité)
     // ===========================
 
     /**

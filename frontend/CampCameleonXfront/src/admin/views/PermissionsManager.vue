@@ -373,7 +373,7 @@ export default {
       this.error = null
 
       try {
-        const response = await axios.get('/api/permissions')
+        const response = await axios.get('/api/admin/permissions')
         this.permissions = Array.isArray(response.data)
           ? response.data
           : response.data['hydra:member'] || []
@@ -416,7 +416,7 @@ export default {
 
       try {
         const promises = standardPermissions.map(perm =>
-          axios.post('/api/permissions', perm).catch(err => {
+          axios.post('/api/admin/permissions', perm).catch(err => {
             // Ignorer les erreurs de doublons
             if (err.response?.status !== 422) {
               throw err
@@ -462,10 +462,10 @@ export default {
 
       try {
         if (this.editingPermission) {
-          await axios.put(`/api/permissions/${this.editingPermission.id}`, this.form)
+          await axios.put(`/api/admin/permissions/${this.editingPermission.id}`, this.form)
           this.successMessage = 'Permission modifiée avec succès'
         } else {
-          await axios.post('/api/permissions', this.form)
+          await axios.post('/api/admin/permissions', this.form)
           this.successMessage = 'Permission créée avec succès'
         }
 
@@ -495,7 +495,7 @@ export default {
       }
 
       try {
-        await axios.delete(`/api/permissions/${permission.id}`)
+        await axios.delete(`/api/admin/permissions/${permission.id}`)
         this.successMessage = 'Permission supprimée avec succès'
         this.fetchPermissions()
       } catch (error) {

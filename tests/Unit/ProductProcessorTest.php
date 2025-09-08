@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use App\State\ProductProcessor;
 use App\Models\Product;
+use App\Models\Category;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use ReflectionClass;
@@ -44,10 +45,14 @@ class ProductProcessorTest extends TestCase
     /** @test */
     public function patch_updates_only_provided_fields()
     {
+        // CORRECTION: S'assurer qu'une catégorie existe
+        $category = Category::factory()->create();
+        
         $product = Product::factory()->create([
             'name' => 'Original',
             'description' => 'Original description',
             'price' => 10.0,
+            'category_id' => $category->id, // CORRECTION: Ajouter category_id requis
         ]);
 
         $normalized = $this->callNormalize(['name' => 'Changed']);

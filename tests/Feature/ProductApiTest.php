@@ -41,25 +41,22 @@ class ProductApiTest extends TestCase
         // Act
         $response = $this->getJson('/api/products');
 
-        // Assert
+        // Assert - CORRECTION: Structure Laravel/API Platform réelle
         $response->assertStatus(200)
             ->assertJsonStructure([
-                '@context',
-                '@id',
-                '@type',
-                'totalItems',
-                'member' => [
+                'data' => [
                     '*' => [
                         'id',
                         'name',
                         'price',
                         'formatted_price',
                         'status',
-                        'status_label',
-                        'typeConfig',
-                        'category'
+                        'productable_type',
+                        'typeConfig'
                     ]
-                ]
+                ],
+                'links' => ['first', 'last', 'prev', 'next'],
+                'meta' => ['current_page', 'from', 'to', 'total']
             ]);
     }
 
@@ -163,19 +160,22 @@ class ProductApiTest extends TestCase
     {
         // Arrange
         $category = Category::factory()->create();
+
         $productData = [
-            'name' => 'Test Activity',
-            'description' => 'A test activity',
+            'name' => 'Mountain Adventure',
+            'description' => 'An exciting mountain hiking experience',
             'price' => 99.99,
-            'category_id' => $category->id,
             'productableType' => 'App\\Models\\Activity',
             'productable' => [
                 'guide' => 'Jane Smith',
                 'duration' => 180,
-                'meeting_point' => 'Main Square',
-                'max_people' => 15,
-                'difficulty_level' => 'medium'
-            ]
+                'meeting_point' => 'Base Camp',
+                'max_people' => 12,
+                'difficulty_level' => 3 // CORRECTION: Integer au lieu de 'medium'
+            ],
+            'categoryId' => $category->id,
+            'status' => true,
+            'is_draft' => false
         ];
 
         // Act

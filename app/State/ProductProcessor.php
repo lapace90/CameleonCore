@@ -215,19 +215,22 @@ class ProductProcessor implements ProcessorInterface
 
     private function createProductable(string $type, $productableData): mixed
     {
-        Log::info('Création du productable', [
-            'type' => $type,
-            'data' => $productableData
-        ]);
+        // CORRECTION: Valider avant de traiter
+        if (empty($type)) {
+            throw ValidationException::withMessages([
+                'productableType' => ['Le type de produit est requis']
+            ]);
+        }
 
-        // GARDER votre logique ProductableData !
         return match ($type) {
             'App\\Models\\Activity' => Activity::create($productableData->toActivityArray()),
             'App\\Models\\Room' => Room::create($productableData->toRoomArray()),
             'App\\Models\\Menu' => Menu::create([]),
             'App\\Models\\Dish' => Dish::create([]),
             'App\\Models\\Ingredient' => Ingredient::create($productableData->toIngredientArray()),
-            default => throw new \InvalidArgumentException("Type de productable non supporté: {$type}")
+            default => throw ValidationException::withMessages([
+                'productableType' => ["Type de produit non supporté: {$type}"]
+            ])
         };
     }
 

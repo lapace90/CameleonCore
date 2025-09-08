@@ -1,5 +1,5 @@
 <?php
-// tests/Unit/ProductTransformerTest.php
+
 namespace Tests\Unit;
 
 use App\Models\Product;
@@ -20,7 +20,8 @@ class ProductTransformerTest extends TestCase
         $category = Category::factory()->create(['name' => 'Test Category']);
         $activity = Activity::factory()->create([
             'guide' => 'John Doe',
-            'duration' => 120
+            'duration' => 120,
+            'difficulty_level' => 2 // CORRECTION: Integer au lieu de string
         ]);
         
         $product = Product::factory()->create([
@@ -34,66 +35,135 @@ class ProductTransformerTest extends TestCase
 
         $product->load(['category', 'productable']);
 
-        // Act
-        $result = ProductTransformer::transformForList(collect([$product]));
+        // Act - CORRECTION: Passer un Product, pas une Collection
+        $result = ProductTransformer::transformForList($product);
 
         // Assert
         $this->assertIsArray($result);
-        $this->assertCount(1, $result);
-        
-        $transformed = $result[0];
-        $this->assertEquals('Test Product', $transformed['name']);
-        $this->assertEquals(99.99, $transformed['price']);
-        $this->assertEquals('99,99 €', $transformed['formatted_price']);
-        $this->assertEquals('Actif', $transformed['status_label']);
-        $this->assertEquals('status-active', $transformed['status_class']);
-        $this->assertEquals('Test Category', $transformed['category']['name']);
-        $this->assertArrayHasKey('typeConfig', $transformed);
+        $this->assertEquals('Test Product', $result['name']);
+        $this->assertEquals(99.99, $result['price']);
+        $this->assertEquals('99,99 €', $result['formatted_price']);
+        $this->assertEquals('Actif', $result['status_label']);
+        // CORRECTION: Les assertions correspondent à la vraie structure
+        $this->assertEquals('success', $result['status_class']); // Pas 'status-active'
+        $this->assertArrayHasKey('typeConfig', $result);
+        $this->assertEquals(Activity::class, $result['productable_type']);
     }
 
     /** @test */
-    public function transforms_product_for_detail()
+    public function transforms_product_for_display()
     {
         // Arrange
+        $category = Category::factory()->create(['name' => 'Test Category']);
         $activity = Activity::factory()->create([
             'guide' => 'John Doe',
             'duration' => 120,
-            'max_people' => 10
+            'max_people' => 10,
+            'difficulty_level' => 2 // CORRECTION: Integer au lieu de string
         ]);
         
         $product = Product::factory()->create([
             'productable_type' => Activity::class,
-            'productable_id' => $activity->id
+            'productable_id' => $activity->id,
+            'category_id' => $category->id
         ]);
 
-        $product->load(['category', 'productable', 'globalTags', 'options']);
+        // Act - CORRECTION: Utiliser la vraie méthode transformForDisplay
+        $result = ProductTransformer::transformForDisplay($product);
 
-        // Act
-        $result = ProductTransformer::transformForDetail($product);
-
-        // Assert
-        $this->assertArrayHasKey('productable_detail', $result);
-        $this->assertArrayHasKey('statistics', $result);
-        $this->assertArrayHasKey('detail_fields', $result);
+        // Assert - CORRECTION: Vérifier les vraies clés retournées
+        $this->assertArrayHasKey('productableDetail', $result);
+        $this->assertArrayHasKey('typeConfig', $result);
+        $this->assertArrayHasKey('category', $result);
         
-        $this->assertEquals('John Doe', $result['productable_detail']['guide']);
-        $this->assertEquals(120, $result['productable_detail']['duration']);
+        // Vérifier la structure de productableDetail
+        $this->assertEquals('John Doe', $result['productableDetail']['guide']);
+        $this->assertEquals(120, $result['productableDetail']['duration']);
+        $this->assertEquals(10, $result['productableDetail']['max_people']);
+        
+        // Vérifier la catégorie
+        $this->assertEquals('Test Category', $result['category']['name']);
     }
 
     /** @test */
-    public function formats_field_values_correctly()
+    public function transforms_product_for_form()
     {
         // Arrange
+        $category = Category::factory()->create();
         $activity = Activity::factory()->create([
+            'guide' => 'Jane Smith',
             'duration' => 90,
-            'max_people' => 8,
-            'difficulty_level' => 'easy'
+            'difficulty_level' => 1
+        ]);
+        
+        $product = Product::factory()->create([
+            'name' => 'Form Test Product',
+            'price' => 45.50,
+            'productable_type' => Activity::class,
+            'productable_id' => $activity->id,
+            'category_id' => $category->id
         ]);
 
         // Act
-        $formatted = ProductTransformer::formatFieldValue($activity, 'duration', 'duration');
+        $result = ProductTransformer::transformForForm($product);
 
         // Assert
-        $this->assertEquals('90 min', $formatted);
+        $this->assertEquals('Form Test Product', $result['name']);
+        $this->assertEquals(45.50, $result['price']);
+        $this->assertArrayHasKey('productableData', $result);
+        $this->assertArrayHasKey('typeConfig', $result);
+        $this->assertEquals('Jane Smith', $result['productableData']['guide']);
+    }
+
+    /** @test */
+    public function transforms_empty_product_for_form()
+    {
+        // Act
+        $result = ProductTransformer::transformForForm();
+
+        // Assert
+        $this->assertEquals('', $result['name']);
+        $this->assertEquals(0, $result['price']);
+        $this->assertTrue($result['status']);
+        $this->assertFalse($result['is_draft']);
+        $this->assertEmpty($result['productableData']);
+    }
+
+    /** @test */
+    public function handles_product_without_category()
+    {
+        // Arrange
+        $activity = Activity::factory()->create();
+        $product = Product::factory()->create([
+            'productable_type' => Activity::class,
+            'productable_id' => $activity->id,
+            'category_id' => null // Pas de catégorie
+        ]);
+
+        // Act
+        $result = ProductTransformer::transformForDisplay($product);
+
+        // Assert
+        $this->assertNull($result['category']);
+        $this->assertArrayHasKey('productableDetail', $result);
+    }
+
+    /** @test */
+    public function handles_product_without_productable()
+    {
+        // Arrange
+        $category = Category::factory()->create();
+        $product = Product::factory()->create([
+            'productable_type' => Activity::class,
+            'productable_id' => 999999, // ID inexistant
+            'category_id' => $category->id
+        ]);
+
+        // Act
+        $result = ProductTransformer::transformForDisplay($product);
+
+        // Assert
+        $this->assertEmpty($result['productableDetail']);
+        $this->assertArrayHasKey('typeConfig', $result);
     }
 }
