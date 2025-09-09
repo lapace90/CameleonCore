@@ -1,5 +1,5 @@
 <?php
-// app/Models/Permission.php - Modifié pour API Platform
+// app/Models/Permission.php - Version CRUD Laravel + API Platform
 
 namespace App\Models;
 
@@ -9,17 +9,32 @@ use App\Models\Role;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
+use ApiPlatform\Metadata\Delete;
 use App\State\PermissionCollectionProvider;
+use App\State\PermissionProcessor;
 
 #[ApiResource(
     operations: [
+        // ✅ Route existante - grouped
         new GetCollection(
             uriTemplate: '/admin/permissions/grouped',
             provider: PermissionCollectionProvider::class,
-            // ✅ Pas de output car on retourne un array custom
         ),
+        // ✅ Routes standard API Platform
         new Get(),
-        new GetCollection()
+        new GetCollection(),
+        // ✅ CRUD à ajouter
+        new Post(
+            processor: PermissionProcessor::class,
+        ),
+        new Put(
+            processor: PermissionProcessor::class,
+        ),
+        new Delete(
+            processor: PermissionProcessor::class,
+        )
     ]
 )]
 class Permission extends Model
@@ -32,58 +47,51 @@ class Permission extends Model
     ];
 
     // ===========================
-    // RELATIONS
+    // RELATIONS (existantes)
     // ===========================
-
-    /**
-     * Les rôles qui ont cette permission
-     */
     public function roles()
     {
         return $this->belongsToMany(Role::class, 'permission_role');
     }
 
     // ===========================
-    // MÉTHODES MÉTIER (gardées pour compatibilité)
+    // 🧠 BUSINESS LOGIC pour le processor
     // ===========================
-
+    
     /**
-     * Obtenir tous les utilisateurs ayant cette permission (via leurs rôles)
+     * Vérifier si la permission peut être supprimée
      */
-    public function getUsersViaRoles()
+    public function canBeDeleted(): bool
     {
-        $users = collect();
-        
-        foreach ($this->roles as $role) {
-            // Utilisateurs avec ce rôle principal
-            $users = $users->merge($role->users()->where('role_id', $role->id)->get());
-            
-            // Utilisateurs avec ce rôle additionnel
-            $users = $users->merge($role->users);
-        }
-        
-        return $users->unique('id');
+        return $this->roles()->count() === 0;
     }
 
     /**
-     * Vérifier si cette permission appartient à une catégorie
+     * Vérifier si c'est une permission critique
      */
-    public function belongsToCategory(string $category): bool
+    public function isCritical(): bool
     {
-        $categories = [
-            'system' => ['system-admin', 'admin-access', 'maintenance-mode', 'clear-cache', 'view-logs'],
-            'users' => ['users-read', 'users-create', 'users-update', 'users-delete', 'roles-manage'],
-            'accommodations' => ['accommodations-read', 'accommodations-manage', 'rooms-status'],
-            'activities' => ['activities-read', 'activities-manage'],
-            'bookings' => ['bookings-read-all', 'bookings-create', 'bookings-update', 'bookings-cancel', 'bookings-confirm', 'planning-manage'],
-            'reception' => ['checkin', 'checkout', 'arrivals-today', 'departures-today', 'keys-manage'],
-            'customers' => ['customers-read', 'customers-create', 'customers-update', 'customers-history'],
-            'restaurant' => ['menus-read', 'menus-manage', 'dishes-manage', 'orders-take', 'orders-manage'],
-            'finance' => ['payments-read', 'payments-collect', 'invoicing-manage', 'finance-stats'],
-            'analytics' => ['dashboard-view', 'occupancy-stats', 'revenue-reports', 'data-export'],
-            'communication' => ['messages-customers', 'notifications-team']
+        $criticalActions = [
+            'system-admin', 'delete-users', 'manage-permissions', 
+            'manage-roles', 'admin-access', 'super-admin'
         ];
+        
+        return in_array($this->action, $criticalActions);
+    }
 
-        return isset($categories[$category]) && in_array($this->action, $categories[$category]);
+    /**
+     * Normaliser l'action
+     */
+    public static function normalizeAction(string $action): string
+    {
+        return strtolower(trim(preg_replace('/[^a-zA-Z0-9]+/', '-', $action), '-'));
+    }
+
+    /**
+     * Générer le nom depuis l'action
+     */
+    public static function generateNameFromAction(string $action): string
+    {
+        return ucwords(str_replace('-', ' ', $action));
     }
 }
