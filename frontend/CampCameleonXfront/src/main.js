@@ -75,6 +75,17 @@ async function initializeApp() {
       console.log('🔄 Vérification du token au démarrage...')
       await authStore.checkAuth()
       console.log('✅ Token vérifié:', authStore.isAuthenticated ? 'valide' : 'invalide')
+       // ⚡ Pré-chauffe côté admin sans bloquer le rendu
+      if (authStore.isAuthenticated) {
+        const { useRolesStore } = await import('./shared/stores/roles')
+        const rolesStore = useRolesStore(pinia)
+        // permissions groupées (utilisées par les modales)
+        rolesStore.ensurePermissions() // pas d'await
+        // ne précharge les rôles que si on est sur /admin/roles
+        if (router.currentRoute.value.path.startsWith('/admin/roles')) {
+          rolesStore.ensureRoles() // pas d'await
+        }
+      }
     } else {
       // Pas de token, marquer l'initialisation comme terminée
       authStore.initializing = false

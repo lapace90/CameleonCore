@@ -11,6 +11,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Delete;
 use App\State\RoleCollectionProvider;
@@ -24,6 +25,9 @@ use App\State\RoleProcessor;
             provider: RoleCollectionProvider::class,
         ),
         new Post(
+            processor: RoleProcessor::class,
+        ),
+        new Patch(
             processor: RoleProcessor::class,
         ),
         new Put(
@@ -90,6 +94,19 @@ class Role extends Model
     public function hasAnyPermission(array $permissions): bool
     {
         return $this->permissions()->whereIn('action', $permissions)->exists();
+    }
+    /**
+     * Indique si ce rôle est un rôle d'administration.
+     * Adapte la liste selon ta politique d'accès.
+     */
+    public function isAdminRole(): bool
+    {
+        return in_array($this->slug, [
+            'owner',
+            'super-admin',
+            'admin',
+            'system-admin',
+        ], true);
     }
 
     /**

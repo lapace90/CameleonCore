@@ -179,34 +179,9 @@ export const useAuthStore = defineStore('auth', () => {
 
   const loadUserPermissions = async () => {
     if (!user.value) return
-    loading.value = true
-    error.value = null
-    try {
-      if (user.value.permissions && user.value.permissions.length) {
-        permissions.value = user.value.permissions
-      } else {
-        const permRes = await axios.get('/api/permissions')
-        permissions.value = Array.isArray(permRes.data)
-          ? permRes.data
-          : permRes.data['hydra:member'] || []
-      }
-      if (user.value.roles && user.value.roles.length) {
-        roles.value = user.value.roles
-      } else {
-        const rolesRes = await axios.get('/api/roles')
-        roles.value = Array.isArray(rolesRes.data)
-          ? rolesRes.data
-          : rolesRes.data['hydra:member'] || []
-      }
-
-      console.log('📋 Permissions chargées:', permissions.value.length)
-      console.log('👥 Rôles chargés:', roles.value.length)
-    } catch (err) {
-      console.warn('Erreur lors du chargement des permissions ou rôles:', err)
-      error.value = err.response?.data?.message || 'Impossible de charger permissions/roles'
-    } finally {
-      loading.value = false
-    }
+    // ⚡ Pas d'appel API ici : on se contente des infos incluses dans le payload user
+    permissions.value = Array.isArray(user.value.permissions) ? user.value.permissions : []
+    roles.value = Array.isArray(user.value.roles) ? user.value.roles : []
   }
 
   // 🔧 NOUVELLE MÉTHODE : Force refresh de l'état d'authentification

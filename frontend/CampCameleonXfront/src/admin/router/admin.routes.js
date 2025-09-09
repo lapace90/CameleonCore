@@ -75,7 +75,7 @@ export default [
       {
         path: 'permissions',
         name: 'AdminPermissions',
-        component: () => import('../views/permissions/Permissions.vue')
+        component: () => import('../views/Permissions.vue')
       },
       {
         path: 'analytics',

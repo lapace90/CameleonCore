@@ -41,7 +41,7 @@
           {{ getDisplayName(tag.name) }}
         </span>
       </div>
-      <div v-if="totalTagsCount > 3" class="more-tags">
+      <div v-if="totalTagsCount > 3" class="more-tag">
         +{{ totalTagsCount - 3 }} autres
       </div>
 

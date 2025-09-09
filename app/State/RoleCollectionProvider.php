@@ -88,7 +88,7 @@ class RoleCollectionProvider implements ProviderInterface
             ];
         });
 
-        // 🎯 FORMATAGE FINAL pour l'UI
+        // 🎯 FORMATAGE FINAL pour l'UI (avec permissions disponibles)
         return [
             'data' => $enrichedRoles->toArray(),
             'meta' => [
