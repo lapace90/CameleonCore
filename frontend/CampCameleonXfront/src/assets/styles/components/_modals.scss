@@ -1,22 +1,22 @@
 @import '../variables';
 
-// .modal-header {
-//   display: flex;
-//   justify-content: space-between;
-//   align-items: center;
-//   padding: 1.5rem;
-// }
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+}
 
-// .modal-body {
-//   padding: 1.5rem;
-// }
+.modal-body {
+  padding: 1.5rem;
+}
 
-// .modal-footer {
-//   padding: 1rem 1.5rem;
-//   display: flex;
-//   justify-content: flex-end;
-//   gap: 0.5rem;
-// }
+.modal-footer {
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
 
 // Transitions modales
 .modal-enter-active,
@@ -416,22 +416,12 @@
   display: flex;
   gap: 0.75rem;
   justify-content: center;
-}
+  flex-direction: row;
+  margin: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
 
-// .btn {
-//   padding: 0.75rem 1.5rem;
-//   border: none;
-//   border-radius: 8px;
-//   font-weight: 500;
-//   cursor: pointer;
-//   transition: all 0.2s ease;
-//   display: flex;
-//   align-items: center;
-//   gap: 0.5rem;
-//   font-size: 0.875rem;
-//   min-width: 120px;
-//   justify-content: center;
-// }
+}
 
 .btn:disabled {
   opacity: 0.6;
@@ -500,9 +490,6 @@
     margin: 1rem;
   }
   
-  .modal-actions {
-    flex-direction: column;
-  }
   
   .btn {
     width: 100%;

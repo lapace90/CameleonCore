@@ -68,7 +68,7 @@ class PermissionProcessor implements ProcessorInterface
     }
 
     /**
-     * 🧠 CRÉATION avec validation Laravel
+     * 🧠 VALIDATION Laravel pour création
      */
     private function createPermission(mixed $data, array $context, $currentUser): Permission
     {
@@ -79,14 +79,16 @@ class PermissionProcessor implements ProcessorInterface
             'created_by' => $currentUser->name
         ]);
 
-        // 🧠 VALIDATION Laravel
+        // 🧠 VALIDATION Laravel avec support category
         $validator = Validator::make($payload, [
             'name' => 'required|string|max:255|unique:permissions,name',
-            'action' => 'required|string|max:100|regex:/^[a-z-]+$/|unique:permissions,action',
+            'action' => 'required|string|max:100|regex:/^[a-z0-9-]+$/|unique:permissions,action',
+            'category' => 'nullable|string|max:50|in:system,users,accommodations,activities,bookings,reception,customers,restaurant,finance,analytics,communication,other'
         ], [
-            'action.regex' => 'L\'action ne peut contenir que des lettres minuscules et des tirets',
+            'action.regex' => 'L\'action ne peut contenir que des lettres minuscules, chiffres et des tirets',
             'action.unique' => 'Une permission avec cette action existe déjà',
             'name.unique' => 'Une permission avec ce nom existe déjà',
+            'category.in' => 'La catégorie doit être une catégorie valide'
         ]);
 
         if ($validator->fails()) {
@@ -105,6 +107,7 @@ class PermissionProcessor implements ProcessorInterface
         Log::info('Permission créée', [
             'permission_id' => $permission->id,
             'action' => $permission->action,
+            'category' => $permission->category,
             'created_by' => $currentUser->name
         ]);
 
@@ -112,7 +115,7 @@ class PermissionProcessor implements ProcessorInterface
     }
 
     /**
-     * 🧠 MISE À JOUR
+     * 🧠 MISE À JOUR avec support category
      */
     private function updatePermission(mixed $data, int $permissionId, array $context, $currentUser): Permission
     {
@@ -130,10 +133,11 @@ class PermissionProcessor implements ProcessorInterface
             'updated_by' => $currentUser->name
         ]);
 
-        // 🧠 VALIDATION pour update
+        // 🧠 VALIDATION pour update avec support category
         $validator = Validator::make($payload, [
             'name' => "required|string|max:255|unique:permissions,name,{$permissionId}",
-            'action' => "required|string|max:100|regex:/^[a-z-]+$/|unique:permissions,action,{$permissionId}",
+            'action' => "required|string|max:100|regex:/^[a-z0-9-]+$/|unique:permissions,action,{$permissionId}",
+            'category' => 'nullable|string|max:50|in:system,users,accommodations,activities,bookings,reception,customers,restaurant,finance,analytics,communication,other'
         ]);
 
         if ($validator->fails()) {
@@ -145,6 +149,11 @@ class PermissionProcessor implements ProcessorInterface
             $payload['action'] = Permission::normalizeAction($payload['action']);
         }
 
+        if (isset($payload['name']) && empty($payload['name'])) {
+            $payload['name'] = Permission::generateNameFromAction($payload['action']);
+        }
+
+        // 🧠 LOG pour permissions critiques
         if ($permission->isCritical() && isset($payload['action'])) {
             Log::warning('Modification permission critique', [
                 'permission_id' => $permission->id,
@@ -158,6 +167,7 @@ class PermissionProcessor implements ProcessorInterface
 
         Log::info('Permission mise à jour', [
             'permission_id' => $permission->id,
+            'category' => $permission->category,
             'updated_by' => $currentUser->name
         ]);
 
@@ -200,7 +210,7 @@ class PermissionProcessor implements ProcessorInterface
     private function canManagePermissions($user): bool
     {
         // On affinera les autorisations plus tard quand le système sera en place
-         return $user->isAdmin();
+        return $user->isAdmin();
     }
 
     /**

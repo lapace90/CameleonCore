@@ -20,7 +20,7 @@ use ApiPlatform\Metadata\Get;
 class Role extends Model
 {
     use HasFactory;
-    
+
     protected $fillable = [
         'name',
         'description',
@@ -89,7 +89,7 @@ class Role extends Model
     public function givePermission(string $permission): void
     {
         $permissionModel = Permission::where('action', $permission)->first();
-        
+
         if ($permissionModel && !$this->hasPermission($permission)) {
             $this->permissions()->attach($permissionModel->id);
         }
@@ -111,7 +111,7 @@ class Role extends Model
     public function removePermission(string $permission): void
     {
         $permissionModel = Permission::where('action', $permission)->first();
-        
+
         if ($permissionModel) {
             $this->permissions()->detach($permissionModel->id);
         }
@@ -135,13 +135,13 @@ class Role extends Model
     public function getAllUsers()
     {
         $users = collect();
-        
+
         // Utilisateurs avec ce rôle principal
         $users = $users->merge($this->primaryUsers);
-        
+
         // Utilisateurs avec ce rôle additionnel
         $users = $users->merge($this->users);
-        
+
         return $users->unique('id');
     }
 
@@ -155,10 +155,16 @@ class Role extends Model
 
     /**
      * Vérifier si ce rôle est un rôle administratif
+     * Inclut tous les rôles avec privilèges d'administration
      */
     public function isAdminRole(): bool
     {
-        return in_array($this->slug, ['owner', 'manager']);
+        return in_array($this->slug, [
+            'super-admin',  // Super administrateur système
+            'admin',        // Administrateur général
+            'owner',        // Propriétaire (accès complet à sa maison d'hôte)
+            'manager'       // Gestionnaire (gestion opérationnelle)
+        ]);
     }
 
     /**

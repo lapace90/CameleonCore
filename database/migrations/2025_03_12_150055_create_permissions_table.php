@@ -12,8 +12,10 @@ return new class extends Migration
             $table->id();
             $table->string('name')->unique();
             $table->string('action')->unique();
+            $table->string('category')->nullable()->after('action');
             $table->timestamps();
             
+            $table->index('category'); // Index pour les requêtes par catégorie
             $table->index('action'); // Pour les requêtes rapides
         });
     }

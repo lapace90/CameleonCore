@@ -146,24 +146,36 @@ class User extends Authenticatable
     public function getAllRoles()
     {
         $roles = collect();
-        
+
         // Ajouter le rôle principal
         if ($this->role) {
             $roles->push($this->role);
         }
-        
+
         // Ajouter les rôles additionnels
         $roles = $roles->merge($this->roles);
-        
+
         return $roles->unique('id');
     }
 
     /**
      * Vérifier si l'utilisateur est admin
      */
+    /**
+     * Vérifier si l'utilisateur est admin
+     * Utilise la logique définie dans le modèle Role
+     */
     public function isAdmin(): bool
     {
-        return $this->hasAnyRole(['super-admin', 'admin']);
+        // Vérifier le rôle principal
+        if ($this->role && $this->role->isAdminRole()) {
+            return true;
+        }
+
+        // Vérifier les rôles additionnels
+        return $this->roles()->get()->contains(function ($role) {
+            return $role->isAdminRole();
+        });
     }
 
     /**
@@ -204,7 +216,7 @@ class User extends Authenticatable
     private function getPermissionCategory(string $action): string
     {
         $action = strtolower($action);
-        
+
         if (in_array($action, ['create', 'add', 'store'])) {
             return 'create';
         } elseif (in_array($action, ['read', 'view', 'show', 'list', 'index'])) {
@@ -226,7 +238,7 @@ class User extends Authenticatable
     // public function getPermissionsSummary(): array
     // {
     //     $permissions = $this->getAllPermissions();
-        
+
     //     return [
     //         'total_permissions' => $permissions->count(),
     //         'by_category' => $this->getPermissionsByCategory(),
@@ -252,8 +264,8 @@ class User extends Authenticatable
      */
     public function canManageUsers(): bool
     {
-        return $this->hasAnyRole(['super-admin', 'admin']) || 
-               $this->hasPermission('manage');
+        return $this->hasAnyRole(['super-admin', 'admin']) ||
+            $this->hasPermission('manage');
     }
 
     /**

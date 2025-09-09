@@ -45,6 +45,7 @@ class RolesPermissionsSeeder extends Seeder
 
     /**
      * Créer les permissions adaptées à une maison d'hôte
+     *  avec catégories explicites
      */
     private function createRealisticPermissions(): void
     {
@@ -52,75 +53,75 @@ class RolesPermissionsSeeder extends Seeder
 
         $permissions = [
             // === SYSTÈME ET ADMINISTRATION ===
-            ['name' => 'Administration système', 'action' => 'system-admin'],
-            ['name' => 'Accès interface admin', 'action' => 'admin-access'],
-            ['name' => 'Mode maintenance', 'action' => 'maintenance-mode'],
-            ['name' => 'Vider le cache', 'action' => 'clear-cache'],
-            ['name' => 'Voir les logs système', 'action' => 'view-logs'],
+            ['name' => 'Administration système', 'action' => 'system-admin', 'category' => 'system'],
+            ['name' => 'Accès interface admin', 'action' => 'admin-access', 'category' => 'system'],
+            ['name' => 'Mode maintenance', 'action' => 'maintenance-mode', 'category' => 'system'],
+            ['name' => 'Vider le cache', 'action' => 'clear-cache', 'category' => 'system'],
+            ['name' => 'Voir les logs système', 'action' => 'view-logs', 'category' => 'system'],
 
             // === GESTION DES UTILISATEURS ===
-            ['name' => 'Voir les utilisateurs', 'action' => 'users-read'],
-            ['name' => 'Créer des utilisateurs', 'action' => 'users-create'],
-            ['name' => 'Modifier les utilisateurs', 'action' => 'users-update'],
-            ['name' => 'Supprimer les utilisateurs', 'action' => 'users-delete'],
-            ['name' => 'Gérer les rôles', 'action' => 'roles-manage'],
+            ['name' => 'Voir les utilisateurs', 'action' => 'users-read', 'category' => 'users'],
+            ['name' => 'Créer des utilisateurs', 'action' => 'users-create', 'category' => 'users'],
+            ['name' => 'Modifier les utilisateurs', 'action' => 'users-update', 'category' => 'users'],
+            ['name' => 'Supprimer les utilisateurs', 'action' => 'users-delete', 'category' => 'users'],
+            ['name' => 'Gérer les rôles', 'action' => 'roles-manage', 'category' => 'users'],
 
             // === HÉBERGEMENTS ET ACTIVITÉS ===
-            ['name' => 'Voir les hébergements', 'action' => 'accommodations-read'],
-            ['name' => 'Gérer les hébergements', 'action' => 'accommodations-manage'],
-            ['name' => 'Voir les activités', 'action' => 'activities-read'],
-            ['name' => 'Gérer les activités', 'action' => 'activities-manage'],
-            ['name' => 'Publier sur le site', 'action' => 'products-publish'],
+            ['name' => 'Voir les hébergements', 'action' => 'accommodations-read', 'category' => 'accommodations'],
+            ['name' => 'Gérer les hébergements', 'action' => 'accommodations-manage', 'category' => 'accommodations'],
+            ['name' => 'Voir les activités', 'action' => 'activities-read', 'category' => 'activities'],
+            ['name' => 'Gérer les activités', 'action' => 'activities-manage', 'category' => 'activities'],
+            ['name' => 'Publier sur le site', 'action' => 'products-publish', 'category' => 'other'],
 
             // === RÉSERVATIONS ===
-            ['name' => 'Voir toutes les réservations', 'action' => 'bookings-read-all'],
-            ['name' => 'Créer des réservations', 'action' => 'bookings-create'],
-            ['name' => 'Modifier les réservations', 'action' => 'bookings-update'],
-            ['name' => 'Annuler les réservations', 'action' => 'bookings-cancel'],
-            ['name' => 'Confirmer les réservations', 'action' => 'bookings-confirm'],
-            ['name' => 'Gérer le planning', 'action' => 'planning-manage'],
+            ['name' => 'Voir toutes les réservations', 'action' => 'bookings-read-all', 'category' => 'bookings'],
+            ['name' => 'Créer des réservations', 'action' => 'bookings-create', 'category' => 'bookings'],
+            ['name' => 'Modifier les réservations', 'action' => 'bookings-update', 'category' => 'bookings'],
+            ['name' => 'Annuler les réservations', 'action' => 'bookings-cancel', 'category' => 'bookings'],
+            ['name' => 'Confirmer les réservations', 'action' => 'bookings-confirm', 'category' => 'bookings'],
+            ['name' => 'Gérer le planning', 'action' => 'planning-manage', 'category' => 'bookings'],
 
             // === ACCUEIL ET CHECK-IN/OUT ===
-            ['name' => 'Check-in des clients', 'action' => 'checkin'],
-            ['name' => 'Check-out des clients', 'action' => 'checkout'],
-            ['name' => 'Voir les arrivées du jour', 'action' => 'arrivals-today'],
-            ['name' => 'Voir les départs du jour', 'action' => 'departures-today'],
-            ['name' => 'Gérer les clés', 'action' => 'keys-manage'],
+            ['name' => 'Check-in des clients', 'action' => 'checkin', 'category' => 'reception'],
+            ['name' => 'Check-out des clients', 'action' => 'checkout', 'category' => 'reception'],
+            ['name' => 'Voir les arrivées du jour', 'action' => 'arrivals-today', 'category' => 'reception'],
+            ['name' => 'Voir les départs du jour', 'action' => 'departures-today', 'category' => 'reception'],
+            ['name' => 'Gérer les clés', 'action' => 'keys-manage', 'category' => 'reception'],
 
             // === CLIENTS ===
-            ['name' => 'Voir les clients', 'action' => 'customers-read'],
-            ['name' => 'Créer des clients', 'action' => 'customers-create'],
-            ['name' => 'Modifier les clients', 'action' => 'customers-update'],
-            ['name' => 'Historique des clients', 'action' => 'customers-history'],
+            ['name' => 'Voir les clients', 'action' => 'customers-read', 'category' => 'customers'],
+            ['name' => 'Créer des clients', 'action' => 'customers-create', 'category' => 'customers'],
+            ['name' => 'Modifier les clients', 'action' => 'customers-update', 'category' => 'customers'],
+            ['name' => 'Historique des clients', 'action' => 'customers-history', 'category' => 'customers'],
 
             // === RESTAURANT ===
-            ['name' => 'Voir les menus', 'action' => 'menus-read'],
-            ['name' => 'Gérer les menus', 'action' => 'menus-manage'],
-            ['name' => 'Gérer les plats', 'action' => 'dishes-manage'],
-            ['name' => 'Prendre les commandes', 'action' => 'orders-take'],
-            ['name' => 'Gérer les commandes', 'action' => 'orders-manage'],
+            ['name' => 'Voir les menus', 'action' => 'menus-read', 'category' => 'restaurant'],
+            ['name' => 'Gérer les menus', 'action' => 'menus-manage', 'category' => 'restaurant'],
+            ['name' => 'Gérer les plats', 'action' => 'dishes-manage', 'category' => 'restaurant'],
+            ['name' => 'Prendre les commandes', 'action' => 'orders-take', 'category' => 'restaurant'],
+            ['name' => 'Gérer les commandes', 'action' => 'orders-manage', 'category' => 'restaurant'],
 
             // === MAINTENANCE ET ENTRETIEN ===
-            ['name' => 'Voir les tâches de maintenance', 'action' => 'maintenance-read'],
-            ['name' => 'Signaler un problème', 'action' => 'maintenance-report'],
-            ['name' => 'Gérer la maintenance', 'action' => 'maintenance-manage'],
-            ['name' => 'État des hébergements', 'action' => 'rooms-status'],
+            ['name' => 'Voir les tâches de maintenance', 'action' => 'maintenance-read', 'category' => 'other'],
+            ['name' => 'Signaler un problème', 'action' => 'maintenance-report', 'category' => 'other'],
+            ['name' => 'Gérer la maintenance', 'action' => 'maintenance-manage', 'category' => 'other'],
+            ['name' => 'État des hébergements', 'action' => 'rooms-status', 'category' => 'accommodations'],
 
             // === FINANCE ET FACTURATION ===
-            ['name' => 'Voir les paiements', 'action' => 'payments-read'],
-            ['name' => 'Encaisser les paiements', 'action' => 'payments-collect'],
-            ['name' => 'Gérer la facturation', 'action' => 'invoicing-manage'],
-            ['name' => 'Voir les statistiques financières', 'action' => 'finance-stats'],
+            ['name' => 'Voir les paiements', 'action' => 'payments-read', 'category' => 'finance'],
+            ['name' => 'Encaisser les paiements', 'action' => 'payments-collect', 'category' => 'finance'],
+            ['name' => 'Gérer la facturation', 'action' => 'invoicing-manage', 'category' => 'finance'],
+            ['name' => 'Voir les statistiques financières', 'action' => 'finance-stats', 'category' => 'finance'],
 
             // === STATISTIQUES ET RAPPORTS ===
-            ['name' => 'Voir le tableau de bord', 'action' => 'dashboard-view'],
-            ['name' => 'Statistiques d\'occupation', 'action' => 'occupancy-stats'],
-            ['name' => 'Rapports de revenus', 'action' => 'revenue-reports'],
-            ['name' => 'Exporter les données', 'action' => 'data-export'],
+            ['name' => 'Voir le tableau de bord', 'action' => 'dashboard-view', 'category' => 'analytics'],
+            ['name' => 'Statistiques d\'occupation', 'action' => 'occupancy-stats', 'category' => 'analytics'],
+            ['name' => 'Rapports de revenus', 'action' => 'revenue-reports', 'category' => 'analytics'],
+            ['name' => 'Exporter les données', 'action' => 'data-export', 'category' => 'analytics'],
 
             // === COMMUNICATION ===
-            ['name' => 'Messages clients', 'action' => 'messages-customers'],
-            ['name' => 'Notifications équipe', 'action' => 'notifications-team'],
+            ['name' => 'Messages clients', 'action' => 'messages-customers', 'category' => 'communication'],
+            ['name' => 'Notifications équipe', 'action' => 'notifications-team', 'category' => 'communication'],
         ];
 
         foreach ($permissions as $permissionData) {
@@ -128,12 +129,13 @@ class RolesPermissionsSeeder extends Seeder
                 ['action' => $permissionData['action']],
                 [
                     'name' => $permissionData['name'],
-                    'action' => $permissionData['action']
+                    'action' => $permissionData['action'],
+                    'category' => $permissionData['category'] // ✅ Catégorie explicite
                 ]
             );
         }
 
-        $this->command->info("✅ " . count($permissions) . " permissions créées");
+        $this->command->info("✅ " . count($permissions) . " permissions créées avec catégories");
     }
 
     /**
@@ -209,18 +211,47 @@ class RolesPermissionsSeeder extends Seeder
         $manager = Role::where('slug', 'manager')->first();
         if ($manager) {
             $managerPermissions = Permission::whereIn('action', [
-                'admin-access', 'dashboard-view',
-                'users-read', 'users-create', 'users-update',
-                'accommodations-read', 'accommodations-manage',
-                'activities-read', 'activities-manage', 'products-publish',
-                'bookings-read-all', 'bookings-create', 'bookings-update', 'bookings-cancel', 'bookings-confirm', 'planning-manage',
-                'checkin', 'checkout', 'arrivals-today', 'departures-today', 'keys-manage',
-                'customers-read', 'customers-create', 'customers-update', 'customers-history',
-                'menus-read', 'menus-manage', 'dishes-manage', 'orders-manage',
-                'maintenance-read', 'maintenance-manage', 'rooms-status',
-                'payments-read', 'payments-collect', 'invoicing-manage', 'finance-stats',
-                'occupancy-stats', 'revenue-reports', 'data-export',
-                'messages-customers', 'notifications-team'
+                'admin-access',
+                'dashboard-view',
+                'users-read',
+                'users-create',
+                'users-update',
+                'accommodations-read',
+                'accommodations-manage',
+                'activities-read',
+                'activities-manage',
+                'products-publish',
+                'bookings-read-all',
+                'bookings-create',
+                'bookings-update',
+                'bookings-cancel',
+                'bookings-confirm',
+                'planning-manage',
+                'checkin',
+                'checkout',
+                'arrivals-today',
+                'departures-today',
+                'keys-manage',
+                'customers-read',
+                'customers-create',
+                'customers-update',
+                'customers-history',
+                'menus-read',
+                'menus-manage',
+                'dishes-manage',
+                'orders-manage',
+                'maintenance-read',
+                'maintenance-manage',
+                'rooms-status',
+                'payments-read',
+                'payments-collect',
+                'invoicing-manage',
+                'finance-stats',
+                'occupancy-stats',
+                'revenue-reports',
+                'data-export',
+                'messages-customers',
+                'notifications-team'
             ])->pluck('id')->toArray();
             $manager->permissions()->sync($managerPermissions);
             $this->command->info("→ Gestionnaire : " . count($managerPermissions) . " permissions");
@@ -230,12 +261,26 @@ class RolesPermissionsSeeder extends Seeder
         $receptionist = Role::where('slug', 'receptionist')->first();
         if ($receptionist) {
             $receptionistPermissions = Permission::whereIn('action', [
-                'admin-access', 'dashboard-view',
-                'accommodations-read', 'activities-read',
-                'bookings-read-all', 'bookings-create', 'bookings-update', 'bookings-confirm', 'planning-manage',
-                'checkin', 'checkout', 'arrivals-today', 'departures-today', 'keys-manage',
-                'customers-read', 'customers-create', 'customers-update', 'customers-history',
-                'maintenance-report', 'rooms-status',
+                'admin-access',
+                'dashboard-view',
+                'accommodations-read',
+                'activities-read',
+                'bookings-read-all',
+                'bookings-create',
+                'bookings-update',
+                'bookings-confirm',
+                'planning-manage',
+                'checkin',
+                'checkout',
+                'arrivals-today',
+                'departures-today',
+                'keys-manage',
+                'customers-read',
+                'customers-create',
+                'customers-update',
+                'customers-history',
+                'maintenance-report',
+                'rooms-status',
                 'payments-collect',
                 'messages-customers'
             ])->pluck('id')->toArray();
@@ -247,9 +292,14 @@ class RolesPermissionsSeeder extends Seeder
         $waiter = Role::where('slug', 'waiter')->first();
         if ($waiter) {
             $waiterPermissions = Permission::whereIn('action', [
-                'admin-access', 'dashboard-view',
+                'admin-access',
+                'dashboard-view',
                 'customers-read',
-                'menus-read', 'menus-manage', 'dishes-manage', 'orders-take', 'orders-manage',
+                'menus-read',
+                'menus-manage',
+                'dishes-manage',
+                'orders-take',
+                'orders-manage',
                 'maintenance-report'
             ])->pluck('id')->toArray();
             $waiter->permissions()->sync($waiterPermissions);
@@ -260,9 +310,12 @@ class RolesPermissionsSeeder extends Seeder
         $guide = Role::where('slug', 'guide')->first();
         if ($guide) {
             $guidePermissions = Permission::whereIn('action', [
-                'admin-access', 'dashboard-view',
-                'activities-read', 'activities-manage',
-                'bookings-read-all', 'customers-read',
+                'admin-access',
+                'dashboard-view',
+                'activities-read',
+                'activities-manage',
+                'bookings-read-all',
+                'customers-read',
                 'maintenance-report'
             ])->pluck('id')->toArray();
             $guide->permissions()->sync($guidePermissions);
@@ -273,10 +326,15 @@ class RolesPermissionsSeeder extends Seeder
         $maintenance = Role::where('slug', 'maintenance')->first();
         if ($maintenance) {
             $maintenancePermissions = Permission::whereIn('action', [
-                'admin-access', 'dashboard-view',
-                'accommodations-read', 'rooms-status',
-                'maintenance-read', 'maintenance-report', 'maintenance-manage',
-                'checkin', 'checkout' // Pour l'état des hébergements
+                'admin-access',
+                'dashboard-view',
+                'accommodations-read',
+                'rooms-status',
+                'maintenance-read',
+                'maintenance-report',
+                'maintenance-manage',
+                'checkin',
+                'checkout' // Pour l'état des hébergements
             ])->pluck('id')->toArray();
             $maintenance->permissions()->sync($maintenancePermissions);
             $this->command->info("→ Maintenance : " . count($maintenancePermissions) . " permissions");
@@ -286,10 +344,17 @@ class RolesPermissionsSeeder extends Seeder
         $accountant = Role::where('slug', 'accountant')->first();
         if ($accountant) {
             $accountantPermissions = Permission::whereIn('action', [
-                'admin-access', 'dashboard-view',
-                'bookings-read-all', 'customers-read',
-                'payments-read', 'payments-collect', 'invoicing-manage', 'finance-stats',
-                'occupancy-stats', 'revenue-reports', 'data-export'
+                'admin-access',
+                'dashboard-view',
+                'bookings-read-all',
+                'customers-read',
+                'payments-read',
+                'payments-collect',
+                'invoicing-manage',
+                'finance-stats',
+                'occupancy-stats',
+                'revenue-reports',
+                'data-export'
             ])->pluck('id')->toArray();
             $accountant->permissions()->sync($accountantPermissions);
             $this->command->info("→ Comptable : " . count($accountantPermissions) . " permissions");

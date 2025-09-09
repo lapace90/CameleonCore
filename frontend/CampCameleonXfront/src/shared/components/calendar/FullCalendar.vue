@@ -572,7 +572,7 @@ export default {
   background: #f8f9fa;
 }
 
-.stat-card {
+/* .stat-card {
   background: white;
   padding: 1.5rem;
   border-radius: 10px;
@@ -580,7 +580,7 @@ export default {
   align-items: center;
   gap: 1rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
+} */
 
 .stat-icon {
   width: 50px;

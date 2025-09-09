@@ -26,50 +26,42 @@
         <!-- Statistiques -->
         <div class="stats-grid" v-if="permissionsData.stats">
             <div class="stat-card">
-                <div class="stat-content">
-                    <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                        <i class="fas fa-key"></i>
-                    </div>
-                    <div class="stat-info">
-                        <div class="stat-number">{{ permissionsData.stats.total_permissions }}</div>
-                        <div class="stat-label">Total</div>
-                    </div>
+                <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <i class="fas fa-key"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-number">{{ permissionsData.stats.total_permissions }}</div>
+                    <div class="stat-label">Total</div>
                 </div>
             </div>
 
             <div class="stat-card">
-                <div class="stat-content">
-                    <div class="stat-icon" style="background: linear-gradient(135deg, #2dce89 0%, #2dcecc 100%);">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <div class="stat-info">
-                        <div class="stat-number">{{ permissionsData.stats.used_permissions }}</div>
-                        <div class="stat-label">Utilisées</div>
-                    </div>
+                <div class="stat-icon" style="background: linear-gradient(135deg, #2dce89 0%, #2dcecc 100%);">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-number">{{ permissionsData.stats.used_permissions }}</div>
+                    <div class="stat-label">Utilisées</div>
                 </div>
             </div>
 
             <div class="stat-card">
-                <div class="stat-content">
-                    <div class="stat-icon" style="background: linear-gradient(135deg, #fb6340 0%, #fbb140 100%);">
-                        <i class="fas fa-exclamation-triangle"></i>
-                    </div>
-                    <div class="stat-info">
-                        <div class="stat-number">{{ permissionsData.stats.critical_permissions }}</div>
-                        <div class="stat-label">Critiques</div>
-                    </div>
+                <div class="stat-icon" style="background: linear-gradient(135deg, #fb6340 0%, #fbb140 100%);">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-number">{{ permissionsData.stats.critical_permissions }}</div>
+                    <div class="stat-label">Critiques</div>
                 </div>
             </div>
 
             <div class="stat-card">
-                <div class="stat-content">
-                    <div class="stat-icon" style="background: linear-gradient(135deg, #5e72e4 0%, #825ee4 100%);">
-                        <i class="fas fa-chart-pie"></i>
-                    </div>
-                    <div class="stat-info">
-                        <div class="stat-number">{{ permissionsData.stats.usage_percentage }}%</div>
-                        <div class="stat-label">Taux d'usage</div>
-                    </div>
+                <div class="stat-icon" style="background: linear-gradient(135deg, #5e72e4 0%, #825ee4 100%);">
+                    <i class="fas fa-chart-pie"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-number">{{ permissionsData.stats.usage_percentage }}%</div>
+                    <div class="stat-label">Taux d'usage</div>
                 </div>
             </div>
         </div>
@@ -177,7 +169,6 @@
 
                                 <button @click="viewPermissionDetails(permission)" class="btn btn-info btn-sm mx-1 ">
                                     <i class="fas fa-eye"></i>
-
                                 </button>
                                 <button @click="editPermission(permission)" class="btn btn-sm btn-primary mx-1">
                                     <i class="fas fa-edit"></i>
@@ -199,6 +190,8 @@
         @close="closeEditModal" @updated="handlePermissionUpdated" />
     <PermissionDeleteModal v-if="showDeleteModal && selectedPermission" :permission="selectedPermission"
         @close="closeDeleteModal" @deleted="handlePermissionDeleted" />
+    <PermissionDetailsModal v-if="showDetailsModal && selectedPermission" :permission="selectedPermission"
+        @close="closeDetailsModal" />
 </template>
 
 <script setup>
@@ -206,6 +199,7 @@ import { ref, onMounted } from 'vue'
 import PermissionsApi from '@/services/PermissionsApi'
 import PermissionCreateModal from '@/admin/components/modals/PermissionCreateModal.vue'
 import PermissionEditModal from '@/admin/components/modals/PermissionEditModal.vue'
+import PermissionDetailsModal from '@/admin/components/modals/PermissionDetailsModal.vue'
 import PermissionDeleteModal from '@/admin/components/modals/PermissionDeleteModal.vue'
 
 const showCreateModal = ref(false)
@@ -292,6 +286,8 @@ async function loadPermissions() {
     }
 }
 
+
+// ✅ MODIFICATION : Activer la fonction viewPermissionDetails
 function viewPermissionDetails(permission) {
     selectedPermission.value = permission
     showDetailsModal.value = true
