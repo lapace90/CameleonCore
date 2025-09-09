@@ -1,4 +1,5 @@
 <?php
+// app/Models/Role.php - Version CRUD complète avec API Platform
 
 namespace App\Models;
 
@@ -9,14 +10,30 @@ use App\Models\User;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
+use ApiPlatform\Metadata\Delete;
+use App\State\RoleCollectionProvider;
+use App\State\RoleProcessor;
 
 #[ApiResource(
     operations: [
+        // ✅ Routes standard API Platform avec providers/processors
         new Get(),
-        new GetCollection()
+        new GetCollection(
+            provider: RoleCollectionProvider::class,
+        ),
+        new Post(
+            processor: RoleProcessor::class,
+        ),
+        new Put(
+            processor: RoleProcessor::class,
+        ),
+        new Delete(
+            processor: RoleProcessor::class,
+        )
     ]
 )]
-
 class Role extends Model
 {
     use HasFactory;
@@ -28,7 +45,7 @@ class Role extends Model
     ];
 
     // ===========================
-    // RELATIONS
+    // RELATIONS (existantes)
     // ===========================
 
     /**
@@ -56,7 +73,7 @@ class Role extends Model
     }
 
     // ===========================
-    // MÉTHODES D'AUTORISATION
+    // MÉTHODES D'AUTORISATION (existantes)
     // ===========================
 
     /**
@@ -126,88 +143,89 @@ class Role extends Model
     }
 
     // ===========================
-    // MÉTHODES UTILITAIRES
+    // NOUVELLES MÉTHODES pour le processor
     // ===========================
 
     /**
-     * Obtenir tous les utilisateurs de ce rôle (principal + additionnels)
+     * Vérifier si le rôle peut être supprimé
      */
-    public function getAllUsers()
+    public function canBeDeleted(): bool
     {
-        $users = collect();
-
-        // Utilisateurs avec ce rôle principal
-        $users = $users->merge($this->primaryUsers);
-
-        // Utilisateurs avec ce rôle additionnel
-        $users = $users->merge($this->users);
-
-        return $users->unique('id');
+        // Un rôle ne peut pas être supprimé s'il a des utilisateurs
+        $totalUsers = $this->primaryUsers()->count() + $this->users()->count();
+        return $totalUsers === 0;
     }
 
     /**
-     * Compter le nombre total d'utilisateurs ayant ce rôle
+     * Vérifier si c'est un rôle critique du système
      */
-    public function getTotalUsersCount(): int
+    public function isCritical(): bool
     {
-        return $this->getAllUsers()->count();
-    }
-
-    /**
-     * Vérifier si ce rôle est un rôle administratif
-     * Inclut tous les rôles avec privilèges d'administration
-     */
-    public function isAdminRole(): bool
-    {
-        return in_array($this->slug, [
-            'super-admin',  // Super administrateur système
-            'admin',        // Administrateur général
-            'owner',        // Propriétaire (accès complet à sa maison d'hôte)
-            'manager'       // Gestionnaire (gestion opérationnelle)
-        ]);
-    }
-
-    /**
-     * Grouper les permissions par catégorie
-     */
-    public function getPermissionsByCategory(): array
-    {
-        $permissions = $this->permissions;
-        $grouped = [];
-
-        foreach ($permissions as $permission) {
-            $category = $this->getPermissionCategory($permission->action);
-            $grouped[$category][] = $permission;
-        }
-
-        return $grouped;
-    }
-
-    /**
-     * Déterminer la catégorie d'une permission
-     */
-    private function getPermissionCategory(string $action): string
-    {
-        $categories = [
-            'system' => ['system-admin', 'admin-access', 'maintenance-mode', 'clear-cache', 'view-logs'],
-            'users' => ['users-read', 'users-create', 'users-update', 'users-delete', 'roles-manage'],
-            'accommodations' => ['accommodations-read', 'accommodations-manage', 'rooms-status'],
-            'activities' => ['activities-read', 'activities-manage'],
-            'bookings' => ['bookings-read-all', 'bookings-create', 'bookings-update', 'bookings-cancel', 'bookings-confirm', 'planning-manage'],
-            'reception' => ['checkin', 'checkout', 'arrivals-today', 'departures-today', 'keys-manage'],
-            'customers' => ['customers-read', 'customers-create', 'customers-update', 'customers-history'],
-            'restaurant' => ['menus-read', 'menus-manage', 'dishes-manage', 'orders-take', 'orders-manage'],
-            'finance' => ['payments-read', 'payments-collect', 'invoicing-manage', 'finance-stats'],
-            'analytics' => ['dashboard-view', 'occupancy-stats', 'revenue-reports', 'data-export'],
-            'communication' => ['messages-customers', 'notifications-team']
+        $criticalSlugs = [
+            'owner',
+            'super-admin', 
+            'admin',
+            'system-admin'
         ];
 
-        foreach ($categories as $category => $actions) {
-            if (in_array($action, $actions)) {
-                return $category;
-            }
-        }
+        return in_array($this->slug, $criticalSlugs);
+    }
 
-        return 'other';
+    /**
+     * Normaliser le slug
+     */
+    public static function normalizeSlug(string $name): string
+    {
+        return strtolower(trim(preg_replace('/[^a-zA-Z0-9]+/', '-', $name), '-'));
+    }
+
+    /**
+     * Générer le slug depuis le nom
+     */
+    public static function generateSlugFromName(string $name): string
+    {
+        return self::normalizeSlug($name);
+    }
+
+    /**
+     * Obtenir la couleur du rôle pour l'UI
+     */
+    public function getColorAttribute(): string
+    {
+        $colorMap = [
+            'owner' => '#dc2626',       // Rouge
+            'super-admin' => '#7c2d12', // Rouge foncé  
+            'admin' => '#ea580c',       // Orange
+            'manager' => '#7c3aed',     // Violet
+            'employee' => '#0891b2',    // Cyan
+            'receptionist' => '#059669', // Vert
+            'guide' => '#0d9488',       // Teal
+            'chef' => '#dc2626',        // Rouge
+            'waiter' => '#4338ca',      // Indigo
+            'cleaner' => '#6b7280',     // Gris
+        ];
+
+        return $colorMap[$this->slug] ?? '#6b7280'; // Gris par défaut
+    }
+
+    /**
+     * Obtenir l'icône du rôle pour l'UI
+     */
+    public function getIconAttribute(): string
+    {
+        $iconMap = [
+            'owner' => 'fa-crown',
+            'super-admin' => 'fa-user-shield',
+            'admin' => 'fa-user-cog',
+            'manager' => 'fa-users-cog',
+            'employee' => 'fa-user',
+            'receptionist' => 'fa-concierge-bell',
+            'guide' => 'fa-route',
+            'chef' => 'fa-utensils',
+            'waiter' => 'fa-glass-martini-alt',
+            'cleaner' => 'fa-broom',
+        ];
+
+        return $iconMap[$this->slug] ?? 'fa-user';
     }
 }

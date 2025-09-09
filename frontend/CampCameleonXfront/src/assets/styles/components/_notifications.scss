@@ -25,3 +25,60 @@
 .toast-error {
   background-color: var(--danger);
 }
+
+  // ===========================
+  // ALERTS
+  // ===========================
+  .alert {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 1.5rem;
+    position: relative;
+
+    &.alert-success {
+      background-color: #f0fdf4;
+      color: #15803d;
+      border: 1px solid #bbf7d0;
+    }
+
+    &.alert-error {
+      background-color: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+
+    .btn-close {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.75rem;
+      background: none;
+      border: none;
+      font-size: 1.25rem;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity 0.15s;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+
+   // ===========================
+  // WARNING BOX
+  // ===========================
+  .warning-box {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background-color: #fef3c7;
+    border: 1px solid #fcd34d;
+    border-radius: var(--border-radius);
+    color: #92400e;
+    font-size: 0.875rem;
+    margin-top: 1rem;
+  }

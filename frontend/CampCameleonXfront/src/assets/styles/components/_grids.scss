@@ -1,0 +1,174 @@
+// ===========================
+  // GRILLE DES RÔLES
+  // ===========================
+  .roles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .role-card {
+    background: var(--bg-white);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+
+    &:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    &.critical {
+      border-left: 4px solid var(--danger-color);
+      
+      .card-header {
+        background: linear-gradient(135deg, #fef2f2 0%, var(--bg-white) 100%);
+      }
+    }
+
+    .card-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border-light);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-top: 3px solid transparent;
+
+      .role-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+
+        .role-icon {
+          width: 48px;
+          height: 48px;
+          border-radius: var(--border-radius);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-size: 1.25rem;
+        }
+
+        .role-details {
+          .role-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin: 0 0 0.25rem 0;
+          }
+
+          .role-slug {
+            font-size: 0.875rem;
+            color: var(--text-light);
+            font-family: 'Monaco', 'Menlo', monospace;
+            margin: 0;
+          }
+        }
+      }
+
+      .role-badges {
+        .badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.375rem;
+          padding: 0.375rem 0.75rem;
+          font-size: 0.75rem;
+          font-weight: 500;
+          border-radius: var(--radius-sm);
+
+          &.badge-critical {
+            background-color: #fef2f2;
+            color: var(--danger-color);
+            border: 1px solid #fecaca;
+          }
+        }
+      }
+    }
+
+    .card-content {
+      padding: 1.5rem;
+      flex: 1;
+
+      .role-description {
+        color: var(--text-medium);
+        font-size: 0.875rem;
+        line-height: 1.5;
+        margin-bottom: 1rem;
+      }
+
+      .role-stats {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+
+        .stat-item {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 0.875rem;
+          color: var(--text-medium);
+
+          i {
+            color: var(--text-light);
+            width: 16px;
+          }
+        }
+      }
+
+      .permissions-preview {
+        .preview-title {
+          font-size: 0.75rem;
+          font-weight: 500;
+          color: var(--text-medium);
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          margin-bottom: 0.5rem;
+        }
+
+        .permission-tags {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.375rem;
+
+          .permission-tag {
+            padding: 0.25rem 0.625rem;
+            background-color: var(--bg-gray);
+            color: var(--text-medium);
+            font-size: 0.75rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-light);
+          }
+
+          .more-tag {
+            padding: 0.25rem 0.625rem;
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 0.75rem;
+            border-radius: var(--radius-sm);
+            font-weight: 500;
+          }
+        }
+      }
+
+      .no-permissions {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        font-style: italic;
+      }
+    }
+
+    .card-actions {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--border-light);
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+    }
+  }

@@ -1,13 +1,6 @@
 <template>
-  <div class="roles-page">
-    <!-- Message de succès -->
-    <div v-if="successMessage" class="alert alert-success">
-      <i class="fas fa-check-circle"></i>
-      {{ successMessage }}
-      <button @click="successMessage = null" class="btn-close">&times;</button>
-    </div>
-
-    <!-- En-tête -->
+  <div class="roles-management">
+    <!-- En-tête avec actions -->
     <div class="page-header">
       <div class="header-content">
         <h1 class="page-title">
@@ -15,302 +8,397 @@
           Gestion des rôles
         </h1>
         <p class="page-subtitle">
-          Créez et gérez les rôles utilisateurs avec leurs permissions
+          {{ rolesData?.meta?.total || 0 }} rôles • {{ rolesData?.meta?.stats?.total_users || 0 }} utilisateurs assignés
         </p>
-      </div>
-      
-      <div class="header-actions">
-        <router-link to="/admin/roles/create" class="btn btn-primary btn-sm">
+        
+        <button @click="openCreateModal" class="btn btn-primary btn-sm">
           <i class="fas fa-plus"></i>
           Nouveau rôle
-        </router-link>
+        </button>
       </div>
+    </div>
+
+    <!-- Messages de succès/erreur -->
+    <div v-if="successMessage" class="alert alert-success">
+      <i class="fas fa-check-circle"></i>
+      {{ successMessage }}
+      <button @click="successMessage = null" class="btn-close">&times;</button>
+    </div>
+
+    <div v-if="error" class="alert alert-error">
+      <i class="fas fa-exclamation-triangle"></i>
+      {{ error }}
+      <button @click="error = null" class="btn-close">&times;</button>
     </div>
 
     <!-- Filtres et recherche -->
-    <div class="roles-table-card">
-      <div class="table-header">
-        <div class="search-filter">
-          <div class="search-box">
-            <i class="fas fa-search search-icon"></i>
-            <input 
-              v-model="searchQuery"
-              type="text" 
-              placeholder="Rechercher un rôle..." 
-              class="search-input"
-              @input="handleSearch"
-            >
-          </div>
-          
-          <div class="filter-options">
-            <select v-model="permissionFilter" class="filter-select" @change="applyFilters">
-              <option value="">Toutes les permissions</option>
-              <option value="create">Création</option>
-              <option value="read">Lecture</option>
-              <option value="update">Modification</option>
-              <option value="delete">Suppression</option>
-              <option value="admin">Administration</option>
-            </select>
-          </div>
-
-          <div class="results-info">
-            {{ filteredRoles.length }} rôle(s) trouvé(s)
-          </div>
-        </div>
+    <div class="filters-section">
+      <div class="search-box">
+        <i class="fas fa-search search-icon"></i>
+        <input v-model="searchQuery" type="text" placeholder="Rechercher un rôle..." class="search-input">
       </div>
 
-      <!-- Tableau -->
-      <div class="table-container">
-        <!-- Loading -->
-        <div v-if="loading" class="table-placeholder">
-          <i class="fas fa-spinner fa-spin table-icon"></i>
-          <h3>Chargement des rôles...</h3>
-        </div>
+      <div class="filter-options">
+        <select v-model="filterType" class="filter-select">
+          <option value="">Tous les rôles</option>
+          <option value="critical">Rôles critiques</option>
+          <option value="deletable">Modifiables</option>
+          <option value="with_users">Avec utilisateurs</option>
+        </select>
+      </div>
 
-        <!-- Erreur -->
-        <div v-else-if="error" class="table-placeholder">
-          <i class="fas fa-exclamation-triangle table-icon"></i>
-          <h3>{{ error }}</h3>
-          <button @click="fetchRoles" class="btn btn-outline btn-sm">
-            <i class="fas fa-redo"></i>
-            Réessayer
-          </button>
-        </div>
+      <div class="results-info">
+        {{ filteredRoles.length }} rôle(s) trouvé(s)
+      </div>
+    </div>
+    <!-- Loading -->
+    <div v-if="loading" class="loading-container">
+      <i class="fas fa-spinner fa-spin"></i>
+      <span>Chargement des rôles...</span>
+    </div>
 
-        <!-- Aucun résultat -->
-        <div v-else-if="filteredRoles.length === 0" class="table-placeholder">
-          <i class="fas fa-shield-alt table-icon"></i>
-          <h3>Aucun rôle trouvé</h3>
-          <p v-if="searchQuery || permissionFilter">
-            Essayez de modifier vos critères de recherche
-          </p>
-          <p v-else>
-            Commencez par créer votre premier rôle
-          </p>
-          <router-link v-if="!searchQuery && !permissionFilter" to="/admin/roles/create" class="btn btn-primary btn-sm">
-            <i class="fas fa-plus"></i>
-            Créer un rôle
-          </router-link>
-        </div>
-
-        <!-- Tableau des rôles -->
-        <table v-else class="roles-table table">
-          <thead>
-            <tr>
-              <th>
-                <button @click="sortBy('name')" class="sort-button btn btn-sm">
-                  Rôle
-                  <i :class="getSortIcon('name')"></i>
-                </button>
-              </th>
-              <th>Description</th>
-              <th>
-                <button @click="sortBy('permissions_count')" class="sort-button btn btn-sm">
-                  Permissions
-                  <i :class="getSortIcon('permissions_count')"></i>
-                </button>
-              </th>
-              <th>
-                <button @click="sortBy('users_count')" class="sort-button btn btn-sm">
-                  Utilisateurs
-                  <i :class="getSortIcon('users_count')"></i>
-                </button>
-              </th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="role in paginatedRoles" :key="role.id" class="role-row">
-              <!-- Nom et slug -->
-              <td class="role-name-cell">
-                <div class="role-info">
-                  <div class="role-name">{{ role.name }}</div>
-                  <div class="role-slug">{{ role.slug }}</div>
-                </div>
-              </td>
-
-              <!-- Description -->
-              <td class="role-description">
-                <div v-if="role.description" class="description-text">
-                  {{ truncateText(role.description, 100) }}
-                </div>
-                <div v-else class="text-muted">—</div>
-              </td>
-
-              <!-- Permissions -->
-              <td class="role-permissions">
-                <div class="permissions-summary">
-                  <div class="permissions-count">
-                    <i class="fas fa-key"></i>
-                    {{ role.permissions_count || 0 }} permission(s)
-                  </div>
-                  
-                  <div v-if="role.permissions && role.permissions.length > 0" class="permissions-preview">
-                    <span 
-                      v-for="permission in role.permissions.slice(0, 3)" 
-                      :key="permission.id"
-                      class="permission-badge"
-                      :class="getActionClass(permission.action)"
-                    >
-                      {{ permission.action }}
-                    </span>
-                    
-                    <span v-if="role.permissions.length > 3" class="permissions-more">
-                      +{{ role.permissions.length - 3 }}
-                    </span>
-                  </div>
-                </div>
-              </td>
-
-              <!-- Utilisateurs -->
-              <td class="role-users">
-                <div class="users-count">
-                  <i class="fas fa-users"></i>
-                  {{ role.users_count || 0 }} utilisateur(s)
-                </div>
-                
-                <div v-if="role.users && role.users.length > 0" class="users-preview">
-                  <div 
-                    v-for="user in role.users.slice(0, 2)" 
-                    :key="user.id"
-                    class="user-avatar-small" 
-                    :title="user.name"
-                  >
-                    <i class="fas fa-user"></i>
-                  </div>
-                  
-                  <span v-if="role.users.length > 2" class="users-more">
-                    +{{ role.users.length - 2 }}
-                  </span>
-                </div>
-              </td>
-
-              <!-- Actions -->
-              <td class="actions-col">
-                <div class="action-buttons">
-                  <button 
-                    @click="viewRole(role)" 
-                    class="btn-icon" 
-                    title="Voir les détails"
-                  >
-                    <i class="fas fa-eye"></i>
-                  </button>
-                  
-                  <router-link 
-                    :to="`/admin/roles/${role.id}/edit`" 
-                    class="btn-icon" 
-                    title="Modifier"
-                  >
-                    <i class="fas fa-edit"></i>
-                  </router-link>
-                  
-                  <button 
-                    @click="duplicateRole(role)" 
-                    class="btn-icon" 
-                    title="Dupliquer"
-                  >
-                    <i class="fas fa-copy"></i>
-                  </button>
-                  
-                  <button 
-                    @click="deleteRole(role)" 
-                    class="btn-icon text-danger" 
-                    title="Supprimer"
-                    :disabled="role.users_count > 0"
-                  >
-                    <i class="fas fa-trash"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-
-        <!-- Pagination -->
-        <div v-if="totalPages > 1" class="roles-pagination">
-          <div class="pagination-info">
-            Affichage de {{ startItem }} à {{ endItem }} sur {{ filteredRoles.length }} rôles
-          </div>
-          
-          <div class="pagination-controls">
-            <button 
-              @click="currentPage--" 
-              :disabled="currentPage === 1" 
-              class="btn btn-outline btn-sm"
-            >
-              <i class="fas fa-chevron-left"></i>
-            </button>
-            
-            <div class="pagination-pages">
-              <button 
-                v-for="page in visiblePages" 
-                :key="page"
-                @click="currentPage = page"
-                class="btn btn-sm"
-                :class="page === currentPage ? 'btn-primary' : 'btn-outline'"
-              >
-                {{ page }}
-              </button>
+    <!-- Grille des rôles -->
+    <div v-else class="roles-grid">
+      <div v-for="role in filteredRoles" :key="role.id" class="role-card" :class="{ 'critical': role.is_critical }">
+        <!-- En-tête de la carte -->
+        <div class="card-header" :style="{ borderTopColor: role.color }">
+          <div class="role-info">
+            <div class="role-icon" :style="{ backgroundColor: role.color }">
+              <i :class="`fas ${role.icon}`"></i>
             </div>
-            
-            <button 
-              @click="currentPage++" 
-              :disabled="currentPage === totalPages" 
-              class="btn btn-outline btn-sm"
-            >
-              <i class="fas fa-chevron-right"></i>
-            </button>
+            <div class="role-details">
+              <h3 class="role-name">{{ role.name }}</h3>
+              <p class="role-slug">{{ role.slug }}</p>
+            </div>
           </div>
+
+          <div class="role-badges">
+            <span v-if="role.is_critical" class="badge badge-critical">
+              <i class="fas fa-shield-alt"></i>
+              Critique
+            </span>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="card-content">
+          <p class="role-description">
+            {{ role.description || 'Aucune description' }}
+          </p>
+
+          <!-- Statistiques -->
+          <div class="role-stats">
+            <div class="stat-item">
+              <i class="fas fa-key"></i>
+              <span>{{ role.permissions_count }} permission(s)</span>
+            </div>
+            <div class="stat-item">
+              <i class="fas fa-users"></i>
+              <span>{{ role.total_users_count }} utilisateur(s)</span>
+            </div>
+          </div>
+
+          <!-- Aperçu permissions (3 premières) -->
+          <div v-if="role.permissions.length > 0" class="permissions-preview">
+            <div class="preview-title">Permissions :</div>
+            <div class="permission-tags">
+              <span v-for="permission in role.permissions.slice(0, 3)" :key="permission.id" class="permission-tag">
+                {{ permission.name }}
+              </span>
+              <span v-if="role.permissions.length > 3" class="more-tag">
+                +{{ role.permissions.length - 3 }} autres
+              </span>
+            </div>
+          </div>
+
+          <div v-else class="no-permissions">
+            <i class="fas fa-info-circle"></i>
+            Aucune permission assignée
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="card-actions">
+          <button @click="openDetailsModal(role)" class="btn btn-outline btn-sm" title="Voir les détails">
+            <i class="fas fa-eye"></i>
+            Détails
+          </button>
+
+          <button @click="openEditModal(role)" class="btn btn-outline btn-sm" title="Modifier">
+            <i class="fas fa-edit"></i>
+            Modifier
+          </button>
+
+          <button @click="openDeleteModal(role)" class="btn btn-danger btn-sm" :disabled="!role.can_be_deleted"
+            :title="!role.can_be_deleted ? 'Ce rôle ne peut pas être supprimé' : 'Supprimer'">
+            <i class="fas fa-trash"></i>
+            Supprimer
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- Modal de détail (optionnel) -->
+    <!-- Modal Création/Édition -->
     <div v-if="showRoleModal" class="modal-overlay" @click="closeRoleModal">
-      <div class="modal-content" @click.stop>
+      <div class="modal-content modal-large" @click.stop>
         <div class="modal-header">
           <h3>
             <i class="fas fa-shield-alt"></i>
-            {{ selectedRole.name }}
+            {{ isEditing ? `Modifier "${currentRole.name}"` : 'Nouveau rôle' }}
           </h3>
           <button @click="closeRoleModal" class="btn-close">&times;</button>
         </div>
-        
-        <div class="modal-body">
-          <div class="role-details">
-            <div class="detail-section">
-              <h4>Description</h4>
-              <p>{{ selectedRole.description || 'Aucune description' }}</p>
+
+        <form @submit.prevent="submitRole" class="modal-body">
+          <!-- Informations de base -->
+          <div class="form-section">
+            <h4>Informations générales</h4>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label required">Nom du rôle</label>
+                <input v-model="roleForm.name" type="text" class="form-input"
+                  placeholder="Ex: Administrateur, Gestionnaire..." required :class="{ 'error': formErrors.name }" />
+                <span v-if="formErrors.name" class="error-message">{{ formErrors.name[0] }}</span>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Slug (généré automatiquement)</label>
+                <input v-model="roleForm.slug" type="text" class="form-input" placeholder="admin, manager..."
+                  :class="{ 'error': formErrors.slug }" />
+                <span v-if="formErrors.slug" class="error-message">{{ formErrors.slug[0] }}</span>
+              </div>
             </div>
-            
+
+            <div class="form-group">
+              <label class="form-label">Description</label>
+              <textarea v-model="roleForm.description" class="form-textarea" rows="3"
+                placeholder="Description du rôle et de ses responsabilités..."
+                :class="{ 'error': formErrors.description }"></textarea>
+              <span v-if="formErrors.description" class="error-message">{{ formErrors.description[0] }}</span>
+            </div>
+          </div>
+
+          <!-- Gestion des permissions -->
+          <div class="form-section">
+            <h4>
+              <i class="fas fa-key"></i>
+              Permissions ({{ selectedPermissions.length }} sélectionnées)
+            </h4>
+
+            <div v-if="allPermissions.length === 0" class="form-note">
+              <i class="fas fa-info-circle"></i>
+              Aucune permission disponible. Créez d'abord des permissions.
+            </div>
+
+            <div v-else class="permissions-section">
+              <!-- Recherche permissions -->
+              <div class="permission-search">
+                <input v-model="permissionSearch" type="text" placeholder="Rechercher une permission..."
+                  class="search-input" />
+              </div>
+
+              <!-- Actions rapides -->
+              <div class="permission-actions">
+                <button type="button" @click="selectAllPermissions" class="btn btn-outline btn-sm">
+                  Tout sélectionner
+                </button>
+                <button type="button" @click="clearAllPermissions" class="btn btn-outline btn-sm">
+                  Tout désélectionner
+                </button>
+              </div>
+
+              <!-- Liste des permissions groupées par catégorie -->
+              <div class="permissions-grid">
+                <div v-for="category in filteredPermissionsByCategory" :key="category.key" class="permission-category">
+                  <div class="category-header">
+                    <i :class="`fas ${category.icon}`" :style="{ color: category.color }"></i>
+                    <span>{{ category.name }} ({{ category.permissions.length }})</span>
+                    <button type="button" @click="toggleCategoryPermissions(category)" class="btn btn-outline btn-xs">
+                      {{ isCategorySelected(category) ? 'Désélectionner' : 'Sélectionner' }}
+                    </button>
+                  </div>
+
+                  <div class="permission-items">
+                    <label v-for="permission in category.permissions" :key="permission.id" class="permission-checkbox">
+                      <input type="checkbox" :value="permission.id" v-model="selectedPermissions" />
+                      <span class="checkmark"></span>
+                      <span class="permission-name">{{ permission.name }}</span>
+                      <span class="permission-action">{{ permission.action }}</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions du modal -->
+          <div class="modal-actions">
+            <button type="button" @click="closeRoleModal" class="btn btn-secondary btn-sm">
+              Annuler
+            </button>
+            <button type="submit" class="btn btn-primary btn-sm" :disabled="submitting">
+              <i v-if="submitting" class="fas fa-spinner fa-spin"></i>
+              {{ submitting ? 'Enregistrement...' : (isEditing ? 'Mettre à jour' : 'Créer') }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal Détails -->
+    <div v-if="showDetailsModal" class="modal-overlay" @click="closeDetailsModal">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>
+            <i :class="`fas ${selectedRole.icon}`" :style="{ color: selectedRole.color }"></i>
+            {{ selectedRole.name }}
+          </h3>
+          <button @click="closeDetailsModal" class="btn-close">&times;</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="role-details-content">
+            <!-- Informations générales -->
             <div class="detail-section">
-              <h4>Permissions ({{ selectedRole.permissions?.length || 0 }})</h4>
+              <h4>Informations générales</h4>
+              <div class="detail-grid">
+                <div class="detail-item">
+                  <span class="label">Nom :</span>
+                  <span class="value">{{ selectedRole.name }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="label">Slug :</span>
+                  <span class="value">{{ selectedRole.slug }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="label">Description :</span>
+                  <span class="value">{{ selectedRole.description || 'Aucune description' }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="label">Statut :</span>
+                  <span class="value">
+                    <span v-if="selectedRole.is_critical" class="badge badge-critical">
+                      <i class="fas fa-shield-alt"></i> Critique
+                    </span>
+                    <span v-else class="badge badge-normal">Normal</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Statistiques -->
+            <div class="detail-section">
+              <h4>Statistiques</h4>
+              <div class="stats-grid">
+                <div class="stat-card">
+                  <i class="fas fa-key"></i>
+                  <div>
+                    <span class="stat-number">{{ selectedRole.permissions_count }}</span>
+                    <span class="stat-label">Permissions</span>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <i class="fas fa-users"></i>
+                  <div>
+                    <span class="stat-number">{{ selectedRole.total_users_count }}</span>
+                    <span class="stat-label">Utilisateurs</span>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <i class="fas fa-user-shield"></i>
+                  <div>
+                    <span class="stat-number">{{ selectedRole.primary_users_count }}</span>
+                    <span class="stat-label">Rôle principal</span>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <i class="fas fa-user-plus"></i>
+                  <div>
+                    <span class="stat-number">{{ selectedRole.additional_users_count }}</span>
+                    <span class="stat-label">Rôle additionnel</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Permissions -->
+            <div v-if="selectedRole.permissions?.length > 0" class="detail-section">
+              <h4>Permissions ({{ selectedRole.permissions.length }})</h4>
               <div class="permissions-list">
-                <span 
-                  v-for="permission in selectedRole.permissions" 
-                  :key="permission.id"
-                  class="permission-badge"
-                  :class="getActionClass(permission.action)"
-                >
+                <span v-for="permission in selectedRole.permissions" :key="permission.id" class="permission-badge"
+                  :class="`permission-${permission.category}`">
                   {{ permission.name }}
                 </span>
               </div>
             </div>
-            
-            <div class="detail-section">
-              <h4>Utilisateurs ({{ selectedRole.users?.length || 0 }})</h4>
-              <div class="users-list">
-                <div 
-                  v-for="user in selectedRole.users" 
-                  :key="user.id"
-                  class="user-item"
-                >
-                  <i class="fas fa-user"></i>
-                  <span>{{ user.name }} ({{ user.email }})</span>
+
+            <!-- Utilisateurs -->
+            <div v-if="selectedRole.total_users_count > 0" class="detail-section">
+              <h4>Utilisateurs assignés</h4>
+
+              <div v-if="selectedRole.primary_users?.length > 0" class="users-subsection">
+                <h5>Rôle principal ({{ selectedRole.primary_users.length }})</h5>
+                <div class="users-list">
+                  <div v-for="user in selectedRole.primary_users" :key="`primary-${user.id}`" class="user-item">
+                    <i class="fas fa-user-shield"></i>
+                    <div class="user-info">
+                      <span class="user-name">{{ user.name }}</span>
+                      <span class="user-email">{{ user.email }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div v-if="selectedRole.users?.length > 0" class="users-subsection">
+                <h5>Rôle additionnel ({{ selectedRole.users.length }})</h5>
+                <div class="users-list">
+                  <div v-for="user in selectedRole.users" :key="`additional-${user.id}`" class="user-item">
+                    <i class="fas fa-user-plus"></i>
+                    <div class="user-info">
+                      <span class="user-name">{{ user.name }}</span>
+                      <span class="user-email">{{ user.email }}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Suppression -->
+    <div v-if="showDeleteModal" class="modal-overlay" @click="closeDeleteModal">
+      <div class="modal-content modal-sm" @click.stop>
+        <div class="modal-header">
+          <h3 class="text-danger">
+            <i class="fas fa-exclamation-triangle"></i>
+            Supprimer le rôle
+          </h3>
+          <button @click="closeDeleteModal" class="btn-close">&times;</button>
+        </div>
+
+        <div class="modal-body">
+          <p>
+            Êtes-vous sûr de vouloir supprimer le rôle
+            <strong>{{ roleToDelete?.name }}</strong> ?
+          </p>
+
+          <div class="warning-box">
+            <i class="fas fa-info-circle"></i>
+            Cette action est irréversible. Toutes les permissions associées seront détachées.
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button @click="closeDeleteModal" class="btn btn-secondary btn-sm">
+            Annuler
+          </button>
+          <button @click="confirmDelete" class="btn btn-danger btn-sm" :disabled="deleting">
+            <i v-if="deleting" class="fas fa-spinner fa-spin"></i>
+            {{ deleting ? 'Suppression...' : 'Supprimer' }}
+          </button>
         </div>
       </div>
     </div>
@@ -321,250 +409,411 @@
 import axios from 'axios'
 
 export default {
-  name: 'AdminRoles',
+  name: 'RolesManagement',
+
   data() {
     return {
-      roles: [],
+      // Data
+      rolesData: null,
+      allPermissions: [],
       loading: true,
       error: null,
       successMessage: null,
-      
-      // Filtres et recherche
+
+      // Filtres
       searchQuery: '',
-      permissionFilter: '',
-      
-      // Tri
-      sortField: 'name',
-      sortDirection: 'asc',
-      
-      // Pagination
-      currentPage: 1,
-      itemsPerPage: 10,
-      
-      // Modal
+      filterType: '',
+
+      // Modals
       showRoleModal: false,
-      selectedRole: null
+      showDetailsModal: false,
+      showDeleteModal: false,
+      isEditing: false,
+      currentRole: null,
+      selectedRole: null,
+      roleToDelete: null,
+
+      // Formulaire
+      roleForm: {
+        name: '',
+        slug: '',
+        description: '',
+        permissions: []
+      },
+      selectedPermissions: [],
+      permissionSearch: '',
+      formErrors: {},
+      submitting: false,
+      deleting: false,
     }
   },
+
   computed: {
+    roles() {
+      return this.rolesData?.data || []
+    },
+
     filteredRoles() {
-      let filtered = [...this.roles]
-      
-      // Recherche textuelle
-      // if (this.searchQuery) {
-      //   const query = this.searchQuery.toLowerCase()
-      //   filtered = filtered.filter(role => 
-      //     role.name.toLowerCase().includes(query) ||
-      //     role.slug.toLowerCase().includes(query) ||
-      //     (role.description && role.description.toLowerCase().includes(query))
-      //   )
-      // }
-      
-      // Filtre par permission
-      // if (this.permissionFilter) {
-      //   filtered = filtered.filter(role => 
-      //     role.permissions && role.permissions.some(perm => 
-      //       perm.action.toLowerCase().includes(this.permissionFilter.toLowerCase())
-      //     )
-      //   )
-      // }
-      
-      // Tri
-      filtered.sort((a, b) => {
-        let aValue = this.getSortValue(a, this.sortField)
-        let bValue = this.getSortValue(b, this.sortField)
-        
-        // if (typeof aValue === 'string') {
-        //   aValue = aValue.toLowerCase()
-        //   bValue = bValue.toLowerCase()
-        // }
-        
-        if (this.sortDirection === 'asc') {
-          return aValue > bValue ? 1 : -1
-        } else {
-          return aValue < bValue ? 1 : -1
+      let filtered = this.roles
+
+      // Filtre par recherche
+      if (this.searchQuery) {
+        const query = this.searchQuery.toLowerCase()
+        filtered = filtered.filter(role =>
+          role.name.toLowerCase().includes(query) ||
+          role.slug.toLowerCase().includes(query) ||
+          role.description?.toLowerCase().includes(query)
+        )
+      }
+
+      // Filtre par type
+      if (this.filterType) {
+        switch (this.filterType) {
+          case 'critical':
+            filtered = filtered.filter(role => role.is_critical)
+            break
+          case 'deletable':
+            filtered = filtered.filter(role => role.can_be_deleted)
+            break
+          case 'with_users':
+            filtered = filtered.filter(role => role.total_users_count > 0)
+            break
         }
-      })
-      
+      }
+
       return filtered
     },
-    
-    totalPages() {
-      return Math.ceil(this.filteredRoles.length / this.itemsPerPage)
-    },
-    
-    paginatedRoles() {
-      const start = (this.currentPage - 1) * this.itemsPerPage
-      const end = start + this.itemsPerPage
-      return this.filteredRoles.slice(start, end)
-    },
-    
-    startItem() {
-      return (this.currentPage - 1) * this.itemsPerPage + 1
-    },
-    
-    endItem() {
-      return Math.min(this.currentPage * this.itemsPerPage, this.filteredRoles.length)
-    },
-    
-    visiblePages() {
-      const pages = []
-      const start = Math.max(1, this.currentPage - 2)
-      const end = Math.min(this.totalPages, this.currentPage + 2)
-      
-      for (let i = start; i <= end; i++) {
-        pages.push(i)
-      }
-      
-      return pages
+
+    // Permissions groupées par catégorie pour le formulaire
+    filteredPermissionsByCategory() {
+      const grouped = {}
+
+      this.allPermissions.forEach(permission => {
+        if (!this.permissionSearch ||
+          permission.name.toLowerCase().includes(this.permissionSearch.toLowerCase()) ||
+          permission.action.toLowerCase().includes(this.permissionSearch.toLowerCase())) {
+
+          const category = permission.category || 'other'
+          if (!grouped[category]) {
+            grouped[category] = {
+              key: category,
+              name: this.getCategoryName(category),
+              icon: this.getCategoryIcon(category),
+              color: this.getCategoryColor(category),
+              permissions: []
+            }
+          }
+          grouped[category].permissions.push(permission)
+        }
+      })
+
+      return Object.values(grouped).sort((a, b) => a.name.localeCompare(b.name))
     }
   },
-  created() {
-    this.checkSuccessMessage()
-    this.fetchRoles()
+
+  async mounted() {
+    await this.loadRoles()
+    await this.loadPermissions()
   },
+
   methods: {
-    checkSuccessMessage() {
-      if (this.$route.query.success) {
-        this.successMessage = this.$route.query.success
-        
-        // Supprimer le paramètre de l'URL
-        this.$router.replace({ query: {} })
-      }
-    },
+    // ===========================
+    // CHARGEMENT DONNÉES
+    // ===========================
 
-    async fetchRoles() {
-      this.loading = true
-      this.error = null
-
+    async loadRoles() {
       try {
-        const response = await axios.get('/api/roles')
-        this.roles = Array.isArray(response.data)
-          ? response.data
-          : response.data['hydra:member'] || []
+        this.loading = true
+        this.error = null
+
+        const response = await axios.get('/api/roles', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+            'Accept': 'application/json'
+          }
+        })
+
+        this.rolesData = response.data
+
       } catch (error) {
-        console.error('Erreur lors du chargement des rôles:', error)
+        console.error('Erreur chargement rôles:', error)
         this.error = 'Impossible de charger les rôles'
       } finally {
         this.loading = false
       }
     },
 
-    // Recherche avec debounce
-    handleSearch() {
-      this.currentPage = 1
-    },
+    async loadPermissions() {
+      try {
+        const response = await axios.get('/api/permissions', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+            'Accept': 'application/json'
+          }
+        })
 
-    applyFilters() {
-      this.currentPage = 1
-    },
+        // Aplatir les catégories pour avoir une liste simple
+        this.allPermissions = []
+        if (response.data?.data?.categories) {
+          response.data.data.categories.forEach(category => {
+            this.allPermissions.push(...category.permissions)
+          })
+        }
 
-    // Tri
-    sortBy(field) {
-      if (this.sortField === field) {
-        this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc'
-      } else {
-        this.sortField = field
-        this.sortDirection = 'asc'
+      } catch (error) {
+        console.error('Erreur chargement permissions:', error)
       }
     },
 
-    getSortValue(role, field) {
-      switch (field) {
-        case 'name':
-          return role.name || ''
-        case 'permissions_count':
-          return role.permissions_count || 0
-        case 'users_count':
-          return role.users_count || 0
-        default:
-          return ''
-      }
-    },
+    // ===========================
+    // GESTION MODALS
+    // ===========================
 
-    getSortIcon(field) {
-      if (this.sortField !== field) {
-        return 'fas fa-sort text-muted'
-      }
-      return this.sortDirection === 'asc' 
-        ? 'fas fa-sort-up' 
-        : 'fas fa-sort-down'
-    },
-
-    // Actions
-    viewRole(role) {
-      this.selectedRole = role
+    openCreateModal() {
+      this.isEditing = false
+      this.currentRole = null
+      this.resetForm()
       this.showRoleModal = true
+    },
+
+    openEditModal(role) {
+      this.isEditing = true
+      this.currentRole = role
+      this.fillForm(role)
+      this.showRoleModal = true
+    },
+
+    openDetailsModal(role) {
+      this.selectedRole = role
+      this.showDetailsModal = true
+    },
+
+    openDeleteModal(role) {
+      this.roleToDelete = role
+      this.showDeleteModal = true
     },
 
     closeRoleModal() {
       this.showRoleModal = false
+      this.resetForm()
+    },
+
+    closeDetailsModal() {
+      this.showDetailsModal = false
       this.selectedRole = null
     },
 
-    async duplicateRole(role) {
-      if (!confirm(`Dupliquer le rôle "${role.name}" ?`)) {
-        return
-      }
+    closeDeleteModal() {
+      this.showDeleteModal = false
+      this.roleToDelete = null
+    },
 
+    // ===========================
+    // GESTION FORMULAIRE
+    // ===========================
+
+    resetForm() {
+      this.roleForm = {
+        name: '',
+        slug: '',
+        description: '',
+        permissions: []
+      }
+      this.selectedPermissions = []
+      this.formErrors = {}
+    },
+
+    fillForm(role) {
+      this.roleForm = {
+        name: role.name || '',
+        slug: role.slug || '',
+        description: role.description || '',
+        permissions: role.permissions?.map(p => p.id) || []
+      }
+      this.selectedPermissions = role.permissions?.map(p => p.id) || []
+      this.formErrors = {}
+    },
+
+    // ===========================
+    // GESTION PERMISSIONS
+    // ===========================
+
+    selectAllPermissions() {
+      this.selectedPermissions = this.allPermissions.map(p => p.id)
+    },
+
+    clearAllPermissions() {
+      this.selectedPermissions = []
+    },
+
+    toggleCategoryPermissions(category) {
+      const categoryPermissionIds = category.permissions.map(p => p.id)
+      const isSelected = this.isCategorySelected(category)
+
+      if (isSelected) {
+        // Désélectionner toutes les permissions de cette catégorie
+        this.selectedPermissions = this.selectedPermissions.filter(id =>
+          !categoryPermissionIds.includes(id)
+        )
+      } else {
+        // Sélectionner toutes les permissions de cette catégorie
+        const newPermissions = categoryPermissionIds.filter(id =>
+          !this.selectedPermissions.includes(id)
+        )
+        this.selectedPermissions.push(...newPermissions)
+      }
+    },
+
+    isCategorySelected(category) {
+      const categoryPermissionIds = category.permissions.map(p => p.id)
+      return categoryPermissionIds.every(id => this.selectedPermissions.includes(id))
+    },
+
+    // ===========================
+    // CRUD OPERATIONS
+    // ===========================
+
+    async submitRole() {
       try {
-        const duplicatedRole = {
-          name: `${role.name} (copie)`,
-          slug: `${role.slug}-copy`,
-          description: role.description,
-          permissions: role.permissions?.map(p => p.id) || []
+        this.submitting = true
+        this.formErrors = {}
+
+        const payload = {
+          name: this.roleForm.name,
+          slug: this.roleForm.slug || null,
+          description: this.roleForm.description || null,
+          permissions: this.selectedPermissions
         }
 
-        await axios.post('/api/roles', duplicatedRole)
-        this.successMessage = 'Rôle dupliqué avec succès'
-        this.fetchRoles()
+        let response
+        if (this.isEditing) {
+          response = await axios.put(`/api/roles/${this.currentRole.id}`, payload, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            }
+          })
+          this.successMessage = `Rôle "${payload.name}" mis à jour avec succès`
+        } else {
+          response = await axios.post('/api/roles', payload, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            }
+          })
+          this.successMessage = `Rôle "${payload.name}" créé avec succès`
+        }
+
+        this.closeRoleModal()
+        await this.loadRoles()
+
+        // Auto-hide success message
+        setTimeout(() => {
+          this.successMessage = null
+        }, 5000)
+
       } catch (error) {
-        console.error('Erreur lors de la duplication:', error)
-        this.error = 'Impossible de dupliquer le rôle'
+        console.error('Erreur sauvegarde rôle:', error)
+
+        if (error.response?.data?.violations) {
+          // Erreurs de validation API Platform
+          error.response.data.violations.forEach(violation => {
+            this.formErrors[violation.propertyPath] = [violation.message]
+          })
+        } else {
+          this.error = error.response?.data?.message || 'Erreur lors de la sauvegarde'
+        }
+      } finally {
+        this.submitting = false
       }
     },
 
-    async deleteRole(role) {
-      if (role.users_count > 0) {
-        alert('Impossible de supprimer un rôle assigné à des utilisateurs')
-        return
-      }
-
-      if (!confirm(`Supprimer définitivement le rôle "${role.name}" ?`)) {
-        return
-      }
-
+    async confirmDelete() {
       try {
-        await axios.delete(`/api/roles/${role.id}`)
-        this.successMessage = 'Rôle supprimé avec succès'
-        this.fetchRoles()
+        this.deleting = true
+
+        await axios.delete(`/api/roles/${this.roleToDelete.id}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+            'Accept': 'application/json'
+          }
+        })
+
+        this.successMessage = `Rôle "${this.roleToDelete.name}" supprimé avec succès`
+        this.closeDeleteModal()
+        await this.loadRoles()
+
+        // Auto-hide success message
+        setTimeout(() => {
+          this.successMessage = null
+        }, 5000)
+
       } catch (error) {
-        console.error('Erreur lors de la suppression:', error)
-        this.error = 'Impossible de supprimer le rôle'
+        console.error('Erreur suppression rôle:', error)
+        this.error = error.response?.data?.message || 'Erreur lors de la suppression'
+      } finally {
+        this.deleting = false
       }
     },
 
-    // Utilitaires
-    truncateText(text, length) {
-      if (!text) return ''
-      return text.length > length ? text.substring(0, length) + '...' : text
+    // ===========================
+    // UTILITAIRES UI
+    // ===========================
+
+    getCategoryName(category) {
+      const names = {
+        'system': 'Système',
+        'users': 'Utilisateurs',
+        'accommodations': 'Hébergements',
+        'activities': 'Activités',
+        'bookings': 'Réservations',
+        'reception': 'Réception',
+        'customers': 'Clients',
+        'restaurant': 'Restaurant',
+        'finance': 'Finance',
+        'analytics': 'Analyses',
+        'communication': 'Communication',
+        'other': 'Autres'
+      }
+      return names[category] || category
     },
 
-    getActionClass(action) {
-      const classes = {
-        'create': 'badge-success',
-        'read': 'badge-info',
-        'view': 'badge-info',
-        'list': 'badge-info',
-        'update': 'badge-warning',
-        'edit': 'badge-warning',
-        'delete': 'badge-danger',
-        'destroy': 'badge-danger',
-        'manage': 'badge-primary',
-        'admin': 'badge-primary'
+    getCategoryIcon(category) {
+      const icons = {
+        'system': 'fa-cogs',
+        'users': 'fa-users',
+        'accommodations': 'fa-home',
+        'activities': 'fa-hiking',
+        'bookings': 'fa-calendar-alt',
+        'reception': 'fa-concierge-bell',
+        'customers': 'fa-address-book',
+        'restaurant': 'fa-utensils',
+        'finance': 'fa-coins',
+        'analytics': 'fa-chart-bar',
+        'communication': 'fa-comments',
+        'other': 'fa-ellipsis-h'
       }
-      
-      return classes[action] || 'badge-secondary'
+      return icons[category] || 'fa-key'
+    },
+
+    getCategoryColor(category) {
+      const colors = {
+        'system': '#dc2626',
+        'users': '#7c3aed',
+        'accommodations': '#059669',
+        'activities': '#ea580c',
+        'bookings': '#0891b2',
+        'reception': '#be123c',
+        'customers': '#4338ca',
+        'restaurant': '#ca8a04',
+        'finance': '#16a34a',
+        'analytics': '#0f766e',
+        'communication': '#9333ea',
+        'other': '#6b7280'
+      }
+      return colors[category] || '#6b7280'
     }
   }
 }

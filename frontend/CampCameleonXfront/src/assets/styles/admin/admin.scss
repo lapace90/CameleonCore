@@ -3,6 +3,10 @@
 @import '../admin-section/users';
 @import '../admin-section/categories';
 @import './tables';
+@import '../components/grids';
+@import '../components/filters';
+@import '../admin-section/roles';
+
 
 // Cards spécifiques admin
 .stats-card {
