@@ -40,8 +40,8 @@ class UserItemProvider implements ProviderInterface
 
         // Récupérer l'utilisateur avec toutes les relations nécessaires
         $user = User::with([
-            'role.permissions:id,name,action',
-            'roles.permissions:id,name,action'
+            'role:id,name',
+       
         ])->withCount(['roles'])
           ->find($userId);
 

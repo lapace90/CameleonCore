@@ -649,3 +649,60 @@
     justify-content: center;
   }
 }
+.form-info {
+  background: #f0f9ff;
+  border: 1px solid #0ea5e9;
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 1rem;
+  font-size: 0.875rem;
+
+  p {
+    padding-top: .75rem;
+  }
+}
+
+.roles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding-right: 2rem;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.checkbox-item:hover:not(.disabled) {
+  background-color: #f9fafb;
+}
+
+.checkbox-item.disabled {
+  opacity: 0.6;
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+}
+
+.radio-group {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: space-around;
+}
+
+.radio-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.radio-item input[type="radio"] {
+  margin: 0;
+}

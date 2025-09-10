@@ -35,7 +35,6 @@ class UserOutputData extends Data
         // S'assurer que les relations sont chargées
         $user->loadMissing([
             'role',
-            'roles.permissions'
         ]);
 
         // Compter les relations
@@ -51,23 +50,13 @@ class UserOutputData extends Data
                 'id' => $user->role->id,
                 'name' => $user->role->name,
                 'slug' => $user->role->slug,
-                'description' => $user->role->description ?? null,
-                'permissions' => $user->role->permissions->map(fn($perm) => [
-                    'id' => $perm->id,
-                    'name' => $perm->name,
-                    'action' => $perm->action
-                ])->toArray()
+                'description' => $user->role->description ?? null
             ] : null,
             additionalRoles: $user->roles->map(fn($role) => [
                 'id' => $role->id,
                 'name' => $role->name,
                 'slug' => $role->slug,
                 'description' => $role->description ?? null,
-                'permissions' => $role->permissions->map(fn($perm) => [
-                    'id' => $perm->id,
-                    'name' => $perm->name,
-                    'action' => $perm->action
-                ])->toArray()
             ])->toArray(),
             rolesCount: $user->roles_count ?? 0,
             lastLoginAt: $user->last_login_at?->toISOString(),

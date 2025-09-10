@@ -213,24 +213,24 @@ class User extends Authenticatable
     /**
      * Obtenir la catégorie d'une permission
      */
-    private function getPermissionCategory(string $action): string
-    {
-        $action = strtolower($action);
+    // private function getPermissionCategory(string $action): string
+    // {
+    //     $action = strtolower($action);
 
-        if (in_array($action, ['create', 'add', 'store'])) {
-            return 'create';
-        } elseif (in_array($action, ['read', 'view', 'show', 'list', 'index'])) {
-            return 'read';
-        } elseif (in_array($action, ['update', 'edit', 'modify'])) {
-            return 'update';
-        } elseif (in_array($action, ['delete', 'destroy', 'remove'])) {
-            return 'delete';
-        } elseif (in_array($action, ['manage', 'admin', 'control'])) {
-            return 'admin';
-        } else {
-            return 'other';
-        }
-    }
+    //     if (in_array($action, ['create', 'add', 'store'])) {
+    //         return 'create';
+    //     } elseif (in_array($action, ['read', 'view', 'show', 'list', 'index'])) {
+    //         return 'read';
+    //     } elseif (in_array($action, ['update', 'edit', 'modify'])) {
+    //         return 'update';
+    //     } elseif (in_array($action, ['delete', 'destroy', 'remove'])) {
+    //         return 'delete';
+    //     } elseif (in_array($action, ['manage', 'admin', 'control'])) {
+    //         return 'admin';
+    //     } else {
+    //         return 'other';
+    //     }
+    // }
 
     /**
      * Obtenir un résumé des permissions de l'utilisateur selon le rôle

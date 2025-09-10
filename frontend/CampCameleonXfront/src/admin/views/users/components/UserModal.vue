@@ -1,5 +1,5 @@
 <template>
-  <div v-if="show" class="modal-overlay"  @click.self="$emit('close')">
+  <div v-if="show" class="modal-overlay" @click.self="$emit('close')">
     <div class="modal-content" style="border-radius: 16px;" @click.stop>
       <div class="modal-header">
         <h3>
@@ -50,51 +50,24 @@
               </div>
             </div>
           </div>
-
           <!-- Statistiques -->
           <div class="detail-section">
-            <h4>Statistiques</h4>
-            <div class="stats-grid">
-              <div class="stat-card">
-                <i class="fas fa-users"></i>
+              <div class="stat-card ">
+                <i class="fas fa-shield"></i>
                 <div>
-                  <span class="stat-number">{{ rolesCount }}</span>
-                  <span class="stat-label">Rôles</span>
+                  <span class="stat-label">Rôles ({{ rolesCount }})</span>
+                  <div class="roles-list">
+                    <div v-if="rolesCount > 0" class="detail-section"></div>
+                    <span v-for="r in allRoles" :key="r.id || r.slug || r.name" class="role-badge role-secondary">
+                      {{ r.name }}
+                    </span>
+                  </div>
                 </div>
               </div>
-              <div class="stat-card">
-                <i class="fas fa-key"></i>
-                <div>
-                  <span class="stat-number">{{ permissionsCount }}</span>
-                  <span class="stat-label">Permissions</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Rôles (agrégés) -->
-          <div v-if="rolesCount > 0" class="detail-section">
-            <h4>Rôles ({{ rolesCount }})</h4>
-            <div class="roles-list">
-              <span v-for="r in allRoles" :key="r.id || r.slug || r.name" class="role-badge role-secondary">
-                {{ r.name }}
-              </span>
-            </div>
-          </div>
-
-          <!-- Permissions -->
-          <div v-if="user.permissions && user.permissions.length > 0" class="detail-section">
-            <h4>Permissions ({{ permissionsCount }})</h4>
-            <div class="permissions-list">
-              <span v-for="permission in user.permissions" :key="permission.id" class="permission-badge"
-                :class="`permission-${permission.category || mapActionToCategory(permission.action)}`">
-                {{ permission.name }}
-              </span>
             </div>
           </div>
         </div>
       </div>
-    </div>
   </div>
 </template>
 
@@ -139,11 +112,6 @@ export default {
       const c = this.allRoles.length
       // sinon fallback sur un éventuel compteur serveur
       return c || Number(this.user.roles_count || 0)
-    },
-    permissionsCount() {
-      if (Array.isArray(this.user.permissions)) return this.user.permissions.length
-      return Number(this.user.permissions_count || 0)
-
     },
     primaryRole() {
       return this.user.role || this.user.primary_role || null
@@ -192,26 +160,5 @@ export default {
 <style scoped>
 .detail-item {
   padding-bottom: 1.2rem;
-}
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-
-  .stat-card {
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    height: 6rem;
-    color: var(--primary);
-  }
-
-  .stat-number {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--coffee);
-  }
 }
 </style>

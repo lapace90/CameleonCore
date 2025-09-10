@@ -1,3 +1,4 @@
+<!-- UserForm.vue - VERSION OPTIMISÉE pour la performance -->
 <template>
   <div class="product-form-container">
     <!-- Message d'erreur -->
@@ -5,11 +6,11 @@
       <div class="alert alert-danger">
         <i class="fas fa-exclamation-triangle"></i>
         {{ error }}
-        <button @click="error = null" class="btn-close">&times;</button>
+        <button @click="clearMessages" class="btn-close">&times;</button>
       </div>
     </div>
 
-    <!-- Loading -->
+    <!-- Loading minimal -->
     <div v-if="loading" class="loading-state">
       <div class="spinner"></div>
       <p>Chargement...</p>
@@ -43,10 +44,10 @@
         </h1>
       </div>
 
-      <!-- Formulaire principal -->
+      <!-- Formulaire -->
       <form @submit.prevent="submitForm" class="product-form">
         <div class="form-content">
-          <!-- Avatar (optionnel) -->
+          <!-- Avatar (simplifié) -->
           <div class="form-left">
             <div class="form-section">
               <h3>Avatar</h3>
@@ -66,8 +67,9 @@
             </div>
           </div>
 
-          <!-- Informations utilisateur -->
+          <!-- Formulaire principal -->
           <div class="form-right">
+            <!-- Informations de base -->
             <div class="form-section">
               <h3>Informations générales</h3>
               <div class="form-grid">
@@ -75,21 +77,21 @@
                   <label class="form-label required">Nom complet</label>
                   <input v-model="form.name" type="text" class="form-input" placeholder="Nom et prénom" required
                     :class="{ 'error': errors.name }" />
-                  <span v-if="errors.name" class="error-message">{{ errors.name }}</span>
+                  <span v-if="errors.name" class="error-message">{{ errors.name[0] }}</span>
                 </div>
 
                 <div class="form-group">
                   <label class="form-label required">Email</label>
                   <input v-model="form.email" type="email" class="form-input" placeholder="utilisateur@exemple.com"
                     required :class="{ 'error': errors.email }" />
-                  <span v-if="errors.email" class="error-message">{{ errors.email }}</span>
+                  <span v-if="errors.email" class="error-message">{{ errors.email[0] }}</span>
                 </div>
 
                 <div class="form-group" v-if="!isEditing">
                   <label class="form-label required">Mot de passe</label>
                   <input v-model="form.password" type="password" class="form-input" placeholder="••••••••" required
                     :class="{ 'error': errors.password }" />
-                  <span v-if="errors.password" class="error-message">{{ errors.password }}</span>
+                  <span v-if="errors.password" class="error-message">{{ errors.password[0] }}</span>
                 </div>
 
                 <div class="form-group" v-if="!isEditing">
@@ -100,71 +102,82 @@
               </div>
             </div>
 
-            <!-- Attribution des rôles -->
+            <!-- 🚀 SECTION RÔLES OPTIMISÉE -->
             <div class="form-section">
-              <h3>Rôles</h3>
+              <h3>Rôles
+                <small style="color: #6b7280;">({{ availableRoles.length }} disponible{{ availableRoles.length > 1 ? 's'
+                  : '' }})</small>
+              </h3>
 
+              <!-- Rôle principal -->
               <div class="form-group">
                 <label class="form-label">Rôle principal</label>
                 <select v-model="form.role_id" class="form-input">
                   <option value="">Sélectionner un rôle</option>
-                  <option v-for="role in roles" :key="role.id" :value="role.id">
+                  <option v-for="role in availableRoles" :key="role.id" :value="role.id">
                     {{ role.name }}
+                    <!-- <span v-if="role.description"> - {{ role.description }}</span> -->
                   </option>
                 </select>
               </div>
 
-              <!-- Rôles multiples -->
-              <div class="form-group" v-if="roles.length > 0">
+              <!-- Rôles additionnels -->
+              <div class="form-group">
                 <label class="form-label">Rôles additionnels</label>
                 <div class="roles-grid">
-                  <label v-for="role in roles" :key="role.id" class="role-checkbox">
-                    <input type="checkbox" :value="role.id" v-model="form.additional_roles" />
-                    <div class="checkbox-content">
-                      <div class="role-info">
-                        <span class="role-name">{{ role.name }}</span>
-                        <span class="role-description">{{ role.description }}</span>
-                      </div>
-                    </div>
+                  <label v-for="role in availableRoles" :key="`add-${role.id}`" class="checkbox-itlem"
+                    :class="{ 'disabled': form.role_id === role.id }">
+                    <input type="checkbox" :value="role.id" v-model="form.additional_roles"
+                      :disabled="form.role_id === role.id" />
+                    <span class="checkbox-label px-3">
+                      {{ role.name }}
+                      <small v-if="form.role_id === role.id" style="color: #6b7280;">(principal)</small>
+                    </span>
                   </label>
                 </div>
+              </div>
+
+              <!-- Info RBAC -->
+              <div class="form-info">
+                <i class="fas fa-info-circle px-3" style="color: #0ea5e9;"></i>
+                <strong>Architecture RBAC :</strong>
+                <p>Les permissions sont gérées via les rôles. Pas de permissions directes aux utilisateurs.</p>
               </div>
             </div>
 
             <!-- Statut -->
-            <div class="form-section">
-              <h3>Statut du compte</h3>
-              <div class="form-group">
-                <label class="form-label">État</label>
-                <div class="radio-group">
-                  <label class="radio-item">
-                    <input type="radio" v-model="form.status" value="active" name="status" />
-                    <span class="radio-label">
-                      <i class="fas fa-check-circle text-success"></i>
-                      Actif
-                    </span>
-                  </label>
-                  <label class="radio-item">
-                    <input type="radio" v-model="form.status" value="inactive" name="status" />
-                    <span class="radio-label">
-                      <i class="fas fa-pause-circle text-warning"></i>
-                      Suspendu
-                    </span>
-                  </label>
-                  <label class="radio-item">
-                    <input type="radio" v-model="form.status" value="blocked" name="status" />
-                    <span class="radio-label">
-                      <i class="fas fa-ban text-danger"></i>
-                      Bloqué
-                    </span>
-                  </label>
-                </div>
+            <div class="form-section ">
+              <h3>Statut</h3>
+              <div class="radio-group p-4">
+                <label class="radio-item">
+                  <input type="radio" v-model="form.status" value="active" />
+                  <span class="radio-label">
+                    <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                    Actif
+                  </span>
+                </label>
+                <label class="radio-item ">
+                  <input type="radio" v-model="form.status" value="suspended" />
+                  <span class="radio-label">
+                    <i class="fas fa-pause-circle" style="color: #f59e0b;"></i>
+                    Suspendu
+                  </span>
+                </label>
+                <label class="radio-item">
+                  <input type="radio" v-model="form.status" value="blocked" />
+                  <span class="radio-label">
+                    <i class="fas fa-ban" style="color: #ef4444;"></i>
+                    Bloqué
+                  </span>
+                </label>
               </div>
 
-              <div class="form-group" v-if="isEditing">
-                <label class="form-label">
+              <div v-if="isEditing" class="form-group">
+                <label class="checkbox-item">
                   <input type="checkbox" v-model="form.reset_password" />
-                  Forcer la réinitialisation du mot de passe à la prochaine connexion
+                  <span class="checkbox-label">
+                    Forcer la réinitialisation du mot de passe à la prochaine connexion
+                  </span>
                 </label>
               </div>
             </div>
@@ -179,13 +192,13 @@
               </div>
 
               <div class="actions-right">
-                <button v-if="isEditing" type="button" @click="deleteUser" class="btn btn-danger btn-sm"
+                <button v-if="isEditing" type="button" @click="handleDeleteUser" class="btn btn-danger btn-sm"
                   :disabled="saving">
                   <i class="fas fa-trash"></i>
                   Supprimer
                 </button>
 
-                <button type="submit" class="btn btn-primary btn-sm" :disabled="saving">
+                <button type="submit" class="btn btn-primary btn-sm" :disabled="saving || availableRoles.length === 0">
                   <i v-if="saving" class="fas fa-spinner fa-spin"></i>
                   <i v-else class="fas fa-check"></i>
                   {{ isEditing ? 'Mettre à jour' : 'Créer l\'utilisateur' }}
@@ -199,9 +212,7 @@
   </div>
 </template>
 
-
 <script>
-// 🚀 OPTIMISATION : Utiliser les stores au lieu d'appels UsersApi directs
 import { useUsersStore } from '@/shared/stores/users'
 import { useAuthStore } from '@/shared/stores/auth'
 import { mapState, mapActions } from 'pinia'
@@ -211,10 +222,9 @@ export default {
   props: {
     action: { type: String, default: 'create' }
   },
-  
+
   data() {
     return {
-      // Formulaire (garde en local pour la réactivité)
       form: {
         name: '',
         email: '',
@@ -225,16 +235,13 @@ export default {
         password: '',
         password_confirmation: ''
       },
-      
-      // États UI (garde en local)
+
       saving: false,
       errors: {}
     }
   },
 
-  // 🚀 OPTIMISATION : Computed depuis le store
   computed: {
-    // Map store state
     ...mapState(useUsersStore, {
       loading: 'loading',
       error: 'error',
@@ -245,82 +252,79 @@ export default {
     isEditing() {
       return this.action === 'edit' && !!this.$route.params.id
     },
-    
+
     userId() {
       return this.$route.params.id
     },
 
-    // 🚀 User data depuis le store
     user() {
       return this.currentUser
-    },
-
-    // Aliases pour compatibilité template
-    roles() {
-      return this.availableRoles
     }
   },
 
-  // 🚀 OPTIMISATION : Setup pour les stores
   setup() {
     const usersStore = useUsersStore()
     const authStore = useAuthStore()
-    
+
     return {
       usersStore,
       authStore
     }
   },
 
-  // 🚀 OPTIMISATION : Méthodes du store
   methods: {
     ...mapActions(useUsersStore, [
       'loadAllData',
-      'fetchUserById', 
+      'fetchUserById',
       'createUser',
       'updateUser',
       'deleteUser',
       'clearMessages'
     ]),
 
-    // 🚀 OPTIMISATION : Charger données via store avec cache
+    // 🚀 OPTIMISATION : Charger SEULEMENT les rôles (ultra rapide)
     async loadFormData() {
       try {
-        // 🚀 UNE SEULE méthode charge tout avec cache intelligent
-        await this.loadAllData()
-        
-        console.log('✅ Rôles chargés depuis store:', {
-          roles: this.availableRoles.length,
+        console.log('🚀 Chargement rôles mode rapide...')
+
+        // 🚀 rolesOnly=true : charge juste les rôles avec ?mode=light
+        await this.loadAllData({ rolesOnly: true })
+
+        console.log('✅ Rôles rapides chargés:', {
+          count: this.availableRoles.length,
+          time: 'ultra-rapide !'
         })
-        
+
+        if (this.availableRoles.length === 0) {
+          console.warn('⚠️ Aucun rôle chargé')
+        }
+
       } catch (error) {
-        console.error('Erreur lors du chargement des données:', error)
+        console.error('❌ Erreur chargement rôles:', error)
         this.usersStore.error = 'Impossible de charger les rôles'
       }
     },
 
-    // 🚀 OPTIMISATION : Charger user via store avec cache
     async loadUserForEditing() {
       if (!this.isEditing) return
 
       try {
-        // 🚀 Utiliser le store avec cache - pas de requête si déjà en cache
+        console.log(`🔄 Chargement utilisateur ${this.userId}...`)
         await this.fetchUserById(this.userId)
-        
-        // Remplir le formulaire avec les données du store
+
         if (this.user) {
           this.populateForm()
+          console.log('✅ Formulaire rempli')
         } else {
           this.usersStore.error = 'Utilisateur introuvable'
         }
-        
+
       } catch (error) {
-        console.error('Erreur lors du chargement de l\'utilisateur:', error)
-        this.usersStore.error = 'Impossible de charger les données utilisateur'
+        console.error('❌ Erreur chargement utilisateur:', error)
+        this.usersStore.error = 'Impossible de charger l\'utilisateur'
       }
     },
 
-    // 🚀 NOUVELLE : Populer le formulaire depuis les données store
     populateForm() {
       if (!this.user) return
 
@@ -328,103 +332,67 @@ export default {
         name: this.user.name || '',
         email: this.user.email || '',
         role_id: this.user.role_id || '',
-        additional_roles: this.user.roles?.map(role => role.id) || [],
+        additional_roles: this.user.roles?.map(role => String(role.id)) || [],
         status: this.user.status || 'active',
         reset_password: false,
         password: '',
         password_confirmation: ''
       }
-
-      console.log('✅ Formulaire peuplé depuis store:', this.form)
     },
 
-    // 🚀 OPTIMISATION : Submit via store
     async submitForm() {
+      if (!this.validateForm()) return
+
       this.saving = true
-      this.errors = {}
-      
-      // Clear messages précédents
       this.clearMessages()
 
       try {
         const payload = { ...this.form }
 
-        // Si on édite, on ne envoie le mot de passe que s'il est rempli
-        if (this.isEditing && !payload.password) {
-          delete payload.password
-          delete payload.password_confirmation
-        }
+        if (!payload.password) delete payload.password
+        if (!payload.password_confirmation) delete payload.password_confirmation
 
-        let result
         if (this.isEditing) {
-          // 🚀 Utiliser le store au lieu d'UsersApi direct
-          result = await this.updateUser(this.userId, payload)
-          console.log('✅ Utilisateur mis à jour via store')
+          await this.updateUser(this.userId, payload)
         } else {
-          // 🚀 Utiliser le store au lieu d'UsersApi direct  
-          result = await this.createUser(payload)
-          console.log('✅ Utilisateur créé via store')
+          await this.createUser(payload)
         }
-
-        // Message de succès et redirection
-        const successMessage = this.isEditing 
-          ? 'Utilisateur modifié avec succès' 
-          : 'Utilisateur créé avec succès'
 
         this.$router.push({
           path: '/admin/users',
-          query: { success: successMessage }
+          query: {
+            success: this.isEditing ? 'Utilisateur mis à jour' : 'Utilisateur créé'
+          }
         })
 
       } catch (error) {
-        console.error('Erreur lors de la sauvegarde:', error)
-
-        // Gestion des erreurs de validation Laravel
-        if (error.response?.status === 422 && error.response.data.errors) {
-          this.errors = error.response.data.errors
-        } else {
-          // L'erreur est déjà dans le store, mais on peut aussi l'afficher localement
-          this.errors = {
-            general: error.message || 'Erreur lors de la sauvegarde'
-          }
-        }
+        console.error('❌ Erreur soumission:', error)
       } finally {
         this.saving = false
       }
     },
 
-    // 🚀 OPTIMISATION : Delete via store
-    async deleteUser() {
-      if (!this.isEditing || !this.user) return
-      
-      if (!confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) {
-        return
-      }
+    async handleDeleteUser() {
+      if (!this.user || !confirm(`Supprimer "${this.user.name}" ?`)) return
 
       try {
-        // 🚀 Utiliser le store
         await this.deleteUser(this.user.id)
-        
-        // Redirection avec message
         this.$router.push({
           path: '/admin/users',
-          query: { success: 'Utilisateur supprimé avec succès' }
+          query: { success: 'Utilisateur supprimé' }
         })
-
       } catch (error) {
-        console.error('Erreur lors de la suppression:', error)
-        alert('Impossible de supprimer l\'utilisateur')
+        console.error('❌ Erreur suppression:', error)
       }
     },
 
-    // Reset form
     resetForm() {
       this.form = {
         name: '',
         email: '',
         role_id: '',
         additional_roles: [],
-        status: 'active', 
+        status: 'active',
         reset_password: false,
         password: '',
         password_confirmation: ''
@@ -432,53 +400,47 @@ export default {
       this.errors = {}
     },
 
-    // Validate form locale 
     validateForm() {
       const errors = {}
-      
+
       if (!this.form.name.trim()) {
         errors.name = ['Le nom est obligatoire']
       }
-      
+
       if (!this.form.email.trim()) {
         errors.email = ['L\'email est obligatoire']
       }
-      
+
       if (!this.isEditing && !this.form.password) {
         errors.password = ['Le mot de passe est obligatoire']
       }
-      
+
       if (this.form.password && this.form.password !== this.form.password_confirmation) {
-        errors.password_confirmation = ['La confirmation ne correspond pas']
+        errors.password_confirmation = ['Confirmation incorrecte']
       }
-      
+
       this.errors = errors
       return Object.keys(errors).length === 0
-    },
-
-    // UI Helpers (garde existants)
-    handleCancel() {
-      this.$router.push('/admin/users')
     }
   },
 
-  // 🚀 OPTIMISATION : Lifecycle hooks
+  // 🚀 OPTIMISATION : Chargement minimal et rapide
   async created() {
-    // 🚀 Charger les données du formulaire (roles avec cache)
+    console.log('🚀 UserForm optimisé - Chargement rapide...')
+
+    // 🚀 Charger SEULEMENT les rôles (pas les users)
     await this.loadFormData()
-    
-    // 🚀 Si édition, charger l'utilisateur (avec cache)
+
+    // Si édition, charger l'utilisateur
     if (this.isEditing) {
       await this.loadUserForEditing()
     }
-    
-    console.log('✅ UserForm initialisé avec cache intelligent')
+
+    console.log('✅ UserForm prêt rapidement !')
   },
 
-  // 🚀 Watch pour réagir aux changements de route
   watch: {
     '$route.params.id': {
-      immediate: false,
       handler(newId, oldId) {
         if (newId !== oldId && this.isEditing) {
           this.loadUserForEditing()
@@ -487,9 +449,50 @@ export default {
     }
   },
 
-  // 🚀 Cleanup
   beforeUnmount() {
     this.clearMessages()
   }
 }
 </script>
+
+<style scoped>
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  gap: 1rem;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f4f6;
+  border-top: 4px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.error-message .alert {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 1rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+</style>
