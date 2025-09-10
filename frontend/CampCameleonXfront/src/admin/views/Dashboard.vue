@@ -1,22 +1,20 @@
 <template>
   <div class="dashboard">
     <!-- Stats Cards -->
-    <div class="stats-grid">
+    <div class="stats-container mx-4">
       <div class="stat-card" v-for="stat in stats" :key="stat.id">
-        <div class="stat-content">
           <div class="stat-icon" :style="{ backgroundColor: stat.color }">
             <i :class="stat.icon"></i>
           </div>
           <div class="stat-info">
             <h3 class="stat-number">{{ stat.value }}</h3>
-            <p class="stat-label">{{ stat.label }}</p>
             <div class="stat-change" :class="stat.changeType">
+              <p class="stat-label">{{ stat.label }}</p>
               <i :class="stat.changeIcon"></i>
               {{ stat.change }}
             </div>
           </div>
         </div>
-      </div>
     </div>
 
     <!-- Main Content Grid -->
@@ -286,11 +284,6 @@ export default {
   gap: 2rem;
 }
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-}
 
 .admin-main-content {
   display: grid;
@@ -299,94 +292,8 @@ export default {
   min-height: fit-content;
 }
 
-/* .stat-card {
-  background: white;
-  border-radius: 0.75rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
-  border: 1px solid #e9ecef;
-  overflow: hidden;
-  transition: all 0.15s ease;
-} */
 
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
-}
 
-.stat-content {
-  padding: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.stat-icon {
-  width: 3rem;
-  height: 3rem;
-  border-radius: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 1.25rem;
-  flex-shrink: 0;
-}
-
-.stat-info {
-  flex: 1;
-}
-
-.stat-number {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #32325d;
-  margin: 0 0 0.25rem 0;
-}
-
-.stat-label {
-  color: #8898aa;
-  margin: 0 0 0.5rem 0;
-  font-weight: 500;
-}
-
-.stat-change {
-  font-size: 0.875rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.stat-change.positive {
-  color: #2dce89;
-}
-
-.stat-change.negative {
-  color: #f5365c;
-}
-
-.charts-section {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.chart-card,
-.activity-card {
-  background: white;
-  border-radius: 0.75rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
-  border: 1px solid #e9ecef;
-  overflow: hidden;
-}
-
-.card-header {
-  padding: 1.5rem 1.5rem 1rem;
-  border-bottom: 1px solid #f8f9fe;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
 
 .card-header h3 {
   color: #32325d;

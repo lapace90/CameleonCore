@@ -11,7 +11,7 @@
     </div>
     
     <div class="stat-card">
-      <div class="stat-icon">
+      <div class="stat-icon warning">
         <i class="fas fa-user-check"></i>
       </div>
       <div class="stat-content">
@@ -21,7 +21,7 @@
     </div>
     
     <div class="stat-card">
-      <div class="stat-icon">
+      <div class="stat-icon  success">
         <i class="fas fa-crown"></i>
       </div>
       <div class="stat-content">
@@ -31,7 +31,7 @@
     </div>
     
     <div class="stat-card">
-      <div class="stat-icon">
+      <div class="stat-icon  info">
         <i class="fas fa-user-plus"></i>
       </div>
       <div class="stat-content">

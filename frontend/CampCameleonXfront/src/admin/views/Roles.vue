@@ -10,11 +10,17 @@
         <p class="page-subtitle">
           {{ rolesData?.meta?.total || 0 }} rôles • {{ rolesData?.meta?.stats?.total_users || 0 }} utilisateurs assignés
         </p>
+        <div class="header-actions">
+          <router-link to="/admin/permissions" class="btn btn-outline btn-sm">
+            <i class="fas fa-key"></i>
+            Permissions
+          </router-link>
 
-        <button @click="openCreateModal" class="btn btn-primary btn-sm">
-          <i class="fas fa-plus"></i>
-          Nouveau rôle
-        </button>
+          <button @click="openCreateModal" class="btn btn-primary btn-sm">
+            <i class="fas fa-plus"></i>
+            Nouveau rôle
+          </button>
+        </div>
       </div>
     </div>
 
@@ -251,7 +257,7 @@ export default {
       'loadAllData',
       'clearMessages'
     ]),
-    
+
     isDeletable(role) {
       const count =
         role.total_users_count ??

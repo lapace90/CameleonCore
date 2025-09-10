@@ -563,63 +563,7 @@ export default {
   transform: translateY(-1px);
 }
 
-/* Stats Cards */
-.calendar-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  padding: 2rem;
-  background: #f8f9fa;
-}
 
-/* .stat-card {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-} */
-
-.stat-icon {
-  width: 50px;
-  height: 50px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 1.2rem;
-}
-
-.stat-icon.reservations {
-  background: linear-gradient(135deg, #28a745, #20c997);
-}
-
-.stat-icon.events {
-  background: linear-gradient(135deg, #ffc107, #fd7e14);
-}
-
-.stat-icon.occupancy {
-  background: linear-gradient(135deg, #6f42c1, #e83e8c);
-}
-
-.stat-content {
-  display: flex;
-  flex-direction: column;
-}
-
-.stat-number {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #2d3748;
-}
-
-.stat-label {
-  font-size: 0.875rem;
-  color: #718096;
-}
 
 /* Calendar */
 .calendar-wrapper {
