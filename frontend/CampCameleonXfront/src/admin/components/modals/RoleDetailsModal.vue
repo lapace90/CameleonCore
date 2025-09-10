@@ -4,7 +4,7 @@
         <div class="modal-content" @click.stop>
             <div class="modal-header">
                 <h3>
-                    <i :class="`fas ${role.icon}`" :style="{ color: role.color }"></i>
+                    <i class="fas fa-shield-alt"></i>
                     {{ role.name }}
                 </h3>
                 <button @click="$emit('close')" class="btn-close">

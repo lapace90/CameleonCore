@@ -1,72 +1,95 @@
 <template>
-  <div v-if="show" class="modal-overlay" @click="$emit('close')">
-    <div class="modal-content" @click.stop>
+  <div v-if="show" class="modal-overlay"  @click.self="$emit('close')">
+    <div class="modal-content" style="border-radius: 16px;" @click.stop>
       <div class="modal-header">
         <h3>
-          <i class="fas fa-user"></i>
+          <i class="fas fa-user" :style="{ color: headerColor }"></i>
           {{ user.name }}
         </h3>
-        <button @click="$emit('close')" class="btn-close">&times;</button>
+        <button @click="$emit('close')" class="btn-close">
+          <i class="fas fa-times"></i>
+        </button>
       </div>
-      
+
       <div class="modal-body">
-        <div class="user-details-modal">
+        <!-- ⚠️ même wrapper que la modal des rôles -->
+        <div class="role-details-content py-3">
+          <!-- Informations générales -->
           <div class="detail-section">
             <h4>Informations générales</h4>
-            <div class="info-grid">
-              <div class="info-item">
-                <strong>Email:</strong> {{ user.email }}
+            <div class="detail-grid py-3">
+              <div class="detail-item">
+                <span class="label">Nom :</span>
+                <span class="value">{{ user.name }}</span>
               </div>
-              <div class="info-item">
-                <strong>Statut:</strong> 
-                <span class="status-indicator" :class="getStatusClass(user.status)">
-                  {{ getStatusLabel(user.status) }}
+
+              <div class="detail-item">
+                <span class="label">Email :</span>
+                <span class="value">{{ user.email }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Statut :</span>
+                <span class="value">
+                  <span class="badge" :class="statusBadgeClass">
+                    <i v-if="isActive" class="fas fa-check-circle"></i>
+                    <i v-else-if="isInactive" class="fas fa-ban"></i>
+                    <i v-else class="fas fa-clock"></i>
+                    {{ getStatusLabel(user.status) }}
+                  </span>
                 </span>
               </div>
-              <div class="info-item">
-                <strong>Inscription:</strong> {{ formatDate(user.created_at) }}
+              <div class="detail-item">
+                <span class="label">Inscription :</span>
+                <span class="value">{{ formatDate(user.created_at) }}</span>
               </div>
-              <div class="info-item">
-                <strong>Dernière connexion:</strong> 
-                {{ user.last_login_at ? formatDate(user.last_login_at) : 'Jamais' }}
+              <div class="detail-item">
+                <span class="label">Dernière connexion :</span>
+                <span class="value">
+                  {{ user.last_login_at ? formatDate(user.last_login_at) : 'Jamais' }}
+                </span>
               </div>
             </div>
           </div>
-          
+
+          <!-- Statistiques -->
           <div class="detail-section">
-            <h4>Rôles et permissions</h4>
-            <div class="roles-permissions-detail">
-              <div v-if="user.role" class="role-detail">
-                <h5>Rôle principal</h5>
-                <div class="role-badge role-primary">{{ user.role.name }}</div>
-              </div>
-              
-              <div v-if="user.additional_roles && user.additional_roles.length > 0" class="role-detail">
-                <h5>Rôles additionnels</h5>
-                <div class="roles-list">
-                  <span 
-                    v-for="role in user.additional_roles" 
-                    :key="role.id"
-                    class="role-badge role-secondary"
-                  >
-                    {{ role.name }}
-                  </span>
+            <h4>Statistiques</h4>
+            <div class="stats-grid">
+              <div class="stat-card">
+                <i class="fas fa-users"></i>
+                <div>
+                  <span class="stat-number">{{ rolesCount }}</span>
+                  <span class="stat-label">Rôles</span>
                 </div>
               </div>
-              
-              <div v-if="user.permissions && user.permissions.length > 0" class="permissions-detail">
-                <h5>Permissions directes</h5>
-                <div class="permissions-list">
-                  <span 
-                    v-for="permission in user.permissions" 
-                    :key="permission.id"
-                    class="permission-badge"
-                    :class="getActionClass(permission.action)"
-                  >
-                    {{ permission.name }}
-                  </span>
+              <div class="stat-card">
+                <i class="fas fa-key"></i>
+                <div>
+                  <span class="stat-number">{{ permissionsCount }}</span>
+                  <span class="stat-label">Permissions</span>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <!-- Rôles (agrégés) -->
+          <div v-if="rolesCount > 0" class="detail-section">
+            <h4>Rôles ({{ rolesCount }})</h4>
+            <div class="roles-list">
+              <span v-for="r in allRoles" :key="r.id || r.slug || r.name" class="role-badge role-secondary">
+                {{ r.name }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Permissions -->
+          <div v-if="user.permissions && user.permissions.length > 0" class="detail-section">
+            <h4>Permissions ({{ permissionsCount }})</h4>
+            <div class="permissions-list">
+              <span v-for="permission in user.permissions" :key="permission.id" class="permission-badge"
+                :class="`permission-${permission.category || mapActionToCategory(permission.action)}`">
+                {{ permission.name }}
+              </span>
             </div>
           </div>
         </div>
@@ -77,57 +100,118 @@
 
 <script>
 export default {
-  name: 'UserModal',
+  name: 'UserDetailsModal',
   props: {
-    show: {
-      type: Boolean,
-      default: false
-    },
-    user: {
-      type: Object,
-      default: () => ({})
-    }
+    show: { type: Boolean, default: false },
+    user: { type: Object, required: true },
+    // optionnel : te permet d’accentuer la couleur de l’icône comme pour les rôles
+    headerColor: { type: String, default: null }
   },
   emits: ['close'],
-  methods: {
-    formatDate(dateString) {
-      if (!dateString) return ''
-      const date = new Date(dateString)
-      return date.toLocaleDateString('fr-FR', {
-        day: '2-digit',
-        month: '2-digit', 
-        year: 'numeric'
+  computed: {
+    // Toutes les sources possibles combinées, sans doublons
+    allRoles() {
+      const items = []
+      const pushIf = (r) => { if (r && r.name) items.push(r) }
+
+      // alias possibles selon tes payloads
+      pushIf(this.user.role)
+      pushIf(this.user.primary_role)
+
+      if (Array.isArray(this.user.additional_roles)) {
+        this.user.additional_roles.forEach(pushIf)
+      }
+      if (Array.isArray(this.user.roles)) {
+        this.user.roles.forEach(pushIf)
+      }
+
+      // dédoublonnage par id/slug/nom
+      const seen = new Set()
+      return items.filter(r => {
+        const key = r.id ?? r.slug ?? r.name
+        if (seen.has(key)) return false
+        seen.add(key)
+        return true
       })
     },
-
-    getStatusClass(status) {
-      const classes = {
-        'active': 'status-active',
-        'inactive': 'status-inactive', 
-        'blocked': 'status-blocked'
-      }
-      return classes[status] || 'status-unknown'
+    rolesCount() {
+      // Priorité au tableau agrégé
+      const c = this.allRoles.length
+      // sinon fallback sur un éventuel compteur serveur
+      return c || Number(this.user.roles_count || 0)
     },
+    permissionsCount() {
+      if (Array.isArray(this.user.permissions)) return this.user.permissions.length
+      return Number(this.user.permissions_count || 0)
 
+    },
+    primaryRole() {
+      return this.user.role || this.user.primary_role || null
+    },
+    isActive() {
+      const s = String(this.user.status ?? '').toLowerCase()
+      return ['active', 'enabled', '1', 'true'].includes(s)
+    },
+    isInactive() {
+      const s = String(this.user.status ?? '').toLowerCase()
+      return ['inactive', 'disabled', '0', 'false'].includes(s)
+    },
+    statusBadgeClass() {
+      // même logique “badge-*” que la modal des rôles
+      if (this.isActive) return 'badge-success'
+      if (this.isInactive) return 'badge-danger'
+      const s = String(this.user.status ?? '').toLowerCase()
+      if (['pending', 'invited', 'waiting'].includes(s)) return 'badge-warning'
+      return 'badge-normal'
+    }
+  },
+  methods: {
+    formatDate(d) {
+      if (!d) return ''
+      const date = new Date(d)
+      return isNaN(date) ? d : date.toLocaleString()
+    },
     getStatusLabel(status) {
-      const labels = {
-        'active': 'Actif',
-        'inactive': 'Suspendu',
-        'blocked': 'Bloqué'
-      }
-      return labels[status] || status
+      const s = String(status ?? '').toLowerCase()
+      if (['active', 'enabled', '1', 'true'].includes(s)) return 'Actif'
+      if (['inactive', 'disabled', '0', 'false'].includes(s)) return 'Inactif'
+      if (['pending', 'invited', 'waiting'].includes(s)) return 'En attente'
+      return s ? s.charAt(0).toUpperCase() + s.slice(1) : 'Inconnu'
     },
-
-    getActionClass(action) {
-      const classes = {
-        'create': 'badge-success',
-        'read': 'badge-info',
-        'update': 'badge-warning',
-        'delete': 'badge-danger',
-        'admin': 'badge-primary'
-      }
-      return classes[action.toLowerCase()] || 'badge-secondary'
+    mapActionToCategory(action) {
+      const a = String(action || '').toLowerCase()
+      if (a.startsWith('view') || a.startsWith('read')) return 'read'
+      if (a.startsWith('create') || a.startsWith('add')) return 'create'
+      if (a.startsWith('update') || a.startsWith('edit') || a.startsWith('patch')) return 'update'
+      if (a.startsWith('delete') || a.startsWith('remove') || a.startsWith('destroy')) return 'delete'
+      return 'other'
     }
   }
 }
 </script>
+<style scoped>
+.detail-item {
+  padding-bottom: 1.2rem;
+}
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+
+  .stat-card {
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    height: 6rem;
+    color: var(--primary);
+  }
+
+  .stat-number {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--coffee);
+  }
+}
+</style>

@@ -24,9 +24,9 @@
         </div>
 
         <!-- Statistiques -->
-        <div class="stats-grid" v-if="permissionsData.stats">
+        <div class="stats-container" v-if="permissionsData.stats">
             <div class="stat-card">
-                <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="stat-icon">
                     <i class="fas fa-key"></i>
                 </div>
                 <div class="stat-info">
@@ -36,7 +36,7 @@
             </div>
 
             <div class="stat-card">
-                <div class="stat-icon" style="background: linear-gradient(135deg, #2dce89 0%, #2dcecc 100%);">
+                <div class="stat-icon info">
                     <i class="fas fa-check-circle"></i>
                 </div>
                 <div class="stat-info">
@@ -46,7 +46,7 @@
             </div>
 
             <div class="stat-card">
-                <div class="stat-icon" style="background: linear-gradient(135deg, #fb6340 0%, #fbb140 100%);">
+                <div class="stat-icon warning">
                     <i class="fas fa-exclamation-triangle"></i>
                 </div>
                 <div class="stat-info">
@@ -56,7 +56,7 @@
             </div>
 
             <div class="stat-card">
-                <div class="stat-icon" style="background: linear-gradient(135deg, #5e72e4 0%, #825ee4 100%);">
+                <div class="stat-icon success">
                     <i class="fas fa-chart-pie"></i>
                 </div>
                 <div class="stat-info">

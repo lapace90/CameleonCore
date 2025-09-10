@@ -120,11 +120,11 @@ export default {
   border-bottom: 1px solid #e9ecef;
 }
 
-.modal-title {
+/* .modal-title {
   margin: 0;
   color: #32325d;
   font-size: 1.25rem;
-}
+} */
 
 .modal-close {
   background: none;
@@ -142,7 +142,7 @@ export default {
   background-color: #f8f9fe;
 }
 
-.modal-body {
+/* .modal-body {
   padding: 1.5rem;
 }
 
@@ -152,7 +152,7 @@ export default {
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
-}
+} */
 
 /* Transitions */
 .modal-enter-active,

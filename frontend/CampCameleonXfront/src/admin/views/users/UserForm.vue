@@ -102,7 +102,7 @@
 
             <!-- Attribution des rôles -->
             <div class="form-section">
-              <h3>Rôles et permissions</h3>
+              <h3>Rôles</h3>
 
               <div class="form-group">
                 <label class="form-label">Rôle principal</label>
@@ -125,20 +125,6 @@
                         <span class="role-name">{{ role.name }}</span>
                         <span class="role-description">{{ role.description }}</span>
                       </div>
-                    </div>
-                  </label>
-                </div>
-              </div>
-
-              <!-- Permissions directes -->
-              <div class="form-group" v-if="permissions.length > 0">
-                <label class="form-label">Permissions supplémentaires</label>
-                <div class="permissions-grid">
-                  <label v-for="permission in permissions" :key="permission.id" class="permission-checkbox">
-                    <input type="checkbox" :value="permission.id" v-model="form.permissions" />
-                    <div class="permission-content">
-                      <span class="permission-name">{{ permission.name }}</span>
-                      <span class="permission-action">{{ permission.action }}</span>
                     </div>
                   </label>
                 </div>
@@ -234,7 +220,6 @@ export default {
         email: '',
         role_id: '',
         additional_roles: [],
-        permissions: [],
         status: 'active',
         reset_password: false,
         password: '',
@@ -254,7 +239,6 @@ export default {
       loading: 'loading',
       error: 'error',
       availableRoles: 'availableRoles',
-      availablePermissions: 'availablePermissions',
       currentUser: 'currentUser'
     }),
 
@@ -274,10 +258,6 @@ export default {
     // Aliases pour compatibilité template
     roles() {
       return this.availableRoles
-    },
-    
-    permissions() {
-      return this.availablePermissions
     }
   },
 
@@ -303,47 +283,21 @@ export default {
       'clearMessages'
     ]),
 
-    // ❌ SUPPRESSION : Plus besoin de loadRolesAndPermissions() direct
-    // async loadRolesAndPermissions() {
-    //   try {
-    //     const [roles, permissions] = await Promise.all([
-    //       UsersApi.getRoles(),
-    //       UsersApi.getPermissions()
-    //     ])
-    //     this.roles = roles
-    //     this.permissions = permissions
-    //   } catch (error) {
-    //     ...
-    //   }
-    // },
-
     // 🚀 OPTIMISATION : Charger données via store avec cache
     async loadFormData() {
       try {
         // 🚀 UNE SEULE méthode charge tout avec cache intelligent
         await this.loadAllData()
         
-        console.log('✅ Rôles et permissions chargés depuis store:', {
+        console.log('✅ Rôles chargés depuis store:', {
           roles: this.availableRoles.length,
-          permissions: this.availablePermissions.length
         })
         
       } catch (error) {
         console.error('Erreur lors du chargement des données:', error)
-        this.usersStore.error = 'Impossible de charger les rôles et permissions'
+        this.usersStore.error = 'Impossible de charger les rôles'
       }
     },
-
-    // ❌ SUPPRESSION : Plus besoin de loadUser() direct
-    // async loadUser() {
-    //   this.loading = true
-    //   try {
-    //     this.user = await UsersApi.getById(this.userId)
-    //     // Remplir formulaire...
-    //   } catch (error) {
-    //     ...
-    //   }
-    // },
 
     // 🚀 OPTIMISATION : Charger user via store avec cache
     async loadUserForEditing() {
@@ -375,7 +329,6 @@ export default {
         email: this.user.email || '',
         role_id: this.user.role_id || '',
         additional_roles: this.user.roles?.map(role => role.id) || [],
-        permissions: this.user.permissions?.map(perm => perm.id) || [],
         status: this.user.status || 'active',
         reset_password: false,
         password: '',
@@ -464,14 +417,13 @@ export default {
       }
     },
 
-    // 🚀 NOUVELLE : Reset form
+    // Reset form
     resetForm() {
       this.form = {
         name: '',
         email: '',
         role_id: '',
         additional_roles: [],
-        permissions: [],
         status: 'active', 
         reset_password: false,
         password: '',
@@ -480,7 +432,7 @@ export default {
       this.errors = {}
     },
 
-    // 🚀 NOUVELLE : Validate form locale (optionnel)
+    // Validate form locale 
     validateForm() {
       const errors = {}
       
@@ -512,7 +464,7 @@ export default {
 
   // 🚀 OPTIMISATION : Lifecycle hooks
   async created() {
-    // 🚀 Charger les données du formulaire (roles, permissions avec cache)
+    // 🚀 Charger les données du formulaire (roles avec cache)
     await this.loadFormData()
     
     // 🚀 Si édition, charger l'utilisateur (avec cache)
@@ -541,28 +493,3 @@ export default {
   }
 }
 </script>
-
-<!-- 
-🚀 OPTIMISATIONS APPORTÉES :
-
-1. ❌ SUPPRESSION : Plus de UsersApi.getRoles/getPermissions() directs
-2. ❌ SUPPRESSION : Plus de loadRolesAndPermissions() manuel
-3. ✅ AJOUT : loadAllData() utilise cache intelligent du store
-4. ✅ AJOUT : fetchUserById() avec cache pour éviter requêtes répétées
-5. ✅ AJOUT : Submit via store avec gestion globale des états
-6. ✅ AJOUT : Computed properties mappées depuis store
-7. ✅ AJOUT : Gestion d'erreur centralisée
-8. ✅ AJOUT : Cache réutilisé entre templates
-
-COMPATIBILITÉ :
-- ✅ Template HTML inchangé
-- ✅ Propriétés form preserved  
-- ✅ Validation preserved
-- ✅ Navigation preserved
-- ✅ Messages d'erreur preserved
-
-IMPACT PERFORMANCE UserForm :
-- AVANT : 3 requêtes HTTP (roles + permissions + user si edit)
-- APRÈS : 0 requête HTTP si données en cache
-- Cache : 10 min pour roles/permissions, 5 min pour user
--->

@@ -553,7 +553,6 @@
         margin: 0;
         font-size: 1.25rem;
         font-weight: 600;
-        color: var(--text-dark);
         display: flex;
         align-items: center;
         gap: 0.75rem;
@@ -575,7 +574,6 @@
 
         &:hover {
           background-color: var(--bg-gray);
-          color: var(--text-dark);
         }
       }
     }
