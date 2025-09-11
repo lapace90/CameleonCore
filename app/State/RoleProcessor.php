@@ -289,29 +289,6 @@ class RoleProcessor implements ProcessorInterface
             }
         }
 
-        // 4) Permissions directes
-        if (method_exists($user, 'permissions')) {
-            try {
-                $perms = $user->permissions()->pluck('action')->all();
-                if (in_array('admin', $perms, true) || in_array('manage-roles', $perms, true)) {
-                    return true;
-                }
-            } catch (\Throwable $e) {
-                $errors[] = 'permissions()->pluck("action") a levé: ' . $e->getMessage();
-            }
-        }
-
-        // 5) Méthode hasPermission()
-        if (method_exists($user, 'hasPermission')) {
-            try {
-                if ($user->hasPermission('admin') || $user->hasPermission('manage-roles')) {
-                    return true;
-                }
-            } catch (\Throwable $e) {
-                $errors[] = 'hasPermission() a levé: ' . $e->getMessage();
-            }
-        }
-
         // Log non bloquant mais utile en debug si quelque chose a raté en chemin
         if (!empty($errors)) {
             Log::debug('canManageRoles: tous les checks ont échoué', [

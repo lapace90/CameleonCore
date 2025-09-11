@@ -93,11 +93,11 @@ class UsersApi {
   }
 
   /**
-   * Mettre à jour un utilisateur - submitForm() PUT
+   * Mettre à jour un utilisateur - submitForm() PATCH
    */
   static async update(userId, payload) {
     try {
-      const response = await axios.put(`/api/admin/users/${userId}`, payload)
+      const response = await axios.patch(`/api/admin/users/${userId}`, payload)
       return response.data
     } catch (error) {
       console.error('Erreur lors de la mise à jour:', error)

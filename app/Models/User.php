@@ -7,6 +7,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Delete;
 use App\State\UserCollectionProvider;
 use App\State\UserItemProvider;
@@ -40,6 +41,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
             input: UserData::class,
             deserialize: false
         ),
+        new Put(),
         new Patch(
             uriTemplate: '/admin/users/{id}',
             processor: UserProcessor::class,
@@ -211,47 +213,6 @@ class User extends Authenticatable
     }
 
     /**
-     * Obtenir la catégorie d'une permission
-     */
-    // private function getPermissionCategory(string $action): string
-    // {
-    //     $action = strtolower($action);
-
-    //     if (in_array($action, ['create', 'add', 'store'])) {
-    //         return 'create';
-    //     } elseif (in_array($action, ['read', 'view', 'show', 'list', 'index'])) {
-    //         return 'read';
-    //     } elseif (in_array($action, ['update', 'edit', 'modify'])) {
-    //         return 'update';
-    //     } elseif (in_array($action, ['delete', 'destroy', 'remove'])) {
-    //         return 'delete';
-    //     } elseif (in_array($action, ['manage', 'admin', 'control'])) {
-    //         return 'admin';
-    //     } else {
-    //         return 'other';
-    //     }
-    // }
-
-    /**
-     * Obtenir un résumé des permissions de l'utilisateur selon le rôle
-     */
-    // public function getPermissionsSummary(): array
-    // {
-    //     $permissions = $this->getAllPermissions();
-
-    //     return [
-    //         'total_permissions' => $permissions->count(),
-    //         'by_category' => $this->getPermissionsByCategory(),
-    //         'roles' => [
-    //             'primary' => $this->role ? $this->role->name : null,
-    //             'additional' => $this->roles->pluck('name')->toArray()
-    //         ],
-    //         'direct_permissions' => $this->permissions->count(),
-    //         'inherited_permissions' => $permissions->count() - $this->permissions->count()
-    //     ];
-    // }
-
-    /**
      * Vérifier si l'utilisateur peut accéder à l'administration
      */
     public function canAccessAdmin(): bool
@@ -260,12 +221,47 @@ class User extends Authenticatable
     }
 
     /**
+     * Vérifier si l'utilisateur a une permission spécifique VIA SES RÔLES
+     */
+    public function hasPermission(string $permission): bool
+    {
+        // 1. Vérifier rôle principal
+        if ($this->role && $this->role->hasPermission($permission)) {
+            return true;
+        }
+
+        // 2. Vérifier rôles additionnels
+        return $this->roles()->whereHas('permissions', function ($query) use ($permission) {
+            $query->where('action', $permission);
+        })->exists();
+    }
+
+    /**
+     * Obtenir toutes les permissions VIA LES RÔLES
+     */
+    public function getAllPermissions(): array
+    {
+        $permissions = collect();
+
+        // Permissions du rôle principal
+        if ($this->role) {
+            $permissions = $permissions->merge($this->role->permissions);
+        }
+
+        // Permissions des rôles additionnels
+        $this->roles->each(function ($role) use (&$permissions) {
+            $permissions = $permissions->merge($role->permissions);
+        });
+
+        return $permissions->unique('id')->values()->toArray(); 
+    }
+
+    /**
      * Vérifier si l'utilisateur peut gérer d'autres utilisateurs
      */
     public function canManageUsers(): bool
     {
-        return $this->hasAnyRole(['super-admin', 'admin']) ||
-            $this->hasPermission('manage');
+        return $this->hasAnyRole(['super-admin', 'admin', 'owner']);
     }
 
     /**

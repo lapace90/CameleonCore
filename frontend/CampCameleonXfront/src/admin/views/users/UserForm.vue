@@ -104,36 +104,90 @@
 
             <!-- 🚀 SECTION RÔLES OPTIMISÉE -->
             <div class="form-section">
-              <h3>Rôles
+              <h3>Rôles et hiérarchie
                 <small style="color: #6b7280;">({{ availableRoles.length }} disponible{{ availableRoles.length > 1 ? 's'
                   : '' }})</small>
               </h3>
 
-              <!-- Rôle principal -->
-              <div class="form-group">
-                <label class="form-label">Rôle principal</label>
-                <select v-model="form.role_id" class="form-input">
-                  <option value="">Sélectionner un rôle</option>
-                  <option v-for="role in availableRoles" :key="role.id" :value="role.id">
-                    {{ role.name }}
-                    <!-- <span v-if="role.description"> - {{ role.description }}</span> -->
-                  </option>
-                </select>
-              </div>
+              <!-- Interface unique et simple -->
+              <div class="roles-smart-interface">
+                <!-- Sélection des rôles -->
+                <div class="form-group">
+                  <label class="form-label">Rôles attribués</label>
+                  <div class="roles-selection">
+                    <div v-for="role in availableRoles" :key="role.id" class="role-item">
+                      <!-- Checkbox pour sélectionner le rôle -->
+                      <label class="checkbox-container">
+                        <input type="checkbox" :value="role.id" v-model="selectedRoles"
+                          @change="onRoleSelectionChange" />
+                        <div class="checkbox-custom"></div>
+                        <span class="role-info">
+                          <strong>{{ role.name }}</strong>
+                          <small v-if="role.description">{{ role.description }}</small>
+                        </span>
+                      </label>
 
-              <!-- Rôles additionnels -->
-              <div class="form-group">
-                <label class="form-label">Rôles additionnels</label>
-                <div class="roles-grid">
-                  <label v-for="role in availableRoles" :key="`add-${role.id}`" class="checkbox-itlem"
-                    :class="{ 'disabled': form.role_id === role.id }">
-                    <input type="checkbox" :value="role.id" v-model="form.additional_roles"
-                      :disabled="form.role_id === role.id" />
-                    <span class="checkbox-label px-3">
-                      {{ role.name }}
-                      <small v-if="form.role_id === role.id" style="color: #6b7280;">(principal)</small>
-                    </span>
-                  </label>
+                      <!-- Bouton radio pour le rôle principal (seulement si sélectionné) -->
+                      <div v-if="selectedRoles.includes(role.id)" class="principal-selector">
+                        <input type="radio" :value="role.id" v-model="form.role_id" :id="`principal-${role.id}`"
+                          name="principal_role" @change="onPrincipalRoleChange" />
+                        <label :for="`principal-${role.id}`" class="radio-label">
+                          <i class="fas fa-crown"></i> Principal
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Résumé automatique (seulement si des rôles sont sélectionnés) -->
+                <div v-if="selectedRoles.length > 0" class="roles-summary">
+                  <div class="summary-header">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Configuration actuelle</strong>
+                  </div>
+
+                  <div class="role-hierarchy">
+                    <!-- Rôle principal -->
+                    <div v-if="form.role_id" class="principal-role">
+                      <i class="fas fa-crown text-warning"></i>
+                      <span><strong>Principal :</strong> {{ getRoleName(form.role_id) }}</span>
+                    </div>
+
+                    <!-- Rôles additionnels -->
+                    <div v-if="additionalRolesComputed.length > 0" class="additional-roles">
+                      <i class="fas fa-users text-info"></i>
+                      <span><strong>Additionnels :</strong> {{additionalRolesComputed.map(id =>
+                        getRoleName(id)).join(', ') }}</span>
+                    </div>
+
+                    <!-- Si aucun principal mais des rôles sélectionnés -->
+                    <div v-if="selectedRoles.length > 1 && !form.role_id" class="needs-principal">
+                      <i class="fas fa-exclamation-triangle text-warning"></i>
+                      <span><strong>Action requise :</strong> Choisissez le rôle principal avec les boutons radio
+                        jaunes</span>
+                    </div>
+                  </div>
+
+                  <!-- Permissions preview -->
+                  <div class="permissions-preview">
+                    <small>
+                      <i class="fas fa-key"></i>
+                      Cet utilisateur aura environ <strong>{{ estimatedPermissions }}</strong> permission(s) via ses
+                      rôles
+                    </small>
+                  </div>
+                </div>
+
+                <!-- Message d'aide contextuelle selon la situation -->
+                <div v-if="selectedRoles.length === 0" class="help-message help-empty">
+                  <i class="fas fa-hand-pointer"></i>
+                  <span>Sélectionnez un ou plusieurs rôles pour cet utilisateur en cochant les cases</span>
+                </div>
+
+                <div v-else-if="selectedRoles.length === 1" class="help-message help-single">
+                  <i class="fas fa-check-circle text-success"></i>
+                  <span>Parfait ! Le rôle sélectionné est automatiquement défini comme <strong>rôle
+                      principal</strong></span>
                 </div>
               </div>
 
@@ -141,7 +195,8 @@
               <div class="form-info">
                 <i class="fas fa-info-circle px-3" style="color: #0ea5e9;"></i>
                 <strong>Architecture RBAC :</strong>
-                <p>Les permissions sont gérées via les rôles. Pas de permissions directes aux utilisateurs.</p>
+                <p>Les permissions sont gérées via les rôles. Un utilisateur peut avoir un rôle principal et plusieurs
+                  rôles additionnels.</p>
               </div>
             </div>
 
@@ -225,6 +280,9 @@ export default {
 
   data() {
     return {
+
+      selectedRoles: [],
+
       form: {
         name: '',
         email: '',
@@ -248,6 +306,19 @@ export default {
       availableRoles: 'availableRoles',
       currentUser: 'currentUser'
     }),
+    additionalRolesComputed() {
+      return this.selectedRoles.filter(id => id !== parseInt(this.form.role_id))
+    },
+
+    /**
+     * ✅ NOUVELLE computed : Estimation du nombre de permissions
+     */
+    estimatedPermissions() {
+      // Logique simplifiée - vous pouvez l'améliorer en comptant vraiment les permissions
+      const basePermissions = this.selectedRoles.length * 8 // Estimation moyenne
+      return Math.min(basePermissions, 49) // Max 49 permissions total
+
+    },
 
     isEditing() {
       return this.action === 'edit' && !!this.$route.params.id
@@ -281,6 +352,120 @@ export default {
       'deleteUser',
       'clearMessages'
     ]),
+
+    /**
+  * ✅ NOUVELLE MÉTHODE : Gestion intelligente de la sélection des rôles
+  */
+    onRoleSelectionChange() {
+      console.log('🔄 Changement sélection rôles:', this.selectedRoles)
+
+      // Convertir en nombres pour éviter les problèmes de comparaison
+      const roleIds = this.selectedRoles.map(id => parseInt(id))
+
+      if (roleIds.length === 0) {
+        // Cas 1: Aucun rôle sélectionné
+        this.form.role_id = ''
+        this.form.additional_roles = []
+
+      } else if (roleIds.length === 1) {
+        // Cas 2: Un seul rôle → automatiquement principal
+        this.form.role_id = roleIds[0]
+        this.form.additional_roles = []
+
+        console.log('✅ Rôle unique défini comme principal:', roleIds[0])
+
+      } else {
+        // Cas 3: Plusieurs rôles → gérer principal + additionnels
+
+        // Si pas de rôle principal ou si le principal n'est plus sélectionné
+        if (!this.form.role_id || !roleIds.includes(parseInt(this.form.role_id))) {
+          // Prendre le premier comme principal par défaut
+          this.form.role_id = roleIds[0]
+        }
+
+        // Calculer les rôles additionnels
+        this.form.additional_roles = roleIds
+          .filter(id => id !== parseInt(this.form.role_id))
+          .map(id => String(id)) // API attend des strings
+
+        console.log('🔄 Rôles multiples:', {
+          principal: this.form.role_id,
+          additionnels: this.form.additional_roles
+        })
+      }
+
+      this.validateRoleSelection()
+    },
+
+    /**
+     * ✅ NOUVELLE MÉTHODE : Changement du rôle principal via radio
+     */
+    onPrincipalRoleChange() {
+      console.log('👑 Changement rôle principal:', this.form.role_id)
+
+      // Recalculer les rôles additionnels
+      this.form.additional_roles = this.selectedRoles
+        .filter(id => id !== parseInt(this.form.role_id))
+        .map(id => String(id))
+
+      console.log('✅ Nouveaux rôles additionnels:', this.form.additional_roles)
+    },
+
+    /**
+     * ✅ NOUVELLE MÉTHODE : Support pour l'interface classique (fallback)
+     */
+    onLegacyRoleChange() {
+      if (this.form.role_id) {
+        // Ajouter le rôle principal aux rôles sélectionnés s'il n'y est pas
+        if (!this.selectedRoles.includes(parseInt(this.form.role_id))) {
+          this.selectedRoles.push(parseInt(this.form.role_id))
+        }
+      }
+      this.onRoleSelectionChange()
+    },
+
+    /**
+     * ✅ NOUVELLE MÉTHODE : Support pour les rôles additionnels classiques
+     */
+    onLegacyAdditionalChange() {
+      // Synchroniser avec la nouvelle interface
+      const allRoles = []
+
+      if (this.form.role_id) {
+        allRoles.push(parseInt(this.form.role_id))
+      }
+
+      this.form.additional_roles.forEach(id => {
+        const roleId = parseInt(id)
+        if (!allRoles.includes(roleId)) {
+          allRoles.push(roleId)
+        }
+      })
+
+      this.selectedRoles = allRoles
+      this.onRoleSelectionChange()
+    },
+
+    /**
+     * ✅ NOUVELLE MÉTHODE : Obtenir le nom d'un rôle par son ID
+     */
+    getRoleName(roleId) {
+      const role = this.availableRoles.find(r => r.id === parseInt(roleId))
+      return role ? role.name : 'Rôle inconnu'
+    },
+
+    /**
+     * ✅ NOUVELLE MÉTHODE : Validation de la sélection
+     */
+    validateRoleSelection() {
+      // Validation business logic
+      if (this.selectedRoles.length > 5) {
+        console.warn('⚠️ Plus de 5 rôles sélectionnés, performance impact possible')
+      }
+
+      // Nettoyer les doublons
+      this.selectedRoles = [...new Set(this.selectedRoles)]
+    },
 
     // 🚀 OPTIMISATION : Charger SEULEMENT les rôles (ultra rapide)
     async loadFormData() {
@@ -328,18 +513,77 @@ export default {
     populateForm() {
       if (!this.user) return
 
+      // Debug : voir ce que contient réellement this.user
+      console.log('🔍 Structure user récupérée:', this.user)
+
       this.form = {
         name: this.user.name || '',
         email: this.user.email || '',
-        role_id: this.user.role_id || '',
-        additional_roles: this.user.roles?.map(role => String(role.id)) || [],
+        role_id: this.user.role?.id || '',
+        // ✅ CORRECTION : Essayer différentes propriétés selon l'API
+        additional_roles: this.getAdditionalRolesFromUser(),
         status: this.user.status || 'active',
         reset_password: false,
         password: '',
         password_confirmation: ''
       }
+
+      // ✅ SYNCHRONISER avec la nouvelle interface
+      this.syncSelectedRoles()
     },
 
+    // ✅ NOUVELLE MÉTHODE : Extraire les rôles additionnels selon le format API
+    getAdditionalRolesFromUser() {
+      // Essayer différents formats possibles de l'API
+      if (this.user.additionalRoles && Array.isArray(this.user.additionalRoles)) {
+        return this.user.additionalRoles.map(role => String(role.id))
+      }
+
+      if (this.user.additional_roles && Array.isArray(this.user.additional_roles)) {
+        return this.user.additional_roles.map(role => String(role.id))
+      }
+
+      if (this.user.roles && Array.isArray(this.user.roles)) {
+        return this.user.roles.map(role => String(role.id))
+      }
+
+      return []
+    },
+
+    /**
+     * ✅ NOUVELLE MÉTHODE : Synchroniser selectedRoles depuis le formulaire
+     */
+    syncSelectedRoles() {
+      const allRoles = []
+
+      // Ajouter le rôle principal
+      if (this.form.role_id) {
+        allRoles.push(parseInt(this.form.role_id))
+      }
+
+      // Ajouter les rôles additionnels
+      if (this.form.additional_roles) {
+        this.form.additional_roles.forEach(id => {
+          const roleId = parseInt(id)
+          if (!allRoles.includes(roleId)) {
+            allRoles.push(roleId)
+          }
+        })
+      }
+
+      this.selectedRoles = allRoles
+
+      console.log('🔄 Synchronisation selectedRoles:', {
+        principal: this.form.role_id,
+        additionnels: this.form.additional_roles,
+        selected: this.selectedRoles
+      })
+    },
+
+
+    /**
+       * ✅ MÉTHODE MODIFIÉE : Préparation des données pour l'API
+       */
     async submitForm() {
       if (!this.validateForm()) return
 
@@ -347,10 +591,18 @@ export default {
       this.clearMessages()
 
       try {
+        // ✅ S'assurer que les rôles additionnels sont synchronisés
+        this.form.additional_roles = this.selectedRoles
+          .filter(id => id !== parseInt(this.form.role_id))
+          .map(id => String(id))
+
         const payload = { ...this.form }
 
+        // Nettoyer les champs vides
         if (!payload.password) delete payload.password
         if (!payload.password_confirmation) delete payload.password_confirmation
+
+        console.log('📤 Envoi payload:', payload)
 
         if (this.isEditing) {
           await this.updateUser(this.userId, payload)
@@ -386,6 +638,9 @@ export default {
       }
     },
 
+    /**
+     * ✅ MÉTHODE MODIFIÉE : Réinitialiser le formulaire
+     */
     resetForm() {
       this.form = {
         name: '',
@@ -397,9 +652,13 @@ export default {
         password: '',
         password_confirmation: ''
       }
+      this.selectedRoles = [] // ✅ Nouveau champ à réinitialiser
       this.errors = {}
     },
 
+    /**
+     * ✅ MÉTHODE MODIFIÉE : Validation avec les nouveaux champs
+     */
     validateForm() {
       const errors = {}
 
@@ -419,9 +678,14 @@ export default {
         errors.password_confirmation = ['Confirmation incorrecte']
       }
 
+      // ✅ NOUVELLE VALIDATION : Au moins un rôle requis
+      if (this.selectedRoles.length === 0) {
+        errors.roles = ['Au moins un rôle doit être sélectionné']
+      }
+
       this.errors = errors
       return Object.keys(errors).length === 0
-    }
+    },
   },
 
   // 🚀 OPTIMISATION : Chargement minimal et rapide
@@ -456,7 +720,6 @@ export default {
 </script>
 
 <style scoped>
-
 .loading-state {
   display: flex;
   flex-direction: column;
@@ -494,5 +757,204 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.roles-smart-interface {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.role-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1rem;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.role-item:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 1px 3px rgba(59, 130, 246, 0.1);
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+  flex: 1;
+}
+
+.checkbox-custom {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #d1d5db;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.checkbox-container input[type="checkbox"] {
+  display: none;
+}
+
+.checkbox-container input[type="checkbox"]:checked+.checkbox-custom {
+  background: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.checkbox-container input[type="checkbox"]:checked+.checkbox-custom::after {
+  content: '✓';
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.role-info strong {
+  display: block;
+  color: #1f2937;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.role-info small {
+  color: #6b7280;
+  font-size: 0.875rem;
+  line-height: 1.3;
+}
+
+.principal-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.principal-selector input[type="radio"] {
+  display: none;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 20px;
+  color: #d97706;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.principal-selector input[type="radio"]:checked+.radio-label {
+  background: #fbbf24;
+  color: white;
+}
+
+.roles-summary {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.summary-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  color: #374151;
+}
+
+.role-hierarchy>div {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.permissions-preview {
+  padding-top: 0.75rem;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 0.75rem;
+}
+
+.context-help {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+}
+
+.help-empty {
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  color: #6b7280;
+}
+
+.help-single {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+}
+
+.help-multiple {
+  background: #fffbeb;
+  border: 1px solid #fed7aa;
+  color: #c2410c;
+}
+
+.help-complete {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+}
+
+.context-help>div {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.advanced-mode {
+  margin-top: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 1rem;
+}
+
+.advanced-mode summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: #6b7280;
+  padding: 0.5rem;
+}
+
+.text-success {
+  color: #10b981;
+}
+
+.text-warning {
+  color: #f59e0b;
+}
+
+.text-info {
+  color: #3b82f6;
+}
+
+.text-primary {
+  color: #6366f1;
 }
 </style>

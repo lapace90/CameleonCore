@@ -27,7 +27,7 @@ class UserProcessor implements ProcessorInterface
     {
         // 🔐 SÉCURITÉ SANCTUM : Vérifier l'authentification pour toutes les opérations
         $currentUser = auth('sanctum')->user();
-        
+
         if (!$currentUser) {
             throw new UnauthorizedHttpException('Bearer', 'Token d\'authentification requis');
         }
@@ -77,7 +77,7 @@ class UserProcessor implements ProcessorInterface
         }
 
         $payload = $this->getDataFromRequest($context);
-        
+
         Log::info('UserProcessor - Création utilisateur', [
             'payload' => $payload,
             'created_by' => $currentUser->name
@@ -85,22 +85,22 @@ class UserProcessor implements ProcessorInterface
 
         // Validation spécifique pour la création
         $validator = Validator::make($payload, UserData::rulesForCreate());
-        
+
         if ($validator->fails()) {
             throw new ValidationException($validator);
         }
 
         // Créer UserData
         $userData = UserData::fromArray($payload);
-        
+
         // 🔒 SÉCURITÉ : Vérifier que le rôle assigné n'est pas supérieur au rôle courant
         if ($userData->roleId && !$this->canAssignRole($currentUser, $userData->roleId)) {
             throw new AccessDeniedHttpException('Vous ne pouvez pas assigner un rôle supérieur au vôtre');
         }
-        
+
         // Créer l'utilisateur
         $user = User::create($userData->toModelArray());
-        
+
         Log::info('UserProcessor - Utilisateur créé', [
             'user_id' => $user->id,
             'name' => $user->name,
@@ -108,15 +108,14 @@ class UserProcessor implements ProcessorInterface
             'created_by' => $currentUser->name
         ]);
 
-        // Assigner les relations (rôles additionnels et permissions)
+        // Assigner les relations (rôles additionnels)
         $this->syncUserRelations($user, $userData, $currentUser);
 
         // Recharger avec les relations
         $user->load([
             'role.permissions',
             'roles.permissions',
-            'permissions'
-        ])->loadCount(['roles', 'permissions']);
+        ])->loadCount(['roles']);
 
         return UserOutputData::fromUser($user);
     }
@@ -127,7 +126,7 @@ class UserProcessor implements ProcessorInterface
     private function updateUser(mixed $data, int $userId, array $context, User $currentUser): UserOutputData
     {
         $user = User::find($userId);
-        
+
         if (!$user) {
             throw new NotFoundHttpException("Utilisateur avec l'ID {$userId} non trouvé");
         }
@@ -135,13 +134,13 @@ class UserProcessor implements ProcessorInterface
         // 🔒 AUTORISATION : Un utilisateur peut modifier son propre profil ou avoir les permissions de gestion
         $canEditProfile = ($userId === $currentUser->id);
         $canManageUsers = $currentUser->canManageUsers();
-        
+
         if (!$canEditProfile && !$canManageUsers) {
             throw new AccessDeniedHttpException('Permissions insuffisantes pour modifier cet utilisateur');
         }
 
         $payload = $this->getDataFromRequest($context);
-        
+
         Log::info('UserProcessor - Mise à jour utilisateur', [
             'user_id' => $userId,
             'payload' => $payload,
@@ -154,7 +153,7 @@ class UserProcessor implements ProcessorInterface
             // Un utilisateur ne peut modifier que certains champs de son propre profil
             $allowedFields = ['name', 'email', 'password', 'password_confirmation'];
             $payload = array_intersect_key($payload, array_flip($allowedFields));
-            
+
             Log::info('Auto-édition détectée, champs limités', [
                 'allowed_fields' => array_keys($payload)
             ]);
@@ -162,32 +161,32 @@ class UserProcessor implements ProcessorInterface
 
         // Validation spécifique pour la mise à jour
         $validator = Validator::make($payload, UserData::rulesForUpdate($userId));
-        
+
         if ($validator->fails()) {
             throw new ValidationException($validator);
         }
 
         $userData = UserData::fromArray($payload);
-        
+
         // 🔒 SÉCURITÉ : Vérifier les changements de rôle
         if ($userData->roleId && $userData->roleId !== $user->role_id) {
             if (!$canManageUsers) {
                 throw new AccessDeniedHttpException('Permissions insuffisantes pour changer de rôle');
             }
-            
+
             if (!$this->canAssignRole($currentUser, $userData->roleId)) {
                 throw new AccessDeniedHttpException('Vous ne pouvez pas assigner un rôle supérieur au vôtre');
             }
         }
-        
+
         // Mettre à jour les champs de base
         $updateData = $userData->toModelArray();
-        
+
         // Ne pas hasher le password s'il est vide
         if (empty($userData->password)) {
             unset($updateData['password']);
         }
-        
+
         $user->update($updateData);
 
         Log::info('UserProcessor - Utilisateur mis à jour', [
@@ -204,9 +203,8 @@ class UserProcessor implements ProcessorInterface
         // Recharger avec les relations
         $user->load([
             'role.permissions',
-            'roles.permissions', 
-            'permissions'
-        ])->loadCount(['roles', 'permissions']);
+            'roles.permissions',
+        ])->loadCount(['roles']);
 
         return UserOutputData::fromUser($user);
     }
@@ -222,7 +220,7 @@ class UserProcessor implements ProcessorInterface
         }
 
         $user = User::find($userId);
-        
+
         if (!$user) {
             throw new NotFoundHttpException("Utilisateur avec l'ID {$userId} non trouvé");
         }
@@ -245,7 +243,7 @@ class UserProcessor implements ProcessorInterface
 
         // Détacher toutes les relations avant la suppression
         $user->roles()->detach();
-        
+
         // Supprimer les tokens d'API
         $user->tokens()->delete();
 
@@ -268,7 +266,7 @@ class UserProcessor implements ProcessorInterface
         }
 
         $targetRole = Role::find($roleId);
-        
+
         if (!$targetRole) {
             return false;
         }
@@ -285,18 +283,90 @@ class UserProcessor implements ProcessorInterface
     /**
      * Synchroniser les relations utilisateur (rôles et permissions)
      */
+    /**
+     * Synchroniser les relations utilisateur avec logique intelligente
+     * ✅ NOUVEAU : Gestion intelligente rôle principal/additionnels
+     */
     private function syncUserRelations(User $user, UserData $userData, User $currentUser): void
     {
-        // Rôles additionnels
+        // Collecter tous les rôles demandés (principal + additionnels)
+        $allRoleIds = collect();
+
+        if ($userData->roleId) {
+            $allRoleIds->push($userData->roleId);
+        }
+
         if (!empty($userData->additionalRoles)) {
-            $roleIds = collect($userData->additionalRoles)
-                ->filter(fn($id) => is_numeric($id))
-                ->map(fn($id) => (int) $id)
-                ->unique()
-                ->toArray();
-            
-            // 🔒 SÉCURITÉ : Vérifier que l'utilisateur peut assigner ces rôles
-            foreach ($roleIds as $roleId) {
+            $allRoleIds = $allRoleIds->merge($userData->additionalRoles);
+        }
+
+        // Nettoyer et valider les IDs
+        $allRoleIds = $allRoleIds
+            ->filter(fn($id) => is_numeric($id))
+            ->map(fn($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        Log::info('UserProcessor - Analyse des rôles demandés', [
+            'user_id' => $user->id,
+            'requested_principal' => $userData->roleId,
+            'requested_additional' => $userData->additionalRoles,
+            'all_roles' => $allRoleIds->toArray()
+        ]);
+
+        // 🧠 LOGIQUE INTELLIGENTE SELON LE NOMBRE DE RÔLES
+        if ($allRoleIds->isEmpty()) {
+            // Cas 1: Aucun rôle spécifié - conserver l'existant
+            Log::info('Aucun rôle spécifié, conservation des rôles existants', [
+                'user_id' => $user->id,
+                'current_principal' => $user->role_id,
+                'current_additional' => $user->roles->pluck('id')->toArray()
+            ]);
+            return;
+        } elseif ($allRoleIds->count() === 1) {
+            // Cas 2: Un seul rôle = automatiquement rôle principal
+            $singleRoleId = $allRoleIds->first();
+
+            // Vérifier les permissions de sécurité
+            if (!$this->canAssignRole($currentUser, $singleRoleId)) {
+                throw new AccessDeniedHttpException("Permissions insuffisantes pour assigner le rôle ID: {$singleRoleId}");
+            }
+
+            // Assigner comme rôle principal unique
+            $user->update(['role_id' => $singleRoleId]);
+            $user->roles()->sync([]); // Vider les rôles additionnels
+
+            Log::info('UserProcessor - Rôle unique assigné comme principal', [
+                'user_id' => $user->id,
+                'principal_role' => $singleRoleId,
+                'additional_roles' => [],
+                'synced_by' => $currentUser->name
+            ]);
+        } else {
+            // Cas 3: Plusieurs rôles = gérer principal + additionnels
+
+            // Déterminer le rôle principal selon cette logique :
+            // 1. Si roleId est spécifié et dans la liste → l'utiliser
+            // 2. Sinon garder le rôle principal existant s'il est dans la liste
+            // 3. Sinon prendre le premier rôle de la liste
+            $principalRoleId = null;
+
+            if ($userData->roleId && $allRoleIds->contains($userData->roleId)) {
+                // Cas 3a: Rôle principal explicitement choisi
+                $principalRoleId = $userData->roleId;
+            } elseif ($user->role_id && $allRoleIds->contains($user->role_id)) {
+                // Cas 3b: Conserver le rôle principal existant
+                $principalRoleId = $user->role_id;
+            } else {
+                // Cas 3c: Prendre le premier rôle comme principal par défaut
+                $principalRoleId = $allRoleIds->first();
+            }
+
+            // Calculer les rôles additionnels
+            $additionalRoleIds = $allRoleIds->filter(fn($id) => $id !== $principalRoleId)->values();
+
+            // Vérifications de sécurité pour tous les rôles
+            foreach ($allRoleIds as $roleId) {
                 if (!$this->canAssignRole($currentUser, $roleId)) {
                     Log::warning('Tentative d\'assignation de rôle non autorisée', [
                         'role_id' => $roleId,
@@ -306,53 +376,32 @@ class UserProcessor implements ProcessorInterface
                     throw new AccessDeniedHttpException("Permissions insuffisantes pour assigner le rôle ID: {$roleId}");
                 }
             }
-            
+
             // Vérifier que tous les rôles existent
-            $existingRoles = Role::whereIn('id', $roleIds)->pluck('id')->toArray();
-            
-            if (count($existingRoles) !== count($roleIds)) {
-                Log::warning('Certains rôles n\'existent pas', [
-                    'requested' => $roleIds,
-                    'existing' => $existingRoles
-                ]);
-            }
-            
-            $user->roles()->sync($existingRoles);
-            
-            Log::info('UserProcessor - Rôles additionnels synchronisés', [
-                'user_id' => $user->id,
-                'roles' => $existingRoles,
-                'synced_by' => $currentUser->name
-            ]);
-        }
+            $existingRoles = Role::whereIn('id', $allRoleIds)->pluck('id');
+            $missingRoles = $allRoleIds->diff($existingRoles);
 
-        // Permissions directes
-        if (!empty($userData->permissions)) {
-            // 🔒 SÉCURITÉ : Seuls les super-admins peuvent assigner des permissions directes
-            if (!$currentUser->isSuperAdmin()) {
-                throw new AccessDeniedHttpException('Seul un super-admin peut assigner des permissions directes');
-            }
-            
-            $permissionIds = collect($userData->permissions)
-                ->filter(fn($id) => is_numeric($id))
-                ->map(fn($id) => (int) $id)
-                ->unique()
-                ->toArray();
-            
-            // Vérifier que toutes les permissions existent
-            $existingPermissions = Permission::whereIn('id', $permissionIds)->pluck('id')->toArray();
-            
-            if (count($existingPermissions) !== count($permissionIds)) {
-                Log::warning('Certaines permissions n\'existent pas', [
-                    'requested' => $permissionIds,
-                    'existing' => $existingPermissions
+            if ($missingRoles->isNotEmpty()) {
+                Log::warning('Certains rôles demandés n\'existent pas', [
+                    'requested' => $allRoleIds->toArray(),
+                    'existing' => $existingRoles->toArray(),
+                    'missing' => $missingRoles->toArray()
                 ]);
+                // Filtrer les rôles manquants
+                $allRoleIds = $allRoleIds->intersect($existingRoles);
+                $additionalRoleIds = $additionalRoleIds->intersect($existingRoles);
             }
-                        
-            Log::info('UserProcessor', [
-                'user_id' => $user->id,
-                'synced_by' => $currentUser->name
 
+            // Appliquer les changements
+            $user->update(['role_id' => $principalRoleId]);
+            $user->roles()->sync($additionalRoleIds->toArray());
+
+            Log::info('UserProcessor - Rôles multiples synchronisés', [
+                'user_id' => $user->id,
+                'principal_role' => $principalRoleId,
+                'additional_roles' => $additionalRoleIds->toArray(),
+                'total_roles' => $allRoleIds->count(),
+                'synced_by' => $currentUser->name
             ]);
         }
     }
@@ -365,7 +414,7 @@ class UserProcessor implements ProcessorInterface
         // Méthode 1: Depuis le contexte API Platform
         if (isset($context['request']) && $context['request'] instanceof Request) {
             $request = $context['request'];
-            
+
             $content = $request->getContent();
             if ($content) {
                 $decoded = json_decode($content, true);
@@ -373,7 +422,7 @@ class UserProcessor implements ProcessorInterface
                     return $decoded;
                 }
             }
-            
+
             $requestData = $request->all();
             if (!empty($requestData)) {
                 return $requestData;
@@ -390,13 +439,13 @@ class UserProcessor implements ProcessorInterface
                     return $decoded;
                 }
             }
-            
+
             $requestData = $request->all();
             if (!empty($requestData)) {
                 return $requestData;
             }
         }
-        
+
         throw new \InvalidArgumentException('Impossible de récupérer les données de la request HTTP');
     }
 }

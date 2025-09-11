@@ -12,19 +12,19 @@ class UserData extends Data
         public string $email,
         public ?string $password = null,
         public string $status = 'active',
-        
+
         #[MapName('role_id')]
         public ?int $roleId = null,
-        
+
         #[MapName('additional_roles')]
         public array $additionalRoles = [],
-        
+
         #[MapName('permissions')]
         public array $permissions = [],
-        
+
         #[MapName('password_confirmation')]
         public ?string $passwordConfirmation = null,
-        
+
         #[MapName('password_reset_required')]
         public bool $passwordResetRequired = false,
     ) {}
@@ -74,19 +74,26 @@ class UserData extends Data
      */
     public static function fromArray(array $data): static
     {
+        // Fonction helper pour convertir string vide en null pour les entiers
+        $intOrNull = function ($value) {
+            if ($value === '' || $value === null) {
+                return null;
+            }
+            return is_numeric($value) ? (int) $value : null;
+        };
+
         return new static(
             name: $data['name'] ?? '',
             email: $data['email'] ?? '',
             password: $data['password'] ?? null,
             status: $data['status'] ?? 'active',
-            roleId: $data['role_id'] ?? $data['roleId'] ?? null,
+            roleId: $intOrNull($data['role_id'] ?? $data['roleId'] ?? null),
             additionalRoles: $data['additional_roles'] ?? $data['additionalRoles'] ?? [],
             permissions: $data['permissions'] ?? [],
             passwordConfirmation: $data['password_confirmation'] ?? $data['passwordConfirmation'] ?? null,
             passwordResetRequired: $data['password_reset_required'] ?? $data['passwordResetRequired'] ?? false
         );
     }
-
     /**
      * Convertir en array pour la création du modèle
      */
