@@ -69,12 +69,40 @@ class UsersApi {
   /**
    * Récupérer un utilisateur par ID - fetchUser()
    */
-  static async getById(userId) {
+ static async getById(userId) {
     try {
+      console.log('🔍 UsersApi.getById - Début requête:', userId)
+      
       const response = await axios.get(`/api/admin/users/${userId}`)
+      
+      // 🔍 DEBUG 1: Réponse HTTP brute
+      console.log('🔍 UsersApi - Réponse HTTP status:', response.status)
+      console.log('🔍 UsersApi - Headers réponse:', response.headers)
+      console.log('🔍 UsersApi - response.data BRUT:', JSON.stringify(response.data, null, 2))
+      
+      // 🔍 DEBUG 2: Structure des données
+      console.log('🔍 UsersApi - Type de response.data:', typeof response.data)
+      console.log('🔍 UsersApi - Object.keys(response.data):', Object.keys(response.data))
+      
+      // 🔍 DEBUG 3: Vérifier spécifiquement les rôles
+      console.log('🔍 UsersApi - response.data.role:', response.data.role)
+      console.log('🔍 UsersApi - response.data.roles:', response.data.roles)
+      console.log('🔍 UsersApi - response.data.additional_roles:', response.data.additional_roles)
+      console.log('🔍 UsersApi - response.data.additionalRoles:', response.data.additionalRoles)
+      
+      // 🔍 DEBUG 4: Tous les champs qui contiennent "role"
+      const roleFields = Object.keys(response.data).filter(key => 
+        key.toLowerCase().includes('role')
+      )
+      console.log('🔍 UsersApi - Champs contenant "role":', roleFields)
+      roleFields.forEach(field => {
+        console.log(`🔍 UsersApi - ${field}:`, response.data[field])
+      })
+      
       return response.data
     } catch (error) {
-      console.error('Erreur lors du chargement de l\'utilisateur:', error)
+      console.error('❌ UsersApi.getById - Erreur:', error)
+      console.error('❌ UsersApi.getById - Error response:', error.response?.data)
       throw error
     }
   }

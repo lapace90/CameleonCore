@@ -32,16 +32,10 @@ class UserItemProvider implements ProviderInterface
             throw new NotFoundHttpException('ID utilisateur invalide');
         }
 
-        // 🔒 AUTORISATION : Vérifier les permissions
-        // Un utilisateur peut voir son propre profil ou avoir les permissions de gestion
-        // if ($userId !== $currentUser->id && !$currentUser->canManageUsers()) {
-        //     throw new UnauthorizedHttpException('Bearer', 'Permissions insuffisantes pour voir cet utilisateur');
-        // }
-
-        // Récupérer l'utilisateur avec toutes les relations nécessaires
+        // ✅ FIX COMPLET : Récupérer avec TOUTES les relations
         $user = User::with([
-            'role:id,name',
-       
+            'role:id,name,slug,description',     // Rôle principal 
+            'roles:id,name,slug,description'     // Rôles additionnels 
         ])->withCount(['roles'])
           ->find($userId);
 
@@ -49,13 +43,30 @@ class UserItemProvider implements ProviderInterface
             throw new NotFoundHttpException("Utilisateur avec l'ID {$userId} non trouvé");
         }
 
+        // 🔍 DEBUG TEMPORAIRE - Vérifier que les relations sont chargées
+        Log::info('UserItemProvider - DEBUG Relations', [
+            'user_id' => $user->id,
+            'role_loaded' => $user->role ? $user->role->toArray() : null,
+            'roles_loaded' => $user->roles->toArray(),
+            'roles_count' => $user->roles_count,
+        ]);
+
         Log::info('UserItemProvider - Utilisateur trouvé', [
             'user_id' => $user->id,
             'name' => $user->name,
             'roles_count' => $user->roles_count,
+            'additional_roles_loaded' => $user->roles->pluck('id')->toArray(),
             'viewed_by' => $currentUser->name
         ]);
 
-        return UserOutputData::fromUser($user);
+        // Créer le UserOutputData
+        $outputData = UserOutputData::fromUser($user);
+        
+        // 🔍 DEBUG TEMPORAIRE - Vérifier la sérialisation
+        Log::info('UserItemProvider - DEBUG Serialization', [
+            'output_additional_roles' => $outputData->additional_roles,
+        ]);
+
+        return $outputData;
     }
 }

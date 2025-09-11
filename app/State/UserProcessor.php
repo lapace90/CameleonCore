@@ -94,7 +94,7 @@ class UserProcessor implements ProcessorInterface
         $userData = UserData::fromArray($payload);
 
         // 🔒 SÉCURITÉ : Vérifier que le rôle assigné n'est pas supérieur au rôle courant
-        if ($userData->roleId && !$this->canAssignRole($currentUser, $userData->roleId)) {
+        if ($userData->role_id && !$this->canAssignRole($currentUser, $userData->role_id)) {
             throw new AccessDeniedHttpException('Vous ne pouvez pas assigner un rôle supérieur au vôtre');
         }
 
@@ -169,12 +169,12 @@ class UserProcessor implements ProcessorInterface
         $userData = UserData::fromArray($payload);
 
         // 🔒 SÉCURITÉ : Vérifier les changements de rôle
-        if ($userData->roleId && $userData->roleId !== $user->role_id) {
+        if ($userData->role_id && $userData->role_id !== $user->role_id) {
             if (!$canManageUsers) {
                 throw new AccessDeniedHttpException('Permissions insuffisantes pour changer de rôle');
             }
 
-            if (!$this->canAssignRole($currentUser, $userData->roleId)) {
+            if (!$this->canAssignRole($currentUser, $userData->role_id)) {
                 throw new AccessDeniedHttpException('Vous ne pouvez pas assigner un rôle supérieur au vôtre');
             }
         }
@@ -259,13 +259,13 @@ class UserProcessor implements ProcessorInterface
     /**
      * Vérifier si l'utilisateur courant peut assigner un rôle donné
      */
-    private function canAssignRole(User $currentUser, int $roleId): bool
+    private function canAssignRole(User $currentUser, int $role_id): bool
     {
         if ($currentUser->isSuperAdmin()) {
             return true; // Super-admin peut tout faire
         }
 
-        $targetRole = Role::find($roleId);
+        $targetRole = Role::find($role_id);
 
         if (!$targetRole) {
             return false;
@@ -283,25 +283,21 @@ class UserProcessor implements ProcessorInterface
     /**
      * Synchroniser les relations utilisateur (rôles et permissions)
      */
-    /**
-     * Synchroniser les relations utilisateur avec logique intelligente
-     * ✅ NOUVEAU : Gestion intelligente rôle principal/additionnels
-     */
     private function syncUserRelations(User $user, UserData $userData, User $currentUser): void
     {
         // Collecter tous les rôles demandés (principal + additionnels)
-        $allRoleIds = collect();
+        $allrole_ids = collect();
 
-        if ($userData->roleId) {
-            $allRoleIds->push($userData->roleId);
+        if ($userData->role_id) {
+            $allrole_ids->push($userData->role_id);
         }
 
-        if (!empty($userData->additionalRoles)) {
-            $allRoleIds = $allRoleIds->merge($userData->additionalRoles);
+        if (!empty($userData->additional_roles)) {
+            $allrole_ids = $allrole_ids->merge($userData->additional_roles);
         }
 
         // Nettoyer et valider les IDs
-        $allRoleIds = $allRoleIds
+        $allrole_ids = $allrole_ids
             ->filter(fn($id) => is_numeric($id))
             ->map(fn($id) => (int) $id)
             ->unique()
@@ -309,13 +305,13 @@ class UserProcessor implements ProcessorInterface
 
         Log::info('UserProcessor - Analyse des rôles demandés', [
             'user_id' => $user->id,
-            'requested_principal' => $userData->roleId,
-            'requested_additional' => $userData->additionalRoles,
-            'all_roles' => $allRoleIds->toArray()
+            'requested_principal' => $userData->role_id,
+            'requested_additional' => $userData->additional_roles,
+            'all_roles' => $allrole_ids->toArray()
         ]);
 
         // 🧠 LOGIQUE INTELLIGENTE SELON LE NOMBRE DE RÔLES
-        if ($allRoleIds->isEmpty()) {
+        if ($allrole_ids->isEmpty()) {
             // Cas 1: Aucun rôle spécifié - conserver l'existant
             Log::info('Aucun rôle spécifié, conservation des rôles existants', [
                 'user_id' => $user->id,
@@ -323,22 +319,22 @@ class UserProcessor implements ProcessorInterface
                 'current_additional' => $user->roles->pluck('id')->toArray()
             ]);
             return;
-        } elseif ($allRoleIds->count() === 1) {
+        } elseif ($allrole_ids->count() === 1) {
             // Cas 2: Un seul rôle = automatiquement rôle principal
-            $singleRoleId = $allRoleIds->first();
+            $singlerole_id = $allrole_ids->first();
 
             // Vérifier les permissions de sécurité
-            if (!$this->canAssignRole($currentUser, $singleRoleId)) {
-                throw new AccessDeniedHttpException("Permissions insuffisantes pour assigner le rôle ID: {$singleRoleId}");
+            if (!$this->canAssignRole($currentUser, $singlerole_id)) {
+                throw new AccessDeniedHttpException("Permissions insuffisantes pour assigner le rôle ID: {$singlerole_id}");
             }
 
             // Assigner comme rôle principal unique
-            $user->update(['role_id' => $singleRoleId]);
+            $user->update(['role_id' => $singlerole_id]);
             $user->roles()->sync([]); // Vider les rôles additionnels
 
             Log::info('UserProcessor - Rôle unique assigné comme principal', [
                 'user_id' => $user->id,
-                'principal_role' => $singleRoleId,
+                'principal_role' => $singlerole_id,
                 'additional_roles' => [],
                 'synced_by' => $currentUser->name
             ]);
@@ -346,61 +342,61 @@ class UserProcessor implements ProcessorInterface
             // Cas 3: Plusieurs rôles = gérer principal + additionnels
 
             // Déterminer le rôle principal selon cette logique :
-            // 1. Si roleId est spécifié et dans la liste → l'utiliser
+            // 1. Si role_id est spécifié et dans la liste → l'utiliser
             // 2. Sinon garder le rôle principal existant s'il est dans la liste
             // 3. Sinon prendre le premier rôle de la liste
-            $principalRoleId = null;
+            $principalrole_id = null;
 
-            if ($userData->roleId && $allRoleIds->contains($userData->roleId)) {
+            if ($userData->role_id && $allrole_ids->contains($userData->role_id)) {
                 // Cas 3a: Rôle principal explicitement choisi
-                $principalRoleId = $userData->roleId;
-            } elseif ($user->role_id && $allRoleIds->contains($user->role_id)) {
+                $principalrole_id = $userData->role_id;
+            } elseif ($user->role_id && $allrole_ids->contains($user->role_id)) {
                 // Cas 3b: Conserver le rôle principal existant
-                $principalRoleId = $user->role_id;
+                $principalrole_id = $user->role_id;
             } else {
                 // Cas 3c: Prendre le premier rôle comme principal par défaut
-                $principalRoleId = $allRoleIds->first();
+                $principalrole_id = $allrole_ids->first();
             }
 
             // Calculer les rôles additionnels
-            $additionalRoleIds = $allRoleIds->filter(fn($id) => $id !== $principalRoleId)->values();
+            $additionalrole_ids = $allrole_ids->filter(fn($id) => $id !== $principalrole_id)->values();
 
             // Vérifications de sécurité pour tous les rôles
-            foreach ($allRoleIds as $roleId) {
-                if (!$this->canAssignRole($currentUser, $roleId)) {
+            foreach ($allrole_ids as $role_id) {
+                if (!$this->canAssignRole($currentUser, $role_id)) {
                     Log::warning('Tentative d\'assignation de rôle non autorisée', [
-                        'role_id' => $roleId,
+                        'role_id' => $role_id,
                         'user' => $currentUser->name,
                         'target_user' => $user->name
                     ]);
-                    throw new AccessDeniedHttpException("Permissions insuffisantes pour assigner le rôle ID: {$roleId}");
+                    throw new AccessDeniedHttpException("Permissions insuffisantes pour assigner le rôle ID: {$role_id}");
                 }
             }
 
             // Vérifier que tous les rôles existent
-            $existingRoles = Role::whereIn('id', $allRoleIds)->pluck('id');
-            $missingRoles = $allRoleIds->diff($existingRoles);
+            $existingRoles = Role::whereIn('id', $allrole_ids)->pluck('id');
+            $missingRoles = $allrole_ids->diff($existingRoles);
 
             if ($missingRoles->isNotEmpty()) {
                 Log::warning('Certains rôles demandés n\'existent pas', [
-                    'requested' => $allRoleIds->toArray(),
+                    'requested' => $allrole_ids->toArray(),
                     'existing' => $existingRoles->toArray(),
                     'missing' => $missingRoles->toArray()
                 ]);
                 // Filtrer les rôles manquants
-                $allRoleIds = $allRoleIds->intersect($existingRoles);
-                $additionalRoleIds = $additionalRoleIds->intersect($existingRoles);
+                $allrole_ids = $allrole_ids->intersect($existingRoles);
+                $additionalrole_ids = $additionalrole_ids->intersect($existingRoles);
             }
 
             // Appliquer les changements
-            $user->update(['role_id' => $principalRoleId]);
-            $user->roles()->sync($additionalRoleIds->toArray());
+            $user->update(['role_id' => $principalrole_id]);
+            $user->roles()->sync($additionalrole_ids->toArray());
 
             Log::info('UserProcessor - Rôles multiples synchronisés', [
                 'user_id' => $user->id,
-                'principal_role' => $principalRoleId,
-                'additional_roles' => $additionalRoleIds->toArray(),
-                'total_roles' => $allRoleIds->count(),
+                'principal_role' => $principalrole_id,
+                'additional_roles' => $additionalrole_ids->toArray(),
+                'total_roles' => $allrole_ids->count(),
                 'synced_by' => $currentUser->name
             ]);
         }

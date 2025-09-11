@@ -264,24 +264,4 @@ class User extends Authenticatable
         return $this->hasAnyRole(['super-admin', 'admin', 'owner']);
     }
 
-    /**
-     * Format pour l'API
-     */
-    public function toApiArray(): array
-    {
-        return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'email' => $this->email,
-            'status' => $this->status,
-            'role' => $this->role ? [
-                'id' => $this->role->id,
-                'name' => $this->role->name,
-                'slug' => $this->role->slug
-            ] : null,
-            'last_login_at' => $this->last_login_at?->toISOString(),
-            'created_at' => $this->created_at->toISOString(),
-            'is_admin' => $this->isAdmin()
-        ];
-    }
 }

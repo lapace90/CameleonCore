@@ -157,7 +157,7 @@
                     <div v-if="additionalRolesComputed.length > 0" class="additional-roles">
                       <i class="fas fa-users text-info"></i>
                       <span><strong>Additionnels :</strong> {{additionalRolesComputed.map(id =>
-                        getRoleName(id)).join(', ') }}</span>
+                        getRoleName(id)).join(', ')}}</span>
                     </div>
 
                     <!-- Si aucun principal mais des rôles sélectionnés -->
@@ -513,8 +513,12 @@ export default {
     populateForm() {
       if (!this.user) return
 
-      // Debug : voir ce que contient réellement this.user
-      console.log('🔍 Structure user récupérée:', this.user)
+      // 🔍 DEBUG : Voir exactement ce que contient this.user
+      console.log('🔍 DEBUG - Structure user complète:', JSON.stringify(this.user, null, 2))
+      console.log('🔍 DEBUG - user.role:', this.user.role)
+      console.log('🔍 DEBUG - user.roles:', this.user.roles)
+      console.log('🔍 DEBUG - user.additionalRoles:', this.user.additionalRoles)
+      console.log('🔍 DEBUG - user.additional_roles:', this.user.additional_roles)
 
       this.form = {
         name: this.user.name || '',
@@ -528,11 +532,10 @@ export default {
         password_confirmation: ''
       }
 
-      // ✅ SYNCHRONISER avec la nouvelle interface
       this.syncSelectedRoles()
     },
 
-    // ✅ NOUVELLE MÉTHODE : Extraire les rôles additionnels selon le format API
+    // Extraire les rôles additionnels selon le format API
     getAdditionalRolesFromUser() {
       // Essayer différents formats possibles de l'API
       if (this.user.additionalRoles && Array.isArray(this.user.additionalRoles)) {
@@ -551,7 +554,7 @@ export default {
     },
 
     /**
-     * ✅ NOUVELLE MÉTHODE : Synchroniser selectedRoles depuis le formulaire
+     * Synchroniser selectedRoles depuis le formulaire
      */
     syncSelectedRoles() {
       const allRoles = []
@@ -581,8 +584,8 @@ export default {
     },
 
 
-    /**
-       * ✅ MÉTHODE MODIFIÉE : Préparation des données pour l'API
+      /**
+       *  Préparation des données pour l'API
        */
     async submitForm() {
       if (!this.validateForm()) return
@@ -639,7 +642,7 @@ export default {
     },
 
     /**
-     * ✅ MÉTHODE MODIFIÉE : Réinitialiser le formulaire
+     * Réinitialiser le formulaire
      */
     resetForm() {
       this.form = {
@@ -652,12 +655,12 @@ export default {
         password: '',
         password_confirmation: ''
       }
-      this.selectedRoles = [] // ✅ Nouveau champ à réinitialiser
+      this.selectedRoles = [] 
       this.errors = {}
     },
 
     /**
-     * ✅ MÉTHODE MODIFIÉE : Validation avec les nouveaux champs
+     * Validation avec les nouveaux champs
      */
     validateForm() {
       const errors = {}
@@ -678,7 +681,7 @@ export default {
         errors.password_confirmation = ['Confirmation incorrecte']
       }
 
-      // ✅ NOUVELLE VALIDATION : Au moins un rôle requis
+      //  Au moins un rôle requis
       if (this.selectedRoles.length === 0) {
         errors.roles = ['Au moins un rôle doit être sélectionné']
       }

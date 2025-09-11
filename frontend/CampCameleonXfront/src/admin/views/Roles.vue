@@ -160,11 +160,8 @@
 </template>
 
 <script>
-// ✅ UTILISE le service et store qu'on a créés
 import { useRolesStore } from '@/shared/stores/roles'
 import { mapState, mapActions } from 'pinia'
-
-// ✅ UTILISE les modales qu'on a créées  
 import RoleCreateModal from '@/admin/components/modals/RoleCreateModal.vue'
 import RoleEditModal from '@/admin/components/modals/RoleEditModal.vue'
 import RoleDetailsModal from '@/admin/components/modals/RoleDetailsModal.vue'

@@ -30,12 +30,12 @@ export const useUsersStore = defineStore('users', {
     // 📊 Stats et données calculées
     usersCount: (state) => state.users.length,
     rolesCount: (state) => state.availableRoles.length,
-    
+
     // 🔍 Getters pratiques 
     getUserById: (state) => (id) => {
       return state.users.find(user => user.id === id)
     },
-    
+
     getRoleById: (state) => (id) => {
       return state.availableRoles.find(role => role.id === id)
     }
@@ -67,7 +67,7 @@ export const useUsersStore = defineStore('users', {
     async fetchRoles(forceRefresh = false) {
       const now = Date.now()
       const cacheKey = 'fetchRoles'
-      
+
       // 🚀 Éviter les requêtes en doublon
       if (this._inflightRequests.has(cacheKey)) {
         console.log('🔄 Requête rôles déjà en cours, attente...')
@@ -75,17 +75,17 @@ export const useUsersStore = defineStore('users', {
       }
 
       // 🚀 Vérifier le cache
-      if (!forceRefresh && 
-          this.lastFetch.roles && 
-          (now - this.lastFetch.roles < TTL) && 
-          this.availableRoles.length > 0) {
+      if (!forceRefresh &&
+        this.lastFetch.roles &&
+        (now - this.lastFetch.roles < TTL) &&
+        this.availableRoles.length > 0) {
         console.log('🚀 Rôles - cache valide')
         return this.availableRoles
       }
 
       // 🔄 Nouvelle requête
       console.log('🔄 Chargement des rôles depuis l\'API...')
-      
+
       const promise = this._fetchRolesFromApi()
       this._inflightRequests.set(cacheKey, promise)
 
@@ -103,7 +103,7 @@ export const useUsersStore = defineStore('users', {
       try {
         // 🔧 CORRECTION : Appeler l'API corrigée
         const roles = await UsersApi.getRoles()
-        
+
         // 🔧 Validation et normalisation
         if (!Array.isArray(roles)) {
           console.error('❌ Format de rôles invalide:', roles)
@@ -118,7 +118,7 @@ export const useUsersStore = defineStore('users', {
         }))
 
         console.log('✅ Rôles normalisés:', this.availableRoles.map(r => ({ id: r.id, name: r.name })))
-        
+
         return this.availableRoles
       } catch (error) {
         console.error('❌ Erreur lors du chargement des rôles:', error)
@@ -139,16 +139,16 @@ export const useUsersStore = defineStore('users', {
         return await this._inflightRequests.get(cacheKey)
       }
 
-      if (!forceRefresh && 
-          this.lastFetch.users && 
-          (now - this.lastFetch.users < TTL) && 
-          this.users.length > 0) {
+      if (!forceRefresh &&
+        this.lastFetch.users &&
+        (now - this.lastFetch.users < TTL) &&
+        this.users.length > 0) {
         console.log('🚀 Users - cache valide')
         return this.users
       }
 
       console.log('🔄 Chargement des utilisateurs...')
-      
+
       const promise = this._fetchUsersFromApi()
       this._inflightRequests.set(cacheKey, promise)
 
@@ -180,20 +180,20 @@ export const useUsersStore = defineStore('users', {
     // ===============================
     async loadAllData(options = {}) {
       const { forceRefresh = false, rolesOnly = false } = options
-      
+
       this.loading = true
       this.clearMessages()
 
       try {
         console.log('🔄 Chargement des données utilisateurs...', { rolesOnly })
-        
+
         // 🚀 Si rolesOnly=true (pour UserForm), charger que les rôles
         if (rolesOnly) {
           const roles = await this.fetchRoles(forceRefresh)
           console.log('✅ Rôles seuls chargés (mode formulaire):', { roles: roles.length })
           return { roles }
         }
-        
+
         // 🚀 Sinon, charger tout en parallèle (optimisation)
         const [users, roles] = await Promise.all([
           this.fetchUsers(forceRefresh),
@@ -223,12 +223,26 @@ export const useUsersStore = defineStore('users', {
       try {
         // Vérifier le cache local d'abord
         let user = this.getUserById(userId)
-        
+
         if (!user) {
           console.log(`🔄 Chargement utilisateur ${userId}...`)
+
+          // 🔍 DEBUG 1: Appel API
+          console.log('🔍 Store - Avant appel UsersApi.getById')
           const userData = await UsersApi.getById(userId)
+          console.log('🔍 Store - Après appel UsersApi.getById:', JSON.stringify(userData, null, 2))
+
+          // 🔍 DEBUG 2: Vérifier les rôles spécifiquement
+          console.log('🔍 Store - userData.role:', userData.role)
+          console.log('🔍 Store - userData.roles:', userData.roles)
+          console.log('🔍 Store - userData.additional_roles:', userData.additional_roles)
+          console.log('🔍 Store - userData.additionalRoles:', userData.additionalRoles)
+
           this.currentUser = userData
-          
+
+          // 🔍 DEBUG 3: Après assignation à currentUser
+          console.log('🔍 Store - this.currentUser après assignation:', JSON.stringify(this.currentUser, null, 2))
+
           // Ajouter/mettre à jour dans la liste
           const existingIndex = this.users.findIndex(u => u.id === userId)
           if (existingIndex >= 0) {
@@ -236,12 +250,13 @@ export const useUsersStore = defineStore('users', {
           } else {
             this.users.push(userData)
           }
-          
+
           user = userData
         } else {
           this.currentUser = user
+          console.log('🔍 Store - Utilisateur trouvé dans cache:', JSON.stringify(user, null, 2))
         }
-        
+
         return user
       } catch (error) {
         console.error('❌ Erreur fetchUserById:', error)
@@ -254,10 +269,10 @@ export const useUsersStore = defineStore('users', {
       try {
         console.log('🔄 Création utilisateur...')
         const newUser = await UsersApi.create(userData)
-        
+
         this.users.push(newUser)
         this.setSuccess('Utilisateur créé avec succès')
-        
+
         console.log('✅ Utilisateur créé:', newUser.name)
         return newUser
       } catch (error) {
@@ -271,20 +286,20 @@ export const useUsersStore = defineStore('users', {
       try {
         console.log(`🔄 Mise à jour utilisateur ${userId}...`)
         const updatedUser = await UsersApi.update(userId, userData)
-        
+
         // Mettre à jour dans la liste
         const index = this.users.findIndex(u => u.id === userId)
         if (index >= 0) {
           this.users[index] = updatedUser
         }
-        
+
         // Mettre à jour currentUser si c'est le même
         if (this.currentUser?.id === userId) {
           this.currentUser = updatedUser
         }
-        
+
         this.setSuccess('Utilisateur mis à jour avec succès')
-        
+
         console.log('✅ Utilisateur mis à jour:', updatedUser.name)
         return updatedUser
       } catch (error) {
@@ -298,17 +313,17 @@ export const useUsersStore = defineStore('users', {
       try {
         console.log(`🔄 Suppression utilisateur ${userId}...`)
         await UsersApi.delete(userId)
-        
+
         // Retirer de la liste
         this.users = this.users.filter(u => u.id !== userId)
-        
+
         // Nettoyer currentUser si c'est le même
         if (this.currentUser?.id === userId) {
           this.currentUser = null
         }
-        
+
         this.setSuccess('Utilisateur supprimé avec succès')
-        
+
         console.log('✅ Utilisateur supprimé')
         return true
       } catch (error) {

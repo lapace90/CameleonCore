@@ -3,8 +3,11 @@
 namespace App\Data;
 
 use Spatie\LaravelData\Data;
-use Spatie\LaravelData\Attributes\MapName;
 
+/**
+ * UserData - Version 100% compatible API Platform
+ * Pour les données d'entrée (formulaires, API calls)
+ */
 class UserData extends Data
 {
     public function __construct(
@@ -13,20 +16,12 @@ class UserData extends Data
         public ?string $password = null,
         public string $status = 'active',
 
-        #[MapName('role_id')]
-        public ?int $roleId = null,
-
-        #[MapName('additional_roles')]
-        public array $additionalRoles = [],
-
-        #[MapName('permissions')]
+        // Champs directs sans attributs MapName - API Platform les attend comme ça
+        public ?int $role_id = null,
+        public array $additional_roles = [],
         public array $permissions = [],
-
-        #[MapName('password_confirmation')]
-        public ?string $passwordConfirmation = null,
-
-        #[MapName('password_reset_required')]
-        public bool $passwordResetRequired = false,
+        public ?string $password_confirmation = null,
+        public bool $password_reset_required = false,
     ) {}
 
     /**
@@ -39,9 +34,9 @@ class UserData extends Data
             'email' => 'required|string|email|max:255',
             'password' => 'nullable|string|min:8',
             'status' => 'in:active,inactive,suspended',
-            'roleId' => 'nullable|exists:roles,id',
-            'additionalRoles' => 'array',
-            'additionalRoles.*' => 'exists:roles,id',
+            'role_id' => 'nullable|exists:roles,id',
+            'additional_roles' => 'array',
+            'additional_roles.*' => 'exists:roles,id',
             'permissions' => 'array',
             'permissions.*' => 'exists:permissions,id'
         ];
@@ -70,7 +65,7 @@ class UserData extends Data
     }
 
     /**
-     * Normaliser les données depuis le frontend
+     * Normaliser les données depuis le frontend - Compatible camelCase et snake_case
      */
     public static function fromArray(array $data): static
     {
@@ -87,15 +82,18 @@ class UserData extends Data
             email: $data['email'] ?? '',
             password: $data['password'] ?? null,
             status: $data['status'] ?? 'active',
-            roleId: $intOrNull($data['role_id'] ?? $data['roleId'] ?? null),
-            additionalRoles: $data['additional_roles'] ?? $data['additionalRoles'] ?? [],
+            
+            // Support des deux formats : camelCase (frontend) et snake_case (API)
+            role_id: $intOrNull($data['role_id'] ?? $data['roleId'] ?? null),
+            additional_roles: $data['additional_roles'] ?? $data['additionalRoles'] ?? [],
             permissions: $data['permissions'] ?? [],
-            passwordConfirmation: $data['password_confirmation'] ?? $data['passwordConfirmation'] ?? null,
-            passwordResetRequired: $data['password_reset_required'] ?? $data['passwordResetRequired'] ?? false
+            password_confirmation: $data['password_confirmation'] ?? $data['passwordConfirmation'] ?? null,
+            password_reset_required: (bool) ($data['password_reset_required'] ?? $data['passwordResetRequired'] ?? false),
         );
     }
+
     /**
-     * Convertir en array pour la création du modèle
+     * Convertir vers array pour Eloquent models
      */
     public function toModelArray(): array
     {
@@ -103,13 +101,17 @@ class UserData extends Data
             'name' => $this->name,
             'email' => $this->email,
             'status' => $this->status,
-            'role_id' => $this->roleId,
-            'password_reset_required' => $this->passwordResetRequired
+            'password_reset_required' => $this->password_reset_required,
         ];
 
         // Ajouter le mot de passe seulement s'il est fourni
-        if ($this->password) {
+        if (!empty($this->password)) {
             $data['password'] = bcrypt($this->password);
+        }
+
+        // Le role_id sera géré séparément dans UserProcessor
+        if ($this->role_id) {
+            $data['role_id'] = $this->role_id;
         }
 
         return $data;
