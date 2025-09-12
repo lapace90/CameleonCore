@@ -32,10 +32,12 @@ class UserItemProvider implements ProviderInterface
             throw new NotFoundHttpException('ID utilisateur invalide');
         }
 
-        // ✅ FIX COMPLET : Récupérer avec TOUTES les relations
+        // ✅ FIX : Récupérer avec TOUTES les relations ET permissions (colonnes qui existent)
         $user = User::with([
-            'role:id,name,slug,description',     // Rôle principal 
-            'roles:id,name,slug,description'     // Rôles additionnels 
+            'role:id,name,slug,description',           // Rôle principal 
+            'role.permissions:id,name,action,category',  // ← PERMISSIONS du rôle principal (pas de description)
+            'roles:id,name,slug,description',          // Rôles additionnels 
+            'roles.permissions:id,name,action,category'  // ← PERMISSIONS des rôles additionnels (pas de description)
         ])->withCount(['roles'])
           ->find($userId);
 
@@ -43,11 +45,16 @@ class UserItemProvider implements ProviderInterface
             throw new NotFoundHttpException("Utilisateur avec l'ID {$userId} non trouvé");
         }
 
-        // 🔍 DEBUG TEMPORAIRE - Vérifier que les relations sont chargées
-        Log::info('UserItemProvider - DEBUG Relations', [
+        // 🔍 DEBUG : Vérifier que les permissions sont chargées
+        $principalPermissions = $user->role?->permissions ?? collect();
+        $additionalPermissions = $user->roles->flatMap(fn($role) => $role->permissions) ?? collect();
+        
+        Log::info('UserItemProvider - DEBUG Relations avec permissions', [
             'user_id' => $user->id,
             'role_loaded' => $user->role ? $user->role->toArray() : null,
             'roles_loaded' => $user->roles->toArray(),
+            'principal_permissions_count' => $principalPermissions->count(),
+            'additional_permissions_count' => $additionalPermissions->count(),
             'roles_count' => $user->roles_count,
         ]);
 
@@ -56,17 +63,13 @@ class UserItemProvider implements ProviderInterface
             'name' => $user->name,
             'roles_count' => $user->roles_count,
             'additional_roles_loaded' => $user->roles->pluck('id')->toArray(),
+            'total_permissions' => $principalPermissions->merge($additionalPermissions)->unique('id')->count(),
             'viewed_by' => $currentUser->name
         ]);
 
         // Créer le UserOutputData
         $outputData = UserOutputData::fromUser($user);
         
-        // 🔍 DEBUG TEMPORAIRE - Vérifier la sérialisation
-        Log::info('UserItemProvider - DEBUG Serialization', [
-            'output_additional_roles' => $outputData->additional_roles,
-        ]);
-
-         return $outputData->toArray();
+        return $outputData->toArray();
     }
 }

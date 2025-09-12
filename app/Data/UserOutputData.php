@@ -6,8 +6,7 @@ use Spatie\LaravelData\Data;
 use App\Models\User;
 
 /**
- * UserOutputData - Version 100% compatible API Platform
- * AVEC les rôles additionnels pour le frontend
+ * UserOutputData - Version 100% compatible API Platform avec permissions
  */
 class UserOutputData extends Data
 {
@@ -20,11 +19,13 @@ class UserOutputData extends Data
         
         // Relations - format API direct
         public ?array $role,
-        public array $additional_roles,    // ← FIX : snake_case pour API Platform
+        public array $additional_roles,    // snake_case pour API Platform
+        public array $all_permissions,     // ← NOUVEAU : Toutes les permissions de l'utilisateur
         
         // Métadonnées - snake_case pour API Platform
         public ?string $email_verified_at,
         public int $roles_count,
+        public int $permissions_count,     // ← NOUVEAU : Compteur de permissions
         public ?string $last_login_at,
         public ?string $last_login_ip,
         public bool $password_reset_required,
@@ -41,12 +42,12 @@ class UserOutputData extends Data
     ) {}
 
     /**
-     * Créer depuis un modèle User - Version complète
+     * Créer depuis un modèle User - Version complète avec permissions
      */
     public static function fromUser(User $user): self
     {
-        // ✅ FIX : S'assurer que TOUTES les relations sont chargées
-        $user->loadMissing(['role', 'roles']);  // ← CRUCIAL : charger la relation 'roles' !
+        // S'assurer que les relations sont chargées
+        $user->loadMissing(['role', 'role.permissions', 'roles', 'roles.permissions']);
         $user->loadCount(['roles']);
 
         // Préparer le rôle principal
@@ -60,7 +61,7 @@ class UserOutputData extends Data
             ];
         }
 
-        // ✅ FIX : Préparer les rôles additionnels depuis la relation 'roles'
+        // Préparer les rôles additionnels
         $additionalRolesData = $user->roles->map(function ($role) {
             return [
                 'id' => $role->id,
@@ -70,15 +71,42 @@ class UserOutputData extends Data
             ];
         })->toArray();
 
+        // ✅ NOUVEAU : Consolider toutes les permissions uniques
+        $allPermissions = collect();
+        
+        // Permissions du rôle principal
+        if ($user->role && $user->role->permissions) {
+            $allPermissions = $allPermissions->merge($user->role->permissions);
+        }
+        
+        // Permissions des rôles additionnels
+        $user->roles->each(function ($role) use (&$allPermissions) {
+            if ($role->permissions) {
+                $allPermissions = $allPermissions->merge($role->permissions);
+            }
+        });
+
+        // Dédupliquer par ID et formater pour l'API
+        $permissionsData = $allPermissions->unique('id')->map(function ($permission) {
+            return [
+                'id' => $permission->id,
+                'name' => $permission->name,
+                'action' => $permission->action,
+                'category' => $permission->category ?? 'general',
+            ];
+        })->values()->toArray();
+
         return new self(
             id: $user->id,
             name: $user->name,
             email: $user->email,
             status: $user->status ?? 'active',
             role: $roleData,
-            additional_roles: $additionalRolesData,  // ← FIX : snake_case
+            additional_roles: $additionalRolesData,
+            all_permissions: $permissionsData,
             email_verified_at: $user->email_verified_at?->toISOString(),
             roles_count: $user->roles_count ?? 0,
+            permissions_count: count($permissionsData),
             last_login_at: $user->last_login_at?->toISOString(),
             last_login_ip: $user->last_login_ip,
             password_reset_required: $user->password_reset_required ?? false,
@@ -92,7 +120,7 @@ class UserOutputData extends Data
     }
 
     /**
-     * Version simplifiée pour les collections/listes
+     * Version simplifiée pour les collections/listes (sans permissions pour performance)
      */
     public static function fromUserSimple(User $user): self
     {
@@ -123,8 +151,10 @@ class UserOutputData extends Data
             status: $user->status ?? 'active',
             role: $roleData,
             additional_roles: $additionalRolesData,
+            all_permissions: [], // Vide pour la version simple
             email_verified_at: $user->email_verified_at?->toISOString(),
             roles_count: $user->roles_count ?? 0,
+            permissions_count: 0, // Calculé plus tard si nécessaire
             last_login_at: $user->last_login_at?->toISOString(),
             last_login_ip: $user->last_login_ip,
             password_reset_required: $user->password_reset_required ?? false,
@@ -149,8 +179,10 @@ class UserOutputData extends Data
             'status' => $this->status,
             'role' => $this->role,
             'additional_roles' => $this->additional_roles,
+            'all_permissions' => $this->all_permissions,
             'email_verified_at' => $this->email_verified_at,
             'roles_count' => $this->roles_count,
+            'permissions_count' => $this->permissions_count,
             'last_login_at' => $this->last_login_at,
             'last_login_ip' => $this->last_login_ip,
             'password_reset_required' => $this->password_reset_required,

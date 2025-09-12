@@ -1,3 +1,4 @@
+<!-- path=> C:\Projects\CampCameleonX\frontend\CampCameleonXfront\src\admin\views\users\UserDetail.vue -->
 <template>
   <div class="product-detail-container">
     <!-- Loading -->
@@ -137,40 +138,43 @@
             <h3 style="margin: 0 0 1rem 0; font-size: 1.25rem; font-weight: 600; color: #1f2937;">
               <i class="fas fa-key"></i>
               Permissions
-              <span style="color: #6b7280; font-size: 0.875rem;">({{ user.all_permissions ? user.all_permissions.length
-                : 0 }})</span>
+              <span style="color: #6b7280; font-size: 0.875rem;">({{ user.permissions_count || 0 }})</span>
             </h3>
 
+            <!-- Permissions avec accordéons -->
             <div v-if="user.all_permissions && user.all_permissions.length > 0">
-              <!-- Permissions par catégorie -->
-              <div v-for="(categoryPerms, category) in permissionsByCategory" :key="category"
-                style="margin-bottom: 1.5rem;">
-                <h4
-                  style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; font-size: 1rem; color: #374151;">
-                  <i :class="getCategoryIcon(category)"></i>
-                  {{ getCategoryLabel(category) }}
-                  <span style="color: #6b7280; font-size: 0.75rem;">({{ categoryPerms.length }})</span>
-                </h4>
+              <PermissionsAccordion :permissions="user.all_permissions" mode="readonly" :show-actions="true"
+                :default-open-categories="['users']" />
 
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem;">
-                  <div v-for="permission in categoryPerms" :key="permission.id"
-                    style="padding: 0.5rem; background: #f9fafb; border-radius: 6px; border: 1px solid #e5e7eb;">
-                    <span style="font-weight: 500; display: block;">{{ permission.name }}</span>
-                    <span class="badge" :class="getActionClass(permission.action)" style="font-size: 0.75rem;">
-                      {{ permission.action }}
-                    </span>
+              <!-- Résumé global -->
+              <div
+                style="margin-top: 1.5rem; padding: 1rem; background: #f0fdf4; border-radius: 8px; border: 1px solid #bbf7d0;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                  <div>
+                    <i class="fas fa-check" style="color: var(--success);"></i>
+                    <strong class="pl-2">Permissions : {{ user.permissions_count }}</strong>
+                  </div>
+                  <div>
+                    <i class="fas fa-layer-group" style="color: #0891b2;"></i>
+                    <strong class="px-2">Catégories : {{ Object.keys(groupedPermissions).length }}</strong>
+                  </div>
+                  <div>
+                    <i class="fas fa-users-cog" style="color: var(--terracotta);"></i>
+                    <strong class="px-2">Rôles : {{ (user.role ? 1 : 0) + (user.additional_roles?.length || 0)
+                      }}</strong>
                   </div>
                 </div>
               </div>
             </div>
 
+            <!-- Aucune permission -->
             <div v-else style="text-align: center; padding: 2rem; color: #6b7280;">
               <i class="fas fa-key" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
-              <p>Aucune permission</p>
+              <p>Aucune permission assignée</p>
+              <small>Les permissions sont héritées des rôles assignés</small>
             </div>
           </div>
         </div>
-
         <!-- Colonne droite - Informations -->
         <div>
           <!-- Informations générales -->
@@ -308,19 +312,36 @@
 
 <script>
 import UsersApi from '@/services/UsersApi'
+import PermissionsAccordion from '@/admin/components/ui/PermissionsAccordion.vue'
 
 export default {
   name: 'UserDetail',
+  components: {
+    PermissionsAccordion
+  },
   data() {
     return {
       user: null,
       loading: true,
-      error: null
+      error: null,
     }
   },
   computed: {
     userId() {
       return this.$route.params.id
+    },
+    // Grouper les permissions par catégorie
+    groupedPermissions() {
+      if (!this.user.all_permissions) return {}
+
+      return this.user.all_permissions.reduce((groups, permission) => {
+        const category = permission.category || 'general'
+        if (!groups[category]) {
+          groups[category] = []
+        }
+        groups[category].push(permission)
+        return groups
+      }, {})
     },
 
     permissionsByCategory() {
@@ -493,53 +514,6 @@ export default {
       }
       return labels[status] || status
     },
-
-    getPermissionCategory(action) {
-      const action_lower = action.toLowerCase()
-
-      if (['create', 'add', 'store'].includes(action_lower)) return 'create'
-      if (['read', 'view', 'show', 'list', 'index'].includes(action_lower)) return 'read'
-      if (['update', 'edit', 'modify'].includes(action_lower)) return 'update'
-      if (['delete', 'destroy', 'remove'].includes(action_lower)) return 'delete'
-      if (['manage', 'admin', 'control'].includes(action_lower)) return 'admin'
-
-      return 'other'
-    },
-
-    getCategoryLabel(category) {
-      const labels = {
-        'create': 'Création',
-        'read': 'Lecture',
-        'update': 'Modification',
-        'delete': 'Suppression',
-        'admin': 'Administration',
-        'other': 'Autres'
-      }
-      return labels[category] || category
-    },
-
-    getCategoryIcon(category) {
-      const icons = {
-        'create': 'fas fa-plus',
-        'read': 'fas fa-eye',
-        'update': 'fas fa-edit',
-        'delete': 'fas fa-trash',
-        'admin': 'fas fa-cog',
-        'other': 'fas fa-star'
-      }
-      return icons[category] || 'fas fa-key'
-    },
-
-    getActionClass(action) {
-      const classes = {
-        'create': 'badge-success',
-        'read': 'badge-info',
-        'update': 'badge-warning',
-        'delete': 'badge-danger',
-        'admin': 'badge-primary'
-      }
-      return classes[action.toLowerCase()] || 'badge-secondary'
-    }
   }
 }
 </script>

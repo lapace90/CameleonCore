@@ -1,143 +1,120 @@
+<!-- frontend/CampCameleonXfront/src/admin/components/modals/RoleEditModal.vue -->
 <template>
     <div class="modal-overlay" @click.self="$emit('close')">
-        <div class="modal-container">
+        <div class="modal-container modal-lg">
             <div class="modal-header">
                 <h3>
                     <i class="fas fa-edit"></i>
-                    Modifier "{{ role.name }}"
+                    Modifier le rôle : {{ currentRole.name }}
                 </h3>
                 <button @click="$emit('close')" class="btn-close">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 
-            <form @submit.prevent="updateRole" class="modal-body">
-                <!-- Informations de base -->
+            <form @submit.prevent="handleSubmit" class="modal-body">
+                <!-- Informations du rôle -->
                 <div class="form-section">
-                    <h4>Informations générales</h4>
+                    <h4>
+                        <i class="fas fa-info-circle"></i>
+                        Informations générales
+                    </h4>
 
                     <div class="form-group">
-                        <label class="form-label required">Nom du rôle</label>
-                        <input v-model="form.name" type="text" class="form-input"
-                            placeholder="Ex: Administrateur, Gestionnaire..." required
-                            :class="{ 'error': formErrors.name }" />
-                        <span v-if="formErrors.name" class="error-message">{{ formErrors.name[0] }}</span>
+                        <label for="name">Nom du rôle *</label>
+                        <input id="name" v-model="form.name" type="text" class="form-control"
+                            placeholder="Ex: Gestionnaire" :class="{ 'is-invalid': formErrors.name }" required />
+                        <div v-if="formErrors.name" class="invalid-feedback">{{ formErrors.name[0] }}</div>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Slug</label>
-                        <input v-model="form.slug" type="text" class="form-input" placeholder="admin, manager..."
-                            :class="{ 'error': formErrors.slug }" :disabled="role.is_critical" />
-                        <span v-if="formErrors.slug" class="error-message">{{ formErrors.slug[0] }}</span>
-                        <span v-if="role.is_critical" class="form-help">
-                            Le slug ne peut pas être modifié pour un rôle critique
-                        </span>
+                        <label for="slug">Identifiant (slug)</label>
+                        <input id="slug" v-model="form.slug" type="text" class="form-control"
+                            placeholder="Ex: manager" :class="{ 'is-invalid': formErrors.slug }" />
+                        <div v-if="formErrors.slug" class="invalid-feedback">{{ formErrors.slug[0] }}</div>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Description</label>
-                        <textarea v-model="form.description" class="form-textarea" rows="3"
-                            placeholder="Description du rôle et de ses responsabilités..."
-                            :class="{ 'error': formErrors.description }"></textarea>
-                        <span v-if="formErrors.description" class="error-message">{{ formErrors.description[0] }}</span>
+                        <label for="description">Description</label>
+                        <textarea id="description" v-model="form.description" class="form-control" rows="3"
+                            placeholder="Description du rôle et de ses responsabilités"
+                            :class="{ 'is-invalid': formErrors.description }"></textarea>
+                        <div v-if="formErrors.description" class="invalid-feedback">{{ formErrors.description[0] }}</div>
                     </div>
                 </div>
 
-                <!-- Gestion des permissions -->
-                <!-- Gestion des permissions -->
+                <!-- Permissions -->
                 <div class="form-section">
                     <h4>
                         <i class="fas fa-key"></i>
-                        Permissions ({{ selectedPermissions.length }} sélectionnées)
+                        Permissions
+                        <span class="text-muted">({{ selectedPermissions.length }})</span>
+                        <span v-if="permissionsChanged" class="badge badge-warning ml-2">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Modifiées
+                        </span>
                     </h4>
 
-                    <div v-if="role.is_critical" class="warning-box">
-                        <i class="fas fa-shield-alt"></i>
-                        Attention : Ce rôle est critique pour le système. Modifiez les permissions avec précaution.
+                    <!-- Loading des permissions -->
+                    <div v-if="loadingPermissions" class="loading-state">
+                        <div class="spinner"></div>
+                        <p>Chargement des permissions...</p>
                     </div>
 
-                    <!-- États de chargement / vide / erreur -->
-                    <div v-else-if="loadingPermissions" class="form-note">
-                        <i class="fas fa-info-circle"></i>
-                        Chargement des permissions...
-                    </div>
-
-                    <div v-else-if="loadError" class="form-note">
+                    <!-- Erreur de chargement -->
+                    <div v-else-if="loadError" class="error-state">
                         <i class="fas fa-exclamation-triangle"></i>
-                        Erreur lors du chargement des permissions.
+                        <p>Impossible de charger les permissions</p>
+                        <button type="button" @click="loadPermissions" class="btn btn-outline btn-sm">
+                            <i class="fas fa-redo"></i>
+                            Réessayer
+                        </button>
                     </div>
 
-                    <div v-else-if="permissionCategories.length === 0" class="form-note">
+                    <!-- Accordéon des permissions -->
+                    <div v-else-if="allPermissions.length > 0">
+                        <PermissionsAccordion 
+                            :permissions="allPermissions"
+                            :selected-permissions="selectedPermissions"
+                            :original-permissions="originalPermissions"
+                            mode="editable"
+                            :show-actions="true"
+                            :default-open-categories="getDefaultOpenCategories()"
+                            @update:selected-permissions="selectedPermissions = $event"
+                            @permission-changed="handlePermissionChanged"
+                        />
+
+                        <!-- Résumé des changements -->
+                        <div v-if="hasChanges" class="alert alert-info mt-3">
+                            <h6><i class="fas fa-info-circle"></i> Résumé des modifications</h6>
+                            <div class="changes-summary">
+                                <div v-if="permissionsChanged">
+                                    <strong>Permissions :</strong> {{ selectedPermissions.length }} sélectionnées
+                                    ({{ getPermissionsDiff() }})
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Aucune permission -->
+                    <div v-else class="form-note">
                         <i class="fas fa-info-circle"></i>
                         Aucune permission disponible.
                     </div>
-
-                    <div v-else class="permissions-section">
-
-                        <!-- Actions rapides -->
-                        <div class="permission-actions">
-                            <button type="button" @click="selectAllPermissions" class="btn btn-outline btn-sm">
-                                Tout sélectionner
-                            </button>
-                            <button type="button" @click="clearAllPermissions" class="btn btn-outline btn-sm">
-                                Tout désélectionner
-                            </button>
-                            <button type="button" @click="resetPermissions" class="btn btn-outline btn-sm">
-                                Restaurer
-                            </button>
-                        </div>
-
-                        <!-- Liste des permissions groupées -->
-                        <div class="permissions-grid">
-                            <div v-for="category in permissionCategories" :key="category.key || category.name"
-                                class="permission-category">
-                                <div class="category-header" @click="toggleAccordion(category)" style="cursor:pointer;">
-                                    <div class="category-left">
-                                        <i :class="`fas ${category.icon}`" :style="{ color: category.color }"></i>
-                                        <span>
-                                            {{ category.name }}
-                                            ({{ getCategorySelectedCount(category) }}/{{ category.permissions.length }})
-                                        </span>
-                                    </div>
-                                    <div class="category-right">
-                                        <button v-if="isOpen(category)" type="button"
-                                            @click.stop="toggleCategoryPermissions(category)"
-                                            class="btn btn-outline btn-xs mx-5">
-                                            {{ isCategorySelected(category) ? 'Désélectionner' : 'Sélectionner' }}
-                                        </button>
-                                        <i class="fas"
-                                            :class="isOpen(category) ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
-                                    </div>
-                                </div>
-
-                                <transition name="fade">
-                                    <div v-show="isOpen(category)" class="permission-items">
-                                        <label v-for="permission in category.permissions" :key="permission.id"
-                                            class="permission-checkbox"
-                                            :class="{ 'changed': isPermissionChanged(permission.id) }">
-                                            <input type="checkbox" :value="permission.id"
-                                                v-model="selectedPermissions" />
-                                            <span class="checkmark"></span>
-                                            <span class="permission-name">{{ permission.name }}</span>
-                                            <i v-if="isPermissionChanged(permission.id)"
-                                                class="fas fa-dot-circle text-warning" title="Modifié"></i>
-                                        </label>
-                                    </div>
-                                </transition>
-                            </div>
-
-                        </div>
-                    </div>
                 </div>
 
-
                 <!-- Actions -->
-                <div class="modal-actions">
+                <div class="modal-footer">
                     <button type="button" @click="$emit('close')" class="btn btn-secondary btn-sm">
                         Annuler
                     </button>
-                    <button type="submit" class="btn btn-primary btn-sm" :disabled="submitting || !hasChanges">
+                    <button type="button" @click="resetForm" class="btn btn-outline btn-sm" :disabled="!hasChanges">
+                        <i class="fas fa-undo"></i>
+                        Réinitialiser
+                    </button>
+                    <button type="submit" class="btn btn-primary btn-sm" :disabled="!hasChanges || submitting">
                         <i v-if="submitting" class="fas fa-spinner fa-spin"></i>
+                        <i v-else class="fas fa-save"></i>
                         {{ submitting ? 'Mise à jour...' : 'Mettre à jour' }}
                     </button>
                 </div>
@@ -148,9 +125,14 @@
 
 <script>
 import RolesApi from '@/services/RolesApi'
+import PermissionsAccordion from '@/admin/components/ui/PermissionsAccordion.vue'
 
 export default {
     name: 'RoleEditModal',
+
+    components: {
+        PermissionsAccordion
+    },
 
     props: {
         role: {
@@ -166,21 +148,18 @@ export default {
             form: { name: '', slug: '', description: '' },
             selectedPermissions: [],
             originalPermissions: [],
-            permissionCategories: [],
+            allPermissions: [],
             formErrors: {},
             submitting: false,
             loadingPermissions: false,
             loadError: false,
-
-            // on garde une copie locale "pleine" du rôle si on doit refetch
+            // Copie locale complète du rôle si besoin de refetch
             roleFull: null,
-            openCategories: new Set(), // accordéon
         }
     },
 
     computed: {
         currentRole() {
-            // on affiche toujours ce qu'on a de plus “hydraté”
             return this.roleFull || this.role
         },
 
@@ -193,20 +172,18 @@ export default {
         },
 
         permissionsChanged() {
-            const A = this.originalPermissions
-            const B = this.selectedPermissions
-            if (A.length !== B.length) return true
-            // comparaison sur IDs normalisés (string)
-            const setB = new Set(B.map(String))
-            return !A.every(id => setB.has(String(id)))
+            if (this.originalPermissions.length !== this.selectedPermissions.length) return true
+            
+            const setSelected = new Set(this.selectedPermissions.map(String))
+            return !this.originalPermissions.every(id => setSelected.has(String(id)))
         }
     },
 
     watch: {
         role: {
             async handler() {
-                await this.ensureRolePermissions()   // réhydrate si besoin
-                this.initializeForm()                // puis réinit form/permissions
+                await this.ensureRolePermissions()
+                this.initializeForm()
             },
             deep: true
         }
@@ -215,23 +192,10 @@ export default {
     async mounted() {
         await this.ensureRolePermissions()
         this.initializeForm()
-
-        // ✅ charger via le store (cache, TTL, mutualisation)
-        const { useRolesStore } = await import('@/shared/stores/roles')
-        const rolesStore = useRolesStore()
-        await rolesStore.ensurePermissions()
-        this.permissionCategories = rolesStore.availablePermissions.categories
-
-        // accordéon fermé par défaut
-        this.collapseAll()
+        await this.loadPermissions()
     },
 
     methods: {
-        // --- Normalisation ID -> string (évite includes() qui rate)
-        toId(val) { return String(val) },
-
-        normalizeIdArray(arr) { return (arr || []).map(x => this.toId(x)) },
-
         initializeForm() {
             const r = this.currentRole
             this.form = {
@@ -239,8 +203,9 @@ export default {
                 slug: r.slug || '',
                 description: r.description || '',
             }
-            // permissions sélectionnées initiales (normalisées)
-            const selected = (r.permissions || []).map(p => this.toId(p.id))
+            
+            // Permissions sélectionnées initiales
+            const selected = (r.permissions || []).map(p => String(p.id))
             this.selectedPermissions = [...selected]
             this.originalPermissions = [...selected]
         },
@@ -248,7 +213,7 @@ export default {
         async ensureRolePermissions() {
             if (!this.role?.permissions || this.role.permissions.length === 0) {
                 try {
-                    const data = await RolesApi.getById(this.role.id) // ✅ bon nom
+                    const data = await RolesApi.getById(this.role.id)
                     this.roleFull = data
                 } catch (e) {
                     console.warn('Impossible de recharger le rôle complet:', e)
@@ -259,168 +224,100 @@ export default {
             }
         },
 
-        // async loadPermissions() {
-        //     this.loadingPermissions = true
-        //     this.loadError = false
-        //     try {
-        //         // ⚠️ getAllPermissions() retourne déjà le body (pas l'objet axios complet)
-        //         const data = await RolesApi.getAllPermissions()
-
-        //         if (Array.isArray(data?.categories)) {
-        //             // format groupé
-        //             this.permissionCategories = data.categories.map(cat => ({
-        //                 ...cat,
-        //                 permissions: (cat.permissions || []).map(p => ({ ...p, id: String(p.id) }))
-        //             }))
-        //         } else if (Array.isArray(data?.permissions)) {
-        //             // format plat → regrouper
-        //             const byCat = {}
-        //             data.permissions.forEach(p => {
-        //                 const key = p.category || 'general'
-        //                 if (!byCat[key]) {
-        //                     byCat[key] = {
-        //                         key,
-        //                         name: key.charAt(0).toUpperCase() + key.slice(1),
-        //                         icon: 'fa-key',
-        //                         color: undefined,
-        //                         permissions: []
-        //                     }
-        //                 }
-        //                 byCat[key].permissions.push({ ...p, id: String(p.id) })
-        //             })
-        //             this.permissionCategories = Object.values(byCat)
-        //         } else {
-        //             this.permissionCategories = []
-        //         }
-
-        //         // normalisation des ids sélectionnés existants
-        //         this.selectedPermissions = this.selectedPermissions.map(String)
-        //         this.originalPermissions = this.originalPermissions.map(String)
-        //     } catch (e) {
-        //         console.error('Erreur chargement permissions:', e)
-        //         this.loadError = true
-        //     } finally {
-        //         this.loadingPermissions = false
-        //     }
-        // },
-
-        // === Sélection & toggles (idempotents, normalisés)
-        selectAllPermissions() {
-            const merged = new Set(this.selectedPermissions.map(String))
-            this.permissionCategories.forEach(cat => {
-                cat.permissions.forEach(p => merged.add(this.toId(p.id)))
-            })
-            this.selectedPermissions = Array.from(merged)
-        },
-
-        clearAllPermissions() {
-            this.selectedPermissions = []
-        },
-
-        resetPermissions() {
-            this.selectedPermissions = [...this.originalPermissions]
-        },
-
-        toggleCategoryPermissions(category) {
-            const ids = category.permissions.map(p => this.toId(p.id))
-            const selected = new Set(this.selectedPermissions.map(String))
-            const allSelected = ids.every(id => selected.has(id))
-
-            if (allSelected) {
-                ids.forEach(id => selected.delete(id))
-            } else {
-                ids.forEach(id => selected.add(id))
-            }
-            this.selectedPermissions = Array.from(selected)
-        },
-
-        isCategorySelected(category) {
-            const ids = category.permissions.map(p => this.toId(p.id))
-            const selected = new Set(this.selectedPermissions.map(String))
-            return ids.every(id => selected.has(id))
-        },
-
-        getCategorySelectedCount(category) {
-            const ids = category.permissions.map(p => this.toId(p.id))
-            const selected = new Set(this.selectedPermissions.map(String))
-            return ids.filter(id => selected.has(id)).length
-        },
-
-        isPermissionChanged(permissionId) {
-            const id = this.toId(permissionId)
-            const was = new Set(this.originalPermissions.map(String))
-            const is = new Set(this.selectedPermissions.map(String))
-            return was.has(id) !== is.has(id)
-        },
-
-        async updateRole() {
+        async loadPermissions() {
+            this.loadingPermissions = true
+            this.loadError = false
             try {
-                this.submitting = true
-                this.formErrors = {}
+                const { useRolesStore } = await import('@/shared/stores/roles')
+                const rolesStore = useRolesStore()
+                await rolesStore.ensurePermissions()
+                
+                // Conversion du format store vers format PermissionsAccordion
+                this.allPermissions = this.flattenPermissions(rolesStore.availablePermissions.categories)
+                
+            } catch (e) {
+                console.error('Erreur chargement permissions:', e)
+                this.loadError = true
+            } finally {
+                this.loadingPermissions = false
+            }
+        },
 
+        // Convertit le format { categories: [{ permissions: [] }] } vers un array plat
+        flattenPermissions(categories) {
+            const permissions = []
+            categories.forEach(category => {
+                category.permissions.forEach(permission => {
+                    permissions.push({
+                        ...permission,
+                        category: category.key || category.name
+                    })
+                })
+            })
+            return permissions
+        },
+
+        getDefaultOpenCategories() {
+            // Ouvre les catégories qui ont des permissions sélectionnées
+            const selectedSet = new Set(this.selectedPermissions.map(String))
+            const openCategories = new Set()
+            
+            this.allPermissions.forEach(permission => {
+                if (selectedSet.has(String(permission.id))) {
+                    openCategories.add(permission.category)
+                }
+            })
+            
+            // Toujours ouvrir 'users' par défaut
+            openCategories.add('users')
+            
+            return Array.from(openCategories)
+        },
+
+        getPermissionsDiff() {
+            const added = this.selectedPermissions.length - this.originalPermissions.length
+            if (added > 0) return `+${added}`
+            if (added < 0) return `${added}`
+            return 'modifiées'
+        },
+
+        handlePermissionChanged(event) {
+            // Optionnel : logger les changements
+            console.log('Permission changed:', event)
+        },
+
+        resetForm() {
+            this.initializeForm()
+        },
+
+        async handleSubmit() {
+            if (!this.hasChanges || this.submitting) return
+
+            this.submitting = true
+            this.formErrors = {}
+
+            try {
                 const payload = {
-                    name: this.form.name,
-                    slug: this.currentRole.is_critical ? this.currentRole.slug : (this.form.slug || null),
-                    description: this.form.description || null,
-                    // envoie des IDs normalisés (string) ; si ton backend veut des numbers, parseInt côté API
+                    ...this.form,
                     permissions: this.selectedPermissions
                 }
 
-                await RolesApi.update(this.role.id, payload)
-                this.$emit('updated')
+                const response = await RolesApi.update(this.currentRole.id, payload)
+                
+                this.$emit('updated', response)
                 this.$emit('close')
             } catch (error) {
-                console.error('Erreur mise à jour rôle:', error)
-                if (error.response?.data?.violations) {
-                    error.response.data.violations.forEach(v => {
-                        this.formErrors[v.propertyPath] = [v.message]
-                    })
+                console.error('Erreur lors de la mise à jour:', error)
+                
+                if (error.response?.status === 422) {
+                    this.formErrors = error.response.data.errors || {}
+                } else {
+                    alert('Erreur lors de la mise à jour du rôle')
                 }
             } finally {
                 this.submitting = false
             }
         },
-        isOpen(category) {
-            return this.openCategories.has(category.key || category.name)
-        },
-        toggleAccordion(category) {
-            const k = category.key || category.name
-            if (this.openCategories.has(k)) this.openCategories.delete(k)
-            else this.openCategories.add(k)
-            this.openCategories = new Set(this.openCategories) // force réactivité
-        },
-        expandAll() {
-            const s = new Set()
-            this.permissionCategories.forEach(c => s.add(c.key || c.name))
-            this.openCategories = s
-        },
-        collapseAll() {
-            this.openCategories = new Set()
-        },
     }
 }
 </script>
-
-<style scoped>
-.fade-enter-active,
-.fade-leave-active {
-    transition: opacity .18s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-    opacity: 0;
-}
-
-.category-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.category-left {
-    display: flex;
-    align-items: center;
-    gap: .5rem;
-}
-</style>
