@@ -1,24 +1,33 @@
 <template>
   <teleport to="body">
-    <transition name="modal">
-      <div v-if="show" class="modal-overlay" @click="handleOverlayClick">
-        <div class="modal-container" :class="sizeClass" @click.stop>
+    <transition name="modal" appear>
+      <div v-if="modelValue" class="modal-overlay" @click="handleOverlayClick">
+        <div class="modal-content" :class="sizeClass" @click.stop>
           <!-- Header -->
-          <div class="modal-header" v-if="!hideHeader">
-            <h3 class="modal-title">{{ title }}</h3>
-            <button class="modal-close" @click="close">
-              <i class="fas fa-times"></i>
+          <div v-if="title || $slots.header || closable" class="modal-header">
+            <div class="modal-title">
+              <slot name="header">
+                <h3 v-if="title">{{ title }}</h3>
+              </slot>
+            </div>
+            <button 
+              v-if="closable" 
+              @click="close" 
+              class="btn-close"
+              aria-label="Fermer"
+            >
+              &times;
             </button>
           </div>
           
           <!-- Body -->
           <div class="modal-body">
-            <slot />
+            <slot></slot>
           </div>
           
           <!-- Footer -->
-          <div class="modal-footer" v-if="$slots.footer">
-            <slot name="footer" />
+          <div v-if="$slots.footer" class="modal-footer">
+            <slot name="footer"></slot>
           </div>
         </div>
       </div>
@@ -29,56 +38,68 @@
 <script>
 export default {
   name: 'BaseModal',
-  emits: ['close', 'confirm'],
+  emits: ['update:modelValue', 'close'],
+  
   props: {
-    show: {
+    modelValue: {
       type: Boolean,
       default: false
     },
-    title: {
-      type: String,
-      default: ''
-    },
+    title: String,
     size: {
       type: String,
       default: 'md',
-      validator: value => ['sm', 'md', 'lg', 'xl'].includes(value)
+      validator: v => ['sm', 'md', 'lg', 'xl'].includes(v)
     },
-    hideHeader: {
+    closable: {
       type: Boolean,
-      default: false
+      default: true
     },
     closeOnOverlay: {
       type: Boolean,
       default: true
     }
   },
+  
   computed: {
     sizeClass() {
-      return `modal-${this.size}`;
+      return `modal-${this.size}`
     }
   },
+  
   methods: {
     close() {
-      this.$emit('close');
+      this.$emit('update:modelValue', false)
+      this.$emit('close')
     },
+    
     handleOverlayClick() {
       if (this.closeOnOverlay) {
-        this.close();
+        this.close()
       }
     }
   },
-  watch: {
-    show(newVal) {
-      if (newVal) {
-        document.body.style.overflow = 'hidden';
-      } else {
-        document.body.style.overflow = '';
-      }
+  
+  mounted() {
+    // Empêcher le scroll du body quand la modal est ouverte
+    if (this.modelValue) {
+      document.body.style.overflow = 'hidden'
     }
   },
+  
   beforeUnmount() {
-    document.body.style.overflow = '';
+    // Restaurer le scroll
+    document.body.style.overflow = ''
+  },
+  
+  watch: {
+    modelValue(newVal) {
+      if (newVal) {
+        document.body.style.overflow = 'hidden'
+      } else {
+        document.body.style.overflow = ''
+      }
+    }
   }
 }
 </script>
@@ -90,7 +111,7 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -98,80 +119,100 @@ export default {
   padding: 1rem;
 }
 
-.modal-container {
+.modal-content {
   background: white;
-  border-radius: 0.75rem;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  border-radius: var(--border-radius-lg);
+  width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  width: 100%;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
-.modal-sm { max-width: 400px; }
-.modal-md { max-width: 600px; }
-.modal-lg { max-width: 800px; }
-.modal-xl { max-width: 1000px; }
+.modal-sm {
+  max-width: 400px;
+}
+
+.modal-md {
+  max-width: 600px;
+}
+
+.modal-lg {
+  max-width: 800px;
+}
+
+.modal-xl {
+  max-width: 1200px;
+}
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem;
-  border-bottom: 1px solid #e9ecef;
+  border-bottom: 1px solid var(--border-color);
 }
 
-/* .modal-title {
+.modal-title h3 {
   margin: 0;
-  color: #32325d;
   font-size: 1.25rem;
-} */
+  font-weight: 600;
+  color: var(--text-primary);
+}
 
-.modal-close {
+.btn-close {
   background: none;
   border: none;
-  font-size: 1.25rem;
-  color: #8898aa;
+  font-size: 1.5rem;
   cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 0.25rem;
-  transition: all 0.15s ease;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+  padding: 0;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.modal-close:hover {
-  color: #32325d;
-  background-color: #f8f9fe;
+.btn-close:hover {
+  opacity: 1;
 }
 
-/* .modal-body {
+.modal-body {
   padding: 1.5rem;
 }
 
 .modal-footer {
-  padding: 1rem 1.5rem;
-  border-top: 1px solid #e9ecef;
   display: flex;
   justify-content: flex-end;
-  gap: 0.5rem;
-} */
-
-/* Transitions */
-.modal-enter-active,
-.modal-leave-active {
-  transition: opacity 0.3s ease;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-top: 1px solid var(--border-color);
+  background: var(--bg-light);
 }
 
-.modal-enter-from,
-.modal-leave-to {
+/* Transitions */
+.modal-enter-active, .modal-leave-active {
+  transition: all 0.3s ease;
+}
+
+.modal-enter-from, .modal-leave-to {
   opacity: 0;
 }
 
-.modal-enter-active .modal-container,
-.modal-leave-active .modal-container {
-  transition: transform 0.3s ease;
+.modal-enter-from .modal-content,
+.modal-leave-to .modal-content {
+  transform: scale(0.9) translateY(-20px);
 }
 
-.modal-enter-from .modal-container,
-.modal-leave-to .modal-container {
-  transform: scale(0.9);
+@media (max-width: 768px) {
+  .modal-overlay {
+    padding: 0;
+  }
+  
+  .modal-content {
+    border-radius: 0;
+    max-height: 100vh;
+  }
 }
 </style>

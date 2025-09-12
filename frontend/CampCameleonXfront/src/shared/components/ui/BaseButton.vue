@@ -19,7 +19,7 @@ export default {
     variant: {
       type: String,
       default: 'primary',
-      validator: value => ['primary', 'secondary', 'outline', 'danger', 'success'].includes(value)
+      validator: value => ['primary', 'secondary', 'outline', 'danger', 'success', 'warning'].includes(value)
     },
     size: {
       type: String,

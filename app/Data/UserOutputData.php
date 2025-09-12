@@ -6,43 +6,50 @@ use Spatie\LaravelData\Data;
 use App\Models\User;
 
 /**
- * UserOutputData - Version 100% compatible API Platform avec permissions
+ * UserOutputData - Version complète avec tous les champs profil
  */
 class UserOutputData extends Data
 {
     public function __construct(
-        // Champs de base - noms directs
+        // Champs de base
         public int $id,
         public string $name,
         public string $email,
         public string $status,
         
+        // ✅ NOUVEAUX CHAMPS PROFIL
+        public ?string $phone,
+        public ?string $address,
+        public ?string $city,
+        public ?string $postal_code,
+        public ?string $avatar,
+        
         // Relations - format API direct
         public ?array $role,
-        public array $additional_roles,    // snake_case pour API Platform
-        public array $all_permissions,     // ← NOUVEAU : Toutes les permissions de l'utilisateur
+        public array $additional_roles,
+        public array $all_permissions,
         
-        // Métadonnées - snake_case pour API Platform
+        // Métadonnées
         public ?string $email_verified_at,
         public int $roles_count,
-        public int $permissions_count,     // ← NOUVEAU : Compteur de permissions
+        public int $permissions_count,
         public ?string $last_login_at,
         public ?string $last_login_ip,
         public bool $password_reset_required,
         
-        // Flags - snake_case pour API Platform
+        // Flags
         public bool $is_admin,
         public bool $is_super_admin,
         public bool $can_access_admin,
         
-        // Timestamps - snake_case pour API Platform
+        // Timestamps
         public string $created_at,
         public string $updated_at,
         public ?string $deleted_at = null
     ) {}
 
     /**
-     * Créer depuis un modèle User - Version complète avec permissions
+     * Créer depuis un modèle User - Version complète avec tous les champs
      */
     public static function fromUser(User $user): self
     {
@@ -71,7 +78,7 @@ class UserOutputData extends Data
             ];
         })->toArray();
 
-        // ✅ NOUVEAU : Consolider toutes les permissions uniques
+        // Consolider toutes les permissions uniques
         $allPermissions = collect();
         
         // Permissions du rôle principal
@@ -101,6 +108,14 @@ class UserOutputData extends Data
             name: $user->name,
             email: $user->email,
             status: $user->status ?? 'active',
+            
+            // ✅ NOUVEAUX CHAMPS PROFIL
+            phone: $user->phone,
+            address: $user->address,
+            city: $user->city,
+            postal_code: $user->postal_code,
+            avatar: $user->avatar,
+            
             role: $roleData,
             additional_roles: $additionalRolesData,
             all_permissions: $permissionsData,
@@ -149,6 +164,14 @@ class UserOutputData extends Data
             name: $user->name,
             email: $user->email,
             status: $user->status ?? 'active',
+            
+            // ✅ NOUVEAUX CHAMPS PROFIL
+            phone: $user->phone,
+            address: $user->address,
+            city: $user->city,
+            postal_code: $user->postal_code,
+            avatar: $user->avatar,
+            
             role: $roleData,
             additional_roles: $additionalRolesData,
             all_permissions: [], // Vide pour la version simple
@@ -165,33 +188,5 @@ class UserOutputData extends Data
             updated_at: $user->updated_at->toISOString(),
             deleted_at: $user->deleted_at?->toISOString()
         );
-    }
-
-    /**
-     * Conversion vers array (optionnelle, pour debug)
-     */
-    public function toArray(): array
-    {
-        return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'email' => $this->email,
-            'status' => $this->status,
-            'role' => $this->role,
-            'additional_roles' => $this->additional_roles,
-            'all_permissions' => $this->all_permissions,
-            'email_verified_at' => $this->email_verified_at,
-            'roles_count' => $this->roles_count,
-            'permissions_count' => $this->permissions_count,
-            'last_login_at' => $this->last_login_at,
-            'last_login_ip' => $this->last_login_ip,
-            'password_reset_required' => $this->password_reset_required,
-            'is_admin' => $this->is_admin,
-            'is_super_admin' => $this->is_super_admin,
-            'can_access_admin' => $this->can_access_admin,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
-            'deleted_at' => $this->deleted_at
-        ];
     }
 }

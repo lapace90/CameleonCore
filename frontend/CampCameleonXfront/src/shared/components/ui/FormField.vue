@@ -1,46 +1,75 @@
-<!-- src/shared/components/ui/BaseInput.vue -->
 <template>
-  <div class="input-wrapper">
-    <input
+  <div :class="fieldClasses">
+    <label v-if="label" :for="fieldId" class="form-label">
+      {{ label }}
+      <span v-if="required" class="required">*</span>
+    </label>
+    
+    <!-- Input simple -->
+    <BaseInput
+      v-if="type !== 'textarea' && type !== 'select'"
       :id="fieldId"
+      :model-value="modelValue"
       :type="type"
+      :placeholder="placeholder"
+      :disabled="disabled"
+      :required="required"
+      :error="error"
+      :icon="icon"
+      v-bind="$attrs"
+      @update:modelValue="$emit('update:modelValue', $event)"
+    />
+    
+    <!-- Textarea -->
+    <textarea
+      v-else-if="type === 'textarea'"
+      :id="fieldId"
       :value="modelValue"
       :placeholder="placeholder"
       :disabled="disabled"
       :required="required"
-      :readonly="readonly"
-      :class="inputClasses"
-      v-bind="$attrs"
+      :rows="rows"
+      class="form-textarea"
+      :class="{ 'has-error': error }"
       @input="$emit('update:modelValue', $event.target.value)"
-      @blur="$emit('blur', $event)"
-      @focus="$emit('focus', $event)"
-      @keydown="$emit('keydown', $event)"
     />
     
-    <!-- Icône à droite (optionnelle) -->
-    <div v-if="icon || $slots.icon" class="input-icon">
-      <slot name="icon">
-        <i v-if="icon" :class="icon"></i>
-      </slot>
-    </div>
+    <!-- Select -->
+    <select
+      v-else-if="type === 'select'"
+      :id="fieldId"
+      :value="modelValue"
+      :disabled="disabled"
+      :required="required"
+      class="form-select"
+      :class="{ 'has-error': error }"
+      @change="$emit('update:modelValue', $event.target.value)"
+    >
+      <option v-if="placeholder" value="">{{ placeholder }}</option>
+      <slot name="options"></slot>
+    </select>
     
-    <!-- Addon à droite (ex: €, %, etc.) -->
-    <div v-if="addon || $slots.addon" class="input-addon">
-      <slot name="addon">
-        {{ addon }}
-      </slot>
-    </div>
+    <span v-if="error" class="error-text">{{ error }}</span>
+    <span v-else-if="hint" class="hint-text">{{ hint }}</span>
   </div>
 </template>
 
 <script>
+import BaseInput from './BaseInput.vue'
+
 export default {
-  name: 'BaseInput',
+  name: 'FormField',
   inheritAttrs: false,
-  emits: ['update:modelValue', 'blur', 'focus', 'keydown'],
+  
+  components: {
+    BaseInput
+  },
+  
+  emits: ['update:modelValue'],
   
   props: {
-    modelValue: [String, Number],
+    modelValue: [String, Number, Boolean],
+    label: String,
     type: {
       type: String,
       default: 'text'
@@ -48,135 +77,106 @@ export default {
     placeholder: String,
     disabled: Boolean,
     required: Boolean,
-    readonly: Boolean,
-    error: Boolean,
-    size: {
-      type: String,
-      default: 'md',
-      validator: v => ['sm', 'md', 'lg'].includes(v)
+    error: String,
+    hint: String,
+    icon: String,
+    rows: {
+      type: Number,
+      default: 4
     },
-    icon: String, // Icône fontawesome
-    addon: String, // Texte addon (€, %, etc.)
-    fieldId: String
+    fullWidth: Boolean,
+    id: String
   },
   
   computed: {
-    inputClasses() {
+    fieldClasses() {
       return [
-        'form-input',
-        `form-input-${this.size}`,
+        'form-field',
         {
-          'form-input-error': this.error,
-          'form-input-disabled': this.disabled,
-          'form-input-readonly': this.readonly,
-          'has-icon': this.icon || this.$slots.icon,
-          'has-addon': this.addon || this.$slots.addon
+          'form-field-full-width': this.fullWidth,
+          'has-error': this.error
         }
       ]
+    },
+    
+    fieldId() {
+      return this.id || `field-${Math.random().toString(36).substr(2, 9)}`
     }
   }
 }
 </script>
 
 <style scoped>
-.input-wrapper {
-  position: relative;
+.form-field {
   display: flex;
-  align-items: center;
+  flex-direction: column;
 }
 
-.form-input {
-  width: 100%;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
-  font-weight: 400;
-  line-height: 1.5;
+.form-field-full-width {
+  grid-column: 1 / -1;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
   color: var(--text-primary);
-  background-color: #fff;
-  background-clip: padding-box;
+  font-size: 0.875rem;
+}
+
+.required {
+  color: var(--danger);
+}
+
+.form-textarea,
+.form-select {
+  width: 100%;
+  padding: 0.75rem 1rem;
   border: 1px solid #dee2e6;
   border-radius: 0.375rem;
-  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-}
-
-.form-input:focus {
+  font-family: var(--font-primary);
+  font-size: 1rem;
+  line-height: 1.5;
   color: var(--text-primary);
-  background-color: #fff;
+  background: white;
+  transition: all 0.15s ease;
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-textarea:focus,
+.form-select:focus {
+  outline: none;
   border-color: var(--primary);
-  outline: 0;
-  box-shadow: 0 0 0 0.2rem rgba(var(--primary-rgb), 0.25);
+  box-shadow: 0 0 0 0.2rem rgba(var(--primary), 0.25);
 }
 
-.form-input::placeholder {
-  color: #6c757d;
-  opacity: 1;
-}
-
-.form-input:disabled,
-.form-input-disabled {
-  background-color: #e9ecef;
-  opacity: 1;
+.form-textarea:disabled,
+.form-select:disabled {
+  background-color: #f8f9fa;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
-.form-input:readonly,
-.form-input-readonly {
-  background-color: #f8f9fa;
-}
-
-.form-input.form-input-error {
+.form-textarea.has-error,
+.form-select.has-error {
   border-color: var(--danger);
-  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
 }
 
-/* Tailles */
-.form-input-sm {
-  padding: 0.375rem 0.5rem;
-  font-size: 0.75rem;
-}
-
-.form-input-lg {
-  padding: 0.75rem 1rem;
-  font-size: 1rem;
-}
-
-/* Avec icône */
-.form-input.has-icon {
-  padding-right: 2.5rem;
-}
-
-.input-icon {
-  position: absolute;
-  right: 0.75rem;
-  color: #6c757d;
-  pointer-events: none;
-}
-
-/* Avec addon */
-.form-input.has-addon {
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-  border-right: 0;
-}
-
-.input-addon {
-  display: flex;
-  align-items: center;
-  padding: 0.5rem 0.75rem;
+.error-text {
+  display: block;
+  margin-top: 0.25rem;
   font-size: 0.875rem;
-  font-weight: 400;
-  line-height: 1.5;
-  color: #495057;
-  text-align: center;
-  white-space: nowrap;
-  background-color: #e9ecef;
-  border: 1px solid #dee2e6;
-  border-left: 0;
-  border-radius: 0 0.375rem 0.375rem 0;
+  color: var(--danger);
 }
 
-/* Focus sur input avec addon */
-.input-wrapper:focus-within .input-addon {
-  border-color: var(--primary);
+.hint-text {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
 }
 </style>

@@ -381,25 +381,49 @@ class RolesPermissionsSeeder extends Seeder
                 'name' => 'Amina Bensalem',
                 'email' => 'amina@campcanteloup.ma',
                 'password' => Hash::make('password'),
-                'role_id' => $ownerRole?->id, // Rôle principal
+                'role_id' => $ownerRole?->id,
                 'status' => 'active',
                 'email_verified_at' => now(),
+                'phone' => '+212 6 61 23 45 67',
+                'address' => 'Villa Atlas, Quartier Gueliz',
+                'city' => 'Marrakech',
+                'postal_code' => '40000',
+                'avatar' => null,
+                'last_login_at' => now()->subMinutes(30),
+                'last_login_ip' => '41.250.12.45',
+                'password_reset_required' => false,
             ],
             [
                 'name' => 'Youssef Tazi',
                 'email' => 'youssef@campcanteloup.ma',
                 'password' => Hash::make('password'),
-                'role_id' => $managerRole?->id, // Rôle principal
+                'role_id' => $managerRole?->id,
                 'status' => 'active',
                 'email_verified_at' => now(),
+                'phone' => '+212 7 77 88 99 00',
+                'address' => 'Résidence Palmiers, Avenue Mohammed V',
+                'city' => 'Marrakech',
+                'postal_code' => '40000',
+                'avatar' => null,
+                'last_login_at' => now()->subHours(1),
+                'last_login_ip' => '41.250.12.78',
+                'password_reset_required' => false,
             ],
             [
                 'name' => 'Fatima Ouali',
                 'email' => 'fatima@campcanteloup.ma',
                 'password' => Hash::make('password'),
-                'role_id' => $receptionistRole?->id, // Rôle principal
+                'role_id' => $receptionistRole?->id,
                 'status' => 'active',
                 'email_verified_at' => now(),
+                'phone' => '+212 6 55 44 33 22',
+                'address' => 'Douar Tameslouht, Route d\'Amizmiz',
+                'city' => 'Marrakech',
+                'postal_code' => '42150',
+                'avatar' => null,
+                'last_login_at' => now()->subDays(1),
+                'last_login_ip' => '41.250.12.156',
+                'password_reset_required' => false,
             ]
         ];
 
@@ -416,7 +440,7 @@ class RolesPermissionsSeeder extends Seeder
             }
         }
 
-        $this->command->info('✅ Utilisateurs de test créés avec des rôles');
+        $this->command->info('✅ Utilisateurs de test créés avec des rôles et profils complets');
         $this->command->info('📧 Emails de test :');
         $this->command->info('   - amina@campcanteloup.ma (Propriétaire)');
         $this->command->info('   - youssef@campcanteloup.ma (Gestionnaire + Chef)');

@@ -62,13 +62,18 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
-        'email_verified_at',
         'password',
-        'status',
         'role_id',
+        'status',
+        'email_verified_at',
         'last_login_at',
         'last_login_ip',
-        'password_reset_required'
+        'password_reset_required',
+        'phone',
+        'address',
+        'city',
+        'postal_code',
+        'avatar',
     ];
 
     protected $hidden = [
@@ -76,12 +81,12 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
-        'last_login_at' => 'datetime',
-        'password_reset_required' => 'boolean',
-    ];
+   protected $casts = [
+    'email_verified_at' => 'datetime',
+    'password' => 'hashed',
+    'last_login_at' => 'datetime',
+    'password_reset_required' => 'boolean',
+];
 
     // ===========================
     // RELATIONS
@@ -253,7 +258,7 @@ class User extends Authenticatable
             $permissions = $permissions->merge($role->permissions);
         });
 
-        return $permissions->unique('id')->values()->toArray(); 
+        return $permissions->unique('id')->values()->toArray();
     }
 
     /**
@@ -263,5 +268,4 @@ class User extends Authenticatable
     {
         return $this->hasAnyRole(['super-admin', 'admin', 'owner']);
     }
-
 }

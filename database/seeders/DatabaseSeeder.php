@@ -51,23 +51,27 @@ class DatabaseSeeder extends Seeder
         $this->command->info('👥 Création d\'utilisateurs admin...');
         $superAdminRole = Role::where('slug', 'super-admin')->first();
 
-        // Créer un utilisateur admin pour tester
+        // ✅ MISE À JOUR : Créer un utilisateur admin pour tester avec les nouveaux champs
         \App\Models\User::create([
-            'name' => 'Admin Camping',
+            'name' => 'Pietro Pacciani',
             'email' => 'admin@campcanteloup.fr',
             'password' => 'password',
             'email_verified_at' => now(),
             'remember_token' => Str::random(10),
             'role_id' => $superAdminRole?->id,
+            'phone' => '+212 5 24 44 55 66',
+            'address' => 'Route de Ouarzazate, Km 15',
+            'city' => 'Marrakech',
+            'postal_code' => '40000',
+            'avatar' => null,
+            'status' => 'active',
+            'last_login_at' => now()->subHours(2),
+            'last_login_ip' => '192.168.1.100',
+            'password_reset_required' => false,
         ]);
 
-        // Créer quelques utilisateurs normaux
+        // Créer quelques utilisateurs normaux avec les nouveaux champs
         \App\Models\User::factory(5)->create();
-
-        // Créer quelques clients
-        if (class_exists(\App\Models\Customer::class)) {
-            \App\Models\Customer::factory(10)->create();
-        }
 
         $this->command->info('✅ Utilisateurs créés');
     }

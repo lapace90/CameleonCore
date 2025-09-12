@@ -9,9 +9,9 @@ use ApiPlatform\Metadata\Delete;
 use ApiPlatform\State\ProcessorInterface;
 use App\Models\User;
 use App\Models\Role;
-use App\Models\Permission;
 use App\Data\UserData;
 use App\Data\UserOutputData;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -149,15 +149,27 @@ class UserProcessor implements ProcessorInterface
         ]);
 
         // 🔒 SÉCURITÉ : Si c'est une auto-édition, limiter les champs modifiables
-        if ($canEditProfile && !$canManageUsers) {
-            // Un utilisateur ne peut modifier que certains champs de son propre profil
-            $allowedFields = ['name', 'email', 'password', 'password_confirmation'];
-            $payload = array_intersect_key($payload, array_flip($allowedFields));
+if ($canEditProfile && !$canManageUsers) {
+    // Un utilisateur peut modifier ses champs de profil complets
+    $allowedFields = [
+        'name', 
+        'email', 
+        'phone',           
+        'address',           
+        'city',            
+        'postal_code',     
+        'avatar',          
+        'password', 
+        'password_confirmation',
+        'current_password' // ✅ Nécessaire pour valider le changement de mot de passe
+    ];
+    $payload = array_intersect_key($payload, array_flip($allowedFields));
 
-            Log::info('Auto-édition détectée, champs limités', [
-                'allowed_fields' => array_keys($payload)
-            ]);
-        }
+    Log::info('Auto-édition détectée, champs limités', [
+        'allowed_fields' => array_keys($payload),
+        'user_id' => $userId
+    ]);
+}
 
         // Validation spécifique pour la mise à jour
         $validator = Validator::make($payload, UserData::rulesForUpdate($userId));
@@ -167,6 +179,9 @@ class UserProcessor implements ProcessorInterface
         }
 
         $userData = UserData::fromArray($payload);
+        if ($canEditProfile && $userData->isPasswordChange()) {
+            $this->validatePasswordChange($user, $userData);
+        }
 
         // 🔒 SÉCURITÉ : Vérifier les changements de rôle
         if ($userData->role_id && $userData->role_id !== $user->role_id) {
@@ -207,6 +222,26 @@ class UserProcessor implements ProcessorInterface
         ])->loadCount(['roles']);
 
         return UserOutputData::fromUser($user);
+    }
+
+    /**
+     * Valider le changement de mot de passe
+     */
+    private function validatePasswordChange(User $user, UserData $userData): void
+    {
+        if ($userData->isPasswordChange()) {
+            // Vérifier que le mot de passe actuel est correct
+            if (!Hash::check($userData->current_password, $user->password)) {
+                throw ValidationException::withMessages([
+                    'current_password' => ['Le mot de passe actuel est incorrect.']
+                ]);
+            }
+
+            Log::info('Changement de mot de passe validé', [
+                'user_id' => $user->id,
+                'user_name' => $user->name
+            ]);
+        }
     }
 
     /**

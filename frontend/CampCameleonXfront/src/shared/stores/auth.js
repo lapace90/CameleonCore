@@ -13,7 +13,6 @@ export const useAuthStore = defineStore('auth', () => {
   const loading = ref(false)
   const error = ref(null)
 
-  // 🔧 AMÉLIORATION : État d'initialisation plus précis
   const initializing = ref(!!token.value) // True seulement si un token existe
   const isAuthenticated = ref(false) // False par défaut, sera mis à true après vérification
 
@@ -142,12 +141,14 @@ export const useAuthStore = defineStore('auth', () => {
 
       // Vérifier le token avec le backend
       const response = await axios.get('/api/auth/verify')
+      console.log('🔍 Réponse API verify:', response.data)
       const userData = response.data.user
 
       console.log('✅ Token valide, utilisateur:', userData.name)
 
       // Token valide, restaurer l'état
       user.value = userData
+      console.log('🔍 User dans store après verify:', user.value)
       isAuthenticated.value = true
 
       // Charger permissions/rôles
@@ -191,6 +192,89 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   // ===========================
+  // PROFILE MANAGEMENT
+  // ===========================
+
+  /**
+   * Mettre à jour le profil utilisateur
+   */
+  const updateProfile = async (profileData) => {
+    if (!user.value?.id) {
+      throw new Error('Utilisateur non connecté')
+    }
+
+    loading.value = true
+    error.value = null
+
+    try {
+      // Utiliser l'API Platform existante pour l'auto-édition
+      const response = await axios.patch(`/api/users/${user.value.id}`, profileData, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+
+      // Mettre à jour l'utilisateur local avec les nouvelles données complètes
+      const updatedUser = response.data
+      user.value = {
+        ...user.value,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        // ✅ TOUS LES NOUVEAUX CHAMPS
+        phone: updatedUser.phone,
+        address: updatedUser.address,
+        city: updatedUser.city,
+        postal_code: updatedUser.postal_code,
+        avatar: updatedUser.avatar,
+        // Garder les autres champs existants
+        last_login_at: updatedUser.last_login_at,
+        last_login_ip: updatedUser.last_login_ip,
+      }
+
+      return user.value
+    } catch (err) {
+      const errorMessage = err.response?.data?.message ||
+        err.response?.data?.violations?.[0]?.message ||
+        'Erreur lors de la mise à jour du profil'
+      error.value = errorMessage
+      throw new Error(errorMessage)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /**
+   * Changer le mot de passe
+   */
+  const changePassword = async ({ current, new: newPassword }) => {
+    if (!user.value?.id) {
+      throw new Error('Utilisateur non connecté')
+    }
+
+    loading.value = true
+    error.value = null
+
+    try {
+      // Utiliser l'API Platform pour changer le mot de passe
+      await axios.patch(`/api/users/${user.value.id}`, {
+        current_password: current,
+        password: newPassword,
+        password_confirmation: newPassword
+      })
+
+      return true
+    } catch (err) {
+      const errorMessage = err.response?.data?.message ||
+        err.response?.data?.violations?.[0]?.message ||
+        'Erreur lors du changement de mot de passe'
+      error.value = errorMessage
+      throw new Error(errorMessage)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // ===========================
   // INITIALISATION
   // ===========================
 
@@ -225,6 +309,8 @@ export const useAuthStore = defineStore('auth', () => {
     logout,
     checkAuth,
     refreshAuth,
-    loadUserPermissions
+    loadUserPermissions,
+    updateProfile,
+    changePassword
   }
 })
