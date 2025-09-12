@@ -10,6 +10,7 @@ import Analytics from '../views/Analytics.vue'
 import FullCalendar from '@/shared/components/calendar/FullCalendar.vue'
 import RoleForm from '../views/RoleForm.vue'
 import AdminRoles from '../views/Roles.vue'
+import Profile from '../views/Profile.vue'
 
 // Import des composants produits
 import ProductsShow from '../views/products/ProductsShow.vue'
@@ -81,6 +82,11 @@ export default [
         path: 'analytics',
         name: 'AdminAnalytics',
         component: Analytics
+      },
+      {
+        path: 'profile',
+        name: 'AdminProfile',
+        component: Profile
       },
       {
         path: 'settings',
