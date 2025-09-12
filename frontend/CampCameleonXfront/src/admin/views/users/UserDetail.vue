@@ -1,5 +1,5 @@
 <template>
-  <div class="user-detail-page">
+  <div class="product-detail-container">
     <!-- Loading -->
     <div v-if="loading" class="loading-state">
       <div class="spinner"></div>
@@ -17,9 +17,9 @@
     </div>
 
     <!-- Contenu principal -->
-    <div v-else-if="user" class="user-detail-container">
+    <div v-else-if="user">
       <!-- Header -->
-      <div class="detail-header">
+      <div class="page-header">
         <div class="header-navigation">
           <router-link to="/admin/users" class="back-link">
             <i class="fas fa-arrow-left"></i>
@@ -47,116 +47,116 @@
       </div>
 
       <!-- Titre et statut -->
-      <div class="user-title-section">
-        <div class="user-header">
-          <div class="user-avatar-large">
-            <i class="fas fa-user"></i>
-            <div class="status-indicator" :class="getStatusClass(user.status)"></div>
-          </div>
-
-          <div class="user-info-main">
-            <h1 class="user-name">{{ user.name }}</h1>
-            <div class="user-email">{{ user.email }}</div>
-
-            <div class="user-meta">
-              <div class="meta-item">
-                <i class="fas fa-calendar-plus"></i>
-                <span>Inscrit le {{ formatDate(user.created_at) }}</span>
-              </div>
-
-              <div v-if="user.last_login_at" class="meta-item">
-                <i class="fas fa-clock"></i>
-                <span>Dernière connexion {{ getRelativeTime(user.last_login_at) }}</span>
-              </div>
-
-              <div v-if="user.email_verified_at" class="meta-item">
-                <i class="fas fa-check-circle text-success"></i>
-                <span>Email vérifié</span>
-              </div>
-
-              <div v-else class="meta-item">
-                <i class="fas fa-exclamation-triangle text-warning"></i>
-                <span>Email non vérifié</span>
-              </div>
-            </div>
-          </div>
+      <div class="page-title-section">
+        <div class="btn-success btn-lg btn">
+          <i class="fas fa-user"></i>
         </div>
-
-        <div class="status-controls">
-          <div class="status-badge" :class="getStatusClass(user.status)">
-            <i :class="getStatusIcon(user.status)"></i>
+        <div>
+          <h1 class="page-title">{{ user.name }}</h1>
+          {{ user.email }}
+        </div>
+        <div class="meta-inline m-3 " style="text-align: right;">
+          <div class="status-badge mb-4" :class="getStatusClass(user.status)">
+            <i :class="getStatusIcon(user.status)" style="padding-right: 4px;"></i>
             <span>{{ getStatusLabel(user.status) }}</span>
           </div>
+          <div class="meta-item">
+            <i class="fas fa-calendar-plus p-2"></i>
+            <span>Inscrit le {{ formatDate(user.created_at) }}</span>
+          </div>
+
+          <div v-if="user.last_login_at" class="meta-item">
+            <i class="fas fa-clock p-2"></i>
+            <span>Dernière connexion {{ getRelativeTime(user.last_login_at) }}</span>
+          </div>
+
+          <div v-if="user.email_verified_at" class="meta-item ">
+            <i class="fas fa-check-circle text-success p-2"></i>
+            <span>Email vérifié</span>
+          </div>
+
+          <div v-else class="meta-item">
+            <i class="fas fa-exclamation-triangle text-warning p-2"></i>
+            <span>Email non vérifié</span>
+          </div>
+
         </div>
       </div>
 
       <!-- Contenu en colonnes -->
-      <div class="user-detail-content">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
         <!-- Colonne gauche - Rôles et permissions -->
-        <div class="detail-column">
+        <div>
           <!-- Rôles -->
-          <div class="detail-section">
-            <h3 class="section-title">
+          <div
+            style="background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+            <h3 style="margin: 0 0 1rem 0; font-size: 1.25rem; font-weight: 600; color: #1f2937;">
               <i class="fas fa-shield-alt"></i>
               Rôles
             </h3>
 
-            <div v-if="user.role || (user.additional_roles && user.additional_roles.length > 0)" class="roles-display">
+            <div v-if="user.role || (user.additional_roles && user.additional_roles.length > 0)">
               <!-- Rôle principal -->
-              <div v-if="user.role" class="role-item role-primary">
-                <div class="role-header">
-                  <i class="fas fa-crown"></i>
-                  <span class="role-name">{{ user.role.name }}</span>
-                  <span class="role-badge">Principal</span>
+              <div v-if="user.role"
+                style="margin-bottom: 1rem; padding: 1rem; background: #f0fdf4; border-radius: 8px; border: 1px solid #bbf7d0;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                  <i class="fas fa-crown" style="color: #d97706;"></i>
+                  <span style="font-weight: 600;">{{ user.role.name }}</span>
+                  <span class="badge badge-warning">Principal</span>
                 </div>
-                <div v-if="user.role.description" class="role-description">
+                <div v-if="user.role.description" style="color: #6b7280; font-size: 0.875rem;">
                   {{ user.role.description }}
                 </div>
               </div>
 
               <!-- Rôles additionnels -->
-              <div v-if="user.additional_roles && user.additional_roles.length > 0" class="additional-roles">
-                <h4 class="subsection-title">Rôles additionnels</h4>
-                <div v-for="role in user.additional_roles" :key="role.id" class="role-item role-secondary">
-                  <div class="role-header">
-                    <i class="fas fa-plus-circle"></i>
-                    <span class="role-name">{{ role.name }}</span>
+              <div v-if="user.additional_roles && user.additional_roles.length > 0">
+                <h4 style="margin: 1rem 0 0.5rem 0; font-size: 1rem; color: #374151;">Rôles additionnels</h4>
+                <div v-for="role in user.additional_roles" :key="role.id"
+                  style="margin-bottom: 0.5rem; padding: 0.75rem; background: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0;">
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-plus-circle" style="color: #6366f1;"></i>
+                    <span style="font-weight: 500;">{{ role.name }}</span>
                   </div>
-                  <div v-if="role.description" class="role-description">
+                  <div v-if="role.description" style="color: #6b7280; font-size: 0.875rem; margin-top: 0.25rem;">
                     {{ role.description }}
                   </div>
                 </div>
               </div>
             </div>
 
-            <div v-else class="empty-state-small">
-              <i class="fas fa-shield-alt"></i>
+            <div v-else style="text-align: center; padding: 2rem; color: #6b7280;">
+              <i class="fas fa-shield-alt" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
               <p>Aucun rôle assigné</p>
             </div>
           </div>
 
           <!-- Permissions -->
-          <div class="detail-section">
-            <h3 class="section-title">
+          <div
+            style="background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+            <h3 style="margin: 0 0 1rem 0; font-size: 1.25rem; font-weight: 600; color: #1f2937;">
               <i class="fas fa-key"></i>
               Permissions
-              <span class="section-count">({{ user.all_permissions ? user.all_permissions.length : 0 }})</span>
+              <span style="color: #6b7280; font-size: 0.875rem;">({{ user.all_permissions ? user.all_permissions.length
+                : 0 }})</span>
             </h3>
 
-            <div v-if="user.all_permissions && user.all_permissions.length > 0" class="permissions-display">
+            <div v-if="user.all_permissions && user.all_permissions.length > 0">
               <!-- Permissions par catégorie -->
               <div v-for="(categoryPerms, category) in permissionsByCategory" :key="category"
-                class="permission-category">
-                <h4 class="permission-category-title">
+                style="margin-bottom: 1.5rem;">
+                <h4
+                  style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; font-size: 1rem; color: #374151;">
                   <i :class="getCategoryIcon(category)"></i>
                   {{ getCategoryLabel(category) }}
-                  <span class="category-count">({{ categoryPerms.length }})</span>
+                  <span style="color: #6b7280; font-size: 0.75rem;">({{ categoryPerms.length }})</span>
                 </h4>
 
-                <div class="permissions-grid">
-                  <div v-for="permission in categoryPerms" :key="permission.id" class="permission-item">
-                    <span class="permission-name">{{ permission.name }}</span>
-                    <span class="permission-action" :class="getActionClass(permission.action)">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem;">
+                  <div v-for="permission in categoryPerms" :key="permission.id"
+                    style="padding: 0.5rem; background: #f9fafb; border-radius: 6px; border: 1px solid #e5e7eb;">
+                    <span style="font-weight: 500; display: block;">{{ permission.name }}</span>
+                    <span class="badge" :class="getActionClass(permission.action)" style="font-size: 0.75rem;">
                       {{ permission.action }}
                     </span>
                   </div>
@@ -164,95 +164,100 @@
               </div>
             </div>
 
-            <div v-else class="empty-state-small">
-              <i class="fas fa-key"></i>
+            <div v-else style="text-align: center; padding: 2rem; color: #6b7280;">
+              <i class="fas fa-key" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
               <p>Aucune permission</p>
             </div>
           </div>
         </div>
 
-        <!-- Colonne droite - Activité et informations -->
-        <div class="detail-column">
+        <!-- Colonne droite - Informations -->
+        <div>
           <!-- Informations générales -->
-          <div class="detail-section">
-            <h3 class="section-title">
+          <div
+            style="background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+            <h3 style="margin: 0 0 1rem 0; font-size: 1.25rem; font-weight: 600; color: #1f2937;">
               <i class="fas fa-info-circle"></i>
               Informations générales
             </h3>
 
-            <div class="info-grid">
-              <div class="info-item">
-                <label>ID utilisateur</label>
-                <value>#{{ user.id }}</value>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                <label style="font-size: 0.875rem; font-weight: 600; color: #6b7280;">ID utilisateur</label>
+                <span style="color: #1f2937;">#{{ user.id }}</span>
               </div>
 
-              <div class="info-item">
-                <label>Statut</label>
-                <value>
-                  <span class="status-inline" :class="getStatusClass(user.status)">
-                    {{ getStatusLabel(user.status) }}
-                  </span>
-                </value>
+              <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                <label style="font-size: 0.875rem; font-weight: 600; color: #6b7280;">Statut</label>
+                <span class="status-badge" :class="getStatusClass(user.status)">
+                  {{ getStatusLabel(user.status) }}
+                </span>
               </div>
 
-              <div class="info-item">
-                <label>Date d'inscription</label>
-                <value>{{ formatDateTime(user.created_at) }}</value>
+              <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                <label style="font-size: 0.875rem; font-weight: 600; color: #6b7280;">Date d'inscription</label>
+                <span style="color: #1f2937;">{{ formatDateTime(user.created_at) }}</span>
               </div>
 
-              <div class="info-item">
-                <label>Dernière mise à jour</label>
-                <value>{{ formatDateTime(user.updated_at) }}</value>
+              <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                <label style="font-size: 0.875rem; font-weight: 600; color: #6b7280;">Dernière mise à jour</label>
+                <span style="color: #1f2937;">{{ formatDateTime(user.updated_at) }}</span>
               </div>
 
-              <div v-if="user.last_login_at" class="info-item">
-                <label>Dernière connexion</label>
-                <value>{{ formatDateTime(user.last_login_at) }}</value>
+              <div v-if="user.last_login_at" style="display: flex; flex-direction: column; gap: 0.25rem;">
+                <label style="font-size: 0.875rem; font-weight: 600; color: #6b7280;">Dernière connexion</label>
+                <span style="color: #1f2937;">{{ formatDateTime(user.last_login_at) }}</span>
               </div>
 
-              <div v-if="user.last_login_ip" class="info-item">
-                <label>Dernière IP</label>
-                <value class="font-mono">{{ user.last_login_ip }}</value>
+              <div v-if="user.last_login_ip" style="display: flex; flex-direction: column; gap: 0.25rem;">
+                <label style="font-size: 0.875rem; font-weight: 600; color: #6b7280;">Dernière IP</label>
+                <span style="color: #1f2937; font-family: monospace;">{{ user.last_login_ip }}</span>
               </div>
             </div>
           </div>
 
           <!-- Sécurité -->
-          <div class="detail-section">
-            <h3 class="section-title">
+          <div
+            style="background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+            <h3 style="margin: 0 0 1rem 0; font-size: 1.25rem; font-weight: 600; color: #1f2937;">
               <i class="fas fa-lock"></i>
               Sécurité
             </h3>
 
-            <div class="security-info">
-              <div class="security-item">
-                <div class="security-icon">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+              <div
+                style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: #f9fafb; border-radius: 8px;">
+                <div
+                  style="width: 40px; height: 40px; border-radius: 50%; background: #f3f4f6; display: flex; align-items: center; justify-content: center;">
                   <i
                     :class="user.email_verified_at ? 'fas fa-check-circle text-success' : 'fas fa-exclamation-triangle text-warning'"></i>
                 </div>
-                <div class="security-content">
-                  <span class="security-label">Vérification email</span>
-                  <span class="security-value">
+                <div>
+                  <span style="display: block; font-size: 1rem; font-weight: 600; color: #1f2937;">Vérification
+                    email</span>
+                  <span style="font-size: 0.875rem; color: #6b7280;">
                     {{ user.email_verified_at ? 'Vérifié le ' + formatDate(user.email_verified_at) : 'Non vérifié' }}
                   </span>
                 </div>
               </div>
 
-              <div class="security-item">
-                <div class="security-icon">
+              <div
+                style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: #f9fafb; border-radius: 8px;">
+                <div
+                  style="width: 40px; height: 40px; border-radius: 50%; background: #f3f4f6; display: flex; align-items: center; justify-content: center;">
                   <i
                     :class="user.password_reset_required ? 'fas fa-exclamation-circle text-warning' : 'fas fa-key text-success'"></i>
                 </div>
-                <div class="security-content">
-                  <span class="security-label">Mot de passe</span>
-                  <span class="security-value">
+                <div>
+                  <span style="display: block; font-size: 1rem; font-weight: 600; color: #1f2937;">Mot de passe</span>
+                  <span style="font-size: 0.875rem; color: #6b7280;">
                     {{ user.password_reset_required ? 'Réinitialisation requise' : 'OK' }}
                   </span>
                 </div>
               </div>
             </div>
 
-            <div class="security-actions">
+            <div style="display: flex; gap: 0.5rem;">
               <button @click="resetPassword" class="btn btn-outline btn-sm">
                 <i class="fas fa-key"></i>
                 Forcer réinitialisation
@@ -266,29 +271,30 @@
           </div>
 
           <!-- Actions rapides -->
-          <div class="detail-section">
-            <h3 class="section-title">
+          <div
+            style="background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+            <h3 style="margin: 0 0 1rem 0; font-size: 1.25rem; font-weight: 600; color: #1f2937;">
               <i class="fas fa-bolt"></i>
               Actions rapides
             </h3>
 
-            <div class="quick-actions">
-              <router-link :to="`/admin/users/${user.id}/edit`" class="quick-action-btn">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+              <router-link :to="`/admin/users/${user.id}/edit`" class="btn btn-primary btn-sm">
                 <i class="fas fa-edit"></i>
                 <span>Modifier</span>
               </router-link>
 
-              <button @click="duplicateUser" class="quick-action-btn">
+              <button @click="duplicateUser" class="btn btn-secondary btn-sm">
                 <i class="fas fa-copy"></i>
                 <span>Dupliquer</span>
               </button>
 
-              <button @click="exportUserData" class="quick-action-btn">
+              <button @click="exportUserData" class="btn btn-secondary btn-sm">
                 <i class="fas fa-download"></i>
                 <span>Exporter</span>
               </button>
 
-              <button @click="viewUserActivity" class="quick-action-btn">
+              <button @click="viewUserActivity" class="btn btn-secondary btn-sm">
                 <i class="fas fa-history"></i>
                 <span>Activité</span>
               </button>
@@ -431,7 +437,7 @@ export default {
 
     viewUserActivity() {
       // Naviguer vers la page d'activité de l'utilisateur
-      this.$router.push(`/admin/users/${this.user.id}/activity`)
+      this.$router.push(`/admin/users/${this.user.id}`)
     },
 
     // Utilitaires

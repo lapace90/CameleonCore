@@ -128,7 +128,7 @@
                       </label>
 
                       <!-- Bouton radio pour le rôle principal (seulement si sélectionné) -->
-                      <div v-if="selectedRoles.includes(role.id)" class="principal-selector">
+                      <div v-if="selectedRoles.includes(role.id) || form.role_id == role.id" class="principal-selector">
                         <input type="radio" :value="role.id" v-model="form.role_id" :id="`principal-${role.id}`"
                           name="principal_role" @change="onPrincipalRoleChange" />
                         <label :for="`principal-${role.id}`" class="radio-label">
@@ -150,16 +150,16 @@
                     <!-- Rôle principal -->
                     <div v-if="form.role_id" class="principal-role">
                       <i class="fas fa-crown text-warning"></i>
-                      <span><strong>Principal :</strong> {{ getRoleName(form.role_id) }}</span>
+                      <span><strong>Principal :</strong> {{ user.role?.name || 'Rôle principal' }}</span>
                     </div>
 
                     <!-- Rôles additionnels -->
-                    <div v-if="additionalRolesComputed.length > 0" class="additional-roles">
+                    <div v-if="user.additional_roles && user.additional_roles.length > 0" class="additional-roles">
                       <i class="fas fa-users text-info"></i>
-                      <span><strong>Additionnels :</strong> {{additionalRolesComputed.map(id =>
-                        getRoleName(id)).join(', ')}}</span>
+                      <span><strong>Additionnels :</strong>
+                        {{user.additional_roles.map(role => role.name).join(', ')}}
+                      </span>
                     </div>
-
                     <!-- Si aucun principal mais des rôles sélectionnés -->
                     <div v-if="selectedRoles.length > 1 && !form.role_id" class="needs-principal">
                       <i class="fas fa-exclamation-triangle text-warning"></i>
@@ -447,14 +447,6 @@ export default {
     },
 
     /**
-     * ✅ NOUVELLE MÉTHODE : Obtenir le nom d'un rôle par son ID
-     */
-    getRoleName(roleId) {
-      const role = this.availableRoles.find(r => r.id === parseInt(roleId))
-      return role ? role.name : 'Rôle inconnu'
-    },
-
-    /**
      * ✅ NOUVELLE MÉTHODE : Validation de la sélection
      */
     validateRoleSelection() {
@@ -513,18 +505,10 @@ export default {
     populateForm() {
       if (!this.user) return
 
-      // 🔍 DEBUG : Voir exactement ce que contient this.user
-      console.log('🔍 DEBUG - Structure user complète:', JSON.stringify(this.user, null, 2))
-      console.log('🔍 DEBUG - user.role:', this.user.role)
-      console.log('🔍 DEBUG - user.roles:', this.user.roles)
-      console.log('🔍 DEBUG - user.additionalRoles:', this.user.additionalRoles)
-      console.log('🔍 DEBUG - user.additional_roles:', this.user.additional_roles)
-
       this.form = {
         name: this.user.name || '',
         email: this.user.email || '',
         role_id: this.user.role?.id || '',
-        // ✅ CORRECTION : Essayer différentes propriétés selon l'API
         additional_roles: this.getAdditionalRolesFromUser(),
         status: this.user.status || 'active',
         reset_password: false,
@@ -584,9 +568,9 @@ export default {
     },
 
 
-      /**
-       *  Préparation des données pour l'API
-       */
+    /**
+     *  Préparation des données pour l'API
+     */
     async submitForm() {
       if (!this.validateForm()) return
 
@@ -655,7 +639,7 @@ export default {
         password: '',
         password_confirmation: ''
       }
-      this.selectedRoles = [] 
+      this.selectedRoles = []
       this.errors = {}
     },
 
@@ -694,15 +678,12 @@ export default {
   // 🚀 OPTIMISATION : Chargement minimal et rapide
   async created() {
     console.log('🚀 UserForm optimisé - Chargement rapide...')
-
     // 🚀 Charger SEULEMENT les rôles (pas les users)
     await this.loadFormData()
-
     // Si édition, charger l'utilisateur
     if (this.isEditing) {
       await this.loadUserForEditing()
     }
-
     console.log('✅ UserForm prêt rapidement !')
   },
 

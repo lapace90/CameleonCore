@@ -12,7 +12,7 @@ use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 
 class UserItemProvider implements ProviderInterface
 {
-    public function provide(Operation $operation, array $uriVariables = [], array $context = []): ?UserOutputData
+    public function provide(Operation $operation, array $uriVariables = [], array $context = []): array
     {
         // 🔐 SÉCURITÉ SANCTUM : Vérifier l'authentification
         $currentUser = auth('sanctum')->user();
@@ -67,6 +67,6 @@ class UserItemProvider implements ProviderInterface
             'output_additional_roles' => $outputData->additional_roles,
         ]);
 
-        return $outputData;
+         return $outputData->toArray();
     }
 }

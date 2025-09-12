@@ -26,14 +26,14 @@ class UserCollectionProvider implements ProviderInterface
             $likeOp = $driver === 'pgsql' ? 'ILIKE' : 'LIKE';
 
             // Colonnes existantes sur "roles"
-            $roleSelect = ['id','name','slug'];
+            $roleSelect = ['id', 'name', 'slug'];
             if (Schema::hasColumn('roles', 'description')) {
                 $roleSelect[] = 'description';
             }
 
             $query = User::with([
-                'role:'.implode(',', $roleSelect),
-                'roles:'.implode(',', $roleSelect),
+                'role:' . implode(',', $roleSelect),
+                'roles:' . implode(',', $roleSelect),
             ])->withCount(['roles']);
 
             $request = request();
@@ -42,7 +42,7 @@ class UserCollectionProvider implements ProviderInterface
             if ($search = $request->get('name')) {
                 $query->where(function ($q) use ($search, $likeOp) {
                     $q->where('name', $likeOp, "%{$search}%")
-                      ->orWhere('email', $likeOp, "%{$search}%");
+                        ->orWhere('email', $likeOp, "%{$search}%");
                 });
             }
 
@@ -59,7 +59,7 @@ class UserCollectionProvider implements ProviderInterface
             // Tri
             $orderBy        = $request->get('order', 'created_at');
             $orderDirection = strtolower($request->get('order_direction', 'desc')) === 'asc' ? 'asc' : 'desc';
-            if (in_array($orderBy, ['id','name','email','created_at','last_login_at'], true)) {
+            if (in_array($orderBy, ['id', 'name', 'email', 'created_at', 'last_login_at'], true)) {
                 $query->orderBy($orderBy, $orderDirection);
             }
 
@@ -70,7 +70,7 @@ class UserCollectionProvider implements ProviderInterface
             $users = $query->paginate($limit, ['*'], 'page', $page);
 
             return $users->getCollection()->map(function (User $user) {
-                return UserOutputData::fromUserSimple($user);
+                return UserOutputData::fromUser($user)->toArray();
             });
         } catch (\Throwable $e) {
             Log::error('UserCollectionProvider - erreur', [
