@@ -1,6 +1,3 @@
-<!-- CHANGEMENTS NÉCESSAIRES dans ProductForm.vue -->
-
-<!-- DANS LE TEMPLATE : Ajuster l'usage des composants -->
 <template>
   <div class="product-form-container">
     <!-- Message d'erreur -->
@@ -233,10 +230,6 @@ export default {
         productableType: this.getProductableType()
       }
 
-      if (this.form.image) {
-        payload.image = this.form.image
-      }
-
       if (Object.keys(this.form.productable).length > 0) {
         payload.productable = { ...this.form.productable }
       }
@@ -245,15 +238,12 @@ export default {
       if (this.typeConfig.hasRelation) {
         payload.relations = this.localRelations
       }
-      const ids = Array.isArray(this.form.categoryIds) ? this.form.categoryIds : []
 
-      // si le backend renvoie déjà "categories" -> on répond "categories"
-      // sinon: si 0/1 sélection -> on garde "category" (compat)
+      const ids = Array.isArray(this.form.categoryIds) ? this.form.categoryIds : []
       const backendIsMulti = Array.isArray(this.product?.categories)
 
       if (backendIsMulti || ids.length > 1) {
         payload.categories = ids.map(id => `/api/categories/${id}`)
-        // ⚠ si ton backend est strict "allow_extra_attributes=false", ne PAS aussi envoyer 'category'
       } else {
         payload.category = ids[0] ? `/api/categories/${ids[0]}` : null
       }
@@ -320,20 +310,30 @@ export default {
       this.error = null
 
       try {
-        const payload = this.buildPayload()
+        const jsonPayload = this.buildPayload()
+
+        // ✅ Construire un FormData
+        const fd = new FormData()
+        fd.append('payload', JSON.stringify(jsonPayload))
+
+        // ✅ Joindre le fichier si c’est bien un File
+        if (this.form.image instanceof File) {
+          fd.append('image', this.form.image, this.form.image.name)
+        }
 
         let response
         if (this.isEditing) {
-          response = await ProductsApi.updateProduct(this.productId, payload)
+          response = await ProductsApi.updateProduct(this.productId, fd)
         } else {
-          response = await ProductsApi.createProduct(payload)
+          response = await ProductsApi.createProduct(fd)
         }
 
-        if (this.form.imageFile) {
+        // ✅ ICI : envoyer l'image si et seulement si c'est un File
+        if (this.form.image instanceof File) {
           try {
-            await ProductsApi.uploadImage(this.form.imageFile, response.id)
-          } catch (error) {
-            console.warn('Could not upload image:', error)
+            await ProductsApi.uploadImage(this.form.image, response.id)
+          } catch (e) {
+            console.warn('Upload image échoué (non bloquant):', e)
           }
         }
 
@@ -341,7 +341,6 @@ export default {
           name: 'ProductDetail',
           params: { type: this.productType, id: response.id }
         })
-
       } catch (error) {
         console.error('Erreur lors de la sauvegarde:', error)
         if (error.response?.data?.errors) {

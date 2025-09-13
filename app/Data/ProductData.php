@@ -3,8 +3,6 @@
 namespace App\Data;
 
 use Spatie\LaravelData\Data;
-use Spatie\LaravelData\Attributes\MapName;
-use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 
 class ProductData extends Data
 {
@@ -13,14 +11,12 @@ class ProductData extends Data
         public ?string $description = null,
         public float $price,
         
-        #[MapName('productable_type')]
         public string $productableType,
-        
         public ProductableData $productable,
         public bool $status = true,
         public bool $isDraft = false,
         public ?int $categoryId = null,
-        public ?string $image = null,
+        public ?array $image = null,
         public array $tags = [],
         public array $options = [],
         public array $relations = [],

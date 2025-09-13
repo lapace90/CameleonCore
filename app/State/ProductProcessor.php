@@ -15,6 +15,8 @@ use App\Data\ProductOutputData;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use ApiPlatform\Metadata\Post;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -25,7 +27,7 @@ class ProductProcessor implements ProcessorInterface
         return DB::transaction(function () use ($data, $operation, $uriVariables, $context) {
             try {
                 // 1) Récupérer le payload depuis la request
-                $payload = $this->getDataFromRequest($context);
+                $payload = $this->getDataFromRequest();
 
                 Log::info('ProductProcessor - Payload reçu', [
                     'payload' => $payload,
@@ -65,47 +67,77 @@ class ProductProcessor implements ProcessorInterface
     /**
      * Récupère les données depuis la request HTTP
      */
-    private function getDataFromRequest(array $context): array
+  private function getDataFromRequest(): array
     {
-        // Méthode 1: Depuis le contexte API Platform
-        if (isset($context['request']) && $context['request'] instanceof Request) {
-            $request = $context['request'];
-
-            // Essayer le contenu JSON de la request
-            $content = $request->getContent();
-            if ($content) {
-                $decoded = json_decode($content, true);
-                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                    return $this->normalizePayloadFromFrontend($decoded);
-                }
-            }
-
-            // Fallback sur all()
-            $requestData = $request->all();
-            if (!empty($requestData)) {
-                return $this->normalizePayloadFromFrontend($requestData);
-            }
+        /** @var Request $request */
+        $request = request(); // <- garanti non-null dans le cycle HTTP Laravel
+        if (!$request instanceof Request) {
+            logger()->error('Request introuvable dans le container');
+            throw new \RuntimeException('HTTP Request non disponible');
         }
 
-        // Méthode 2: Depuis la request globale
-        $request = app(Request::class);
-        if ($request) {
-            $content = $request->getContent();
-            if ($content) {
-                $decoded = json_decode($content, true);
-                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                    return $this->normalizePayloadFromFrontend($decoded);
-                }
-            }
+        // 1) Lire la string JSON dans "payload" (multipart/form-data)
+        $raw = $request->input('payload');
 
-            $requestData = $request->all();
-            if (!empty($requestData)) {
-                return $this->normalizePayloadFromFrontend($requestData);
+        // 2) 2e decode (parse du JSON interne)
+        $data = [];
+        if (is_string($raw) && $raw !== '') {
+            try {
+                $data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+            } catch (\Throwable $e) {
+                logger()->error('payload JSON invalide', ['err' => $e->getMessage()]);
+                return ['errors' => ['payload' => ['JSON invalide']]];
             }
+        } elseif (is_array($raw)) {
+            $data = $raw;
         }
 
-        throw new \InvalidArgumentException('Impossible de récupérer les données de la request HTTP');
+        logger()->info('payload décodé (2e decode)', ['data' => $data]);
+
+        // 3) IRI -> id
+        $iri = Arr::get($data, 'category');
+        $categoryId = null;
+        if (is_string($iri) && preg_match('~(\d+)$~', $iri, $m)) {
+            $categoryId = (int) $m[1];
+        } elseif (is_int($iri)) {
+            $categoryId = $iri;
+        }
+
+        // 4) productableType (alias -> FQCN)
+        $ptype = Arr::get($data, 'productableType', Arr::get($data, 'productable_type'));
+        if (is_string($ptype) && $ptype !== '') {
+            $aliases = [
+                'activity' => 'App\\Models\\Activity',
+                'menu'     => 'App\\Models\\Menu',
+            ];
+            $key = Str::of($ptype)->lower()->afterLast('\\')->toString();
+            if (isset($aliases[$key])) $ptype = $aliases[$key];
+        }
+
+        // 5) Fichier image (si présent)
+        $image = $request->file('image'); // UploadedFile|null
+
+        // 6) Mapping final (snake_case)
+        $normalized = [
+            'name'             => Arr::get($data, 'name'),
+            'description'      => Arr::get($data, 'description'),
+            'price'            => Arr::get($data, 'price'),
+            'status'           => Arr::get($data, 'status', true),
+            'is_draft'         => Arr::get($data, 'is_draft', Arr::get($data, 'isDraft', false)),
+            'category_id'      => $categoryId,
+            'image'            => $image,
+            'productable_type' => $ptype,
+            'productable'      => Arr::get($data, 'productable') ?: null,
+            'relations'        => Arr::get($data, 'relations', []),
+            'tags'             => Arr::get($data, 'tags', []),
+            'options'          => Arr::get($data, 'options', []),
+        ];
+
+        logger()->info('Normalized payload', ['normalized' => $normalized]);
+
+        return $normalized;
     }
+
 
     /**
      * Normalise les données envoyées par le frontend pour correspondre à ProductData
@@ -122,18 +154,16 @@ class ProductProcessor implements ProcessorInterface
         $normalized['is_draft'] = array_key_exists('is_draft', $payload)
             ? (bool) $payload['is_draft']
             : (array_key_exists('isDraft', $payload) ? (bool) $payload['isDraft'] : null);
-        $normalized['category_id'] = $payload['category_id']
-            ?? ($payload['categoryId'] ?? null);
+
+        $normalized['category_id'] = $this->extractCategoryId($payload);
         $normalized['image'] = array_key_exists('image', $payload) ? $payload['image'] : null;
 
-        // Gestion du type productable (frontend envoie "productableType" au lieu de "productable_type")
+        // ✅ FIX : Assurer que productable_type est dans le retour
         $normalized['productable_type'] = $payload['productable_type']
             ?? ($payload['productableType'] ?? null);
 
-        // Traitement de l'objet productable - GARDER votre logique
+        // ✅ FIX : Assurer que productable est dans le retour  
         $productableData = $payload['productable'] ?? null;
-
-        // Nettoyer les métadonnées API Platform
         if (is_array($productableData)) {
             if (isset($productableData['@context']) || isset($productableData['@id'])) {
                 $cleanedData = array_filter($productableData, function ($key) {
@@ -142,7 +172,6 @@ class ProductProcessor implements ProcessorInterface
                 $productableData = $cleanedData;
             }
         }
-
         $normalized['productable'] = $productableData;
 
         // Relations, tags, options
@@ -150,7 +179,26 @@ class ProductProcessor implements ProcessorInterface
         $normalized['tags'] = $payload['tags'] ?? null;
         $normalized['options'] = $payload['options'] ?? null;
 
+        // ✅ LOG pour debug
+        Log::info('Normalized payload', ['normalized' => $normalized]);
+
         return $normalized;
+    }
+
+    // ✅ NOUVELLE méthode pour extraire l'ID de catégorie
+    private function extractCategoryId(array $payload): ?int
+    {
+        $category = $payload['category'] ?? $payload['category_id'] ?? $payload['categoryId'] ?? null;
+
+        if (is_int($category)) {
+            return $category;
+        }
+
+        if (is_string($category) && preg_match('/\/(\d+)$/', $category, $matches)) {
+            return (int) $matches[1];
+        }
+
+        return null;
     }
 
     private function createProduct(ProductData $data): Product

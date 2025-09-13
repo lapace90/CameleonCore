@@ -92,6 +92,7 @@ class ProductsApi {
    */
   async createProduct(productData) {
     try {
+      console.log('productData:', productData)
       const response = await axios.post(`${this.baseURL}/products`, productData, {
         headers: this.defaultHeaders
       })

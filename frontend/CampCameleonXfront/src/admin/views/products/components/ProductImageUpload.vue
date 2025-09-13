@@ -44,7 +44,7 @@ export default {
   name: 'ProductImageUpload',
   props: {
     modelValue: {
-      type: [String, File, null],
+      type: [String, File],
       default: null
     }
   },
