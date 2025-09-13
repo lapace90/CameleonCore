@@ -12,6 +12,7 @@ use App\Models\Role;
 use App\Data\UserData;
 use App\Data\UserOutputData;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -130,6 +131,10 @@ class UserProcessor implements ProcessorInterface
         if (!$user) {
             throw new NotFoundHttpException("Utilisateur avec l'ID {$userId} non trouvé");
         }
+        // ✅ Enforce Policy (403 si édition croisée non autorisée)
+        if (Gate::denies('update', $user)) {
+            throw new AccessDeniedHttpException('You are not allowed to update this profile.');
+        }
 
         // 🔒 AUTORISATION : Un utilisateur peut modifier son propre profil ou avoir les permissions de gestion
         $canEditProfile = ($userId === $currentUser->id);
@@ -141,6 +146,8 @@ class UserProcessor implements ProcessorInterface
 
         $payload = $this->getDataFromRequest($context);
 
+        $payload = $this->normalizeInputKeys($payload);
+
         Log::info('UserProcessor - Mise à jour utilisateur', [
             'user_id' => $userId,
             'payload' => $payload,
@@ -149,33 +156,47 @@ class UserProcessor implements ProcessorInterface
         ]);
 
         // 🔒 SÉCURITÉ : Si c'est une auto-édition, limiter les champs modifiables
-if ($canEditProfile && !$canManageUsers) {
-    // Un utilisateur peut modifier ses champs de profil complets
-    $allowedFields = [
-        'name', 
-        'email', 
-        'phone',           
-        'address',           
-        'city',            
-        'postal_code',     
-        'avatar',          
-        'password', 
-        'password_confirmation',
-        'current_password' // ✅ Nécessaire pour valider le changement de mot de passe
-    ];
-    $payload = array_intersect_key($payload, array_flip($allowedFields));
+        if ($canEditProfile && !$canManageUsers) {
+            // Un utilisateur peut modifier ses champs de profil complets
+            $allowedFields = [
+                'name',
+                'email',
+                'phone',
+                'address',
+                'city',
+                'postal_code',         
+                'avatar',
+                'password',
+                'password_confirmation',
+                'current_password'
+            ];
+            $payload = array_intersect_key($payload, array_flip($allowedFields));
 
-    Log::info('Auto-édition détectée, champs limités', [
-        'allowed_fields' => array_keys($payload),
-        'user_id' => $userId
-    ]);
-}
+            Log::info('Auto-édition détectée, champs limités', [
+                'allowed_fields' => array_keys($payload),
+                'user_id' => $userId
+            ]);
+        }
 
-        // Validation spécifique pour la mise à jour
-        $validator = Validator::make($payload, UserData::rulesForUpdate($userId));
+        // ✅ Validation PATCH (ne valide email que s'il est présent) + règles phone/postal_code
+        $baseRules = UserData::rulesForUpdate($userId);
 
+        // Rendre l'email "sometimes|email|unique:..." si défini ainsi dans UserData.
+        // Ici on neutralise l'obligation si absent :
+        if (!array_key_exists('email', $payload)) {
+            // Si ta rulesForUpdate impose 'email', on le remplace par 'sometimes|email'
+            $baseRules['email'] = ['sometimes', 'email'];
+        }
+
+        $patchRules = array_merge($baseRules, [
+            'phone'       => ['nullable', 'string', 'max:32', 'regex:/^\+?[0-9\-\.\s\(\)]{6,}$/'],
+            // Option FR stricte : 'postal_code' => ['nullable','regex:/^\d{5}$/'],
+            'postal_code' => ['nullable', 'string', 'max:16', 'regex:/^[A-Za-z0-9\- ]{3,}$/'],
+        ]);
+
+        $validator = Validator::make($payload, $patchRules);
         if ($validator->fails()) {
-            throw new ValidationException($validator);
+            throw new ValidationException($validator); // lèvera 422 avec errors[]
         }
 
         $userData = UserData::fromArray($payload);
@@ -435,6 +456,28 @@ if ($canEditProfile && !$canManageUsers) {
                 'synced_by' => $currentUser->name
             ]);
         }
+    }
+
+    /**
+     * Normalise les clés camelCase entrantes vers snake_case pour Eloquent.
+     */
+    private function normalizeInputKeys(array $data): array
+    {
+        $map = [
+            'postalCode'   => 'postal_code',
+            'phoneNumber'  => 'phone',
+            'lastLoginIp'  => 'last_login_ip',
+            // ajoute ici d'autres mappings si tu exposes du camelCase côté DTO
+        ];
+
+        foreach ($map as $in => $out) {
+            if (array_key_exists($in, $data)) {
+                $data[$out] = $data[$in];
+                unset($data[$in]);
+            }
+        }
+
+        return $data;
     }
 
     /**

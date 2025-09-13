@@ -7,13 +7,22 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\Models\Permission;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
+
 
 class PermissionCollectionProvider implements ProviderInterface
 {
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): array
     {
+
         $request = $context['request'] ?? request();
 
+        // Essaie d’abord Sanctum (car tes tests font actingAs(..., 'sanctum'))
+        $user = $request->user('sanctum') ?? $request->user();
+
+        if (!$user) {
+            throw new UnauthorizedHttpException('Bearer', "Token d'authentification requis");
+        }
         // 🧠 LOGIQUE MÉTIER : Groupement côté serveur
         $permissions = Permission::with('roles')
             ->select([
