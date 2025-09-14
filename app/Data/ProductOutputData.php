@@ -204,11 +204,9 @@ class ProductOutputData extends Data
     private static function formatDifficulty(int $level): string
     {
         $difficulties = [
-            1 => 'Très facile',
-            2 => 'Facile', 
-            3 => 'Moyen',
-            4 => 'Difficile',
-            5 => 'Très difficile'
+            1 => 'Facile', 
+            2 => 'Moyen',
+            3 => 'Difficile'
         ];
 
         return $difficulties[$level] ?? 'Non défini';

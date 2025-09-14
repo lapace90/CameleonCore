@@ -74,7 +74,6 @@ class Product extends Model
     ];
 
     protected $casts = [
-        'image' => 'array',
         'status' => 'boolean',
         'is_draft' => 'boolean',
         'price' => 'float'

@@ -58,7 +58,7 @@
             <ProductTypeFields v-if="typeConfig.fields.length > 0 && productType !== 'dish'" :type="productType"
               :config="typeConfig" v-model="form.productable" />
 
-            <!-- Dans ProductForm.vue -->
+            <!-- Relations -->
             <ProductRelations v-if="isEditing && typeConfig.hasRelation && product" :type="productType"
               :config="typeConfig" :product="product" :edit-mode="true" @relations-changed="onRelationsChanged" />
 
@@ -128,8 +128,7 @@ export default {
         productable: {}
       },
 
-      errors: {},
-
+      errors: {}
     }
   },
 
@@ -214,11 +213,79 @@ export default {
         productable: { ...this.product.productableDetail }
       }
       this.form.categoryIds = this.extractCategoryIds(this.product)
-
     },
-    // Gérer les changements de relations locales
+
     onRelationsChanged(relations) {
       this.localRelations = relations
+    },
+
+    extractIdFromIri(iri) {
+      if (!iri) return null
+      const m = String(iri).match(/\/(\d+)$|(\d+)(?=\D*$)/)
+      return m ? Number(m[1] || m[2]) : null
+    },
+
+    extractCategoryIds(product) {
+      if (!product) return []
+
+      if (Array.isArray(product.categories)) {
+        return product.categories
+          .map(c => typeof c === 'string' ? this.extractIdFromIri(c) : Number(c?.id))
+          .filter(id => Number.isFinite(id))
+      }
+
+      const single = typeof product.category === 'string' ? this.extractIdFromIri(product.category)
+        : (product.category && Number(product.category.id)) || null
+      return single ? [single] : []
+    },
+
+    async submitForm() {
+      if (!this.validateForm()) return
+
+      this.saving = true
+      this.error = null
+
+      try {
+        let response
+
+        // Si c'est un File, utiliser FormData
+        if (this.form.image instanceof File) {
+          console.log('📤 Envoi FormData avec fichier')
+
+          const jsonPayload = this.buildPayload()
+          const formData = new FormData()
+          formData.append('payload', JSON.stringify(jsonPayload))
+          formData.append('image', this.form.image, this.form.image.name)
+
+          if (this.isEditing) {
+            response = await ProductsApi.updateProduct(this.productId, formData)
+          } else {
+            response = await ProductsApi.createProduct(formData)
+          }
+        }
+        // Sinon JSON classique
+        else {
+          console.log('📤 Envoi JSON classique')
+          const jsonPayload = this.buildPayload()
+
+          if (this.isEditing) {
+            response = await ProductsApi.updateProduct(this.productId, jsonPayload)
+          } else {
+            response = await ProductsApi.createProduct(jsonPayload)
+          }
+        }
+
+        this.$router.push({
+          name: 'ProductDetail',
+          params: { type: this.productType, id: response.id }
+        })
+
+      } catch (error) {
+        console.error('Erreur lors de la sauvegarde:', error)
+        this.error = 'Erreur lors de la sauvegarde du produit'
+      } finally {
+        this.saving = false
+      }
     },
 
     buildPayload() {
@@ -230,11 +297,15 @@ export default {
         productableType: this.getProductableType()
       }
 
+      // Inclure l'image seulement si c'est une URL string
+      if (this.form.image && typeof this.form.image === 'string') {
+        payload.image = this.form.image
+      }
+
       if (Object.keys(this.form.productable).length > 0) {
         payload.productable = { ...this.form.productable }
       }
 
-      // Inclure les relations locales
       if (this.typeConfig.hasRelation) {
         payload.relations = this.localRelations
       }
@@ -249,107 +320,6 @@ export default {
       }
 
       return payload
-    },
-
-    extractIdFromIri(iri) {
-      if (!iri) return null
-      const m = String(iri).match(/\/(\d+)$|(\d+)(?=\D*$)/)
-      return m ? Number(m[1] || m[2]) : null
-    },
-    extractCategoryIds(product) {
-      if (!product) return []
-      // cas multi: product.categories (IRIs ou objets)
-      if (Array.isArray(product.categories)) {
-        return product.categories
-          .map(c => typeof c === 'string' ? this.extractIdFromIri(c) : Number(c?.id))
-          .filter(id => Number.isFinite(id))
-      }
-      // compat single: product.category
-      const single =
-        typeof product.category === 'string' ? this.extractIdFromIri(product.category)
-          : (product.category && Number(product.category.id)) || null
-      return single ? [single] : []
-    },
-
-    // Initialiser les relations locales lors du chargement
-    async loadProduct() {
-      try {
-        this.loading = true
-        const { data } = await ProductsApi.getProduct(this.productType, this.$route.params.id)
-        this.product = data
-        this.populateForm()
-
-        // ✅ AJOUTER : Initialiser les relations locales
-        this.localRelations = {
-          dishes: data.relations?.dishes?.map(d => d.id) || [],
-          ingredients: data.relations?.ingredients?.map(i => i.id) || []
-        }
-      } catch (error) {
-        console.error('Erreur lors du chargement du produit:', error)
-        this.error = 'Erreur lors du chargement du produit'
-      } finally {
-        this.loading = false
-      }
-    },
-
-
-    // Méthode pour recharger le produit après modification des relations
-    async reloadProduct() {
-      try {
-        this.product = await ProductsApi.getProduct(this.productId)
-        console.log('Produit rechargé après modification des relations')
-      } catch (error) {
-        console.error('Erreur lors du rechargement du produit:', error)
-      }
-    },
-
-    async submitForm() {
-      if (!this.validateForm()) return
-
-      this.saving = true
-      this.error = null
-
-      try {
-        const jsonPayload = this.buildPayload()
-
-        // ✅ Construire un FormData
-        const fd = new FormData()
-        fd.append('payload', JSON.stringify(jsonPayload))
-
-        // ✅ Joindre le fichier si c’est bien un File
-        if (this.form.image instanceof File) {
-          fd.append('image', this.form.image, this.form.image.name)
-        }
-
-        let response
-        if (this.isEditing) {
-          response = await ProductsApi.updateProduct(this.productId, fd)
-        } else {
-          response = await ProductsApi.createProduct(fd)
-        }
-
-        // ✅ ICI : envoyer l'image si et seulement si c'est un File
-        if (this.form.image instanceof File) {
-          try {
-            await ProductsApi.uploadImage(this.form.image, response.id)
-          } catch (e) {
-            console.warn('Upload image échoué (non bloquant):', e)
-          }
-        }
-
-        this.$router.push({
-          name: 'ProductDetail',
-          params: { type: this.productType, id: response.id }
-        })
-      } catch (error) {
-        console.error('Erreur lors de la sauvegarde:', error)
-        if (error.response?.data?.errors) {
-          this.errors = error.response.data.errors
-        }
-        this.error = 'Erreur lors de la sauvegarde du produit'
-      } finally {
-        this.saving = false
-      }
     },
 
     getProductableType() {

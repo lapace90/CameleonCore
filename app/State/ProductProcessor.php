@@ -15,8 +15,6 @@ use App\Data\ProductOutputData;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use ApiPlatform\Metadata\Post;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -27,7 +25,7 @@ class ProductProcessor implements ProcessorInterface
         return DB::transaction(function () use ($data, $operation, $uriVariables, $context) {
             try {
                 // 1) Récupérer le payload depuis la request
-                $payload = $this->getDataFromRequest();
+                $payload = $this->getDataFromRequest($context);
 
                 Log::info('ProductProcessor - Payload reçu', [
                     'payload' => $payload,
@@ -67,135 +65,189 @@ class ProductProcessor implements ProcessorInterface
     /**
      * Récupère les données depuis la request HTTP
      */
-  private function getDataFromRequest(): array
+    private function getDataFromRequest(array $context): array
     {
-        /** @var Request $request */
-        $request = request(); // <- garanti non-null dans le cycle HTTP Laravel
-        if (!$request instanceof Request) {
-            logger()->error('Request introuvable dans le container');
-            throw new \RuntimeException('HTTP Request non disponible');
-        }
+        Log::info('=== DEBUG getDataFromRequest v4 ===');
 
-        // 1) Lire la string JSON dans "payload" (multipart/form-data)
-        $raw = $request->input('payload');
+        if (isset($context['request']) && $context['request'] instanceof Request) {
+            $request = $context['request'];
+            $contentType = $request->header('Content-Type', '');
 
-        // 2) 2e decode (parse du JSON interne)
-        $data = [];
-        if (is_string($raw) && $raw !== '') {
-            try {
-                $data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
-            } catch (\Throwable $e) {
-                logger()->error('payload JSON invalide', ['err' => $e->getMessage()]);
-                return ['errors' => ['payload' => ['JSON invalide']]];
+            Log::info('Request info', [
+                'method' => $request->method(),
+                'content_type' => $contentType,
+                'has_files' => $request->hasFile('image')
+            ]);
+
+            // CAS MULTIPART avec fichier
+            if (str_contains($contentType, 'multipart/form-data')) {
+                Log::info('📁 Traitement multipart avec fichier potentiel');
+
+                $formData = $request->all();
+                $payload = [];
+
+                // Extraire le JSON payload
+                if (isset($formData['payload'])) {
+                    $decoded = json_decode($formData['payload'], true);
+                    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                        $payload = $decoded;
+                        Log::info('✅ Payload JSON extrait du multipart');
+                    }
+                }
+
+                // Traiter le fichier image
+                if ($request->hasFile('image')) {
+                    $imageFile = $request->file('image');
+                    Log::info('📁 Fichier image reçu', [
+                        'name' => $imageFile->getClientOriginalName(),
+                        'size' => $imageFile->getSize()
+                    ]);
+
+                    // Sauvegarder et ajouter l'URL au payload
+                    $imagePath = $imageFile->store('products', 'public');
+                    $payload['image'] = '/storage/' . $imagePath;
+
+                    Log::info('✅ Image sauvée', ['url' => $payload['image']]);
+                }
+
+                return $this->normalizePayloadFromFrontend($payload);
             }
-        } elseif (is_array($raw)) {
-            $data = $raw;
+
+            // CAS JSON classique (sans fichier)
+            else {
+                $content = $request->getContent();
+                if ($content) {
+                    $decoded = json_decode($content, true);
+                    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                        Log::info('✅ JSON direct décodé');
+                        return $this->normalizePayloadFromFrontend($decoded);
+                    }
+                }
+            }
         }
 
-        logger()->info('payload décodé (2e decode)', ['data' => $data]);
-
-        // 3) IRI -> id
-        $iri = Arr::get($data, 'category');
-        $categoryId = null;
-        if (is_string($iri) && preg_match('~(\d+)$~', $iri, $m)) {
-            $categoryId = (int) $m[1];
-        } elseif (is_int($iri)) {
-            $categoryId = $iri;
-        }
-
-        // 4) productableType (alias -> FQCN)
-        $ptype = Arr::get($data, 'productableType', Arr::get($data, 'productable_type'));
-        if (is_string($ptype) && $ptype !== '') {
-            $aliases = [
-                'activity' => 'App\\Models\\Activity',
-                'menu'     => 'App\\Models\\Menu',
-            ];
-            $key = Str::of($ptype)->lower()->afterLast('\\')->toString();
-            if (isset($aliases[$key])) $ptype = $aliases[$key];
-        }
-
-        // 5) Fichier image (si présent)
-        $image = $request->file('image'); // UploadedFile|null
-
-        // 6) Mapping final (snake_case)
-        $normalized = [
-            'name'             => Arr::get($data, 'name'),
-            'description'      => Arr::get($data, 'description'),
-            'price'            => Arr::get($data, 'price'),
-            'status'           => Arr::get($data, 'status', true),
-            'is_draft'         => Arr::get($data, 'is_draft', Arr::get($data, 'isDraft', false)),
-            'category_id'      => $categoryId,
-            'image'            => $image,
-            'productable_type' => $ptype,
-            'productable'      => Arr::get($data, 'productable') ?: null,
-            'relations'        => Arr::get($data, 'relations', []),
-            'tags'             => Arr::get($data, 'tags', []),
-            'options'          => Arr::get($data, 'options', []),
-        ];
-
-        logger()->info('Normalized payload', ['normalized' => $normalized]);
-
-        return $normalized;
+        throw new \InvalidArgumentException('Impossible de récupérer les données de la request HTTP');
     }
 
-
-    /**
-     * Normalise les données envoyées par le frontend pour correspondre à ProductData
-     */
+    
     private function normalizePayloadFromFrontend(array $payload): array
     {
+        Log::info('🔧 Normalisation payload', [
+            'payload_keys' => array_keys($payload),
+            'payload_sample' => array_slice($payload, 0, 3, true)
+        ]);
+
+        // ⚠️ Vérifier si le payload n'est pas vide/corrompu
+        if (empty($payload) || (count($payload) === 1 && isset($payload['data']) && empty($payload['data']))) {
+            Log::warning('⚠️ Payload vide ou corrompu détecté', ['payload' => $payload]);
+            throw new \InvalidArgumentException('Payload vide ou corrompu reçu');
+        }
+
         $normalized = [];
 
-        // Champs directs du produit
+        // ✅ CHAMPS DE BASE - Mapping direct
         $normalized['name'] = $payload['name'] ?? null;
         $normalized['description'] = $payload['description'] ?? null;
-        $normalized['price'] = array_key_exists('price', $payload) ? (float) $payload['price'] : null;
-        $normalized['status'] = array_key_exists('status', $payload) ? (bool) $payload['status'] : null;
-        $normalized['is_draft'] = array_key_exists('is_draft', $payload)
-            ? (bool) $payload['is_draft']
-            : (array_key_exists('isDraft', $payload) ? (bool) $payload['isDraft'] : null);
+        $normalized['price'] = isset($payload['price']) ? (float) $payload['price'] : null;
+        $normalized['status'] = isset($payload['status']) ? (bool) $payload['status'] : null;
 
+        // Gestion is_draft avec plusieurs variantes possibles
+        $normalized['is_draft'] = isset($payload['is_draft']) ? (bool) $payload['is_draft'] : (isset($payload['isDraft']) ? (bool) $payload['isDraft'] : null);
+
+        // ✅ GESTION DES CATÉGORIES - Support multiple formats
         $normalized['category_id'] = $this->extractCategoryId($payload);
-        $normalized['image'] = array_key_exists('image', $payload) ? $payload['image'] : null;
 
-        // ✅ FIX : Assurer que productable_type est dans le retour
+        // ✅ IMAGE - Ne traiter que les URLs/chemins, pas les File objects
+        if (isset($payload['image'])) {
+            if (is_string($payload['image']) && !str_starts_with($payload['image'], 'blob:')) {
+                $normalized['image'] = $payload['image'];
+            } else {
+                $normalized['image'] = null; // Les File objects sont gérés séparément
+            }
+        } else {
+            $normalized['image'] = null;
+        }
+
+        // ✅ PRODUCTABLE TYPE - Support des deux formats
         $normalized['productable_type'] = $payload['productable_type']
-            ?? ($payload['productableType'] ?? null);
+            ?? $payload['productableType']
+            ?? null;
 
-        // ✅ FIX : Assurer que productable est dans le retour  
+        Log::info('🎯 ProductableType mappé', [
+            'frontend_productableType' => $payload['productableType'] ?? 'non défini',
+            'frontend_productable_type' => $payload['productable_type'] ?? 'non défini',
+            'normalized_productable_type' => $normalized['productable_type']
+        ]);
+
+        // ✅ PRODUCTABLE DATA - Nettoyer les métadonnées API Platform
         $productableData = $payload['productable'] ?? null;
         if (is_array($productableData)) {
-            if (isset($productableData['@context']) || isset($productableData['@id'])) {
-                $cleanedData = array_filter($productableData, function ($key) {
-                    return !str_starts_with($key, '@');
-                }, ARRAY_FILTER_USE_KEY);
-                $productableData = $cleanedData;
-            }
+            // Supprimer les métadonnées API Platform (@context, @id, @type)
+            $cleanedData = array_filter($productableData, function ($key) {
+                return !str_starts_with($key, '@');
+            }, ARRAY_FILTER_USE_KEY);
+
+            // Supprimer les valeurs null pour éviter les erreurs
+            $cleanedData = array_filter($cleanedData, function ($value) {
+                return $value !== null && $value !== '';
+            });
+
+            $normalized['productable'] = $cleanedData;
+        } else {
+            $normalized['productable'] = null;
         }
-        $normalized['productable'] = $productableData;
 
-        // Relations, tags, options
-        $normalized['relations'] = $payload['relations'] ?? null;
-        $normalized['tags'] = $payload['tags'] ?? null;
-        $normalized['options'] = $payload['options'] ?? null;
+        // ✅ RELATIONS, TAGS, OPTIONS
+        $normalized['relations'] = $payload['relations'] ?? [];
+        $normalized['tags'] = $payload['tags'] ?? [];
+        $normalized['options'] = $payload['options'] ?? [];
 
-        // ✅ LOG pour debug
-        Log::info('Normalized payload', ['normalized' => $normalized]);
+        Log::info('✅ Payload normalisé', [
+            'normalized_keys' => array_keys($normalized),
+            'productable_type' => $normalized['productable_type'],
+            'productable_keys' => is_array($normalized['productable']) ? array_keys($normalized['productable']) : 'null'
+        ]);
+
+        // ⚠️ VALIDATION CRITIQUE - Vérifier que les champs obligatoires ne sont pas null
+        if (empty($normalized['name'])) {
+            Log::warning('⚠️ Nom manquant dans le payload normalisé');
+        }
+        if (empty($normalized['productable_type'])) {
+            Log::error('❌ ProductableType manquant après normalisation', [
+                'original_payload_keys' => array_keys($payload),
+                'productableType_in_payload' => isset($payload['productableType']),
+                'productable_type_in_payload' => isset($payload['productable_type'])
+            ]);
+        }
 
         return $normalized;
     }
 
-    // ✅ NOUVELLE méthode pour extraire l'ID de catégorie
+    /**
+     * ✅ Extrait l'ID de catégorie depuis différents formats
+     */
     private function extractCategoryId(array $payload): ?int
     {
-        $category = $payload['category'] ?? $payload['category_id'] ?? $payload['categoryId'] ?? null;
-
-        if (is_int($category)) {
-            return $category;
+        // Format direct: category_id ou categoryId
+        if (isset($payload['category_id']) && is_numeric($payload['category_id'])) {
+            return (int) $payload['category_id'];
+        }
+        if (isset($payload['categoryId']) && is_numeric($payload['categoryId'])) {
+            return (int) $payload['categoryId'];
         }
 
-        if (is_string($category) && preg_match('/\/(\d+)$/', $category, $matches)) {
+        // Format IRI: "/api/categories/1"
+        $category = $payload['category'] ?? null;
+        if (is_string($category) && preg_match('/\/categories\/(\d+)$/', $category, $matches)) {
             return (int) $matches[1];
+        }
+
+        // Format tableau de catégories (prendre la première)
+        if (isset($payload['categories']) && is_array($payload['categories']) && !empty($payload['categories'])) {
+            $firstCategory = $payload['categories'][0];
+            if (is_string($firstCategory) && preg_match('/\/categories\/(\d+)$/', $firstCategory, $matches)) {
+                return (int) $matches[1];
+            }
         }
 
         return null;

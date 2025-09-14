@@ -127,9 +127,7 @@ export default {
       const titles = {
         activity: 'Détails de l\'activité',
         room: 'Détails de l\'hébergement',
-        // dish: 'Propriétés du plat',
         ingredient: 'Propriétés de l\'ingrédient',
-        menu: 'Détails du menu'
       }
       return titles[this.type] || 'Détails spécifiques'
     },
@@ -139,13 +137,21 @@ export default {
       get() {
         const DIFF_MAP = { 1: 'easy', 2: 'medium', 3: 'hard' }
         const v = this.localValue?.difficulty_level
+
+        console.log('🎯 Difficulty get - valeur reçue:', v, 'type:', typeof v)
+
         if (typeof v === 'number') return DIFF_MAP[v] ?? ''
+        if (typeof v === 'string' && ['easy', 'medium', 'hard'].includes(v)) return v
         if (v === null || v === undefined) return ''
+
         return String(v)
       },
       set(val) {
         const DIFF_UNMAP = { easy: 1, medium: 2, hard: 3 }
         const next = { ...(this.localValue || {}) }
+
+        console.log('🎯 Difficulty set - valeur envoyée:', val, 'mappé vers:', DIFF_UNMAP[val])
+
         next.difficulty_level = typeof val === 'string' ? (DIFF_UNMAP[val] ?? val) : val
         this.localValue = next
       }

@@ -12,7 +12,8 @@ class ProductableData extends Data
         public ?int $duration = null,
         public ?string $meeting_point = null,
         public ?int $max_people = null,
-        public ?string $difficulty_level = null,
+        // 🔧 IMPORTANT: Changer le type pour accepter int ET string
+        public mixed $difficulty_level = null,
         
         // Room fields
         public ?int $capacity = null,
@@ -44,20 +45,21 @@ class ProductableData extends Data
     }
 
     /**
-     * Création à partir d'un tableau avec mapping automatique
+     * 🔧 CORRECTION COMPLÈTE - Création à partir d'un tableau avec mapping automatique
      */
     public static function fromArray(array $data): static
     {
-        // Filtrer les métadonnées API Platform
+        // Filtrer les métadonnées API Platform ET les champs timestamps
         $cleanData = array_filter($data, function($key) {
-            return !str_starts_with($key, '@');
+            return !str_starts_with($key, '@') && 
+                   !in_array($key, ['id', 'created_at', 'updated_at']);
         }, ARRAY_FILTER_USE_KEY);
 
         // Mapping des champs avec noms différents (camelCase -> snake_case)
         $mappings = [
             'meetingPoint' => 'meeting_point',
             'maxPeople' => 'max_people',
-            'difficulty_level' => 'difficulty_level',
+            'difficultyLevel' => 'difficulty_level',
             'isVegetarian' => 'is_vegetarian',
             'isVegan' => 'is_vegan',
             'isSpicy' => 'is_spicy',
@@ -73,11 +75,20 @@ class ProductableData extends Data
             }
         }
 
+        // 🎯 DÉBOGAGE DU DIFFICULTY_LEVEL
+        if (isset($cleanData['difficulty_level'])) {
+            \Illuminate\Support\Facades\Log::info('🎯 ProductableData - difficulty_level trouvé', [
+                'value' => $cleanData['difficulty_level'],
+                'type' => gettype($cleanData['difficulty_level'])
+            ]);
+        }
+
         return new static(
             guide: $cleanData['guide'] ?? null,
             duration: isset($cleanData['duration']) ? (int) $cleanData['duration'] : null,
             meeting_point: $cleanData['meeting_point'] ?? null,
             max_people: isset($cleanData['max_people']) ? (int) $cleanData['max_people'] : null,
+            // 🔧 PRÉSERVER LA VALEUR TELLE QUELLE (int ou string)
             difficulty_level: $cleanData['difficulty_level'] ?? null,
             capacity: isset($cleanData['capacity']) ? (int) $cleanData['capacity'] : null,
             availability: isset($cleanData['availability']) ? (bool) $cleanData['availability'] : null,
@@ -91,29 +102,60 @@ class ProductableData extends Data
         );
     }
     
+    /**
+     * 🔧 CORRECTION SYSTÈME UNIFIÉ - 1=facile, 2=moyen, 3=difficile
+     */
     public function toActivityArray(): array
     {
+        $difficultyValue = $this->normalizeDifficultyLevel($this->difficulty_level);
+        
+        \Illuminate\Support\Facades\Log::info('🎯 toActivityArray - difficulty processing', [
+            'raw_value' => $this->difficulty_level,
+            'normalized_value' => $difficultyValue
+        ]);
+        
         return [
             'guide' => $this->guide,
             'duration' => $this->duration ?? 60,
             'meeting_point' => $this->meeting_point,
             'max_people' => $this->max_people ?? 10,
-            'difficulty_level' => $this->convertDifficultyToInteger($this->difficulty_level ?? 'medium')
+            'difficulty_level' => $difficultyValue
         ];
     }
     
     /**
-     * Convertit les niveaux de difficulté string en entier selon la logique de l'app
+     * 🔧 NOUVEAU - Normalise le niveau de difficulté vers le système unifié
+     * Frontend: easy/medium/hard → 1/2/3
+     * Database: 1/2/3
+     * Évite les conversions multiples qui corrompent les données
      */
-    private function convertDifficultyToInteger(?string $difficulty): int
+    private function normalizeDifficultyLevel(mixed $difficulty): int
     {
-        return match(strtolower($difficulty ?? 'medium')) {
-            'easy' => 2,
-            'medium' => 3,
-            'hard' => 5,
-            'extreme' => 7,
-            default => 3 // medium par défaut
-        };
+        // Si c'est déjà un entier valide (1, 2, 3), le garder
+        if (is_int($difficulty) && in_array($difficulty, [1, 2, 3])) {
+            return $difficulty;
+        }
+        
+        // Si c'est une string numérique valide
+        if (is_string($difficulty) && ctype_digit($difficulty)) {
+            $intVal = (int) $difficulty;
+            if (in_array($intVal, [1, 2, 3])) {
+                return $intVal;
+            }
+        }
+        
+        // Si c'est une string descriptive
+        if (is_string($difficulty)) {
+            return match(strtolower(trim($difficulty))) {
+                'easy', 'facile' => 1,
+                'medium', 'moyen' => 2,
+                'hard', 'difficile' => 3,
+                default => 2 // medium par défaut
+            };
+        }
+        
+        // Défaut
+        return 2;
     }
     
     public function toRoomArray(): array
@@ -133,43 +175,7 @@ class ProductableData extends Data
             'is_spicy' => $this->is_spicy,
             'is_gluten_free' => $this->is_gluten_free,
             'is_lactose_free' => $this->is_lactose_free,
-            'is_nut_free' => $this->is_nut_free
-        ];
-    }
-
-    public static function rules(): array
-    {
-        return [
-            // Activity validation
-            'guide' => ['nullable', 'string'],
-            'duration' => ['nullable', 'integer', 'min:1'],
-            'meeting_point' => ['nullable', 'string'],
-            'max_people' => ['nullable', 'integer', 'min:1'],
-            'difficulty_level' => ['nullable', 'string', 'in:easy,medium,hard,extreme'],
-            
-            // Room validation
-            'capacity' => ['nullable', 'integer', 'min:1'],
-            'availability' => ['nullable', 'boolean'],
-            
-            // Ingredient validation
-            'stock' => ['nullable', 'integer', 'min:0'],
-            'is_vegetarian' => ['boolean'],
-            'is_vegan' => ['boolean'],
-            'is_spicy' => ['boolean'],
-            'is_gluten_free' => ['boolean'],
-            'is_lactose_free' => ['boolean'],
-            'is_nut_free' => ['boolean'],
-        ];
-    }
-
-    public static function messages(): array
-    {
-        return [
-            'duration.min' => 'La durée doit être d\'au moins 1 minute',
-            'max_people.min' => 'Le nombre maximum de personnes doit être d\'au moins 1',
-            'capacity.min' => 'La capacité doit être d\'au moins 1',
-            'stock.min' => 'Le stock ne peut pas être négatif',
-            'difficulty_level.in' => 'Le niveau de difficulté doit être: easy, medium, hard ou extreme',
+            'is_nut_free' => $this->is_nut_free,
         ];
     }
 }

@@ -21,7 +21,7 @@ use ApiPlatform\Metadata\Get;
 class Activity extends Model
 {
     use HasFactory;
-    
+
     protected $fillable = [
         'guide',
         'duration',
@@ -34,7 +34,7 @@ class Activity extends Model
     {
         return $this->morphOne(Product::class, 'productable');
     }
-    
+
     // ✅ Relation avec les tags spécifiques (cohérente avec Dish/Menu)
     public function specificTags()
     {
@@ -50,21 +50,15 @@ class Activity extends Model
         // Logique basée sur la difficulté
         switch ($this->difficulty_level) {
             case 1:
-            case 2:
                 $tags[] = 'easy';
                 break;
-            case 3:
-            case 4:
+            case 2:
                 $tags[] = 'medium';
                 break;
-            case 5:
-            case 6:
+            case 3:
                 $tags[] = 'hard';
                 break;
-            case 7:
-            case 8:
-            case 9:
-            case 10:
+            case 4:
                 $tags[] = 'extreme';
                 break;
         }
@@ -89,7 +83,7 @@ class Activity extends Model
 
         // Logique basée sur le type d'activité (inféré du nom/description)
         $activityName = strtolower($this->product->name ?? '');
-        
+
         if (str_contains($activityName, 'escalade') || str_contains($activityName, 'climbing')) {
             $tags[] = 'climbing';
         }
@@ -104,8 +98,10 @@ class Activity extends Model
         }
 
         // Tags selon le point de rendez-vous
-        if (str_contains(strtolower($this->meeting_point), 'intérieur') || 
-            str_contains(strtolower($this->meeting_point), 'indoor')) {
+        if (
+            str_contains(strtolower($this->meeting_point), 'intérieur') ||
+            str_contains(strtolower($this->meeting_point), 'indoor')
+        ) {
             $tags[] = 'indoor';
         } else {
             $tags[] = 'outdoor';
@@ -118,7 +114,7 @@ class Activity extends Model
     public function updateTags()
     {
         $tags = $this->calculateSpecificTags();
-        
+
         $this->specificTags()->sync(
             Tag::whereIn('name', $tags)->where('is_global', false)->pluck('id')
         );

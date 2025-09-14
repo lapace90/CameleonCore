@@ -16,7 +16,7 @@ class ProductData extends Data
         public bool $status = true,
         public bool $isDraft = false,
         public ?int $categoryId = null,
-        public ?array $image = null,
+        public ?string $image = null,
         public array $tags = [],
         public array $options = [],
         public array $relations = [],
