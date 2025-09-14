@@ -246,33 +246,28 @@ export default {
       this.error = null
 
       try {
-        let response
-
-        // Si c'est un File, utiliser FormData
+        // 1. Upload vers MediaObject si fichier sélectionné
         if (this.form.image instanceof File) {
-          console.log('📤 Envoi FormData avec fichier')
+          console.log('📤 Upload vers /api/media_objects...')
 
-          const jsonPayload = this.buildPayload()
-          const formData = new FormData()
-          formData.append('payload', JSON.stringify(jsonPayload))
-          formData.append('image', this.form.image, this.form.image.name)
+          const mediaResponse = await ProductsApi.uploadToMediaObjects(this.form.image)
 
-          if (this.isEditing) {
-            response = await ProductsApi.updateProduct(this.productId, formData)
-          } else {
-            response = await ProductsApi.createProduct(formData)
-          }
+          // 🔧 FIX: Mettre à jour this.form.image avec l'URL reçue
+          this.form.image = mediaResponse.contentUrl
+          console.log('✅ MediaObject créé, URL assignée:', this.form.image)
         }
-        // Sinon JSON classique
-        else {
-          console.log('📤 Envoi JSON classique')
-          const jsonPayload = this.buildPayload()
 
-          if (this.isEditing) {
-            response = await ProductsApi.updateProduct(this.productId, jsonPayload)
-          } else {
-            response = await ProductsApi.createProduct(jsonPayload)
-          }
+        // 2. Sauvegarder le produit (buildPayload() inclura maintenant l'URL)
+        console.log('📤 Sauvegarde produit...')
+
+        const jsonPayload = this.buildPayload()
+        console.log('🔍 Payload avec image:', jsonPayload)
+
+        let response
+        if (this.isEditing) {
+          response = await ProductsApi.updateProduct(this.productId, jsonPayload)
+        } else {
+          response = await ProductsApi.createProduct(jsonPayload)
         }
 
         this.$router.push({
@@ -282,7 +277,15 @@ export default {
 
       } catch (error) {
         console.error('Erreur lors de la sauvegarde:', error)
-        this.error = 'Erreur lors de la sauvegarde du produit'
+
+        // Messages d'erreur plus spécifiques
+        if (error.response?.status === 422) {
+          this.error = 'Fichier invalide (format ou taille)'
+        } else if (error.response?.status === 413) {
+          this.error = 'Fichier trop volumineux (max 5MB)'
+        } else {
+          this.error = 'Erreur lors de la sauvegarde du produit'
+        }
       } finally {
         this.saving = false
       }

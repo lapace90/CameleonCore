@@ -13,13 +13,10 @@
       </div>
     </section>
 
-    <!-- Section Menus (votre composant existant) -->
-    <MenusSection @menu-selected="handleMenuSelection" />
+    <MenusSection :items="menus" @menu-selected="handleMenuSelection" />
 
-    <!-- Section Activités (votre composant existant) -->
-    <ActivitiesSection displayMode="detailed" sectionTitle="Nos activités détaillées"
+    <ActivitiesSection :items="activities" displayMode="detailed" sectionTitle="Nos activités détaillées"
       sectionSubtitle="Choisissez votre aventure" :showStats="false" />
-
 
     <!-- Section Hébergement -->
     <section class="accommodation-section">
@@ -180,231 +177,133 @@
 </template>
 
 <script>
+import { onMounted, ref } from 'vue'
 import ActivitiesSection from '@/public/components/ui/Activities.vue'
 import MenusSection from '@/public/components/ui/MenusSection.vue'
 
 export default {
   name: 'ServicesPage',
-  components: {
-    ActivitiesSection,
-    MenusSection
-  },
-  data() {
-    return {
-      selectedMenu: null,
-      accommodations: [
-        {
-          id: 1,
-          title: 'Tente Berbère Traditionnelle',
-          description: 'Authentique tente nomade avec tout le confort moderne. Expérience immersive garantie.',
-          image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-          price: 85,
-          capacity: 2,
-          beds: '2 matelas au sol',
-          popular: false,
-          features: [
-            'Tente authentique en laine de chameau',
-            'Matelas et couvertures berbères',
-            'Lanternes traditionnelles',
-            'Espace privé de 15m²'
-          ]
-        },
-        {
-          id: 2,
-          title: 'Tente Confort Étoilée',
-          description: 'Le parfait équilibre entre tradition et confort avec vue panoramique sur les dunes.',
-          image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-          price: 120,
-          capacity: 2,
-          beds: '1 lit double confortable',
-          popular: true,
-          features: [
-            'Tente design avec toit ouvrant',
-            'Lit double avec literie premium',
-            'Salle de bain privée',
-            'Terrasse privée avec vue dunes',
-            'Éclairage solaire'
-          ]
-        },
-        {
-          id: 3,
-          title: 'Suite Famille Oasis',
-          description: 'Hébergement spacieux pour familles avec espace enfants et activités dédiées.',
-          image: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-          price: 95,
-          capacity: 4,
-          beds: '1 lit double + 2 lits simples',
-          popular: false,
-          features: [
-            'Espace familial de 25m²',
-            'Coin enfants aménagé',
-            'Salle de bain familiale',
-            'Kit jeux désert inclus',
-            'Petit-déjeuner enfants offert'
-          ]
-        }
-      ],
-      extraServices: [
-        {
-          id: 1,
-          title: 'Transport 4x4',
-          description: 'Transfert depuis Merzouga et excursions dans les dunes en véhicule tout-terrain.',
-          icon: 'fas fa-car',
-          color: '#CE5E1A',
-          price: 'À partir de 25€/trajet'
-        },
-        {
-          id: 2,
-          title: 'Guide Privé',
-          description: 'Guide berbère dédié pour découvrir les secrets du désert et la culture locale.',
-          icon: 'fas fa-user-tie',
-          color: '#D6B190',
-          price: '40€/demi-journée'
-        },
-        {
-          id: 3,
-          title: 'Soirée Musicale',
-          description: 'Concert privé de musique traditionnelle autour du feu avec musiciens locaux.',
-          icon: 'fas fa-music',
-          color: '#656C97',
-          price: '60€/soirée'
-        },
-        {
-          id: 4,
-          title: 'Atelier Artisanat',
-          description: 'Initiation à la poterie, tapis berbère ou cuisine traditionnelle du désert.',
-          icon: 'fas fa-palette',
-          color: '#41241C',
-          price: '20€/personne'
-        },
-        {
-          id: 5,
-          title: 'Observation Étoiles',
-          description: 'Soirée astronomie avec télescope et guide pour découvrir le ciel du Sahara.',
-          icon: 'fas fa-telescope',
-          color: '#2d8f63',
-          price: '15€/personne'
-        },
-        {
-          id: 6,
-          title: 'Massage Détente',
-          description: 'Massage relaxant aux huiles d\'argan dans un cadre exceptionnel.',
-          icon: 'fas fa-spa',
-          color: '#8b6f47',
-          price: '45€/séance'
-        }
-      ],
-      amenities: [
-        { id: 1, title: 'Sanitaires Écologiques', description: 'Toilettes sèches et douches solaires respectueuses de l\'environnement', icon: 'fas fa-shower' },
-        { id: 2, title: 'Sécurité 24/7', description: 'Surveillance discrète et assistance d\'urgence jour et nuit', icon: 'fas fa-shield-alt' },
-        { id: 3, title: 'Parking Gardé', description: 'Stationnement sécurisé pour votre véhicule à Merzouga', icon: 'fas fa-parking' },
-        { id: 4, title: 'Transferts Inclus', description: 'Transport chameau/4x4 depuis le point de rendez-vous', icon: 'fas fa-route' },
-        { id: 5, title: 'WiFi Satellite', description: 'Connexion internet par satellite dans les zones communes', icon: 'fas fa-wifi' },
-        { id: 6, title: 'Feu de Camp', description: 'Foyer central pour les soirées conviviales sous les étoiles', icon: 'fas fa-fire' },
-        { id: 7, title: 'Éclairage Solaire', description: 'Système d\'éclairage écologique dans tout le campement', icon: 'fas fa-sun' },
-        { id: 8, title: 'Eau Potable', description: 'Points d\'eau purifiée disponibles 24h/24', icon: 'fas fa-tint' },
-        { id: 9, title: 'Premiers Secours', description: 'Trousse de secours et personnel formé aux urgences', icon: 'fas fa-first-aid' }
-      ],
-      pricingPlans: [
-        {
-          id: 1,
-          name: 'Évasion Express',
-          price: 180,
-          unit: '/ pers',
-          duration: '1 nuit / 2 jours',
-          popular: false,
-          features: [
-            'Tente berbère traditionnelle',
-            '1 dîner + 1 petit-déjeuner',
-            'Balade chameau coucher soleil',
-            'Soirée musique autour du feu',
-            'Transferts 4x4 inclus'
-          ]
-        },
-        {
-          id: 2,
-          name: 'Immersion Désert',
-          price: 320,
-          unit: '/ pers',
-          duration: '2 nuits / 3 jours',
-          popular: true,
-          features: [
-            'Tente confort étoilée',
-            '2 dîners + 2 petits-déjeuners',
-            'Randonnée guidée sur les dunes',
-            'Atelier artisanat berbère',
-            'Observation des étoiles',
-            'Tous transferts inclus'
-          ]
-        },
-        {
-          id: 3,
-          name: 'Odyssée Saharienne',
-          price: 580,
-          unit: '/ pers',
-          duration: '4 nuits / 5 jours',
-          popular: false,
-          features: [
-            'Suite premium avec terrasse',
-            'Pension complète gastronomique',
-            'Guide privé dédié',
-            'Excursions oasis et villages',
-            'Massage détente inclus',
-            'Soirée musicale privée',
-            'Certificat d\'aventurier'
-          ]
-        }
-      ],
-      faqs: [
-        {
-          id: 1,
-          question: 'Que dois-je apporter pour le désert ?',
-          answer: 'Nous fournissons une liste détaillée après réservation. En général : vêtements chauds pour la nuit, protection solaire, chaussures fermées, lampe frontale. Tout l\'équipement de camp est fourni.',
-          open: false
-        },
-        {
-          id: 2,
-          question: 'Les repas conviennent-ils aux régimes spéciaux ?',
-          answer: 'Absolument ! Nous adaptons nos menus aux régimes végétariens, végétaliens, sans gluten ou halal. Informez-nous de vos besoins lors de la réservation.',
-          open: false
-        },
-        {
-          id: 3,
-          question: 'Comment se déroule l\'arrivée au camp ?',
-          answer: 'Rendez-vous à Merzouga, puis transfert en 4x4 ou à dos de chameau selon votre choix. Le trajet dure 45 minutes et fait partie de l\'expérience !',
-          open: false
-        },
-        {
-          id: 4,
-          question: 'Y a-t-il de l\'électricité dans le désert ?',
-          answer: 'Nos installations fonctionnent à l\'énergie solaire. Vous pouvez recharger vos appareils dans les espaces communs. Les tentes ont un éclairage LED autonome.',
-          open: false
-        },
-        {
-          id: 5,
-          question: 'Que se passe-t-il en cas de météo défavorable ?',
-          answer: 'Le désert se visite toute l\'année ! En cas de conditions exceptionnelles, nous adaptons les activités et proposons des alternatives en toute sécurité.',
-          open: false
-        }
-      ]
-    }
-  },
-  methods: {
-    toggleFaq(id) {
-      const faq = this.faqs.find(f => f.id === id);
-      if (faq) {
-        faq.open = !faq.open;
-        // Fermer les autres FAQ
-        this.faqs.forEach(f => {
-          if (f.id !== id) f.open = false;
-        });
+  components: { ActivitiesSection, MenusSection },
+  setup() {
+    // --- Données locales (à migrer plus tard) ---
+    const selectedMenu = ref(null)
+
+    const accommodations = ref([
+      {
+        id: 1,
+        title: 'Tente Berbère Traditionnelle',
+        description:
+          "Authentique tente nomade avec tout le confort moderne. Expérience immersive garantie.",
+        image:
+          'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+        price: 85,
+        capacity: 2,
+        beds: '2 matelas au sol',
+        popular: false,
+        features: [
+          'Tente authentique en laine de chameau',
+          'Matelas et couvertures berbères',
+          'Lanternes traditionnelles',
+          'Espace privé de 15m²'
+        ]
+      },
+      {
+        id: 2,
+        title: 'Tente Confort Étoilée',
+        description:
+          'Le parfait équilibre entre tradition et confort avec vue panoramique sur les dunes.',
+        image:
+          'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+        price: 120,
+        capacity: 2,
+        beds: '1 lit double confortable',
+        popular: true,
+        features: [
+          'Tente design avec toit ouvrant',
+          'Lit double avec literie premium',
+          'Salle de bain privée',
+          'Terrasse privée avec vue dunes',
+          'Éclairage solaire'
+        ]
+      },
+      {
+        id: 3,
+        title: 'Suite Famille Oasis',
+        description:
+          'Hébergement spacieux pour familles avec espace enfants et activités dédiées.',
+        image:
+          'https://images.unsplash.com/photo-1557804506-669a67965ba0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+        price: 95,
+        capacity: 4,
+        beds: '1 lit double + 2 lits simples',
+        popular: false,
+        features: [
+          'Espace familial de 25m²',
+          'Coin enfants aménagé',
+          'Salle de bain familiale',
+          'Kit jeux désert inclus',
+          'Petit-déjeuner enfants offert'
+        ]
       }
-    },
-    handleMenuSelection(menuData) {
-      this.selectedMenu = menuData;
-      console.log('Menu sélectionné:', menuData);
+    ])
+
+    const extraServices = ref([
+      { id: 1, title: 'Transport 4x4', description: 'Transfert depuis Merzouga et excursions dans les dunes en véhicule tout-terrain.', icon: 'fas fa-car', color: '#CE5E1A', price: 'À partir de 25€/trajet' },
+      { id: 2, title: 'Guide Privé', description: 'Guide berbère dédié pour découvrir les secrets du désert et la culture locale.', icon: 'fas fa-user-tie', color: '#D6B190', price: '40€/demi-journée' },
+      { id: 3, title: 'Soirée Musicale', description: 'Concert privé de musique traditionnelle autour du feu avec musiciens locaux.', icon: 'fas fa-music', color: '#656C97', price: '60€/soirée' },
+      { id: 4, title: 'Atelier Artisanat', description: 'Initiation à la poterie, tapis berbère ou cuisine traditionnelle du désert.', icon: 'fas fa-palette', color: '#41241C', price: '20€/personne' },
+      { id: 5, title: 'Observation Étoiles', description: 'Soirée astronomie avec télescope et guide pour découvrir le ciel du Sahara.', icon: 'fas fa-telescope', color: '#2d8f63', price: '15€/personne' },
+      { id: 6, title: 'Massage Détente', description: "Massage relaxant aux huiles d'argan dans un cadre exceptionnel.", icon: 'fas fa-spa', color: '#8b6f47', price: '45€/séance' }
+    ])
+
+    const amenities = ref([
+      { id: 1, title: 'Sanitaires Écologiques', description: "Toilettes sèches et douches solaires respectueuses de l'environnement", icon: 'fas fa-shower' },
+      { id: 2, title: 'Sécurité 24/7', description: "Surveillance discrète et assistance d'urgence jour et nuit", icon: 'fas fa-shield-alt' },
+      { id: 3, title: 'Parking Gardé', description: 'Stationnement sécurisé pour votre véhicule à Merzouga', icon: 'fas fa-parking' },
+      { id: 4, title: 'Transferts Inclus', description: 'Transport chameau/4x4 depuis le point de rendez-vous', icon: 'fas fa-route' },
+      { id: 5, title: 'WiFi Satellite', description: 'Connexion internet par satellite dans les zones communes', icon: 'fas fa-wifi' },
+      { id: 9, title: 'Premiers Secours', description: 'Trousse de secours et personnel formé aux urgences', icon: 'fas fa-first-aid' }
+    ])
+
+    const pricingPlans = ref([
+      { id: 1, name: 'Évasion Express', price: 180, unit: '/ pers', duration: '1 nuit / 2 jours', popular: false, features: ['Tente berbère traditionnelle', '1 dîner + 1 petit-déjeuner', 'Balade chameau coucher soleil', 'Soirée musique autour du feu', 'Transferts 4x4 inclus'] },
+      { id: 2, name: 'Immersion Désert', price: 320, unit: '/ pers', duration: '2 nuits / 3 jours', popular: true, features: ['Tente confort étoilée', '2 dîners + 2 petits-déjeuners', 'Randonnée guidée sur les dunes', "Atelier artisanat berbère", 'Observation des étoiles', 'Tous transferts inclus'] },
+      { id: 3, name: 'Odyssée Saharienne', price: 580, unit: '/ pers', duration: '4 nuits / 5 jours', popular: false, features: ['Suite premium avec terrasse', 'Pension complète gastronomique', 'Guide privé dédié', 'Excursions oasis et villages', 'Massage détente inclus', 'Soirée musicale privée', "Certificat d'aventurier"] }
+    ])
+
+    const faqs = ref([
+      { id: 1, question: 'Que dois-je apporter pour le désert ?', answer: "Nous fournissons une liste détaillée après réservation. En général : vêtements chauds pour la nuit, protection solaire, chaussures fermées, lampe frontale. Tout l'équipement de camp est fourni.", open: false },
+      { id: 2, question: 'Les repas conviennent-ils aux régimes spéciaux ?', answer: 'Absolument ! Nous adaptons nos menus aux régimes végétariens, végétaliens, sans gluten ou halal. Informez-nous de vos besoins lors de la réservation.', open: false },
+      { id: 3, question: "Comment se déroule l'arrivée au camp ?", answer: 'Rendez-vous à Merzouga, puis transfert en 4x4 ou à dos de chameau selon votre choix. Le trajet dure 45 minutes et fait partie de l’expérience !', open: false },
+      { id: 4, question: "Y a-t-il de l'électricité dans le désert ?", answer: 'Nos installations fonctionnent à l’énergie solaire. Vous pouvez recharger vos appareils dans les espaces communs. Les tentes ont un éclairage LED autonome.', open: false },
+      { id: 5, question: 'Que se passe-t-il en cas de météo défavorable ?', answer: "Le désert se visite toute l'année ! En cas de conditions exceptionnelles, nous adaptons les activités et proposons des alternatives en toute sécurité.", open: false }
+    ])
+
+    // Méthodes locales
+    function toggleFaq(id) {
+      const idx = faqs.value.findIndex(f => f.id === id)
+      if (idx === -1) return
+      // toggle ciblé + fermeture des autres
+      faqs.value = faqs.value.map((f, i) => ({ ...f, open: i === idx ? !f.open : false }))
+    }
+
+    function handleMenuSelection(menuData) {
+      selectedMenu.value = menuData
+      console.log('Menu sélectionné:', menuData)
+    }
+
+    return {
+      // state local
+      selectedMenu,
+      accommodations,
+      extraServices,
+      amenities,
+      pricingPlans,
+      faqs,
+      // methods
+      toggleFaq,
+      handleMenuSelection
     }
   }
 }
 </script>
-

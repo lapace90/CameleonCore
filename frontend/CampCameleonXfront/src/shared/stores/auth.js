@@ -207,26 +207,24 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
 
     try {
-      // Utiliser l'API Platform existante pour l'auto-édition
-      const response = await axios.patch(`/api/users/${user.value.id}`, profileData, {
+      // ✅ FIX: Utiliser la route API Platform correcte
+      const response = await axios.patch(`/api/admin/users/${user.value.id}`, profileData, {
         headers: {
           'Content-Type': 'application/json'
         }
       })
 
-      // Mettre à jour l'utilisateur local avec les nouvelles données complètes
+      // Reste du code inchangé...
       const updatedUser = response.data
       user.value = {
         ...user.value,
         name: updatedUser.name,
         email: updatedUser.email,
-        // ✅ TOUS LES NOUVEAUX CHAMPS
         phone: updatedUser.phone,
         address: updatedUser.address,
         city: updatedUser.city,
         postal_code: updatedUser.postal_code,
         avatar: updatedUser.avatar,
-        // Garder les autres champs existants
         last_login_at: updatedUser.last_login_at,
         last_login_ip: updatedUser.last_login_ip,
       }
@@ -256,7 +254,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       // Utiliser l'API Platform pour changer le mot de passe
-      await axios.patch(`/api/users/${user.value.id}`, {
+      await axios.patch(`/api/admin/users/${user.value.id}`, {
         current_password: current,
         password: newPassword,
         password_confirmation: newPassword

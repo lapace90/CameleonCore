@@ -291,30 +291,27 @@ class ProductsApi {
   // UTILITAIRES
   // ==========================================
 
-  /**
-   * Upload d'image
-   */
-  async uploadImage(file, productId = null) {
-    try {
-      const formData = new FormData()
-      formData.append('image', file)
-      if (productId) {
-        formData.append('product_id', productId)
+/**
+ * Upload vers MediaObjects (API Platform)
+ */
+async uploadToMediaObjects(file) {
+  try {
+    const formData = new FormData()
+    formData.append('file', file)
+    
+    const response = await axios.post(`${this.baseURL}/media_objects`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        'Accept': 'application/json'
       }
-
-      const response = await axios.post(`${this.baseURL}/products/upload-image`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          'Accept': 'application/json'
-        }
-      })
-
-      return response.data
-    } catch (error) {
-      console.error('Erreur lors de l\'upload d\'image:', error)
-      throw this.handleError(error)
-    }
+    })
+    
+    return response.data
+  } catch (error) {
+    console.error('Erreur lors de l\'upload vers MediaObjects:', error)
+    throw this.handleError(error)
   }
+}
 
   /**
    * Exporter les produits
