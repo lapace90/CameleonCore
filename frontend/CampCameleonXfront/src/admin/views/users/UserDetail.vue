@@ -49,13 +49,23 @@
 
       <!-- Titre et statut -->
       <div class="page-title-section">
-        <div class="btn-success btn-lg btn">
-          <i class="fas fa-user"></i>
+        <!-- Avatar au lieu du badge -->
+        <div class="user-title-header">
+          <div class="user-avatar-large">
+            <img v-if="user.avatar" :src="user.avatar" :alt="user.name" class="avatar-image" />
+            <i v-else class="fas fa-user default-avatar-icon"></i>
+          </div>
         </div>
-        <div>
+        <div class="user-title-info mt-6">
+
           <h1 class="page-title">{{ user.name }}</h1>
-          {{ user.email }}
+          <p class="user-subtitle">
+            <a :href="`mailto:${user.email}`" class="email-link">
+              {{ user.email }}
+            </a>
+          </p>
         </div>
+
         <div class="meta-inline m-3 " style="text-align: right;">
           <div class="status-badge mb-4" :class="getStatusClass(user.status)">
             <i :class="getStatusIcon(user.status)" style="padding-right: 4px;"></i>
@@ -161,7 +171,7 @@
                   <div>
                     <i class="fas fa-users-cog" style="color: var(--terracotta);"></i>
                     <strong class="px-2">Rôles : {{ (user.role ? 1 : 0) + (user.additional_roles?.length || 0)
-                      }}</strong>
+                    }}</strong>
                   </div>
                 </div>
               </div>

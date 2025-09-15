@@ -3,19 +3,20 @@
 namespace App\Policies;
 
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
 
 class UserPolicy
 {
-    /**
-     * Un utilisateur peut mettre à jour SON profil,
-     * ou n'importe qui s'il a la capacité "manage users".
-     */
     public function update(User $auth, User $target): bool
     {
         if ($auth->id === $target->id) {
+            Log::info('🔍 UserPolicy - Auto-édition autorisée');
             return true;
         }
-        // ton helper/méthode RBAC
-        return method_exists($auth, 'canManageUsers') ? $auth->canManageUsers() : false;
+        
+        $canManage = method_exists($auth, 'canManageUsers') ? $auth->canManageUsers() : false;
+        Log::info('🔍 UserPolicy - Gestion utilisateurs', ['can_manage' => $canManage]);
+        
+        return $canManage;
     }
 }

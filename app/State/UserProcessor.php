@@ -26,6 +26,13 @@ class UserProcessor implements ProcessorInterface
 {
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
     {
+        Log::info('🚀 DÉBUT UserProcessor', [
+        'operation' => get_class($operation),
+        'uri_variables' => $uriVariables,
+        'request_method' => request()->method(),
+        'user_authenticated' => auth('sanctum')->check(),
+        'request_data' => request()->all()
+    ]);
         // 🔐 SÉCURITÉ SANCTUM : Vérifier l'authentification pour toutes les opérations
         $currentUser = auth('sanctum')->user();
 

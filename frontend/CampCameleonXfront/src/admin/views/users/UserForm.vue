@@ -1,4 +1,3 @@
-<!-- UserForm.vue - VERSION OPTIMISÉE pour la performance -->
 <template>
   <div class="product-form-container">
     <!-- Message d'erreur -->
@@ -51,19 +50,7 @@
           <div class="form-left">
             <div class="form-section">
               <h3>Avatar</h3>
-              <div class="avatar-upload">
-                <div class="avatar-preview">
-                  <div class="avatar-circle">
-                    <i class="fas fa-user"></i>
-                  </div>
-                </div>
-                <div class="avatar-actions">
-                  <button type="button" class="btn btn-outline btn-sm">
-                    <i class="fas fa-upload"></i>
-                    Changer l'avatar
-                  </button>
-                </div>
-              </div>
+              <ImageUpload v-model="form.avatar" shape="circle" size="lg" :placeholder-text="'Avatar utilisateur'" />
             </div>
           </div>
 
@@ -167,15 +154,6 @@
                         jaunes</span>
                     </div>
                   </div>
-
-                  <!-- Permissions preview -->
-                  <div class="permissions-preview">
-                    <small>
-                      <i class="fas fa-key"></i>
-                      Cet utilisateur aura environ <strong>{{ estimatedPermissions }}</strong> permission(s) via ses
-                      rôles
-                    </small>
-                  </div>
                 </div>
 
                 <!-- Message d'aide contextuelle selon la situation -->
@@ -184,11 +162,7 @@
                   <span>Sélectionnez un ou plusieurs rôles pour cet utilisateur en cochant les cases</span>
                 </div>
 
-                <div v-else-if="selectedRoles.length === 1" class="help-message help-single">
-                  <i class="fas fa-check-circle text-success"></i>
-                  <span>Parfait ! Le rôle sélectionné est automatiquement défini comme <strong>rôle
-                      principal</strong></span>
-                </div>
+
               </div>
 
               <!-- Info RBAC -->
@@ -269,31 +243,30 @@
 
 <script>
 import { useUsersStore } from '@/shared/stores/users'
-import { useAuthStore } from '@/shared/stores/auth'
+import ImageUpload from '@/admin/components/ui/ImageUpload.vue'
 import { mapState, mapActions } from 'pinia'
 
 export default {
   name: 'UserForm',
+  components: { ImageUpload },
   props: {
     action: { type: String, default: 'create' }
   },
 
   data() {
     return {
-
       selectedRoles: [],
-
       form: {
         name: '',
         email: '',
         role_id: '',
         additional_roles: [],
+        avatar: null,
         status: 'active',
         reset_password: false,
         password: '',
         password_confirmation: ''
       },
-
       saving: false,
       errors: {}
     }
@@ -306,19 +279,6 @@ export default {
       availableRoles: 'availableRoles',
       currentUser: 'currentUser'
     }),
-    additionalRolesComputed() {
-      return this.selectedRoles.filter(id => id !== parseInt(this.form.role_id))
-    },
-
-    /**
-     * ✅ NOUVELLE computed : Estimation du nombre de permissions
-     */
-    estimatedPermissions() {
-      // Logique simplifiée - vous pouvez l'améliorer en comptant vraiment les permissions
-      const basePermissions = this.selectedRoles.length * 8 // Estimation moyenne
-      return Math.min(basePermissions, 49) // Max 49 permissions total
-
-    },
 
     isEditing() {
       return this.action === 'edit' && !!this.$route.params.id
@@ -335,12 +295,7 @@ export default {
 
   setup() {
     const usersStore = useUsersStore()
-    const authStore = useAuthStore()
-
-    return {
-      usersStore,
-      authStore
-    }
+    return { usersStore }
   },
 
   methods: {
@@ -353,149 +308,77 @@ export default {
       'clearMessages'
     ]),
 
-    /**
-  * ✅ NOUVELLE MÉTHODE : Gestion intelligente de la sélection des rôles
-  */
+    // Gestion sélection rôles (IDs normalisés)
     onRoleSelectionChange() {
-      console.log('🔄 Changement sélection rôles:', this.selectedRoles)
-
-      // Convertir en nombres pour éviter les problèmes de comparaison
-      const roleIds = this.selectedRoles.map(id => parseInt(id))
+      const roleIds = this.selectedRoles.map(Number)
 
       if (roleIds.length === 0) {
-        // Cas 1: Aucun rôle sélectionné
         this.form.role_id = ''
         this.form.additional_roles = []
-
       } else if (roleIds.length === 1) {
-        // Cas 2: Un seul rôle → automatiquement principal
         this.form.role_id = roleIds[0]
         this.form.additional_roles = []
-
-        console.log('✅ Rôle unique défini comme principal:', roleIds[0])
-
       } else {
-        // Cas 3: Plusieurs rôles → gérer principal + additionnels
-
-        // Si pas de rôle principal ou si le principal n'est plus sélectionné
-        if (!this.form.role_id || !roleIds.includes(parseInt(this.form.role_id))) {
-          // Prendre le premier comme principal par défaut
+        if (!this.form.role_id || !roleIds.includes(Number(this.form.role_id))) {
           this.form.role_id = roleIds[0]
         }
-
-        // Calculer les rôles additionnels
         this.form.additional_roles = roleIds
-          .filter(id => id !== parseInt(this.form.role_id))
-          .map(id => String(id)) // API attend des strings
-
-        console.log('🔄 Rôles multiples:', {
-          principal: this.form.role_id,
-          additionnels: this.form.additional_roles
-        })
+          .filter(id => id !== Number(this.form.role_id))
+          .map(String) // API attend des strings
       }
 
+      this.selectedRoles = [...new Set(roleIds)]
       this.validateRoleSelection()
     },
 
-    /**
-     * ✅ NOUVELLE MÉTHODE : Changement du rôle principal via radio
-     */
     onPrincipalRoleChange() {
-      console.log('👑 Changement rôle principal:', this.form.role_id)
-
-      // Recalculer les rôles additionnels
+      this.form.role_id = Number(this.form.role_id) || ''
       this.form.additional_roles = this.selectedRoles
-        .filter(id => id !== parseInt(this.form.role_id))
-        .map(id => String(id))
-
-      console.log('✅ Nouveaux rôles additionnels:', this.form.additional_roles)
+        .filter(id => id !== Number(this.form.role_id))
+        .map(String)
     },
 
-    /**
-     * ✅ NOUVELLE MÉTHODE : Support pour l'interface classique (fallback)
-     */
     onLegacyRoleChange() {
       if (this.form.role_id) {
-        // Ajouter le rôle principal aux rôles sélectionnés s'il n'y est pas
-        if (!this.selectedRoles.includes(parseInt(this.form.role_id))) {
-          this.selectedRoles.push(parseInt(this.form.role_id))
-        }
+        const rid = Number(this.form.role_id)
+        if (!this.selectedRoles.includes(rid)) this.selectedRoles.push(rid)
       }
       this.onRoleSelectionChange()
     },
 
-    /**
-     * ✅ NOUVELLE MÉTHODE : Support pour les rôles additionnels classiques
-     */
     onLegacyAdditionalChange() {
-      // Synchroniser avec la nouvelle interface
       const allRoles = []
-
-      if (this.form.role_id) {
-        allRoles.push(parseInt(this.form.role_id))
-      }
-
+      if (this.form.role_id) allRoles.push(Number(this.form.role_id))
       this.form.additional_roles.forEach(id => {
-        const roleId = parseInt(id)
-        if (!allRoles.includes(roleId)) {
-          allRoles.push(roleId)
-        }
+        const roleId = Number(id)
+        if (!allRoles.includes(roleId)) allRoles.push(roleId)
       })
-
       this.selectedRoles = allRoles
       this.onRoleSelectionChange()
     },
 
-    /**
-     * ✅ NOUVELLE MÉTHODE : Validation de la sélection
-     */
     validateRoleSelection() {
-      // Validation business logic
       if (this.selectedRoles.length > 5) {
-        console.warn('⚠️ Plus de 5 rôles sélectionnés, performance impact possible')
+        console.warn('⚠️ Plus de 5 rôles sélectionnés, impact perf possible')
       }
-
-      // Nettoyer les doublons
-      this.selectedRoles = [...new Set(this.selectedRoles)]
+      this.selectedRoles = [...new Set(this.selectedRoles.map(Number))]
     },
 
-    // 🚀 OPTIMISATION : Charger SEULEMENT les rôles (ultra rapide)
     async loadFormData() {
       try {
-        console.log('🚀 Chargement rôles mode rapide...')
-
-        // 🚀 rolesOnly=true : charge juste les rôles avec ?mode=light
+        // plus besoin des permissions → on charge juste la liste des rôles
         await this.loadAllData({ rolesOnly: true })
-
-        console.log('✅ Rôles rapides chargés:', {
-          count: this.availableRoles.length,
-          time: 'ultra-rapide !'
-        })
-
-        if (this.availableRoles.length === 0) {
-          console.warn('⚠️ Aucun rôle chargé')
-        }
-
       } catch (error) {
         console.error('❌ Erreur chargement rôles:', error)
-        this.usersStore.error = 'Impossible de charger les rôles'
       }
     },
 
     async loadUserForEditing() {
       if (!this.isEditing) return
-
       try {
-        console.log(`🔄 Chargement utilisateur ${this.userId}...`)
         await this.fetchUserById(this.userId)
-
-        if (this.user) {
-          this.populateForm()
-          console.log('✅ Formulaire rempli')
-        } else {
-          this.usersStore.error = 'Utilisateur introuvable'
-        }
-
+        if (this.user) this.populateForm()
+        else this.usersStore.error = 'Utilisateur introuvable'
       } catch (error) {
         console.error('❌ Erreur chargement utilisateur:', error)
         this.usersStore.error = 'Impossible de charger l\'utilisateur'
@@ -504,92 +387,58 @@ export default {
 
     populateForm() {
       if (!this.user) return
-
       this.form = {
         name: this.user.name || '',
         email: this.user.email || '',
-        role_id: this.user.role?.id || '',
-        additional_roles: this.getAdditionalRolesFromUser(),
+        role_id: this.user.role?.id != null ? Number(this.user.role.id) : '',
+        avatar: this.user.avatar || null,
+        additional_roles: this.getAdditionalRolesFromUser(), // strings pour l’API
         status: this.user.status || 'active',
         reset_password: false,
         password: '',
         password_confirmation: ''
       }
-
       this.syncSelectedRoles()
     },
 
-    // Extraire les rôles additionnels selon le format API
     getAdditionalRolesFromUser() {
-      // Essayer différents formats possibles de l'API
       if (this.user.additionalRoles && Array.isArray(this.user.additionalRoles)) {
         return this.user.additionalRoles.map(role => String(role.id))
       }
-
       if (this.user.additional_roles && Array.isArray(this.user.additional_roles)) {
         return this.user.additional_roles.map(role => String(role.id))
       }
-
       if (this.user.roles && Array.isArray(this.user.roles)) {
         return this.user.roles.map(role => String(role.id))
       }
-
       return []
     },
 
-    /**
-     * Synchroniser selectedRoles depuis le formulaire
-     */
     syncSelectedRoles() {
       const allRoles = []
-
-      // Ajouter le rôle principal
-      if (this.form.role_id) {
-        allRoles.push(parseInt(this.form.role_id))
-      }
-
-      // Ajouter les rôles additionnels
+      if (this.form.role_id) allRoles.push(Number(this.form.role_id))
       if (this.form.additional_roles) {
         this.form.additional_roles.forEach(id => {
-          const roleId = parseInt(id)
-          if (!allRoles.includes(roleId)) {
-            allRoles.push(roleId)
-          }
+          const roleId = Number(id)
+          if (!allRoles.includes(roleId)) allRoles.push(roleId)
         })
       }
-
       this.selectedRoles = allRoles
-
-      console.log('🔄 Synchronisation selectedRoles:', {
-        principal: this.form.role_id,
-        additionnels: this.form.additional_roles,
-        selected: this.selectedRoles
-      })
     },
 
-
-    /**
-     *  Préparation des données pour l'API
-     */
     async submitForm() {
       if (!this.validateForm()) return
-
       this.saving = true
       this.clearMessages()
 
       try {
-        // ✅ S'assurer que les rôles additionnels sont synchronisés
         this.form.additional_roles = this.selectedRoles
-          .filter(id => id !== parseInt(this.form.role_id))
-          .map(id => String(id))
+          .filter(id => id !== Number(this.form.role_id))
+          .map(String)
 
         const payload = { ...this.form }
-
-        // Nettoyer les champs vides
         if (!payload.password) delete payload.password
         if (!payload.password_confirmation) delete payload.password_confirmation
-
-        console.log('📤 Envoi payload:', payload)
 
         if (this.isEditing) {
           await this.updateUser(this.userId, payload)
@@ -599,11 +448,8 @@ export default {
 
         this.$router.push({
           path: '/admin/users',
-          query: {
-            success: this.isEditing ? 'Utilisateur mis à jour' : 'Utilisateur créé'
-          }
+          query: { success: this.isEditing ? 'Utilisateur mis à jour' : 'Utilisateur créé' }
         })
-
       } catch (error) {
         console.error('❌ Erreur soumission:', error)
       } finally {
@@ -613,21 +459,14 @@ export default {
 
     async handleDeleteUser() {
       if (!this.user || !confirm(`Supprimer "${this.user.name}" ?`)) return
-
       try {
         await this.deleteUser(this.user.id)
-        this.$router.push({
-          path: '/admin/users',
-          query: { success: 'Utilisateur supprimé' }
-        })
+        this.$router.push({ path: '/admin/users', query: { success: 'Utilisateur supprimé' } })
       } catch (error) {
         console.error('❌ Erreur suppression:', error)
       }
     },
 
-    /**
-     * Réinitialiser le formulaire
-     */
     resetForm() {
       this.form = {
         name: '',
@@ -643,56 +482,29 @@ export default {
       this.errors = {}
     },
 
-    /**
-     * Validation avec les nouveaux champs
-     */
     validateForm() {
       const errors = {}
-
-      if (!this.form.name.trim()) {
-        errors.name = ['Le nom est obligatoire']
-      }
-
-      if (!this.form.email.trim()) {
-        errors.email = ['L\'email est obligatoire']
-      }
-
-      if (!this.isEditing && !this.form.password) {
-        errors.password = ['Le mot de passe est obligatoire']
-      }
-
+      if (!this.form.name.trim()) errors.name = ['Le nom est obligatoire']
+      if (!this.form.email.trim()) errors.email = ['L\'email est obligatoire']
+      if (!this.isEditing && !this.form.password) errors.password = ['Le mot de passe est obligatoire']
       if (this.form.password && this.form.password !== this.form.password_confirmation) {
         errors.password_confirmation = ['Confirmation incorrecte']
       }
-
-      //  Au moins un rôle requis
-      if (this.selectedRoles.length === 0) {
-        errors.roles = ['Au moins un rôle doit être sélectionné']
-      }
-
+      if (this.selectedRoles.length === 0) errors.roles = ['Au moins un rôle doit être sélectionné']
       this.errors = errors
       return Object.keys(errors).length === 0
     },
   },
 
-  // 🚀 OPTIMISATION : Chargement minimal et rapide
   async created() {
-    console.log('🚀 UserForm optimisé - Chargement rapide...')
-    // 🚀 Charger SEULEMENT les rôles (pas les users)
     await this.loadFormData()
-    // Si édition, charger l'utilisateur
-    if (this.isEditing) {
-      await this.loadUserForEditing()
-    }
-    console.log('✅ UserForm prêt rapidement !')
+    if (this.isEditing) await this.loadUserForEditing()
   },
 
   watch: {
     '$route.params.id': {
       handler(newId, oldId) {
-        if (newId !== oldId && this.isEditing) {
-          this.loadUserForEditing()
-        }
+        if (newId !== oldId && this.isEditing) this.loadUserForEditing()
       }
     }
   },
@@ -702,6 +514,7 @@ export default {
   }
 }
 </script>
+
 
 <style scoped>
 .loading-state {
@@ -924,21 +737,5 @@ export default {
   font-weight: 500;
   color: #6b7280;
   padding: 0.5rem;
-}
-
-.text-success {
-  color: #10b981;
-}
-
-.text-warning {
-  color: #f59e0b;
-}
-
-.text-info {
-  color: #3b82f6;
-}
-
-.text-primary {
-  color: #6366f1;
 }
 </style>

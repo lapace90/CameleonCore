@@ -271,6 +271,7 @@ const saveProfile = async () => {
     }
 
     // 2. Préparer les données pour l'API (utilise votre structure existante)
+    console.log('🔍 form.avatar avant profileData:', form.avatar, typeof form.avatar)
     const profileData = {
       name: form.name,
       email: form.email,
@@ -278,7 +279,7 @@ const saveProfile = async () => {
       address: form.address || null,
       city: form.city || null,
       postal_code: form.postalCode || null,
-      avatar: form.avatar || null  // URL du MediaObject
+      avatar: (typeof form.avatar === 'string') ? form.avatar : null  // URL du MediaObject
     }
 
     console.log('📤 Sauvegarde profil:', profileData)

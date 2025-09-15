@@ -207,11 +207,23 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
 
     try {
-      // ✅ FIX: Utiliser la route API Platform correcte
+      // ✅ FIX : Headers explicites avec token forcé
+      const headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+
+      // Force le token dans les headers
+      if (token.value) {
+        headers['Authorization'] = `Bearer ${token.value}`
+      } else {
+        throw new Error('Token d\'authentification manquant')
+      }
+
+      console.log('🔍 Headers envoyés:', headers)
+
       const response = await axios.patch(`/api/admin/users/${user.value.id}`, profileData, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
+        headers
       })
 
       // Reste du code inchangé...

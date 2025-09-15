@@ -26,31 +26,43 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     operations: [
         new GetCollection(
             uriTemplate: '/admin/users',
+            middleware: ['auth:sanctum'],
             provider: UserCollectionProvider::class,
             output: UserOutputData::class
         ),
         new Get(
             uriTemplate: '/admin/users/{id}',
+            middleware: ['auth:sanctum'],
             provider: UserItemProvider::class,
             output: UserOutputData::class
         ),
         new Post(
             uriTemplate: '/admin/users',
+            middleware: ['auth:sanctum'],
             processor: UserProcessor::class,
             output: UserOutputData::class,
             input: UserData::class,
             deserialize: false
         ),
-        new Put(),
-        new Patch(
+        new Put(
             uriTemplate: '/admin/users/{id}',
+            middleware: ['auth:sanctum'],
             processor: UserProcessor::class,
             output: UserOutputData::class,
             input: UserData::class,
-            deserialize: false
+            deserialize: false,
+        ),
+        new Patch(
+            uriTemplate: '/admin/users/{id}',
+            middleware: ['auth:sanctum'],
+            processor: UserProcessor::class,
+            output: UserOutputData::class,
+            input: UserData::class,
+            deserialize: false,
         ),
         new Delete(
             uriTemplate: '/admin/users/{id}',
+            middleware: ['auth:sanctum'],
             processor: UserProcessor::class
         ),
     ]
@@ -81,12 +93,12 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-   protected $casts = [
-    'email_verified_at' => 'datetime',
-    'password' => 'hashed',
-    'last_login_at' => 'datetime',
-    'password_reset_required' => 'boolean',
-];
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'last_login_at' => 'datetime',
+        'password_reset_required' => 'boolean',
+    ];
 
     // ===========================
     // RELATIONS

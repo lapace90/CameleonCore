@@ -5,11 +5,9 @@ namespace App\State;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Models\MediaObject;
-use App\Data\MediaObjectData;
 use App\Data\MediaObjectOutputData;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Http\Request;
 
 class MediaObjectProcessor implements ProcessorInterface
 {
@@ -31,7 +29,7 @@ class MediaObjectProcessor implements ProcessorInterface
         
         // 🔧 FIX: Validation correcte Laravel
         $validator = Validator::make($request->all(), [
-            'file' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120' // 5MB max
+            'file' => 'required|file|mimes:jpeg,png,jpg,gif,webp,heic,avif|max:5120' // 5MB max
         ]);
 
         if ($validator->fails()) {

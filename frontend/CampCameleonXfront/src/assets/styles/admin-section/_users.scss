@@ -4,7 +4,7 @@
 
 // Variables spécifiques
 $user-color: #059669;
-$role-color: #7c3aed; 
+$role-color: #7c3aed;
 $permission-color: #dc2626;
 
 // ===========================
@@ -44,11 +44,11 @@ $permission-color: #dc2626;
 // Avatar upload pour les utilisateurs
 .avatar-upload {
   text-align: center;
-  
+
   .avatar-preview {
     margin-bottom: 1rem;
   }
-  
+
   .avatar-circle {
     width: 120px;
     height: 120px;
@@ -76,14 +76,14 @@ $permission-color: #dc2626;
 .permission-checkbox {
   position: relative;
   cursor: pointer;
-  
+
   input[type="checkbox"] {
     position: absolute;
     opacity: 0;
     width: 0;
     height: 0;
   }
-  
+
   .checkbox-content,
   .permission-content {
     padding: 1rem;
@@ -91,15 +91,15 @@ $permission-color: #dc2626;
     border-radius: 8px;
     background: white;
     transition: all 0.2s ease;
-    
+
     &:hover {
       border-color: #d1d5db;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     }
   }
-  
-  input:checked + .checkbox-content,
-  input:checked + .permission-content {
+
+  input:checked+.checkbox-content,
+  input:checked+.permission-content {
     border-color: $role-color;
     background: rgba($role-color, 0.05);
   }
@@ -111,7 +111,7 @@ $permission-color: #dc2626;
     color: #1f2937;
     margin-bottom: 0.25rem;
   }
-  
+
   .role-description {
     color: #6b7280;
     font-size: 0.875rem;
@@ -125,7 +125,7 @@ $permission-color: #dc2626;
     display: block;
     margin-bottom: 0.25rem;
   }
-  
+
   .permission-action {
     font-size: 0.75rem;
     padding: 0.25rem 0.5rem;
@@ -147,11 +147,11 @@ $permission-color: #dc2626;
   align-items: center;
   gap: 0.5rem;
   cursor: pointer;
-  
+
   input[type="radio"] {
     margin: 0;
   }
-  
+
   .radio-label {
     display: flex;
     align-items: center;
@@ -196,7 +196,7 @@ $permission-color: #dc2626;
   position: relative;
   flex: 1;
   min-width: 250px;
-  
+
   .search-icon {
     position: absolute;
     left: 0.75rem;
@@ -204,7 +204,7 @@ $permission-color: #dc2626;
     transform: translateY(-50%);
     color: #9ca3af;
   }
-  
+
   .search-input {
     padding-left: 2.5rem;
   }
@@ -223,7 +223,7 @@ $permission-color: #dc2626;
       font-weight: 600;
       color: #1f2937;
     }
-    
+
     .role-slug {
       color: #9ca3af;
       font-size: 0.875rem;
@@ -234,6 +234,7 @@ $permission-color: #dc2626;
 
 .role-permissions,
 .role-users {
+
   .permissions-summary,
   .users-count {
     display: flex;
@@ -243,7 +244,7 @@ $permission-color: #dc2626;
     font-size: 0.875rem;
     margin-bottom: 0.5rem;
   }
-  
+
   .permissions-preview,
   .users-preview {
     display: flex;
@@ -258,13 +259,36 @@ $permission-color: #dc2626;
   border-radius: 4px;
   font-weight: 500;
   text-transform: uppercase;
-  
-  &.badge-success { background: #d1fae5; color: #065f46; }
-  &.badge-info { background: #dbeafe; color: #1e40af; }
-  &.badge-warning { background: #fef3c7; color: #92400e; }
-  &.badge-danger { background: #fee2e2; color: #991b1b; }
-  &.badge-primary { background: #e0e7ff; color: #3730a3; }
-  &.badge-secondary { background: #f3f4f6; color: #374151; }
+
+  &.badge-success {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  &.badge-info {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+
+  &.badge-warning {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  &.badge-danger {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  &.badge-primary {
+    background: #e0e7ff;
+    color: #3730a3;
+  }
+
+  &.badge-secondary {
+    background: #f3f4f6;
+    color: #374151;
+  }
 }
 
 .permissions-more,
@@ -285,7 +309,7 @@ $permission-color: #dc2626;
   color: #6b7280;
   border: 2px solid white;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  
+
   &:not(:first-child) {
     margin-left: -8px;
   }
@@ -313,7 +337,7 @@ $permission-color: #dc2626;
     background: #f9fafb;
     border-radius: 8px;
     margin-bottom: 1.5rem;
-    
+
     .selected-count {
       color: $permission-color;
       font-weight: 600;
@@ -329,7 +353,7 @@ $permission-color: #dc2626;
     border: 1px solid #e5e7eb;
     border-radius: 8px;
     overflow: hidden;
-    
+
     .category-header {
       display: flex;
       align-items: center;
@@ -337,7 +361,7 @@ $permission-color: #dc2626;
       padding: 1rem 1.5rem;
       background: #f9fafb;
       border-bottom: 1px solid #e5e7eb;
-      
+
       .category-title {
         margin: 0;
         font-size: 1.125rem;
@@ -346,20 +370,20 @@ $permission-color: #dc2626;
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        
+
         .category-count {
           color: #6b7280;
           font-weight: normal;
           font-size: 0.875rem;
         }
       }
-      
+
       .category-actions {
         display: flex;
         gap: 0.5rem;
       }
     }
-    
+
     .permissions-grid {
       padding: 1rem;
       grid-template-columns: 1fr;
@@ -375,32 +399,32 @@ $permission-color: #dc2626;
     gap: 1rem;
     padding: 1rem;
     border-bottom: 1px solid #f3f4f6;
-    
+
     &:last-child {
       border-bottom: none;
     }
-    
+
     .permission-info {
       flex: 1;
-      
+
       .permission-name {
         font-weight: 600;
         color: #1f2937;
         margin-bottom: 0.25rem;
       }
-      
+
       .permission-details {
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        
+
         .permission-resource {
           color: #6b7280;
           font-size: 0.875rem;
         }
       }
     }
-    
+
     .permission-usage {
       display: flex;
       align-items: center;
@@ -408,7 +432,7 @@ $permission-color: #dc2626;
       color: #6b7280;
       font-size: 0.875rem;
     }
-    
+
     .permission-actions {
       display: flex;
       gap: 0.5rem;
@@ -442,7 +466,7 @@ $permission-color: #dc2626;
   max-width: 500px;
   max-height: 90vh;
   overflow: hidden;
-  
+
   .form-header {
     display: flex;
     align-items: center;
@@ -450,7 +474,7 @@ $permission-color: #dc2626;
     padding: 1.5rem;
     border-bottom: 1px solid #e5e7eb;
     background: #f9fafb;
-    
+
     h3 {
       margin: 0;
       font-size: 1.25rem;
@@ -465,7 +489,7 @@ $permission-color: #dc2626;
 
 .permission-form {
   padding: 1.5rem;
-  
+
   .form-actions {
     display: flex;
     justify-content: space-between;
@@ -482,31 +506,31 @@ $permission-color: #dc2626;
 .role-details {
   .detail-section {
     margin-bottom: 2rem;
-    
+
     h4 {
       margin: 0 0 1rem 0;
       font-size: 1rem;
       font-weight: 600;
       color: #1f2937;
     }
-    
+
     p {
       margin: 0;
       color: #6b7280;
     }
   }
-  
+
   .permissions-list,
   .users-list {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
   }
-  
+
   .users-list {
     flex-direction: column;
     gap: 0.75rem;
-    
+
     .user-item {
       display: flex;
       align-items: center;
@@ -514,7 +538,7 @@ $permission-color: #dc2626;
       padding: 0.5rem;
       background: #f9fafb;
       border-radius: 6px;
-      
+
       i {
         color: #6b7280;
       }
@@ -532,13 +556,13 @@ $permission-color: #dc2626;
     font-weight: 600;
     margin-bottom: 1rem;
   }
-  
+
   .users-list {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
   }
-  
+
   .user-item {
     display: flex;
     align-items: center;
@@ -547,7 +571,7 @@ $permission-color: #dc2626;
     background: #f0fdf4;
     border-radius: 8px;
     border: 1px solid #bbf7d0;
-    
+
     .user-avatar {
       width: 32px;
       height: 32px;
@@ -559,23 +583,23 @@ $permission-color: #dc2626;
       justify-content: center;
       font-size: 0.875rem;
     }
-    
+
     .user-info {
       flex: 1;
-      
+
       .user-name {
         font-weight: 600;
         color: #065f46;
         display: block;
       }
-      
+
       .user-email {
         color: #059669;
         font-size: 0.875rem;
       }
     }
   }
-  
+
   .users-more {
     color: #059669;
     font-style: italic;
@@ -592,55 +616,56 @@ $permission-color: #dc2626;
 // ===========================
 
 @media (max-width: 768px) {
+
   .users-page,
   .roles-page,
   .permissions-page {
     padding: 1rem;
   }
-  
+
   .page-header {
     flex-direction: column;
     gap: 1rem;
     align-items: stretch;
   }
-  
+
   .search-filter {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .search-box {
     min-width: auto;
   }
-  
+
   .roles-grid,
   .permissions-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .permissions-stats {
     grid-template-columns: 1fr;
   }
-  
+
   .radio-group {
     flex-direction: column;
     gap: 1rem;
   }
-  
+
   .form-modal-overlay {
     padding: 1rem;
   }
-  
+
   .permissions-actions {
     flex-direction: column;
     align-items: stretch;
-    
+
     .selected-count {
       margin-left: 0;
       text-align: center;
     }
   }
-  
+
   .category-header {
     flex-direction: column;
     align-items: stretch;
@@ -652,10 +677,21 @@ $permission-color: #dc2626;
 // UTILITAIRES
 // ===========================
 
-.text-success { color: $user-color !important; }
-.text-warning { color: #f59e0b !important; }
-.text-danger { color: $permission-color !important; }
-.text-muted { color: #6b7280 !important; }
+.text-success {
+  color: $user-color !important;
+}
+
+.text-warning {
+  color: #f59e0b !important;
+}
+
+.text-danger {
+  color: $permission-color !important;
+}
+
+.text-muted {
+  color: #6b7280 !important;
+}
 
 .form-note {
   padding: 1rem;
@@ -666,8 +702,127 @@ $permission-color: #dc2626;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  
+
   i {
     color: #f59e0b;
+  }
+}
+
+/* User menu */
+.user-menu {
+  position: relative;
+}
+
+.user-btn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 25px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.user-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.user-name {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.user-btn i {
+  font-size: 0.75rem;
+  transition: transform 0.3s ease;
+}
+
+.user-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  width: 280px;
+  margin-top: 0.5rem;
+  z-index: 1001;
+  overflow: hidden;
+  animation: dropdownAppear 0.2s ease-out;
+}
+
+.user-dropdown .dropdown-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem 1rem;
+}
+
+.user-avatar-large {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  border: 3px solid #e9ecef;
+  overflow: hidden;
+
+  .avatar-image {
+    min-height: 150px;
+  }
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.user-details .user-name {
+  font-weight: 600;
+  color: #495057;
+  font-size: 1rem;
+}
+.user-title-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.user-avatar-large {
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #e5e7eb;
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.default-avatar-icon {
+  font-size: 2rem;
+  color: #9ca3af;
+}
+
+.email-link {
+  color: #3b82f6;
+  text-decoration: none;
+  transition: color 0.2s ease;
+  
+  &:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
   }
 }
