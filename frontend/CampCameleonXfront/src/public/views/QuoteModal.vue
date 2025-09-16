@@ -23,15 +23,12 @@
                         <div class="step" :class="{ active: currentStep === 2, completed: currentStep > 2 }">
                             <div class="step-number">2</div><span>Activités</span>
                         </div>
-                        <!-- NOUVELLE ÉTAPE 3 : -->
                         <div class="step" :class="{ active: currentStep === 3, completed: currentStep > 3 }">
                             <div class="step-number">3</div><span>Menus</span>
                         </div>
-                        <!-- DÉCALER Hébergement en étape 4 : -->
                         <div class="step" :class="{ active: currentStep === 4, completed: currentStep > 4 }">
                             <div class="step-number">4</div><span>Hébergement</span>
                         </div>
-                        <!-- DÉCALER Récapitulatif en étape 5 : -->
                         <div class="step" :class="{ active: currentStep === 5 }">
                             <div class="step-number">5</div><span>Récapitulatif</span>
                         </div>
@@ -43,27 +40,20 @@
                         <p class="step-description">Sélectionnez directement dans le calendrier (plage continue).</p>
 
                         <div class="dates-layout">
-                            <!-- Calendrier -->
+                            <!-- Calendrier simplifié -->
                             <div class="calendar-container">
                                 <div class="calendar-header">
                                     <h4 class="calendar-title">
-                                        <i class="fas fa-calendar-alt"></i> Disponibilités
+                                        <i class="fas fa-calendar-alt"></i> Sélectionnez vos dates
                                     </h4>
-                                    <div class="calendar-legend">
-                                        <span class="legend-item"><span class="legend-box available"></span>Dispo</span>
-                                        <span class="legend-item"><span
-                                                class="legend-box unavailable"></span>Indispo</span>
-                                        <span class="legend-item"><span class="legend-box selected"></span>Votre
-                                            sélection</span>
-                                    </div>
                                 </div>
 
-                                <!-- IMPORTANT: on applique class="calendar" -->
                                 <FullCalendar class="calendar" :options="fcOptions" ref="fc" />
 
                                 <div class="range-info" v-if="selectedDates.start && selectedDates.end">
                                     <i class="fas fa-calendar-check"></i>
-                                    Séjour : {{ formatDate(selectedDates.start) }} → {{ formatDate(selectedDates.end) }}
+                                    Séjour : {{ formatDate(selectedDates.start) }} → {{
+                                        formatDate(displayEndInclusive(selectedDates.start, selectedDates.endExclusive)) }}
                                 </div>
                             </div>
 
@@ -82,12 +72,7 @@
 
                                 <div v-if="durationInDays > 0" class="duration">
                                     <i class="fas fa-moon"></i>
-                                    {{ durationInDays }} nuit{{ durationInDays > 1 ? 's' : '' }}
-                                </div>
-
-                                <div v-if="hasUnavailableDay" class="alert warn">
-                                    <i class="fas fa-exclamation-triangle"></i>
-                                    Votre plage contient au moins un jour indisponible. Merci d’ajuster votre sélection.
+                                    {{ (durationInDays - 1) }} nuit{{ (durationInDays - 1) > 1 ? 's' : '' }}
                                 </div>
                             </div>
                         </div>
@@ -103,24 +88,33 @@
                             <p>Chargement des activités...</p>
                         </div>
 
-                        <div v-else class="products-grid">
-                            <div v-for="activity in availableActivities" :key="activity.id" class="product-card"
+                        <div v-else class="mini-grid">
+                            <article v-for="activity in availableActivities" :key="activity.id" class="mini-card"
                                 :class="{ selected: selectedItems.activities.some(a => a.id === activity.id) }"
                                 @click="toggleActivity(activity)">
-                                <div class="product-image">
-                                    <img :src="activity.image" :alt="activity.name" />
-                                    <div class="product-overlay">
-                                        <i class="fas"
-                                            :class="selectedItems.activities.some(a => a.id === activity.id) ? 'fa-check' : 'fa-plus'"></i>
+                                <img class="mini-thumb" :src="activity.image" :alt="activity.name" loading="lazy"
+                                    decoding="async" />
+                                <div class="mini-info">
+                                    <h5 class="mini-title">{{ activity.name }}</h5>
+                                    <div class="mini-meta">
+                                        <span class="mini-price">{{ activity.formatted_price }}</span>
+                                        <span v-if="activity.productableData?.duration" class="mini-pill">
+                                            <i class="fas fa-clock"></i>
+                                            {{ activity.productableData.duration }} min
+                                        </span>
                                     </div>
+                                    <p class="mini-desc">
+                                        {{ (activity.description || '').slice(0, 90) }}<span
+                                            v-if="(activity.description || '').length > 90">…</span>
+                                    </p>
                                 </div>
-                                <div class="product-info">
-                                    <h4>{{ activity.name }}</h4>
-                                    <p class="price">{{ activity.formatted_price }}</p>
-                                    <p class="description">{{ activity.short_description }}</p>
+                                <div class="mini-check">
+                                    <i class="fas"
+                                        :class="selectedItems.activities.some(a => a.id === activity.id) ? 'fa-check' : 'fa-plus'"></i>
                                 </div>
-                            </div>
+                            </article>
                         </div>
+
                     </div>
 
                     <!-- STEP 3: Menus -->
@@ -194,6 +188,13 @@
                                 </div>
                             </div>
 
+                            <div v-if="selectedItems.menus.length" class="summary-section">
+                                <h4><i class="fas fa-utensils"></i> Menus</h4>
+                                <div v-for="m in selectedItems.menus" :key="m.id" class="summary-item">
+                                    <span>{{ m.name }}</span><span>{{ m.formatted_price }}</span>
+                                </div>
+                            </div>
+
                             <div v-if="selectedItems.room" class="summary-section">
                                 <h4><i class="fas fa-bed"></i> Hébergement</h4>
                                 <div class="summary-item">
@@ -251,7 +252,7 @@
                             :disabled="!canProceed">
                             Suivant <i class="fas fa-arrow-right"></i>
                         </button>
-                        <button v-else @click="submitQuote" class="btn btn-success -btn-sm"
+                        <button v-else @click="submitQuote" class="btn btn-success btn-sm"
                             :disabled="isSubmitting || !canSubmit">
                             <i v-if="isSubmitting" class="fas fa-spinner fa-spin"></i>
                             <i v-else class="fas fa-paper-plane"></i>
@@ -283,22 +284,16 @@ export default {
             currentStep: 1,
             loadingActivities: false,
             loadingRooms: false,
-            availabilityLoading: false,
             loadingMenus: false,
-            availableMenus: [],
             isSubmitting: false,
 
             availableActivities: [],
             availableRooms: [],
+            availableMenus: [],
 
-            selectedItems: { activities: [], room: null, menu: [] },
-
+            selectedItems: { activities: [], room: null, menus: [] },
             selectedDates: { start: '', end: '', guests: 2 },
-
             contactInfo: { name: '', email: '', phone: '', message: '' },
-
-            unavailableDates: new Set(),
-            availability: { rooms: {}, activities: {} },
         }
     },
 
@@ -312,41 +307,29 @@ export default {
         },
 
         durationInDays() {
-            const { start, end } = this.selectedDates
-            if (!start || !end) return 0
-            const s = new Date(start), e = new Date(end)
-            const diff = e - s
-            return diff > 0 ? Math.ceil(diff / (1000 * 60 * 60 * 24)) : 0
+            const { start, endExclusive } = this.selectedDates
+            return this.daysBetween(start, endExclusive)
         },
 
         totalPrice() {
             let total = 0
             for (const a of this.selectedItems.activities) total += Number(a.price || 0)
-            for (const m of this.selectedItems.menus) total += Number(m.price || 0)  // ← JUSTE CETTE LIGNE
+            for (const m of this.selectedItems.menus) total += Number(m.price || 0)
             if (this.selectedItems.room && this.durationInDays > 0) {
                 total += Number(this.selectedItems.room.price || 0) * this.durationInDays
             }
             return total
         },
 
-        hasUnavailableDay() {
-            const { start, end } = this.selectedDates
-            if (!start || !end || this.unavailableDates.size === 0) return false
-            const s = new Date(start), e = new Date(end)
-            for (let d = new Date(s); d < e; d.setDate(d.getDate() + 1)) {
-                const k = d.toISOString().slice(0, 10)
-                if (this.unavailableDates.has(k)) return true
-            }
-            return false
+        datesOK() {
+            return !!this.selectedDates.start && !!this.selectedDates.endExclusive && this.durationInDays > 0
         },
-
-        datesOK() { return !!this.selectedDates.start && !!this.selectedDates.end && this.durationInDays > 0 && !this.hasUnavailableDay },
 
         canProceed() {
             switch (this.currentStep) {
                 case 1: return this.datesOK && this.selectedDates.guests >= 1
                 case 2: return true // activités optionnelles
-                case 3: return true // menus optionnels ← NOUVEAU
+                case 3: return true // menus optionnels
                 case 4: return true // hébergement optionnel  
                 default: return true
             }
@@ -357,7 +340,6 @@ export default {
             return !!c.name && !!c.email && !!c.phone && this.totalPrice > 0
         },
 
-        /* FullCalendar options */
         fcOptions() {
             return {
                 plugins: [dayGridPlugin, interactionPlugin],
@@ -371,19 +353,13 @@ export default {
                 selectable: true,
                 selectMirror: true,
                 validRange: { start: this.minDate },
-                selectAllow: this.fcSelectAllow,
                 select: this.fcOnSelect,
-                events: this.fcBuildEvents,
             }
         }
     },
 
     watch: {
-        show(val) { if (val) this.initializeModal() },
-
-        'selectedDates.start'() { this.calendarApi?.refetchEvents() },
-        'selectedDates.end'() { this.calendarApi?.refetchEvents() },
-        'selectedDates.guests'() { this.refreshAvailability() },
+        show(val) { if (val) this.initializeModal() }
     },
 
     methods: {
@@ -396,20 +372,29 @@ export default {
 
         async loadActivities() {
             this.loadingActivities = true
+            console.log('🔍 Début loadActivities')
             try {
-                const res = await publicApi.getActivities({ per_page: 20 })
+                const res = await publicApi.getActivities({ per_page: 20, status: 'active' })
+                console.log('🔍 Réponse activités complète:', res)
+                console.log('🔍 res.data:', res?.data)
+                console.log('🔍 Type de res.data:', typeof res?.data)
+
                 this.availableActivities = res?.data || []
+                console.log('🔍 Nombre d\'activités chargées:', this.availableActivities.length)
             } catch (e) {
-                console.error('Erreur chargement activités:', e)
+                console.error('❌ Erreur chargement activités:', e)
+                console.error('❌ Détails erreur:', e.response?.data)
                 this.availableActivities = []
-            } finally { this.loadingActivities = false }
+            } finally {
+                this.loadingActivities = false
+            }
         },
+
         async loadMenus() {
             this.loadingMenus = true
             console.log('🔍 Début loadMenus')
-
             try {
-                const res = await publicApi.getMenus({ per_page: 20 })
+                const res = await publicApi.getMenus({ per_page: 20, status: 'active' })
                 console.log('🔍 Réponse menus:', res)
                 this.availableMenus = res?.data || []
                 console.log('🔍 Nombre de menus chargés:', this.availableMenus.length)
@@ -421,7 +406,26 @@ export default {
             }
         },
 
-        // Méthode pour sélectionner/désélectionner un menu
+        async loadRooms() {
+            this.loadingRooms = true
+            try {
+                const res = await publicApi.getRooms({ per_page: 20, status: 'active' })
+                this.availableRooms = res?.data || []
+            } catch (e) {
+                console.error('Erreur chargement hébergements:', e)
+                this.availableRooms = []
+            } finally {
+                this.loadingRooms = false
+            }
+        },
+
+        // Sélections simplifiées
+        toggleActivity(activity) {
+            const i = this.selectedItems.activities.findIndex(a => a.id === activity.id)
+            if (i > -1) this.selectedItems.activities.splice(i, 1)
+            else this.selectedItems.activities.push(activity)
+        },
+
         toggleMenu(menu) {
             const i = this.selectedItems.menus.findIndex(m => m.id === menu.id)
             if (i > -1) {
@@ -431,71 +435,14 @@ export default {
             }
         },
 
-        async loadRooms() {
-            this.loadingRooms = true
-            try {
-                const res = await publicApi.getRooms({ per_page: 20 })
-                this.availableRooms = res?.data || []
-            } catch (e) {
-                console.error('Erreur chargement hébergements:', e)
-                this.availableRooms = []
-            } finally { this.loadingRooms = false }
+        selectRoom(room) {
+            this.selectedItems.room = room
         },
-
-        // ==== Dispos ====
-        async refreshAvailability() {
-            const { start, end, guests } = this.selectedDates
-            if (!start || !end || !guests) return
-            this.availabilityLoading = true
-            try {
-                const { data } = await publicApi.getAvailability({ start, end, guests })
-                this.unavailableDates = new Set(data?.unavailable_dates || [])
-                this.availability.rooms = data?.rooms || {}
-                this.availability.activities = data?.activities || {}
-
-                if (this.hasUnavailableDay) {
-                    this.selectedDates.start = ''
-                    this.selectedDates.end = ''
-                    this.calendarApi?.unselect()
-                }
-
-                if (this.selectedItems.room && this.isRoomAvailable(this.selectedItems.room) === false) {
-                    this.selectedItems.room = null
-                }
-                this.selectedItems.activities = this.selectedItems.activities.filter(a => this.isActivityAvailable(a))
-
-                this.calendarApi?.refetchEvents()
-            } catch (e) {
-                // ⚠️ Fallback si l’endpoint n’existe pas encore (404)
-                if (e?.response?.status === 404) {
-                    this.unavailableDates = new Set()
-                    this.availability = { rooms: {}, activities: {} }
-                    this.calendarApi?.refetchEvents()
-                } else {
-                    console.error('Erreur dispo:', e)
-                }
-            } finally {
-                this.availabilityLoading = false
-            }
-        },
-
-        isActivityAvailable(a) { const m = this.availability.activities; return !m || m[String(a.id)] !== false },
-        isRoomAvailable(r) { const m = this.availability.rooms; return !m || m[String(r.id)] !== false },
-
-        // ==== Sélections ====
-        toggleActivity(activity) {
-            if (!this.isActivityAvailable(activity)) return
-            const i = this.selectedItems.activities.findIndex(a => a.id === activity.id)
-            if (i > -1) this.selectedItems.activities.splice(i, 1)
-            else this.selectedItems.activities.push(activity)
-        },
-
-        selectRoom(room) { if (this.isRoomAvailable(room)) this.selectedItems.room = room },
 
         increaseGuests() { if (this.selectedDates.guests < 20) this.selectedDates.guests++ },
         decreaseGuests() { if (this.selectedDates.guests > 1) this.selectedDates.guests-- },
 
-        nextStep() { if (this.canProceed && this.currentStep < 4) this.currentStep++ },
+        nextStep() { if (this.canProceed && this.currentStep < 5) this.currentStep++ },
         previousStep() { if (this.currentStep > 1) this.currentStep-- },
 
         async submitQuote() {
@@ -504,6 +451,7 @@ export default {
             try {
                 const payload = {
                     activities: this.selectedItems.activities.map(a => a.id),
+                    menus: this.selectedItems.menus.map(m => m.id),
                     room: this.selectedItems.room?.id || null,
                     dates: { ...this.selectedDates },
                     contact: { ...this.contactInfo },
@@ -516,7 +464,9 @@ export default {
             } catch (e) {
                 console.error('Erreur envoi devis:', e)
                 alert('Une erreur est survenue. Veuillez réessayer.')
-            } finally { this.isSubmitting = false }
+            } finally {
+                this.isSubmitting = false
+            }
         },
 
         closeModal() { this.$emit('close') },
@@ -525,73 +475,112 @@ export default {
             this.selectedItems = { activities: [], room: null, menus: [] }
             this.selectedDates = { start: '', end: '', guests: 2 }
             this.contactInfo = { name: '', email: '', phone: '', message: '' }
-            this.unavailableDates = new Set()
-            this.availability = { rooms: {}, activities: {} }
-            this.calendarApi?.unselect?.()
-            this.calendarApi?.refetchEvents?.()
+        },
+        toUTCDateParts(yyyyMmDd) {
+            const [y, m, d] = (yyyyMmDd || '').split('-').map(Number)
+            return isNaN(y) ? null : Date.UTC(y, (m || 1) - 1, d || 1)
+        },
+        daysBetween(startYmd, endExclusiveYmd) {
+            const s = this.toUTCDateParts(startYmd)
+            const e = this.toUTCDateParts(endExclusiveYmd)
+            if (s == null || e == null) return 0
+            const diff = (e - s) / (1000 * 60 * 60 * 24)
+            return diff > 0 ? diff : 0
+        },
+        displayEndInclusive(startYmd, endExclusiveYmd) {
+            const e = this.toUTCDateParts(endExclusiveYmd)
+            if (e == null) return ''
+            // endExclusive - 1 jour (affichage)
+            const d = new Date(e - 24 * 60 * 60 * 1000)
+            const yyyy = d.getUTCFullYear()
+            const mm = String(d.getUTCMonth() + 1).padStart(2, '0')
+            const dd = String(d.getUTCDate()).padStart(2, '0')
+            return `${yyyy}-${mm}-${dd}`
         },
 
-        formatPrice(n) { return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(Number(n || 0)) },
-        formatDate(s) { return s ? new Date(s).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '' },
-
-        // ==== FullCalendar hooks ====
-        fcSelectAllow(arg) {
-            const start = new Date(arg.start)
-            const end = new Date(arg.end); end.setDate(end.getDate() - 1) // end EXCLUS
-            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-                const key = d.toISOString().slice(0, 10)
-                if (this.unavailableDates.has(key)) return false
-            }
-            return true
+        formatPrice(n) {
+            return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(Number(n || 0))
         },
 
+        formatDate(s) {
+            return s ? new Date(s).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : ''
+        },
+
+        // FullCalendar simplifié
         fcOnSelect(info) {
-            const start = info.startStr
-            const endDate = new Date(info.end); endDate.setDate(endDate.getDate() - 1)
-            const end = endDate.toISOString().slice(0, 10)
-            this.selectedDates.start = start
-            this.selectedDates.end = end
-            this.refreshAvailability()
-            this.calendarApi?.refetchEvents()
-        },
-
-        fcBuildEvents(fetchInfo, success) {
-            const evts = []
-            this.unavailableDates.forEach(d => {
-                evts.push({ start: d, end: d, display: 'background', classNames: ['fc-day-unavailable'] })
-            })
-            if (this.selectedDates.start && this.selectedDates.end) {
-                const end = new Date(this.selectedDates.end); end.setDate(end.getDate() + 1)
-                evts.push({
-                    start: this.selectedDates.start,
-                    end: end.toISOString().slice(0, 10),
-                    display: 'background',
-                    classNames: ['fc-day-selected-range']
-                })
-            }
-            success(evts)
+            // FullCalendar: start inclusif, end exclusif
+            this.selectedDates.start = info.startStr            // YYYY-MM-DD
+            this.selectedDates.endExclusive = info.endStr       // YYYY-MM-DD (checkout)
         }
     }
 }
 </script>
 
-
 <style lang="scss" scoped>
-// Variables reprises de votre design system
 $primary: #5e72e4;
 $success: #2dce89;
 $warning: #fb6340;
 $danger: #f5365c;
 $terracotta: #c17c4a;
 
-/* 1) Neutraliser tout layout grid/flex hérités dans la modale */
 .modal-content {
     display: block !important;
-    /* évite une grille à 2 colonnes héritée */
     padding: 1rem 1.25rem;
 }
 
-/* 2) Forcer le panneau d’étape à prendre toute la largeur (et virer les bordures de "panel") */
+/* Corps scrollable pour ne pas étirer la modale */
+.quote-modal .modal-body { max-height: 70vh; overflow: auto; }
+
+/* Grille compacte : 2 colonnes desktop, 1 mobile */
+.mini-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+@media (max-width: 640px) {
+  .mini-grid { grid-template-columns: 1fr; }
+}
+
+/* Carte compacte */
+.mini-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 12px;
+  background: var(--bg-glass-mid, rgba(255,255,255,0.06));
+  border: 1px solid var(--glass-border, rgba(255,255,255,0.12));
+  cursor: pointer;
+  transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+}
+.mini-card:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,.2); }
+.mini-card.selected { outline: 2px solid var(--neon-blue, #38bdf8); }
+
+/* Vignette */
+.mini-thumb {
+  width: 96px; height: 96px; border-radius: 10px; object-fit: cover; display: block;
+}
+
+/* Infos */
+.mini-info { display: grid; gap: 6px; align-content: start; }
+.mini-title { margin: 0; font-size: .95rem; line-height: 1.2; }
+.mini-meta { display: flex; gap: 8px; align-items: center; }
+.mini-price { font-weight: 700; font-size: .9rem; }
+.mini-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: .75rem; opacity: .85; padding: 2px 8px; border-radius: 999px;
+  border: 1px solid var(--glass-border, rgba(255,255,255,.15));
+}
+.mini-desc { margin: 0; font-size: .8rem; opacity: .9; }
+
+/* Bouton +/✓ */
+.mini-check {
+  position: absolute; right: 8px; bottom: 8px;
+  background: rgba(0,0,0,.45); border-radius: 10px; padding: 6px 8px;
+}
+
+
 .step-content {
     width: 100% !important;
     max-width: none !important;
@@ -601,7 +590,6 @@ $terracotta: #c17c4a;
     background: transparent;
 }
 
-/* 3) Grille de l’étape Dates: par défaut 1 colonne (pas d’espace réservé à droite) */
 .dates-layout {
     display: grid;
     grid-template-columns: 1fr;
@@ -609,7 +597,6 @@ $terracotta: #c17c4a;
     align-items: start;
 }
 
-/* Taille & intégration */
 .calendar {
     width: 100%;
     max-width: 850px;
@@ -622,7 +609,6 @@ $terracotta: #c17c4a;
 
 .quote-modal {
     max-width: 900px;
-    /* large mais pas plein écran */
     width: 95%;
     background: #fff;
     border-radius: 12px;
@@ -631,23 +617,6 @@ $terracotta: #c17c4a;
     flex-direction: column;
 }
 
-/* Jours indisponibles (events background) */
-.fc-daygrid-day.fc-day-unavailable,
-.fc .fc-daygrid-day-bg .fc-day-unavailable {
-    background: repeating-linear-gradient(45deg, rgba(255, 0, 0, 0.15), rgba(255, 0, 0, 0.15) 6px, transparent 6px, transparent 12px);
-}
-
-/* Plage sélectionnée */
-.fc .fc-daygrid-day-bg .fc-day-selected-range {
-    background: rgba(123, 97, 255, 0.18);
-}
-
-/* Surbrillance native de la sélection */
-.fc .fc-highlight {
-    background: rgba(123, 97, 255, 0.22);
-}
-
-/* Header/legend */
 .calendar-header {
     display: flex;
     align-items: center;
@@ -655,51 +624,12 @@ $terracotta: #c17c4a;
     margin-bottom: .5rem;
 }
 
-.calendar-legend {
-    display: flex;
-    gap: .75rem;
-    font-size: .85rem;
-}
-
-.legend-item {
-    display: inline-flex;
-    align-items: center;
-    gap: .35rem;
-}
-
-.legend-box {
-    width: 14px;
-    height: 12px;
-    border-radius: 3px;
-    display: inline-block;
-}
-
-.legend-box.available {
-    background: rgba(0, 200, 120, .3);
-}
-
-.legend-box.unavailable {
-    background: rgba(255, 0, 0, .25);
-}
-
-.legend-box.selected {
-    background: rgba(123, 97, 255, .35);
-}
-
-/* Petites infos */
 .range-info,
 .duration {
     margin-top: .5rem;
     display: flex;
     align-items: center;
     gap: .5rem;
-}
-
-.alert.warn {
-    color: #b45309;
-    background: rgba(251, 191, 36, .15);
-    padding: .5rem .75rem;
-    border-radius: 8px;
 }
 
 .progress-steps {
@@ -732,33 +662,11 @@ $terracotta: #c17c4a;
 
 .progress-steps .step.active .step-number {
     background: #6366f1;
-    /* violet */
     color: #fff;
 }
 
 .progress-steps .step.completed .step-number {
     background: #10b981;
-    /* vert */
     color: #fff;
-}
-
-/* Jours indisponibles */
-:deep(.fc .fc-daygrid-day-bg .fc-day-unavailable),
-:deep(.fc-daygrid-day.fc-day-unavailable) {
-    background: repeating-linear-gradient(45deg,
-            rgba(255, 0, 0, 0.15),
-            rgba(255, 0, 0, 0.15) 6px,
-            transparent 6px,
-            transparent 12px);
-}
-
-/* Plage sélectionnée */
-:deep(.fc .fc-daygrid-day-bg .fc-day-selected-range) {
-    background: rgba(123, 97, 255, .18);
-}
-
-/* Surbrillance native */
-:deep(.fc .fc-highlight) {
-    background: rgba(123, 97, 255, .22);
 }
 </style>

@@ -15,7 +15,6 @@ use App\Data\ProductOutputData;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use ApiPlatform\Metadata\Post;
-use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 class ProductProcessor implements ProcessorInterface

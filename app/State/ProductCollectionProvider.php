@@ -102,8 +102,6 @@ class ProductCollectionProvider implements ProviderInterface
         }
     }
 
-    // Dans app/State/ProductCollectionProvider.php, modifiez la méthode transformProduct() :
-
     private function transformProduct($product): array
     {
         $data = [
