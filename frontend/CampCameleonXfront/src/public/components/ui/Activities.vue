@@ -176,9 +176,9 @@ const props = defineProps({
 })
 
 const stats = ref([
-  { number: '15+', label: 'Activités' },
-  { number: '100%', label: 'Authentique' },
-  { number: '24/7', label: 'Assistance' },
+    { number: '15+', label: 'Activités' },
+    { number: '100%', label: 'Authentique' },
+    { number: '24/7', label: 'Assistance' },
 ])
 
 /* ========== DATA CHARGÉE DE L'API (activités réelles) ========== */
@@ -199,7 +199,7 @@ async function loadActivities() {
     loading.value = true
     try {
         const type = encodeURIComponent('App\\Models\\Activity')
-        const data = await fetchJson(`${API}/products?type=${type}&status=active&per_page=12`)
+        const data = await fetchJson(`${API}/products?type=${type}&status=active&per_page=12&mode=light`)        
         const items = getJson(data)
         list.value = items.map(a => ({
             id: a.id, // IMPORTANT pour la modale

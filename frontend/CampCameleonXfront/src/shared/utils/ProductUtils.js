@@ -1,8 +1,25 @@
+// utils/display.js
+
+const PLACEHOLDER_URL = 'https://via.placeholder.com/600x400?text=Image+indisponible'
+
+function isDataUrl(s) { return typeof s === 'string' && s.startsWith('data:') }
+function isBlobUrl(s) { return typeof s === 'string' && s.startsWith('blob:') }
+function isHttpUrl(s) {
+  try { return /^https?:\/\//i.test(new URL(s).href) } catch { return false }
+}
+function isRelativePath(s) {
+  // accepte /images/foo.png ou images/foo.png (pas de schéma, pas de data:)
+  return typeof s === 'string' && !/^[a-z]+:\/\//i.test(s) && !s.startsWith('data:')
+}
+
 export function formatPrice(price) {
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'EUR'
-  }).format(parseFloat(price) || 0)
+  // supporte nombres, strings "12,50" ou "12.5"
+  const n = typeof price === 'string'
+    ? parseFloat(price.replace(',', '.'))
+    : (typeof price === 'number' ? price : NaN)
+
+  const value = Number.isFinite(n) ? n : 0
+  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(value)
 }
 
 export function getFieldLabel(field) {
@@ -14,30 +31,16 @@ export function getFieldLabel(field) {
     difficulty_level: 'Niveau de difficulté',
     capacity: 'Capacité'
   }
-  return labels[field] || field.charAt(0).toUpperCase() + field.slice(1)
-}
-
-export function getPlaceholderImage() {
-  const svg = `
-    <svg width="300" height="200" xmlns="http://www.w3.org/2000/svg">
-      <rect width="300" height="200" fill="#f3f4f6"/>
-      <text x="150" y="100" text-anchor="middle" dy=".3em" font-family="Arial, sans-serif" font-size="14" fill="#9ca3af">
-        Aperçu
-      </text>
-    </svg>
-  `
-  return 'data:image/svg+xml;base64,' + btoa(svg)
+  return labels[field] || (field ? field.charAt(0).toUpperCase() + field.slice(1) : '')
 }
 
 export function getValidImageUrl(imageUrl) {
-  if (!imageUrl) return getPlaceholderImage()
-
-  try {
-    new URL(imageUrl)
-    return imageUrl
-  } catch (error) {
-    return getPlaceholderImage()
-  }
+  if (!imageUrl) return PLACEHOLDER_URL
+  if (isDataUrl(imageUrl)) return PLACEHOLDER_URL // on refuse base64
+  if (isBlobUrl(imageUrl)) return imageUrl        // ok pour preview locale
+  if (isHttpUrl(imageUrl)) return imageUrl        // http(s) absolu
+  if (isRelativePath(imageUrl)) return imageUrl   // chemin relatif (/, ./, images/…)
+  return PLACEHOLDER_URL
 }
 
 export function getStatIcon(key) {
@@ -63,8 +66,6 @@ export function getStatLabel(key) {
 }
 
 export function formatStatValue(value, key) {
-  if (key.includes('revenue')) {
-    return formatPrice(value)
-  }
+  if (key && key.includes('revenue')) return formatPrice(value)
   return value
 }

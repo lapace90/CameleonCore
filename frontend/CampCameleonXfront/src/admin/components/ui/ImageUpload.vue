@@ -280,7 +280,6 @@ export default {
           </text>
         </svg>
       `
-      event.target.src = 'data:image/svg+xml;base64,' + btoa(svg)
       event.target.onerror = null
     }
   }

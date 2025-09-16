@@ -26,7 +26,7 @@
 
                     <!-- Bouton CTA principal -->
                     <div class="cta-container">
-                        <button @click="openQuoteModal" class="quote-btn" :disabled="isLoading">
+                        <button @click="showQuote = true" class="quote-btn" :disabled="isLoading">
                             <i v-if="isLoading" class="fas fa-spinner fa-spin"></i>
                             <i v-else class="fas fa-calculator"></i>
                             <span>{{ isLoading ? 'Chargement...' : 'Créer mon devis maintenant !' }}</span>
@@ -66,31 +66,21 @@
             </div>
         </div>
     </section>
+    <QuoteModal :show="showQuote" @close="showQuote = false" @booking-submitted="onBooking" />
 </template>
 
 <script>
+import QuoteModal from '@/public/views/QuoteModal.vue'
 export default {
     name: 'DevisSection',
+    components: { QuoteModal },
     data() {
-        return {
-            isLoading: false
-        }
+        return { showQuote: false }
     },
     methods: {
-        openQuoteModal() {
-            this.isLoading = true;
-
-            // Simulation de chargement
-            setTimeout(() => {
-                this.isLoading = false;
-                // Émet l'événement pour ouvrir la modal
-                this.$emit('open-quote-modal');
-
-                // Optionnel : tracking analytics
-                console.log('🧮 Quote modal requested');
-            }, 500);
+        onBooking(data) {
+            console.log('Réservation:', data)
         }
     }
 }
 </script>
-

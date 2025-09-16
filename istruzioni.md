@@ -4,7 +4,7 @@ Mettere database su docker-compose e assicurarsi che sia raggiungibile da fuori 
 
 Cercare col backend di fare una query sul DB per vedere se si riesce ad accederci.
 
-# Passo 2 - Backed in docker
+# Passo 2 - Backed in docker ('docker-compose up -d app' => 'docker compose exec app bash')
 
 Fare il 2-stage build in un Dockerfile per il backend laravel
 

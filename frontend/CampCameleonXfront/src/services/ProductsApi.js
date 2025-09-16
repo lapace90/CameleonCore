@@ -6,29 +6,24 @@ class ProductsApi {
 
   constructor() {
     this.baseURL = '/api'
+    // ⚠️ Ne PAS définir Content-Type globalement ici
     this.defaultHeaders = {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
+      'Accept': 'application/json'
     }
     console.log('ProductsApi initialized')
   }
+
   // ==========================================
   // PRODUCTS CRUD
   // ==========================================
-
-  /**
-   * Récupérer la liste des produits avec filtres
-   */
   async getProducts(params = {}) {
     try {
       const searchParams = new URLSearchParams()
-
       Object.entries(params).forEach(([key, value]) => {
         if (value !== null && value !== undefined && value !== '') {
           searchParams.append(key, value)
         }
       })
-
       const url = `${this.baseURL}/products${searchParams.toString() ? '?' + searchParams.toString() : ''}`
 
       const response = await axios.get(url, {
@@ -47,9 +42,6 @@ class ProductsApi {
     }
   }
 
-  /**
-   * Récupérer un produit par son ID
-   */
   async getProduct(id) {
     try {
       const { data: raw } = await axios.get(`${this.baseURL}/products/${id}`, {
@@ -59,7 +51,6 @@ class ProductsApi {
 
       let product
       if (raw?.['@type'] === 'Collection' && Array.isArray(raw.member)) {
-        // /products/{id} renvoie une collection : on prend la première "row"
         const first = raw.member[0]
         product = Array.isArray(first) ? this._rowToProduct(first) : this._normalizeProduct(first || {})
       } else if (Array.isArray(raw)) {
@@ -69,7 +60,6 @@ class ProductsApi {
         product = this._normalizeProduct(raw || {})
       }
 
-      // filet de sécurité
       if (!product.typeConfig && product.productableType) {
         product.typeConfig = this.buildTypeConfig(product.productableType)
       }
@@ -87,12 +77,10 @@ class ProductsApi {
     return buildTypeConfigFromProductableType(productableType)
   }
 
-  /**
-   * Créer un nouveau produit
-   */
   async createProduct(productData) {
     try {
       console.log('productData:', productData)
+      // axios infèrera Content-Type: application/json automatiquement pour les objets JS
       const response = await axios.post(`${this.baseURL}/products`, productData, {
         headers: this.defaultHeaders
       })
@@ -103,9 +91,6 @@ class ProductsApi {
     }
   }
 
-  /**
-   * Mettre à jour un produit
-   */
   async updateProduct(id, productData) {
     try {
       const response = await axios.patch(`${this.baseURL}/products/${id}`, productData, {
@@ -121,9 +106,6 @@ class ProductsApi {
     }
   }
 
-  /**
-   * Supprimer un produit
-   */
   async deleteProduct(id) {
     try {
       await axios.delete(`${this.baseURL}/products/${id}`, {
@@ -136,15 +118,9 @@ class ProductsApi {
     }
   }
 
-  /**
-   * Dupliquer un produit
-   */
   async duplicateProduct(id) {
     try {
-      // Récupérer le produit original
       const originalProduct = await this.getProduct(id)
-
-      // Préparer les données pour la duplication
       const duplicateData = {
         name: `${originalProduct.name} (copie)`,
         description: originalProduct.description,
@@ -152,10 +128,9 @@ class ProductsApi {
         category_id: originalProduct.category?.id,
         productableType: originalProduct.typeConfig?.class,
         productable: originalProduct.productable_detail || {},
-        status: false, // Créer en inactif par défaut
-        is_draft: true // Créer comme brouillon
+        status: false,
+        is_draft: true
       }
-
       return await this.createProduct(duplicateData)
     } catch (error) {
       console.error(`Erreur lors de la duplication du produit ${id}:`, error)
@@ -164,52 +139,8 @@ class ProductsApi {
   }
 
   // ==========================================
-  // ACTIONS EN LOT
+  // RELATIONS / UTILS (inchangés)
   // ==========================================
-
-  /**
-   * Exécuter une action sur plusieurs produits
-   */
-  async bulkAction(productIds, action) {
-    try {
-      const promises = productIds.map(async (id) => {
-        switch (action) {
-          case 'activate':
-            return this.updateProduct(id, { status: true, is_draft: false })
-          case 'deactivate':
-            return this.updateProduct(id, { status: false })
-          case 'draft':
-            return this.updateProduct(id, { is_draft: true })
-          case 'delete':
-            return this.deleteProduct(id)
-          default:
-            throw new Error(`Action non supportée: ${action}`)
-        }
-      })
-
-      const results = await Promise.allSettled(promises)
-
-      // Vérifier si toutes les actions ont réussi
-      const failures = results.filter(result => result.status === 'rejected')
-      if (failures.length > 0) {
-        console.error('Certaines actions ont échoué:', failures)
-        throw new Error(`${failures.length} action(s) ont échoué`)
-      }
-
-      return results
-    } catch (error) {
-      console.error(`Erreur lors de l'action en lot ${action}:`, error)
-      throw this.handleError(error)
-    }
-  }
-
-  // ==========================================
-  // DONNÉES AUXILIAIRES
-  // ==========================================
-
-  /**
-   * Récupérer les catégories
-   */
   async getCategories() {
     try {
       const response = await axios.get(`${this.baseURL}/categories`, {
@@ -222,13 +153,6 @@ class ProductsApi {
     }
   }
 
-  // ==========================================
-  // RELATIONS
-  // ==========================================
-
-  /**
-   * Récupérer les produits disponibles pour les relations
-   */
   async getRelationProducts(type) {
     const typeMap = {
       'ingredients': 'App\\Models\\Ingredient',
@@ -237,17 +161,13 @@ class ProductsApi {
       'rooms': 'App\\Models\\Room',
       'activities': 'App\\Models\\Activity'
     }
-
     const apiType = typeMap[type]
-    if (!apiType) {
-      throw new Error(`Type de relation non supporté: ${type}`)
-    }
-
+    if (!apiType) throw new Error(`Type de relation non supporté: ${type}`)
     try {
       return await this.getProducts({
         type: apiType,
-        per_page: 100, // Récupérer plus d'éléments pour les relations
-        status: 'active' // Seulement les produits actifs
+        per_page: 100,
+        status: 'active'
       })
     } catch (error) {
       console.error(`Erreur lors de la récupération des ${type}:`, error)
@@ -255,9 +175,6 @@ class ProductsApi {
     }
   }
 
-  /**
-   * Mettre à jour les relations d'un produit
-   */
   async updateProductRelations(productId, productableId, productableType, relations) {
     try {
       const endpoints = {
@@ -267,11 +184,8 @@ class ProductsApi {
         'App\\Models\\Room': 'rooms',
         'App\\Models\\Activity': 'activities'
       }
-
       const endpoint = endpoints[productableType]
-      if (!endpoint) {
-        throw new Error(`Type productable non supporté: ${productableType}`)
-      }
+      if (!endpoint) throw new Error(`Type productable non supporté: ${productableType}`)
 
       const response = await axios.patch(`${this.baseURL}/${endpoint}/${productableId}`, relations, {
         headers: {
@@ -279,7 +193,6 @@ class ProductsApi {
           'Content-Type': 'application/merge-patch+json'
         }
       })
-
       return response.data
     } catch (error) {
       console.error('Erreur lors de la mise à jour des relations:', error)
@@ -288,148 +201,111 @@ class ProductsApi {
   }
 
   // ==========================================
-  // UTILITAIRES
+  // UPLOAD (fix spécial FormData)
   // ==========================================
-
-/**
- * Upload vers MediaObjects (API Platform)
- */
-async uploadToMediaObjects(file) {
-  try {
-    const formData = new FormData()
-    formData.append('file', file)
-    
-    const response = await axios.post(`${this.baseURL}/media_objects`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        'Accept': 'application/json'
-      }
-    })
-    
-    return response.data
-  } catch (error) {
-    console.error('Erreur lors de l\'upload vers MediaObjects:', error)
-    throw this.handleError(error)
-  }
-}
-
-  /**
-   * Exporter les produits
-   */
-  async exportProducts(params = {}, format = 'csv') {
+  async uploadToMediaObjects(file) {
     try {
-      const searchParams = new URLSearchParams({
-        ...params,
-        format
+      console.log('📤 Début upload vers /api/media_objects', {
+        fileName: file?.name,
+        fileSize: file?.size,
+        fileType: file?.type
       })
 
-      const response = await axios.get(`${this.baseURL}/products/export?${searchParams.toString()}`, {
-        responseType: 'blob',
+      if (!file || !(file instanceof File)) {
+        throw new Error('Fichier invalide')
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        throw new Error('Fichier trop volumineux (max 5MB)')
+      }
+
+      const allowedTypes = [
+        'image/jpeg', 'image/jpg', 'image/png',
+        'image/gif', 'image/webp', 'image/heic', 'image/avif'
+      ]
+      if (!allowedTypes.includes(file.type)) {
+        throw new Error('Format de fichier non supporté')
+      }
+
+      const formData = new FormData()
+      formData.append('file', file, file.name)
+
+      // debug console avant envoi
+      console.log('📝 FormData created -> has file:', formData.has('file'), 'keys:', [...formData.keys()])
+
+      // IMPORTANT: forcer l'envoi brut du FormData (ne pas définir Content-Type)
+      const response = await axios.post(`${this.baseURL}/media_objects`, formData, {
         headers: {
-          'Accept': format === 'csv' ? 'text/csv' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        }
+          'Accept': 'application/json'
+          // pas de Content-Type ici, axios/gw doit ajouter le boundary
+        },
+        transformRequest: (data) => data,
+        timeout: 30000
       })
 
-      // Créer un lien de téléchargement
-      const url = window.URL.createObjectURL(new Blob([response.data]))
-      const link = document.createElement('a')
-      link.href = url
-      link.setAttribute('download', `products.${format}`)
-      document.body.appendChild(link)
-      link.click()
-      link.remove()
-      window.URL.revokeObjectURL(url)
-
-      return true
-    } catch (error) {
-      console.error('Erreur lors de l\'export:', error)
-      throw this.handleError(error)
-    }
-  }
-
-  // ==========================================
-  // GESTION D'ERREURS
-  // ==========================================
-
-  /**
-   * Traitement standardisé des erreurs
-   */
-  handleError(error) {
-    if (error.response) {
-      // Erreur de réponse HTTP
-      const status = error.response.status
-      const data = error.response.data
-
-      switch (status) {
-        case 400:
-          return new Error(data.message || 'Données invalides')
-        case 401:
-          return new Error('Non autorisé')
-        case 403:
-          return new Error('Accès interdit')
-        case 404:
-          return new Error('Ressource introuvable')
-        case 422:
-          return new Error(data.message || 'Erreur de validation')
-        case 500:
-          return new Error('Erreur serveur')
-        default:
-          return new Error(data.message || `Erreur HTTP ${status}`)
-      }
-    } else if (error.request) {
-      // Erreur de réseau
-      return new Error('Erreur de connexion au serveur')
-    } else {
-      // Autre erreur
-      return new Error(error.message || 'Erreur inconnue')
-    }
-  }
-
-  /**
-  * Récupérer les relations d'un productable
-  */
-  async getProductRelations(productableId, productableType) {
-    try {
-      const endpoints = {
-        'App\\Models\\Menu': 'menus',
-        'App\\Models\\Dish': 'dishes',
-        'App\\Models\\Ingredient': 'ingredients'
-      }
-
-      const endpoint = endpoints[productableType]
-      if (!endpoint) {
-        throw new Error(`Type productable non supporté: ${productableType}`)
-      }
-
-      const response = await axios.get(`${this.baseURL}/${endpoint}/${productableId}`, {
-        headers: this.defaultHeaders
+      console.log('✅ Upload réussi:', {
+        id: response.data.id,
+        contentUrl: response.data.contentUrl || response.data.content_url,
+        fileName: response.data.fileName || response.data.file_name
       })
 
       return response.data
     } catch (error) {
-      console.error('Erreur lors de la récupération des relations:', error)
-      return {}
+      console.error('❌ Erreur upload MediaObject:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message
+      })
+
+      if (error.response?.status === 413) throw new Error('Fichier trop volumineux')
+      if (error.response?.status === 422) throw new Error('Format de fichier non supporté')
+      if (error.response?.status === 500) throw new Error('Erreur serveur lors de l\'upload')
+      throw new Error(error.response?.data?.message || error.message || 'Erreur lors de l\'upload')
     }
   }
-  // Convertit une "row" (Array indexé) -> objet produit
+
+  // ==========================================
+  // ERROR HANDLING / UTIL
+  // ==========================================
+  handleError(error) {
+    if (error.response) {
+      const status = error.response.status
+      const data = error.response.data
+      switch (status) {
+        case 400: return new Error(data.message || 'Données invalides')
+        case 401: return new Error('Non autorisé')
+        case 403: return new Error('Accès interdit')
+        case 404: return new Error('Ressource introuvable')
+        case 422: return new Error(data.message || 'Erreur de validation')
+        case 500: return new Error('Erreur serveur')
+        default: return new Error(data.message || `Erreur HTTP ${status}`)
+      }
+    } else if (error.request) {
+      return new Error('Erreur de connexion au serveur')
+    } else {
+      return new Error(error.message || 'Erreur inconnue')
+    }
+  }
+
   _rowToProduct(row = []) {
     const [
       id, name, description, price, formatted_price,
       status, is_draft, status_label, status_class,
-      type_config,                 // 9 (objet)
-      productableType,             // 10
-      image,                       // 11
-      _dupType,                    // 12
-      productable_data,            // 13 (objet)
-      productable_detail,          // 14 (objet)
-      globalTags = [],             // 15
-      category = null,             // 16 (objet)
-      specificTags = [],           // 17
+      type_config,
+      productableType,
+      image,
+      _dupType,
+      productable_data,
+      productable_detail,
+      globalTags = [],
+      category = null,
+      specificTags = [],
       _unused18,
-      relations = {},              // 19
-      metrics = {},                // 20
-      created_at,                  // 21
-      updated_at                   // 22
+      relations = {},
+      metrics = {},
+      created_at,
+      updated_at
     ] = row
 
     const p = {
@@ -438,14 +314,12 @@ async uploadToMediaObjects(file) {
       relations, metrics, created_at, updated_at,
       type_config, productableType, productable_data, productable_detail
     }
-    // normalisation attendue par tes formulaires
     p.typeConfig = p.type_config ?? null
     p.productableDetail = p.productable_detail ?? p.productable_data ?? null
     p.productableData = p.productableDetail
     return p
   }
 
-  // Normalise un objet déjà clé/valeur
   _normalizeProduct(obj = {}) {
     const p = { ...obj }
     p.typeConfig = p.typeConfig ?? p.type_config ?? null
@@ -456,5 +330,4 @@ async uploadToMediaObjects(file) {
 
 }
 
-// Export d'une instance unique
 export default new ProductsApi()
