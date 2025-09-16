@@ -16,7 +16,7 @@ class PublicApi {
    */
   async getProducts(params = {}) {
     const cacheKey = this.getCacheKey('products', params)
-    
+
     // Vérifier le cache
     if (this.cache.has(cacheKey)) {
       const cached = this.cache.get(cacheKey)
@@ -74,7 +74,7 @@ class PublicApi {
    */
   async getProduct(id) {
     const cacheKey = this.getCacheKey('product', { id })
-    
+
     if (this.cache.has(cacheKey)) {
       const cached = this.cache.get(cacheKey)
       if (Date.now() - cached.timestamp < this.cacheTimeout) {
@@ -84,7 +84,7 @@ class PublicApi {
 
     try {
       const response = await axios.get(`${this.baseURL}/products/${id}?mode=light`)
-      
+
       const product = response.data
 
       // 🚀 CACHE le produit
@@ -106,7 +106,7 @@ class PublicApi {
    */
   async getCategories() {
     const cacheKey = 'categories'
-    
+
     // Cache plus long pour les catégories (15 min)
     if (this.cache.has(cacheKey)) {
       const cached = this.cache.get(cacheKey)
@@ -157,7 +157,30 @@ class PublicApi {
       ...params
     })
   }
+  // Méthode manquante 3
+  async getAvailability(params = {}) {
+    try {
+      const searchParams = new URLSearchParams()
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== null && value !== undefined && value !== '') {
+          searchParams.append(key, value)
+        }
+      })
 
+      const response = await axios.get(`${this.baseURL}/availability?${searchParams.toString()}`)
+      return { data: response.data }
+    } catch (error) {
+      console.error('Erreur disponibilité:', error)
+      // Fallback pour que votre modal ne casse pas
+      return {
+        data: {
+          unavailable_dates: [],
+          rooms: {},
+          activities: {}
+        }
+      }
+    }
+  }
   // Recherche rapide
   async searchProducts(query, type = null) {
     const params = { search: query }
@@ -169,7 +192,7 @@ class PublicApi {
   /**
    * 🚀 FUTURS : Méthodes pour la modale de devis
    */
-  
+
   // Vérifier disponibilité d'un produit
   async checkAvailability(productId, dates) {
     try {
@@ -177,7 +200,7 @@ class PublicApi {
         start_date: dates.start,
         end_date: dates.end
       })
-      
+
       return response.data.available || false
     } catch (error) {
       console.error('Erreur lors de la vérification de disponibilité:', error)
@@ -191,7 +214,7 @@ class PublicApi {
       const response = await axios.post(`${this.baseURL}/quote/calculate`, {
         items: items
       })
-      
+
       return response.data
     } catch (error) {
       console.error('Erreur lors du calcul du devis:', error)
@@ -213,13 +236,13 @@ class PublicApi {
   /**
    * 🔧 UTILITAIRES
    */
-  
+
   getCacheKey(type, params = {}) {
     const sortedParams = Object.keys(params)
       .sort()
       .map(key => `${key}=${params[key]}`)
       .join('&')
-    
+
     return `${type}_${sortedParams}`
   }
 
@@ -231,7 +254,7 @@ class PublicApi {
   // Nettoyer le cache expiré
   cleanExpiredCache() {
     const now = Date.now()
-    
+
     for (const [key, value] of this.cache.entries()) {
       if (now - value.timestamp > this.cacheTimeout) {
         this.cache.delete(key)
