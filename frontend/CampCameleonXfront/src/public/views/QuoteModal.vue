@@ -1,6 +1,6 @@
 <template>
     <transition name="modal-fade">
-        <div v-if="show" class="modal-overlay" @click="closeModal">
+        <div v-if="show" class="modal-overlay" @click="closeModal" aria-modal="true" role="dialog">
             <div class="quote-modal" @click.stop>
                 <!-- Header -->
                 <div class="modal-header">
@@ -8,38 +8,86 @@
                         <i class="fas fa-calculator"></i>
                         Créer mon devis personnalisé
                     </h2>
-                    <button @click="closeModal" class="btn-close">
+                    <button @click="closeModal" class="btn-close" aria-label="Fermer">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
 
                 <!-- Contenu -->
                 <div class="modal-content">
-                    <!-- Étapes de progression -->
+                    <!-- Étapes -->
                     <div class="progress-steps">
                         <div class="step" :class="{ active: currentStep === 1, completed: currentStep > 1 }">
-                            <div class="step-number">1</div>
-                            <span>Activités</span>
+                            <div class="step-number">1</div><span>Dates & personnes</span>
                         </div>
                         <div class="step" :class="{ active: currentStep === 2, completed: currentStep > 2 }">
-                            <div class="step-number">2</div>
-                            <span>Hébergement</span>
+                            <div class="step-number">2</div><span>Activités</span>
                         </div>
                         <div class="step" :class="{ active: currentStep === 3, completed: currentStep > 3 }">
-                            <div class="step-number">3</div>
-                            <span>Dates</span>
+                            <div class="step-number">3</div><span>Hébergement</span>
                         </div>
                         <div class="step" :class="{ active: currentStep === 4 }">
-                            <div class="step-number">4</div>
-                            <span>Récapitulatif</span>
+                            <div class="step-number">4</div><span>Récapitulatif</span>
                         </div>
                     </div>
 
-                    <!-- Step 1: Activités -->
+                    <!-- STEP 1: Dates & personnes (FullCalendar only) -->
                     <div v-if="currentStep === 1" class="step-content">
+                        <h3 class="step-title">Choisissez vos dates</h3>
+                        <p class="step-description">Sélectionnez directement dans le calendrier (plage continue).</p>
+
+                        <div class="dates-layout">
+                            <!-- Calendrier -->
+                            <div class="calendar-container">
+                                <div class="calendar-header">
+                                    <h4 class="calendar-title">
+                                        <i class="fas fa-calendar-alt"></i> Disponibilités
+                                    </h4>
+                                    <div class="calendar-legend">
+                                        <span class="legend-item"><span class="legend-box available"></span>Dispo</span>
+                                        <span class="legend-item"><span
+                                                class="legend-box unavailable"></span>Indispo</span>
+                                        <span class="legend-item"><span class="legend-box selected"></span>Votre
+                                            sélection</span>
+                                    </div>
+                                </div>
+                                <FullCalendar :options="fcOptions" ref="fc" />
+                                <div class="range-info" v-if="selectedDates.start && selectedDates.end">
+                                    <i class="fas fa-calendar-check"></i>
+                                    Séjour : {{ formatDate(selectedDates.start) }} → {{ formatDate(selectedDates.end) }}
+                                </div>
+                            </div>
+
+                            <!-- Personnes -->
+                            <div class="date-controls">
+                                <div class="field-group">
+                                    <label class="field-label">Nombre de personnes</label>
+                                    <div class="qty">
+                                        <button type="button" class="qty-btn" @click="decreaseGuests"
+                                            aria-label="Diminuer">−</button>
+                                        <span class="qty-value" aria-live="polite">{{ selectedDates.guests }}</span>
+                                        <button type="button" class="qty-btn" @click="increaseGuests"
+                                            aria-label="Augmenter">+</button>
+                                    </div>
+                                </div>
+
+                                <div v-if="durationInDays > 0" class="duration">
+                                    <i class="fas fa-moon"></i>
+                                    {{ durationInDays }} nuit{{ durationInDays > 1 ? 's' : '' }}
+                                </div>
+
+                                <div v-if="hasUnavailableDay" class="alert warn">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    Votre plage contient au moins un jour indisponible. Merci d’ajuster votre sélection.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STEP 2: Activités -->
+                    <div v-if="currentStep === 2" class="step-content">
                         <h3 class="step-title">Choisissez vos activités</h3>
-                        <p class="step-description">Sélectionnez les expériences qui vous tentent dans le désert
-                            marocain</p>
+                        <p class="step-description">Sélectionnez les expériences qui vous tentent.</p>
 
                         <div v-if="loadingActivities" class="loading-state">
                             <div class="spinner"></div>
@@ -53,9 +101,8 @@
                                 <div class="product-image">
                                     <img :src="activity.image" :alt="activity.name" />
                                     <div class="product-overlay">
-                                        <i class="fas fa-check"
-                                            v-if="selectedItems.activities.some(a => a.id === activity.id)"></i>
-                                        <i class="fas fa-plus" v-else></i>
+                                        <i class="fas"
+                                            :class="selectedItems.activities.some(a => a.id === activity.id) ? 'fa-check' : 'fa-plus'"></i>
                                     </div>
                                 </div>
                                 <div class="product-info">
@@ -67,10 +114,10 @@
                         </div>
                     </div>
 
-                    <!-- Step 2: Hébergements -->
-                    <div v-if="currentStep === 2" class="step-content">
+                    <!-- STEP 3: Hébergement -->
+                    <div v-if="currentStep === 3" class="step-content">
                         <h3 class="step-title">Choisissez votre hébergement</h3>
-                        <p class="step-description">Sélectionnez le type de logement pour votre séjour</p>
+                        <p class="step-description">Sélectionnez votre logement.</p>
 
                         <div v-if="loadingRooms" class="loading-state">
                             <div class="spinner"></div>
@@ -83,8 +130,8 @@
                                 <div class="product-image">
                                     <img :src="room.image" :alt="room.name" />
                                     <div class="product-overlay">
-                                        <i class="fas fa-check" v-if="selectedItems.room?.id === room.id"></i>
-                                        <i class="fas fa-plus" v-else></i>
+                                        <i class="fas"
+                                            :class="selectedItems.room?.id === room.id ? 'fa-check' : 'fa-plus'"></i>
                                     </div>
                                 </div>
                                 <div class="product-info">
@@ -96,57 +143,18 @@
                         </div>
                     </div>
 
-                    <!-- Step 3: Dates -->
-                    <div v-if="currentStep === 3" class="step-content">
-                        <h3 class="step-title">Choisissez vos dates</h3>
-                        <p class="step-description">Sélectionnez la période de votre séjour</p>
-
-                        <div class="date-selection">
-                            <div class="date-row">
-                                <div class="date-field">
-                                    <label>Date d'arrivée</label>
-                                    <input type="date" v-model="selectedDates.start" :min="minDate"
-                                        class="date-input" />
-                                </div>
-                                <div class="date-field">
-                                    <label>Date de départ</label>
-                                    <input type="date" v-model="selectedDates.end" :min="selectedDates.start"
-                                        class="date-input" />
-                                </div>
-                            </div>
-
-                            <div class="guests-field">
-                                <label>Nombre de personnes</label>
-                                <div class="quantity-selector">
-                                    <button @click="decreaseGuests" type="button" class="quantity-btn">-</button>
-                                    <span class="quantity-value">{{ selectedDates.guests }}</span>
-                                    <button @click="increaseGuests" type="button" class="quantity-btn">+</button>
-                                </div>
-                            </div>
-
-                            <div v-if="durationInDays > 0" class="duration-info">
-                                <i class="fas fa-calendar"></i>
-                                Durée du séjour : {{ durationInDays }} nuit{{ durationInDays > 1 ? 's' : '' }}
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Step 4: Récapitulatif -->
+                    <!-- STEP 4: Récapitulatif -->
                     <div v-if="currentStep === 4" class="step-content">
                         <h3 class="step-title">Récapitulatif de votre devis</h3>
 
                         <div class="quote-summary">
-                            <!-- Activités sélectionnées -->
-                            <div v-if="selectedItems.activities.length > 0" class="summary-section">
+                            <div v-if="selectedItems.activities.length" class="summary-section">
                                 <h4><i class="fas fa-hiking"></i> Activités</h4>
-                                <div v-for="activity in selectedItems.activities" :key="activity.id"
-                                    class="summary-item">
-                                    <span>{{ activity.name }}</span>
-                                    <span>{{ activity.formatted_price }}</span>
+                                <div v-for="a in selectedItems.activities" :key="a.id" class="summary-item">
+                                    <span>{{ a.name }}</span><span>{{ a.formatted_price }}</span>
                                 </div>
                             </div>
 
-                            <!-- Hébergement sélectionné -->
                             <div v-if="selectedItems.room" class="summary-section">
                                 <h4><i class="fas fa-bed"></i> Hébergement</h4>
                                 <div class="summary-item">
@@ -156,7 +164,6 @@
                                 </div>
                             </div>
 
-                            <!-- Dates et invités -->
                             <div class="summary-section">
                                 <h4><i class="fas fa-calendar"></i> Détails du séjour</h4>
                                 <div class="summary-item">
@@ -169,7 +176,6 @@
                                 </div>
                             </div>
 
-                            <!-- Total -->
                             <div class="summary-total">
                                 <div class="total-line">
                                     <span>Total estimé</span>
@@ -178,41 +184,35 @@
                             </div>
                         </div>
 
-                        <!-- Formulaire contact -->
+                        <!-- Coordonnées -->
                         <div class="contact-form">
                             <h4>Vos coordonnées</h4>
                             <div class="form-row">
-                                <input type="text" v-model="contactInfo.name" placeholder="Votre nom complet"
+                                <input type="text" v-model="contactInfo.name" placeholder="Nom complet"
                                     class="form-input" />
-                                <input type="email" v-model="contactInfo.email" placeholder="Votre email"
+                                <input type="email" v-model="contactInfo.email" placeholder="Email"
                                     class="form-input" />
                             </div>
-                            <input type="tel" v-model="contactInfo.phone" placeholder="Votre téléphone"
-                                class="form-input" />
-                            <textarea v-model="contactInfo.message"
-                                placeholder="Message ou demandes particulières (optionnel)"
+                            <input type="tel" v-model="contactInfo.phone" placeholder="Téléphone" class="form-input" />
+                            <textarea v-model="contactInfo.message" placeholder="Message (optionnel)"
                                 class="form-textarea"></textarea>
                         </div>
                     </div>
                 </div>
 
-                <!-- Footer avec actions -->
+                <!-- Footer -->
                 <div class="modal-footer">
                     <div class="footer-left">
                         <button v-if="currentStep > 1" @click="previousStep" class="btn btn-outline">
-                            <i class="fas fa-arrow-left"></i>
-                            Précédent
+                            <i class="fas fa-arrow-left"></i> Précédent
                         </button>
                     </div>
-
                     <div class="footer-right">
                         <button v-if="currentStep < 4" @click="nextStep" class="btn btn-primary"
                             :disabled="!canProceed">
-                            Suivant
-                            <i class="fas fa-arrow-right"></i>
+                            Suivant <i class="fas fa-arrow-right"></i>
                         </button>
-
-                        <button v-if="currentStep === 4" @click="submitQuote" class="btn btn-success"
+                        <button v-else @click="submitQuote" class="btn btn-success"
                             :disabled="isSubmitting || !canSubmit">
                             <i v-if="isSubmitting" class="fas fa-spinner fa-spin"></i>
                             <i v-else class="fas fa-paper-plane"></i>
@@ -226,243 +226,325 @@
 </template>
 
 <script>
+import { nextTick } from 'vue'
 import { publicApi } from '@/services/PublicApi'
 
+// FullCalendar vue3 + plugins (comme ton back-office)
+import FullCalendar from '@fullcalendar/vue3'
+import dayGridPlugin from '@fullcalendar/daygrid'
+import interactionPlugin from '@fullcalendar/interaction'
+import frLocale from '@fullcalendar/core/locales/fr'
+
 export default {
-    name: 'QuoteModal',
-    props: {
-        show: {
-            type: Boolean,
-            default: false
-        }
-    },
-    data() {
-        return {
-            currentStep: 1,
-            loadingActivities: false,
-            loadingRooms: false,
-            isSubmitting: false,
+  name: 'QuoteModal',
+  components: { FullCalendar },
 
-            // Produits disponibles
-            availableActivities: [],
-            availableRooms: [],
+  props: {
+    show: { type: Boolean, default: false }
+  },
 
-            // Sélections utilisateur
-            selectedItems: {
-                activities: [],
-                room: null
-            },
+  data() {
+    return {
+      // Étapes
+      currentStep: 1,
 
-            selectedDates: {
-                start: '',
-                end: '',
-                guests: 2
-            },
+      // Loaders
+      loadingActivities: false,
+      loadingRooms: false,
+      availabilityLoading: false,
+      isSubmitting: false,
 
-            contactInfo: {
-                name: '',
-                email: '',
-                phone: '',
-                message: ''
-            }
-        }
-    },
+      // Données produits
+      availableActivities: [],
+      availableRooms: [],
 
-    computed: {
-        minDate() {
-            const tomorrow = new Date()
-            tomorrow.setDate(tomorrow.getDate() + 1)
-            return tomorrow.toISOString().split('T')[0]
-        },
+      // Sélections
+      selectedItems: { activities: [], room: null },
 
-        durationInDays() {
-            if (!this.selectedDates.start || !this.selectedDates.end) return 0
+      // Dates & personnes
+      selectedDates: { start: '', end: '', guests: 2 },
 
-            const start = new Date(this.selectedDates.start)
-            const end = new Date(this.selectedDates.end)
-            const diffTime = Math.abs(end - start)
-            return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-        },
+      // Contact
+      contactInfo: { name: '', email: '', phone: '', message: '' },
 
-        totalPrice() {
-            let total = 0
-
-            // Prix des activités
-            this.selectedItems.activities.forEach(activity => {
-                total += activity.price
-            })
-
-            // Prix de l'hébergement
-            if (this.selectedItems.room && this.durationInDays > 0) {
-                total += this.selectedItems.room.price * this.durationInDays
-            }
-
-            return total
-        },
-
-        canProceed() {
-            switch (this.currentStep) {
-                case 1: return this.selectedItems.activities.length > 0
-                case 2: return this.selectedItems.room !== null
-                case 3: return this.selectedDates.start && this.selectedDates.end && this.durationInDays > 0
-                default: return true
-            }
-        },
-
-        canSubmit() {
-            return this.contactInfo.name &&
-                this.contactInfo.email &&
-                this.contactInfo.phone &&
-                this.totalPrice > 0
-        }
-    },
-
-    watch: {
-        show(newValue) {
-            if (newValue) {
-                this.initializeModal()
-            }
-        }
-    },
-
-    methods: {
-        async initializeModal() {
-            this.currentStep = 1
-            this.resetSelections()
-            await this.loadProducts()
-        },
-
-        async loadProducts() {
-            // Charger activités
-            this.loadingActivities = true
-            try {
-                const activitiesResponse = await publicApi.getActivities({ per_page: 20 })
-                this.availableActivities = activitiesResponse.data || []
-            } catch (error) {
-                console.error('Erreur chargement activités:', error)
-            } finally {
-                this.loadingActivities = false
-            }
-
-            // Charger hébergements
-            this.loadingRooms = true
-            try {
-                const roomsResponse = await publicApi.getRooms({ per_page: 20 })
-                this.availableRooms = roomsResponse.data || []
-            } catch (error) {
-                console.error('Erreur chargement hébergements:', error)
-            } finally {
-                this.loadingRooms = false
-            }
-        },
-
-        toggleActivity(activity) {
-            const index = this.selectedItems.activities.findIndex(a => a.id === activity.id)
-            if (index > -1) {
-                this.selectedItems.activities.splice(index, 1)
-            } else {
-                this.selectedItems.activities.push(activity)
-            }
-        },
-
-        selectRoom(room) {
-            this.selectedItems.room = room
-        },
-
-        increaseGuests() {
-            if (this.selectedDates.guests < 10) {
-                this.selectedDates.guests++
-            }
-        },
-
-        decreaseGuests() {
-            if (this.selectedDates.guests > 1) {
-                this.selectedDates.guests--
-            }
-        },
-
-        nextStep() {
-            if (this.canProceed && this.currentStep < 4) {
-                this.currentStep++
-            }
-        },
-
-        previousStep() {
-            if (this.currentStep > 1) {
-                this.currentStep--
-            }
-        },
-
-        async submitQuote() {
-            if (!this.canSubmit) return
-
-            this.isSubmitting = true
-
-            try {
-                const quoteData = {
-                    activities: this.selectedItems.activities.map(a => a.id),
-                    room: this.selectedItems.room?.id,
-                    dates: this.selectedDates,
-                    contact: this.contactInfo,
-                    total_price: this.totalPrice
-                }
-
-                await publicApi.createQuoteRequest(quoteData)
-
-                // Succès
-                this.$emit('quote-submitted', quoteData)
-                this.closeModal()
-
-                // Notification de succès (vous pouvez adapter selon votre système)
-                alert('Votre demande de devis a été envoyée avec succès ! Nous vous recontacterons rapidement.')
-
-            } catch (error) {
-                console.error('Erreur envoi devis:', error)
-                alert('Une erreur est survenue. Veuillez réessayer.')
-            } finally {
-                this.isSubmitting = false
-            }
-        },
-
-        closeModal() {
-            this.$emit('close')
-        },
-
-        resetSelections() {
-            this.selectedItems = {
-                activities: [],
-                room: null
-            }
-            this.selectedDates = {
-                start: '',
-                end: '',
-                guests: 2
-            }
-            this.contactInfo = {
-                name: '',
-                email: '',
-                phone: '',
-                message: ''
-            }
-        },
-
-        formatPrice(price) {
-            return new Intl.NumberFormat('fr-FR', {
-                style: 'currency',
-                currency: 'EUR'
-            }).format(price)
-        },
-
-        formatDate(dateString) {
-            return new Date(dateString).toLocaleDateString('fr-FR', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric'
-            })
-        }
+      // Dispos
+      unavailableDates: new Set(), // ex: Set(['2025-10-03'])
+      availability: { rooms: {}, activities: {} },
     }
+  },
+
+  computed: {
+    // API du calendrier
+    calendarApi() {
+      return this.$refs.fc?.getApi?.()
+    },
+
+    // Date mini = demain
+    minDate() {
+      const d = new Date()
+      d.setDate(d.getDate() + 1)
+      return d.toISOString().split('T')[0]
+    },
+
+    durationInDays() {
+      const { start, end } = this.selectedDates
+      if (!start || !end) return 0
+      const s = new Date(start), e = new Date(end)
+      const diff = e - s
+      return diff > 0 ? Math.ceil(diff / (1000 * 60 * 60 * 24)) : 0
+    },
+
+    totalPrice() {
+      let total = 0
+      for (const a of this.selectedItems.activities) total += Number(a.price || 0)
+      if (this.selectedItems.room && this.durationInDays > 0) {
+        total += Number(this.selectedItems.room.price || 0) * this.durationInDays
+      }
+      return total
+    },
+
+    hasUnavailableDay() {
+      const { start, end } = this.selectedDates
+      if (!start || !end || this.unavailableDates.size === 0) return false
+      const s = new Date(start), e = new Date(end)
+      for (let d = new Date(s); d < e; d.setDate(d.getDate() + 1)) {
+        const k = d.toISOString().slice(0, 10)
+        if (this.unavailableDates.has(k)) return true
+      }
+      return false
+    },
+
+    datesOK() {
+      return !!this.selectedDates.start && !!this.selectedDates.end && this.durationInDays > 0 && !this.hasUnavailableDay
+    },
+
+    canProceed() {
+      switch (this.currentStep) {
+        case 1: return this.datesOK && this.selectedDates.guests >= 1
+        case 2: return true // activités optionnelles
+        case 3: return !!this.selectedItems.room
+        default: return true
+      }
+    },
+
+    canSubmit() {
+      const c = this.contactInfo
+      return !!c.name && !!c.email && !!c.phone && this.totalPrice > 0
+    },
+
+    // ⚙️ Options FullCalendar (réactives)
+    fcOptions() {
+      return {
+        plugins: [dayGridPlugin, interactionPlugin],
+        locales: [frLocale],
+        locale: 'fr',
+        initialView: 'dayGridMonth',
+        firstDay: 1,
+        height: 'auto',
+        fixedWeekCount: false,
+        headerToolbar: false,
+        selectable: true,
+        selectMirror: true,
+        validRange: { start: this.minDate },
+        selectAllow: this.fcSelectAllow,
+        select: this.fcOnSelect,
+        events: this.fcBuildEvents
+      }
+    }
+  },
+
+  watch: {
+    show(val) {
+      if (val) this.initializeModal()
+      // pas besoin de “destroy” avec le composant vue
+    },
+
+    // Redessine la couche d’événements si la plage change
+    'selectedDates.start'() { this.calendarApi?.refetchEvents() },
+    'selectedDates.end'() { this.calendarApi?.refetchEvents() },
+
+    // Si la dispo dépend des capacités, relance l’API
+    'selectedDates.guests'() { this.refreshAvailability() },
+  },
+
+  methods: {
+    async initializeModal() {
+      this.currentStep = 1
+      this.resetSelections()
+      await Promise.all([this.loadActivities(), this.loadRooms()])
+      await nextTick()
+      // rien à init : <FullCalendar> est auto
+    },
+
+    async loadActivities() {
+      this.loadingActivities = true
+      try {
+        const res = await publicApi.getActivities({ per_page: 20 })
+        this.availableActivities = res?.data || []
+      } catch (e) {
+        console.error('Erreur chargement activités:', e)
+        this.availableActivities = []
+      } finally {
+        this.loadingActivities = false
+      }
+    },
+
+    async loadRooms() {
+      this.loadingRooms = true
+      try {
+        const res = await publicApi.getRooms({ per_page: 20 })
+        this.availableRooms = res?.data || []
+      } catch (e) {
+        console.error('Erreur chargement hébergements:', e)
+        this.availableRooms = []
+      } finally {
+        this.loadingRooms = false
+      }
+    },
+
+    // ==== Dispos ====
+    async refreshAvailability() {
+      const { start, end, guests } = this.selectedDates
+      if (!start || !end || !guests) return
+
+      this.availabilityLoading = true
+      try {
+        const { data } = await publicApi.getAvailability({ start, end, guests })
+        this.unavailableDates = new Set(data?.unavailable_dates || [])
+        this.availability.rooms = data?.rooms || {}
+        this.availability.activities = data?.activities || {}
+
+        if (this.hasUnavailableDay) {
+          this.selectedDates.start = ''
+          this.selectedDates.end = ''
+          this.calendarApi?.unselect()
+        }
+
+        if (this.selectedItems.room && this.isRoomAvailable(this.selectedItems.room) === false) {
+          this.selectedItems.room = null
+        }
+        this.selectedItems.activities = this.selectedItems.activities.filter(a => this.isActivityAvailable(a))
+
+        this.calendarApi?.refetchEvents()
+      } catch (e) {
+        console.error('Erreur dispo:', e)
+      } finally {
+        this.availabilityLoading = false
+      }
+    },
+
+    isActivityAvailable(a) {
+      const map = this.availability.activities
+      if (!map || typeof map !== 'object') return true
+      return map[String(a.id)] !== false
+    },
+
+    isRoomAvailable(r) {
+      const map = this.availability.rooms
+      if (!map || typeof map !== 'object') return true
+      return map[String(r.id)] !== false
+    },
+
+    // ==== Sélections ====
+    toggleActivity(activity) {
+      if (!this.isActivityAvailable(activity)) return
+      const i = this.selectedItems.activities.findIndex(a => a.id === activity.id)
+      if (i > -1) this.selectedItems.activities.splice(i, 1)
+      else this.selectedItems.activities.push(activity)
+    },
+
+    selectRoom(room) {
+      if (!this.isRoomAvailable(room)) return
+      this.selectedItems.room = room
+    },
+
+    increaseGuests() { if (this.selectedDates.guests < 20) this.selectedDates.guests++ },
+    decreaseGuests() { if (this.selectedDates.guests > 1)  this.selectedDates.guests-- },
+
+    nextStep() { if (this.canProceed && this.currentStep < 4) this.currentStep++ },
+    previousStep() { if (this.currentStep > 1) this.currentStep-- },
+
+    async submitQuote() {
+      if (!this.canSubmit) return
+      this.isSubmitting = true
+      try {
+        const payload = {
+          activities: this.selectedItems.activities.map(a => a.id),
+          room: this.selectedItems.room?.id || null,
+          dates: { ...this.selectedDates },
+          contact: { ...this.contactInfo },
+          total_price: this.totalPrice
+        }
+        await publicApi.createQuoteRequest(payload)
+        this.$emit('quote-submitted', payload)
+        this.closeModal()
+        alert('Votre demande de devis a été envoyée avec succès !')
+      } catch (e) {
+        console.error('Erreur envoi devis:', e)
+        alert('Une erreur est survenue. Veuillez réessayer.')
+      } finally {
+        this.isSubmitting = false
+      }
+    },
+
+    closeModal() { this.$emit('close') },
+
+    resetSelections() {
+      this.selectedItems = { activities: [], room: null }
+      this.selectedDates = { start: '', end: '', guests: 2 }
+      this.contactInfo = { name: '', email: '', phone: '', message: '' }
+      this.unavailableDates = new Set()
+      this.availability = { rooms: {}, activities: {} }
+      this.calendarApi?.unselect?.()
+      this.calendarApi?.refetchEvents?.()
+    },
+
+    formatPrice(n) { return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(Number(n||0)) },
+    formatDate(s) { return s ? new Date(s).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}) : '' },
+
+    // ==== FullCalendar (via <FullCalendar/>)
+    fcSelectAllow(arg) {
+      const start = new Date(arg.start)
+      const end = new Date(arg.end); end.setDate(end.getDate() - 1) // end EXCLUS
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        const key = d.toISOString().slice(0,10)
+        if (this.unavailableDates.has(key)) return false
+      }
+      return true
+    },
+
+    fcOnSelect(info) {
+      const start = info.startStr
+      const endDate = new Date(info.end); endDate.setDate(endDate.getDate() - 1) // end EXCLUS
+      const end = endDate.toISOString().slice(0,10)
+      this.selectedDates.start = start
+      this.selectedDates.end = end
+      this.refreshAvailability()
+      this.calendarApi?.refetchEvents()
+    },
+
+    fcBuildEvents(fetchInfo, success) {
+      const evts = []
+      // indispos
+      this.unavailableDates.forEach(d => {
+        evts.push({ start: d, end: d, display: 'background', classNames: ['fc-day-unavailable'] })
+      })
+      // sélection actuelle
+      if (this.selectedDates.start && this.selectedDates.end) {
+        const end = new Date(this.selectedDates.end); end.setDate(end.getDate() + 1) // end EXCLUS
+        evts.push({
+          start: this.selectedDates.start,
+          end: end.toISOString().slice(0,10),
+          display: 'background',
+          classNames: ['fc-day-selected-range']
+        })
+      }
+      success(evts)
+    }
+  }
 }
 </script>
+
 
 <style lang="scss" scoped>
 // Variables reprises de votre design system
@@ -472,407 +554,182 @@ $warning: #fb6340;
 $danger: #f5365c;
 $terracotta: #c17c4a;
 
-.quote-modal {
-    background: white;
-    border-radius: 12px;
+/* 1) Neutraliser tout layout grid/flex hérités dans la modale */
+.modal-content {
+  display: block !important;        /* évite une grille à 2 colonnes héritée */
+  padding: 1rem 1.25rem;
+}
+
+/* 2) Forcer le panneau d’étape à prendre toute la largeur (et virer les bordures de "panel") */
+.step-content {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 auto !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  background: transparent;
+}
+
+/* 3) Grille de l’étape Dates: par défaut 1 colonne (pas d’espace réservé à droite) */
+.dates-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem 1.5rem;
+  align-items: start;
+}
+
+/* Taille & intégration */
+.calendar {
     width: 100%;
+    max-width: 850px;
+    margin: 0 auto 1rem;
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--bg-glass, rgba(255, 255, 255, 0.6));
+    backdrop-filter: blur(8px);
+}
+
+.quote-modal {
     max-width: 900px;
-    max-height: 90vh;
+    /* large mais pas plein écran */
+    width: 95%;
+    background: #fff;
+    border-radius: 12px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+}
+
+/* Jours indisponibles (events background) */
+.fc-daygrid-day.fc-day-unavailable,
+.fc .fc-daygrid-day-bg .fc-day-unavailable {
+    background: repeating-linear-gradient(45deg, rgba(255, 0, 0, 0.15), rgba(255, 0, 0, 0.15) 6px, transparent 6px, transparent 12px);
+}
+
+/* Plage sélectionnée */
+.fc .fc-daygrid-day-bg .fc-day-selected-range {
+    background: rgba(123, 97, 255, 0.18);
+}
+
+/* Surbrillance native de la sélection */
+.fc .fc-highlight {
+    background: rgba(123, 97, 255, 0.22);
+}
+
+/* Header/legend */
+.calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: .5rem;
+}
+
+.calendar-legend {
+    display: flex;
+    gap: .75rem;
+    font-size: .85rem;
+}
+
+.legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+}
+
+.legend-box {
+    width: 14px;
+    height: 12px;
+    border-radius: 3px;
+    display: inline-block;
+}
+
+.legend-box.available {
+    background: rgba(0, 200, 120, .3);
+}
+
+.legend-box.unavailable {
+    background: rgba(255, 0, 0, .25);
+}
+
+.legend-box.selected {
+    background: rgba(123, 97, 255, .35);
+}
+
+/* Petites infos */
+.range-info,
+.duration {
+    margin-top: .5rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+
+.alert.warn {
+    color: #b45309;
+    background: rgba(251, 191, 36, .15);
+    padding: .5rem .75rem;
+    border-radius: 8px;
 }
 
 .progress-steps {
     display: flex;
-    justify-content: center;
-    gap: 16px;
-    margin-bottom: 32px;
-
-    .step {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 16px;
-        border-radius: 8px;
-        font-size: 14px;
-        color: #6b7280;
-        transition: all 0.3s;
-
-        &.active {
-            background: rgba($primary, 0.1);
-            color: $primary;
-            font-weight: 600;
-        }
-
-        &.completed {
-            color: $success;
-        }
-
-        .step-number {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: #e5e7eb;
-            color: #6b7280;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        &.active .step-number {
-            background: $primary;
-            color: white;
-        }
-
-        &.completed .step-number {
-            background: $success;
-            color: white;
-        }
-    }
-}
-
-.step-content {
-    .step-title {
-        font-size: 1.5rem;
-        margin-bottom: 8px;
-        color: #1f2937;
-    }
-
-    .step-description {
-        color: #6b7280;
-        margin-bottom: 24px;
-    }
-}
-
-.products-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
-}
-
-.product-card {
-    border: 2px solid #e5e7eb;
-    border-radius: 12px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: all 0.3s;
-    background: white;
-
-    &:hover {
-        border-color: $primary;
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-    }
-
-    &.selected {
-        border-color: $success;
-        background: rgba($success, 0.05);
-    }
-
-    .product-image {
-        position: relative;
-        height: 160px;
-        overflow: hidden;
-
-        img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .product-overlay {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s;
-        }
-    }
-
-    &.selected .product-overlay {
-        background: $success;
-        color: white;
-    }
-
-    .product-info {
-        padding: 16px;
-
-        .price {
-            font-weight: 600;
-            color: $terracotta;
-            margin: 4px 0;
-        }
-
-        .description {
-            font-size: 14px;
-            color: #6b7280;
-            margin: 0;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-    }
-}
-
-.date-selection {
-    max-width: 500px;
-    margin: 0 auto;
-
-    .date-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-        margin-bottom: 20px;
-    }
-
-    .date-field {
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #374151;
-        }
-
-        .date-input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-
-            &:focus {
-                outline: none;
-                border-color: $primary;
-            }
-        }
-    }
-
-    .guests-field {
-        margin-bottom: 20px;
-
-        .quantity-selector {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            justify-content: center;
-
-            .quantity-btn {
-                width: 40px;
-                height: 40px;
-                border-radius: 50%;
-                border: 2px solid $primary;
-                background: white;
-                color: $primary;
-                font-size: 18px;
-                font-weight: 600;
-                cursor: pointer;
-                transition: all 0.3s;
-
-                &:hover {
-                    background: $primary;
-                    color: white;
-                }
-            }
-
-            .quantity-value {
-                font-size: 1.2rem;
-                font-weight: 600;
-                min-width: 60px;
-                text-align: center;
-            }
-        }
-    }
-
-    .duration-info {
-        text-align: center;
-        color: $primary;
-        font-weight: 600;
-        background: rgba($primary, 0.1);
-        padding: 12px;
-        border-radius: 8px;
-
-        i {
-            margin-right: 8px;
-        }
-    }
-}
-
-.quote-summary {
-    background: #f9fafb;
-    border-radius: 12px;
-    padding: 24px;
-    margin-bottom: 24px;
-
-    .summary-section {
-        margin-bottom: 20px;
-
-        &:last-child {
-            margin-bottom: 0;
-        }
-
-        h4 {
-            color: #374151;
-            margin-bottom: 12px;
-
-            i {
-                margin-right: 8px;
-                color: $primary;
-            }
-        }
-
-        .summary-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid #e5e7eb;
-
-            &:last-child {
-                border-bottom: none;
-            }
-        }
-    }
-
-    .summary-total {
-        border-top: 2px solid #e5e7eb;
-        padding-top: 16px;
-        margin-top: 20px;
-
-        .total-line {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 1.2rem;
-
-            strong {
-                color: $success;
-                font-size: 1.4rem;
-            }
-        }
-    }
-}
-
-.contact-form {
-    h4 {
-        margin-bottom: 16px;
-        color: #374151;
-    }
-
-    .form-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 16px;
-        margin-bottom: 16px;
-    }
-
-    .form-input,
-    .form-textarea {
-        width: 100%;
-        padding: 12px;
-        border: 2px solid #e5e7eb;
-        border-radius: 8px;
-        font-size: 16px;
-        transition: border-color 0.3s;
-
-        &:focus {
-            outline: none;
-            border-color: $primary;
-        }
-    }
-
-    .form-input {
-        margin-bottom: 16px;
-    }
-
-    .form-textarea {
-        min-height: 80px;
-        resize: vertical;
-    }
-}
-
-.modal-footer {
-    display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 24px;
-    border-top: 1px solid #e5e7eb;
-    background: #f9fafb;
-
+    margin-bottom: 1rem;
+    gap: 1rem;
 }
 
-.loading-state {
+.progress-steps .step {
+    flex: 1;
     text-align: center;
-    padding: 40px;
-    color: #6b7280;
+    position: relative;
+    font-size: 0.9rem;
+    color: #666;
 }
 
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-
-    100% {
-        transform: rotate(360deg);
-    }
+.progress-steps .step-number {
+    width: 28px;
+    height: 28px;
+    margin: 0 auto 0.25rem;
+    border-radius: 50%;
+    background: #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
 }
 
-// Animations
-.modal-fade-enter-active,
-.modal-fade-leave-active {
-    transition: opacity 0.3s;
+.progress-steps .step.active .step-number {
+    background: #6366f1;
+    /* violet */
+    color: #fff;
 }
 
-.modal-fade-enter-from,
-.modal-fade-leave-to {
-    opacity: 0;
+.progress-steps .step.completed .step-number {
+    background: #10b981;
+    /* vert */
+    color: #fff;
+}
+/* Jours indisponibles */
+:deep(.fc .fc-daygrid-day-bg .fc-day-unavailable),
+:deep(.fc-daygrid-day.fc-day-unavailable) {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(255,0,0,0.15),
+    rgba(255,0,0,0.15) 6px,
+    transparent 6px,
+    transparent 12px
+  );
 }
 
-// Responsive
-@media (max-width: 768px) {
-    .modal-overlay {
-        padding: 10px;
-    }
-
-    .quote-modal {
-        max-height: 95vh;
-    }
-
-    .products-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .date-row {
-        grid-template-columns: 1fr !important;
-    }
-
-    .form-row {
-        grid-template-columns: 1fr !important;
-    }
-
-    .progress-steps {
-        flex-wrap: wrap;
-        gap: 8px;
-
-        .step {
-            padding: 6px 12px;
-            font-size: 12px;
-
-            span {
-                display: none;
-            }
-        }
-    }
+/* Plage sélectionnée */
+:deep(.fc .fc-daygrid-day-bg .fc-day-selected-range) {
+  background: rgba(123,97,255,.18);
 }
+
+/* Surbrillance native */
+:deep(.fc .fc-highlight) {
+  background: rgba(123,97,255,.22);
+}
+
 </style>
