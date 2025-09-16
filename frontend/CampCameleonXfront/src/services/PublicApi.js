@@ -178,6 +178,39 @@ class PublicApi {
     })
     return response.data
   }
+  
+  // =============================
+  // Réservations directes
+  // =============================
+  async createReservation(payload) {
+    const url = `${this.baseURL}/reservations`
+    const response = await axios.post(url, payload, {
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' }
+    })
+    return response.data
+  }
+
+  // =============================
+  // Sauvegarde devis (pour suivi ultérieur)
+  // =============================
+  async saveQuote(payload) {
+    const url = `${this.baseURL}/saved-quotes`
+    const response = await axios.post(url, { ...payload, status: 'saved' }, {
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' }
+    })
+    return response.data
+  }
+
+  // =============================
+  // Demande de conseil personnalisé
+  // =============================
+  async requestPersonalAdvice(payload) {
+    const url = `${this.baseURL}/advice-requests`
+    const response = await axios.post(url, payload, {
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' }
+    })
+    return response.data
+  }
 
   // =============================
   // Maintenance du cache

@@ -38,6 +38,10 @@
                     <div v-if="currentStep === 1" class="step-content">
                         <h3 class="step-title">Choisissez vos dates</h3>
                         <p class="step-description">Sélectionnez directement dans le calendrier (plage continue).</p>
+                        <div class="step-help" :class="{ 'help-warning': currentStep === 4 && !selectedItems.room }">
+                            <i class="fas fa-info-circle"></i>
+                            {{ stepHelpText }}
+                        </div>
 
                         <div class="dates-layout">
                             <!-- Calendrier simplifié -->
@@ -50,10 +54,10 @@
 
                                 <FullCalendar class="calendar" :options="fcOptions" ref="fc" />
 
-                                <div class="range-info" v-if="selectedDates.start && selectedDates.end">
+                                <div class="range-info" v-if="selectedDates.start && selectedDates.endExclusive">
                                     <i class="fas fa-calendar-check"></i>
-                                    Séjour : {{ formatDate(selectedDates.start) }} → {{
-                                        formatDate(displayEndInclusive(selectedDates.start, selectedDates.endExclusive)) }}
+                                    Séjour : {{ formatDate(selectedDates.start) }} →
+                                    {{ formatDate(displayEndInclusive(selectedDates.endExclusive)) }}
                                 </div>
                             </div>
 
@@ -70,9 +74,9 @@
                                     </div>
                                 </div>
 
-                                <div v-if="durationInDays > 0" class="duration">
+                                <div v-if="nights > 0" class="duration">
                                     <i class="fas fa-moon"></i>
-                                    {{ (durationInDays - 1) }} nuit{{ (durationInDays - 1) > 1 ? 's' : '' }}
+                                    {{ nights }} nuit{{ nights > 1 ? 's' : '' }}
                                 </div>
                             </div>
                         </div>
@@ -114,7 +118,6 @@
                                 </div>
                             </article>
                         </div>
-
                     </div>
 
                     <!-- STEP 3: Menus -->
@@ -127,23 +130,31 @@
                             <p>Chargement des menus...</p>
                         </div>
 
-                        <div v-else class="products-grid">
-                            <div v-for="menu in availableMenus" :key="menu.id" class="product-card"
+                        <div v-else class="mini-grid">
+                            <article v-for="menu in availableMenus" :key="menu.id" class="mini-card"
                                 :class="{ selected: selectedItems.menus.some(m => m.id === menu.id) }"
                                 @click="toggleMenu(menu)">
-                                <div class="product-image">
-                                    <img :src="menu.image" :alt="menu.name" />
-                                    <div class="product-overlay">
-                                        <i class="fas"
-                                            :class="selectedItems.menus.some(m => m.id === menu.id) ? 'fa-check' : 'fa-plus'"></i>
+                                <img class="mini-thumb" :src="menu.image" :alt="menu.name" loading="lazy"
+                                    decoding="async" />
+                                <div class="mini-info">
+                                    <h5 class="mini-title">{{ menu.name }}</h5>
+                                    <div class="mini-meta">
+                                        <span class="mini-price">{{ menu.formatted_price }}</span>
+                                        <span v-if="menu.productableData?.type" class="mini-pill">
+                                            <i class="fas fa-utensils"></i>
+                                            {{ menu.productableData.type }}
+                                        </span>
                                     </div>
+                                    <p class="mini-desc">
+                                        {{ (menu.description || menu.short_description || '').slice(0, 90) }}<span
+                                            v-if="(menu.description || menu.short_description || '').length > 90">…</span>
+                                    </p>
                                 </div>
-                                <div class="product-info">
-                                    <h4>{{ menu.name }}</h4>
-                                    <p class="price">{{ menu.formatted_price }}</p>
-                                    <p class="description">{{ menu.short_description }}</p>
+                                <div class="mini-check">
+                                    <i class="fas"
+                                        :class="selectedItems.menus.some(m => m.id === menu.id) ? 'fa-check' : 'fa-plus'"></i>
                                 </div>
-                            </div>
+                            </article>
                         </div>
                     </div>
 
@@ -157,22 +168,30 @@
                             <p>Chargement des hébergements...</p>
                         </div>
 
-                        <div v-else class="products-grid">
-                            <div v-for="room in availableRooms" :key="room.id" class="product-card"
+                        <div v-else class="mini-grid">
+                            <article v-for="room in availableRooms" :key="room.id" class="mini-card"
                                 :class="{ selected: selectedItems.room?.id === room.id }" @click="selectRoom(room)">
-                                <div class="product-image">
-                                    <img :src="room.image" :alt="room.name" />
-                                    <div class="product-overlay">
-                                        <i class="fas"
-                                            :class="selectedItems.room?.id === room.id ? 'fa-check' : 'fa-plus'"></i>
+                                <img class="mini-thumb" :src="room.image" :alt="room.name" loading="lazy"
+                                    decoding="async" />
+                                <div class="mini-info">
+                                    <h5 class="mini-title">{{ room.name }}</h5>
+                                    <div class="mini-meta">
+                                        <span class="mini-price">{{ room.formatted_price }}/nuit</span>
+                                        <span v-if="room.productableData?.capacity" class="mini-pill">
+                                            <i class="fas fa-users"></i>
+                                            {{ room.productableData.capacity }} pers.
+                                        </span>
                                     </div>
+                                    <p class="mini-desc">
+                                        {{ (room.description || room.short_description || '').slice(0, 90) }}<span
+                                            v-if="(room.description || room.short_description || '').length > 90">…</span>
+                                    </p>
                                 </div>
-                                <div class="product-info">
-                                    <h4>{{ room.name }}</h4>
-                                    <p class="price">{{ room.formatted_price }}/nuit</p>
-                                    <p class="description">{{ room.short_description }}</p>
+                                <div class="mini-check">
+                                    <i class="fas"
+                                        :class="selectedItems.room?.id === room.id ? 'fa-check' : 'fa-plus'"></i>
                                 </div>
-                            </div>
+                            </article>
                         </div>
                     </div>
 
@@ -198,9 +217,9 @@
                             <div v-if="selectedItems.room" class="summary-section">
                                 <h4><i class="fas fa-bed"></i> Hébergement</h4>
                                 <div class="summary-item">
-                                    <span>{{ selectedItems.room.name }} ({{ durationInDays }} nuit{{ durationInDays > 1
+                                    <span>{{ selectedItems.room.name }} ({{ nights }} nuit{{ nights > 1
                                         ? 's' : '' }})</span>
-                                    <span>{{ formatPrice(selectedItems.room.price * durationInDays) }}</span>
+                                    <span>{{ formatPrice(selectedItems.room.price * nights) }}</span>
                                 </div>
                             </div>
 
@@ -208,11 +227,11 @@
                                 <h4><i class="fas fa-calendar"></i> Détails du séjour</h4>
                                 <div class="summary-item">
                                     <span>Du {{ formatDate(selectedDates.start) }} au {{ formatDate(selectedDates.end)
-                                    }}</span>
+                                        }}</span>
                                 </div>
                                 <div class="summary-item">
                                     <span>{{ selectedDates.guests }} personne{{ selectedDates.guests > 1 ? 's' : ''
-                                    }}</span>
+                                        }}</span>
                                 </div>
                             </div>
 
@@ -252,12 +271,44 @@
                             :disabled="!canProceed">
                             Suivant <i class="fas fa-arrow-right"></i>
                         </button>
-                        <button v-else @click="submitQuote" class="btn btn-success btn-sm"
-                            :disabled="isSubmitting || !canSubmit">
-                            <i v-if="isSubmitting" class="fas fa-spinner fa-spin"></i>
-                            <i v-else class="fas fa-paper-plane"></i>
-                            {{ isSubmitting ? 'Envoi...' : 'Envoyer ma demande' }}
-                        </button>
+
+                        <!-- NOUVELLE SECTION: 3 actions pour l'étape 5 -->
+                        <div v-else class="quote-final-step">
+                            <!-- Explication des options -->
+                            <div class="actions-explanation">
+                                <p class="explanation-text">
+                                    <i class="fas fa-info-circle"></i>
+                                    Choisissez comment finaliser votre demande :
+                                </p>
+                            </div>
+
+                            <div class="quote-actions">
+                                <!-- Action 1: Réserver et payer -->
+                                <button @click="createReservationAndPay" class="btn btn-success btn-sm"
+                                    :disabled="isSubmitting || !canSubmit">
+                                    <i v-if="isSubmitting === 'booking'" class="fas fa-spinner fa-spin"></i>
+                                    <i v-else class="fas fa-credit-card"></i>
+                                    {{ isSubmitting === 'booking' ? 'Traitement...' : 'Réserver & Payer' }}
+                                </button>
+
+                                <!-- Action 2: Sauvegarder et voir contacts -->
+                                <button @click="saveQuoteAndShowContacts" class="btn btn-primary btn-sm"
+                                    :disabled="isSubmitting || !canSubmit">
+                                    <i v-if="isSubmitting === 'saving'" class="fas fa-spinner fa-spin"></i>
+                                    <i v-else class="fas fa-bookmark"></i>
+                                    {{ isSubmitting === 'saving' ? 'Sauvegarde...' : 'Sauvegarder le devis' }}
+                                </button>
+
+                                <!-- Action 3: Conseil personnalisé -->
+                                <button @click="requestAdvice" class="btn btn-outline btn-sm"
+                                    :disabled="isSubmitting || !canSubmit">
+                                    <i v-if="isSubmitting === 'advice'" class="fas fa-spinner fa-spin"></i>
+                                    <i v-else class="fas fa-user-tie"></i>
+                                    {{ isSubmitting === 'advice' ? 'Envoi...' : 'Conseil personnalisé' }}
+                                </button>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -292,14 +343,29 @@ export default {
             availableMenus: [],
 
             selectedItems: { activities: [], room: null, menus: [] },
-            selectedDates: { start: '', end: '', guests: 2 },
+            selectedDates: { start: '', endExclusive: '', guests: 2 },
             contactInfo: { name: '', email: '', phone: '', message: '' },
         }
     },
 
     computed: {
         calendarApi() { return this.$refs.fc?.getApi?.() },
-
+        stepHelpText() {
+            switch (this.currentStep) {
+                case 1: return this.datesOK && this.selectedDates.guests >= 1
+                    ? 'Parfait ! Continuez vers les activités.'
+                    : 'Sélectionnez vos dates et le nombre de personnes pour continuer.'
+                case 2: return 'Les activités sont optionnelles, vous pouvez passer à l\'étape suivante.'
+                case 3: return 'Les menus sont optionnels, vous pouvez passer à l\'étape suivante.'
+                case 4: return this.selectedItems.room
+                    ? 'Parfait ! Votre hébergement est sélectionné.'
+                    : 'Veuillez choisir un hébergement pour continuer.'
+                case 5: return this.canSubmit
+                    ? 'Vérifiez vos informations et choisissez votre action.'
+                    : 'Complétez vos coordonnées pour finaliser.'
+                default: return ''
+            }
+        },
         minDate() {
             const d = new Date()
             d.setDate(d.getDate() + 1)
@@ -309,6 +375,10 @@ export default {
         durationInDays() {
             const { start, endExclusive } = this.selectedDates
             return this.daysBetween(start, endExclusive)
+        },
+        nights() {
+            const d = this.durationInDays
+            return d > 0 ? d - 1 : 0
         },
 
         totalPrice() {
@@ -330,7 +400,7 @@ export default {
                 case 1: return this.datesOK && this.selectedDates.guests >= 1
                 case 2: return true // activités optionnelles
                 case 3: return true // menus optionnels
-                case 4: return true // hébergement optionnel  
+                case 4: return !!this.selectedItems.room // hébergement OBLIGATOIRE
                 default: return true
             }
         },
@@ -473,7 +543,7 @@ export default {
 
         resetSelections() {
             this.selectedItems = { activities: [], room: null, menus: [] }
-            this.selectedDates = { start: '', end: '', guests: 2 }
+            this.selectedDates = { start: '', endExclusive: '', guests: 2 }
             this.contactInfo = { name: '', email: '', phone: '', message: '' }
         },
         toUTCDateParts(yyyyMmDd) {
@@ -487,7 +557,7 @@ export default {
             const diff = (e - s) / (1000 * 60 * 60 * 24)
             return diff > 0 ? diff : 0
         },
-        displayEndInclusive(startYmd, endExclusiveYmd) {
+        displayEndInclusive(endExclusiveYmd) {
             const e = this.toUTCDateParts(endExclusiveYmd)
             if (e == null) return ''
             // endExclusive - 1 jour (affichage)
@@ -511,6 +581,151 @@ export default {
             // FullCalendar: start inclusif, end exclusif
             this.selectedDates.start = info.startStr            // YYYY-MM-DD
             this.selectedDates.endExclusive = info.endStr       // YYYY-MM-DD (checkout)
+        },
+        // Action 1: Créer réservation directe + paiement
+        async createReservationAndPay() {
+            if (!this.canSubmit) return
+            this.isSubmitting = 'booking'
+
+            try {
+                const reservationPayload = {
+                    // Données client
+                    customer_name: this.contactInfo.name,
+                    customer_email: this.contactInfo.email,
+                    customer_phone: this.contactInfo.phone,
+
+                    // Données réservation
+                    checkin: this.selectedDates.start,
+                    checkout: this.selectedDates.endExclusive,
+                    number_of_adults: this.selectedDates.guests,
+                    number_of_children: 0,
+
+                    // Produits sélectionnés
+                    products: [
+                        ...this.selectedItems.activities.map(a => ({ id: a.id, type: 'activity', price: a.price })),
+                        ...this.selectedItems.menus.map(m => ({ id: m.id, type: 'menu', price: m.price })),
+                        ...(this.selectedItems.room ? [{ id: this.selectedItems.room.id, type: 'room', price: this.selectedItems.room.price * this.durationInDays }] : [])
+                    ],
+
+                    amount: this.totalPrice,
+                    booking_source: 'website',
+                    payment_status: 'pending',
+                    status: 'pending',
+                    comment: this.contactInfo.message || 'Réservation via devis en ligne'
+                }
+
+                const reservation = await publicApi.createReservation(reservationPayload)
+
+                this.$emit('booking-confirmed', { reservation, type: 'direct_booking' })
+                this.closeModal()
+
+                // Redirection vers paiement (à adapter selon votre système de paiement)
+                this.showSuccessMessage('Réservation créée ! Redirection vers le paiement...')
+
+            } catch (error) {
+                console.error('Erreur création réservation:', error)
+                this.showErrorMessage('Erreur lors de la réservation. Veuillez réessayer.')
+            } finally {
+                this.isSubmitting = false
+            }
+        },
+
+        // Action 2: Sauvegarder devis + afficher contacts
+        async saveQuoteAndShowContacts() {
+            if (!this.canSubmit) return
+            this.isSubmitting = 'saving'
+
+            try {
+                const quotePayload = {
+                    activities: this.selectedItems.activities.map(a => a.id),
+                    menus: this.selectedItems.menus.map(m => m.id),
+                    room: this.selectedItems.room?.id || null,
+                    dates: { ...this.selectedDates },
+                    contact: { ...this.contactInfo },
+                    total_price: this.totalPrice,
+                    quote_reference: this.generateQuoteReference()
+                }
+
+                const savedQuote = await publicApi.saveQuote(quotePayload)
+
+                this.$emit('quote-saved', { quote: savedQuote, type: 'saved_quote' })
+                this.closeModal()
+
+                // Afficher section contacts (scroll vers footer avec info contact)
+                this.showContactsSection()
+                this.showSuccessMessage('Devis sauvegardé ! Nos coordonnées sont affichées ci-dessous.')
+
+            } catch (error) {
+                console.error('Erreur sauvegarde devis:', error)
+                this.showErrorMessage('Erreur lors de la sauvegarde. Veuillez réessayer.')
+            } finally {
+                this.isSubmitting = false
+            }
+        },
+
+        // Action 3: Demande de conseil personnalisé
+        async requestAdvice() {
+            if (!this.canSubmit) return
+            this.isSubmitting = 'advice'
+
+            try {
+                const advicePayload = {
+                    contact: { ...this.contactInfo },
+                    preferences: {
+                        activities: this.selectedItems.activities.map(a => a.name),
+                        menus: this.selectedItems.menus.map(m => m.name),
+                        accommodation: this.selectedItems.room?.name || null,
+                        dates: { ...this.selectedDates },
+                        budget_estimate: this.totalPrice
+                    },
+                    request_type: 'personalized_advice',
+                    message: this.contactInfo.message + '\n\n[Demande de conseil personnalisé basée sur la sélection du devis]'
+                }
+
+                await publicApi.requestPersonalAdvice(advicePayload)
+
+                this.$emit('advice-requested', { request: advicePayload, type: 'advice_request' })
+                this.closeModal()
+
+                this.showSuccessMessage('Demande envoyée ! Un expert vous contactera sous 24h pour des conseils personnalisés.')
+
+            } catch (error) {
+                console.error('Erreur demande conseil:', error)
+                this.showErrorMessage('Erreur lors de l\'envoi. Veuillez réessayer.')
+            } finally {
+                this.isSubmitting = false
+            }
+        },
+
+        // Helpers
+        generateQuoteReference() {
+            const timestamp = Date.now().toString(36)
+            const random = Math.random().toString(36).substr(2, 5)
+            return `DEVIS-${timestamp}-${random}`.toUpperCase()
+        },
+
+        showContactsSection() {
+            // Scroll vers la section footer avec les contacts
+            setTimeout(() => {
+                const contactSection = document.querySelector('.footer-section:last-child')
+                if (contactSection) {
+                    contactSection.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                    // Highlight temporaire
+                    contactSection.style.border = '2px solid var(--terracotta)'
+                    setTimeout(() => {
+                        contactSection.style.border = 'none'
+                    }, 3000)
+                }
+            }, 500)
+        },
+
+        showSuccessMessage(message) {
+            // Simple alert pour l'instant (à remplacer par votre système de notifications)
+            alert(message)
+        },
+
+        showErrorMessage(message) {
+            alert(message)
         }
     }
 }
@@ -523,88 +738,15 @@ $warning: #fb6340;
 $danger: #f5365c;
 $terracotta: #c17c4a;
 
+/* ===== MODAL BASE ===== */
 .modal-content {
     display: block !important;
     padding: 1rem 1.25rem;
 }
 
-/* Corps scrollable pour ne pas étirer la modale */
-.quote-modal .modal-body { max-height: 70vh; overflow: auto; }
-
-/* Grille compacte : 2 colonnes desktop, 1 mobile */
-.mini-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-@media (max-width: 640px) {
-  .mini-grid { grid-template-columns: 1fr; }
-}
-
-/* Carte compacte */
-.mini-card {
-  position: relative;
-  display: grid;
-  grid-template-columns: 96px 1fr;
-  gap: 10px;
-  padding: 10px;
-  border-radius: 12px;
-  background: var(--bg-glass-mid, rgba(255,255,255,0.06));
-  border: 1px solid var(--glass-border, rgba(255,255,255,0.12));
-  cursor: pointer;
-  transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
-}
-.mini-card:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,.2); }
-.mini-card.selected { outline: 2px solid var(--neon-blue, #38bdf8); }
-
-/* Vignette */
-.mini-thumb {
-  width: 96px; height: 96px; border-radius: 10px; object-fit: cover; display: block;
-}
-
-/* Infos */
-.mini-info { display: grid; gap: 6px; align-content: start; }
-.mini-title { margin: 0; font-size: .95rem; line-height: 1.2; }
-.mini-meta { display: flex; gap: 8px; align-items: center; }
-.mini-price { font-weight: 700; font-size: .9rem; }
-.mini-pill {
-  display: inline-flex; align-items: center; gap: 6px;
-  font-size: .75rem; opacity: .85; padding: 2px 8px; border-radius: 999px;
-  border: 1px solid var(--glass-border, rgba(255,255,255,.15));
-}
-.mini-desc { margin: 0; font-size: .8rem; opacity: .9; }
-
-/* Bouton +/✓ */
-.mini-check {
-  position: absolute; right: 8px; bottom: 8px;
-  background: rgba(0,0,0,.45); border-radius: 10px; padding: 6px 8px;
-}
-
-
-.step-content {
-    width: 100% !important;
-    max-width: none !important;
-    margin: 0 auto !important;
-    border: 0 !important;
-    box-shadow: none !important;
-    background: transparent;
-}
-
-.dates-layout {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1.25rem 1.5rem;
-    align-items: start;
-}
-
-.calendar {
-    width: 100%;
-    max-width: 850px;
-    margin: 0 auto 1rem;
-    border-radius: 12px;
-    overflow: hidden;
-    background: var(--bg-glass, rgba(255, 255, 255, 0.6));
-    backdrop-filter: blur(8px);
+.quote-modal .modal-body {
+    max-height: 70vh;
+    overflow: auto;
 }
 
 .quote-modal {
@@ -617,21 +759,7 @@ $terracotta: #c17c4a;
     flex-direction: column;
 }
 
-.calendar-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: .5rem;
-}
-
-.range-info,
-.duration {
-    margin-top: .5rem;
-    display: flex;
-    align-items: center;
-    gap: .5rem;
-}
-
+/* ===== ÉTAPES PROGRESS ===== */
 .progress-steps {
     display: flex;
     justify-content: space-between;
@@ -668,5 +796,412 @@ $terracotta: #c17c4a;
 .progress-steps .step.completed .step-number {
     background: #10b981;
     color: #fff;
+}
+
+/* ===== CONTENU STEPS ===== */
+.step-content {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 auto !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: transparent;
+}
+
+/* ===== GRILLE HARMONISÉE ===== */
+.mini-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+@media (max-width: 640px) {
+    .mini-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ===== CARTES HARMONISÉES ===== */
+.mini-card {
+    position: relative;
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+}
+
+.mini-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .15);
+}
+
+.mini-card.selected {
+    border-color: $terracotta;
+    background: rgba(193, 124, 74, 0.05);
+}
+
+.mini-thumb {
+    width: 96px;
+    height: 96px;
+    border-radius: 10px;
+    object-fit: cover;
+    display: block;
+}
+.step-help {
+    background: rgba(94, 114, 228, 0.1);
+    border-left: 4px solid #5e72e4;
+    padding: 0.75rem 1rem;
+    margin: 1rem 0;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    color: #5e72e4;
+    
+    i {
+        margin-right: 0.5rem;
+    }
+    
+    &.help-warning {
+        background: rgba(251, 99, 64, 0.1);
+        border-left-color: #fb6340;
+        color: #fb6340;
+    }
+}
+
+.mini-info {
+    display: grid;
+    gap: 6px;
+    align-content: start;
+}
+
+.mini-title {
+    margin: 0;
+    font-size: .95rem;
+    line-height: 1.2;
+    color: #333;
+    font-weight: 600;
+}
+
+.mini-meta {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.mini-price {
+    font-weight: 700;
+    font-size: .9rem;
+    color: $terracotta;
+}
+
+.mini-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: .75rem;
+    opacity: .8;
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.mini-desc {
+    margin: 0;
+    font-size: .8rem;
+    opacity: .8;
+    color: #666;
+    line-height: 1.3;
+}
+
+.mini-check {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    background: rgba(0, 0, 0, .6);
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+.mini-card.selected .mini-check {
+    background: $terracotta;
+}
+
+/* ===== CALENDRIER ===== */
+.dates-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem 1.5rem;
+    align-items: start;
+}
+
+.calendar {
+    width: 100%;
+    max-width: 850px;
+    margin: 0 auto 1rem;
+    border-radius: 12px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: .5rem;
+}
+
+.range-info,
+.duration {
+    margin-top: .5rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    color: $terracotta;
+    font-weight: 500;
+}
+
+/* ===== SECTION RÉCAP FINALE ===== */
+.quote-final-step {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.actions-explanation {
+    text-align: center;
+    margin-bottom: 0.5rem;
+    padding: 0.75rem;
+    background: rgba(193, 124, 74, 0.1);
+    border-radius: 8px;
+    border-left: 4px solid $terracotta;
+
+    .explanation-text {
+        color: #666;
+        font-size: 0.9rem;
+        margin: 0;
+
+        i {
+            color: $terracotta;
+            margin-right: 0.5rem;
+        }
+    }
+}
+
+.quote-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+
+    .btn {
+        flex: 1;
+        min-width: 140px;
+        white-space: nowrap;
+        font-size: 0.9rem;
+
+        &.btn-success {
+            background: $success;
+            border-color: $success;
+
+            &:hover {
+                background: darken($success, 10%);
+            }
+        }
+
+        &.btn-primary {
+            background: $primary;
+            border-color: $primary;
+
+            &:hover {
+                background: darken($primary, 10%);
+            }
+        }
+
+        &.btn-outline {
+            background: transparent;
+            border: 2px solid $terracotta;
+            color: $terracotta;
+
+            &:hover {
+                background: $terracotta;
+                color: white;
+            }
+        }
+
+        @media (max-width: 768px) {
+            min-width: 120px;
+            font-size: 0.85rem;
+            padding: 0.5rem 0.75rem;
+        }
+    }
+
+    @media (max-width: 640px) {
+        flex-direction: column;
+
+        .btn {
+            flex: none;
+            width: 100%;
+            min-width: auto;
+        }
+    }
+}
+
+/* ===== LOADING STATE ===== */
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 2rem;
+    color: #666;
+}
+
+.spinner {
+    width: 24px;
+    height: 24px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid $terracotta;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* ===== RÉCAP SUMMARY ===== */
+.quote-summary {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.summary-section {
+    margin-bottom: 1.5rem;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+
+    h4 {
+        color: $terracotta;
+        font-size: 1.1rem;
+        margin-bottom: 0.75rem;
+        font-weight: 600;
+
+        i {
+            margin-right: 0.5rem;
+        }
+    }
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    span:first-child {
+        color: #333;
+        font-weight: 500;
+    }
+
+    span:last-child {
+        color: $terracotta;
+        font-weight: 600;
+    }
+}
+
+.summary-total {
+    border-top: 2px solid $terracotta;
+    padding-top: 1rem;
+    margin-top: 1rem;
+}
+
+.total-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.2rem;
+
+    span {
+        color: #333;
+    }
+
+    strong {
+        color: $terracotta;
+        font-size: 1.4rem;
+    }
+}
+
+/* ===== FORMULAIRE CONTACT ===== */
+.contact-form {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+
+    h4 {
+        color: $terracotta;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+
+    @media (max-width: 640px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.form-input,
+.form-textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+
+    &:focus {
+        outline: none;
+        border-color: $terracotta;
+        box-shadow: 0 0 0 2px rgba(193, 124, 74, 0.1);
+    }
+}
+
+.form-textarea {
+    min-height: 100px;
+    resize: vertical;
 }
 </style>
