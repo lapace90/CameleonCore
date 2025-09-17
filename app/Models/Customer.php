@@ -16,7 +16,7 @@ class Customer extends Model
    
     protected $fillable = [
         'name', 'last_name', 'email', 'phone', 'address', 
-        'city', 'state', 'postal_code', 'country', 'notes',
+        'city', 'state', 'postal_code', 'country',
         'email_verified_at'
     ];
 
@@ -62,8 +62,7 @@ class Customer extends Model
             ->orWhere('city', 'like', '%' . $search . '%')
             ->orWhere('state', 'like', '%' . $search . '%')
             ->orWhere('postal_code', 'like', '%' . $search . '%')
-            ->orWhere('country', 'like', '%' . $search . '%')
-            ->orWhere('notes', 'like', '%' . $search . '%');
+            ->orWhere('country', 'like', '%' . $search . '%');
     }
 
     public static function rules()
