@@ -51,8 +51,9 @@
                                         <i class="fas fa-calendar-alt"></i> Sélectionnez vos dates
                                     </h4>
                                 </div>
-
-                                <FullCalendar class="calendar" :options="fcOptions" ref="fc" />
+                                <div class="calendar calendar--compact">
+                                    <FullCalendar :options="fcOptions" ref="fc" />
+                                </div>
 
                                 <div class="range-info" v-if="selectedDates.start && selectedDates.endExclusive">
                                     <i class="fas fa-calendar-check"></i>
@@ -87,7 +88,7 @@
                         <h3 class="step-title">Choisissez vos activités</h3>
                         <p class="step-description">Sélectionnez les expériences qui vous tentent.</p>
 
-                        <div v-if="loadingActivities" class="loading-state">
+                        <div v-if="loading" class="loading-state">
                             <div class="spinner"></div>
                             <p>Chargement des activités...</p>
                         </div>
@@ -102,10 +103,6 @@
                                     <h5 class="mini-title">{{ activity.name }}</h5>
                                     <div class="mini-meta">
                                         <span class="mini-price">{{ activity.formatted_price }}</span>
-                                        <span v-if="activity.productableData?.duration" class="mini-pill">
-                                            <i class="fas fa-clock"></i>
-                                            {{ activity.productableData.duration }} min
-                                        </span>
                                     </div>
                                     <p class="mini-desc">
                                         {{ (activity.description || '').slice(0, 90) }}<span
@@ -125,7 +122,7 @@
                         <h3 class="step-title">Choisissez vos menus</h3>
                         <p class="step-description">Sélectionnez les repas qui vous intéressent.</p>
 
-                        <div v-if="loadingMenus" class="loading-state">
+                        <div v-if="loading" class="loading-state">
                             <div class="spinner"></div>
                             <p>Chargement des menus...</p>
                         </div>
@@ -140,10 +137,6 @@
                                     <h5 class="mini-title">{{ menu.name }}</h5>
                                     <div class="mini-meta">
                                         <span class="mini-price">{{ menu.formatted_price }}</span>
-                                        <span v-if="menu.productableData?.type" class="mini-pill">
-                                            <i class="fas fa-utensils"></i>
-                                            {{ menu.productableData.type }}
-                                        </span>
                                     </div>
                                     <p class="mini-desc">
                                         {{ (menu.description || menu.short_description || '').slice(0, 90) }}<span
@@ -163,7 +156,7 @@
                         <h3 class="step-title">Choisissez votre hébergement</h3>
                         <p class="step-description">Sélectionnez votre logement.</p>
 
-                        <div v-if="loadingRooms" class="loading-state">
+                        <div v-if="loading" class="loading-state">
                             <div class="spinner"></div>
                             <p>Chargement des hébergements...</p>
                         </div>
@@ -177,9 +170,12 @@
                                     <h5 class="mini-title">{{ room.name }}</h5>
                                     <div class="mini-meta">
                                         <span class="mini-price">{{ room.formatted_price }}/nuit</span>
-                                        <span v-if="room.productableData?.capacity" class="mini-pill">
+                                        <!-- ✅ SEULE INFO PRODUCTABLE : Capacité -->
+                                        <span v-if="room.productable_data?.capacity || room.productableData?.capacity"
+                                            class="mini-pill">
                                             <i class="fas fa-users"></i>
-                                            {{ room.productableData.capacity }} pers.
+                                            {{ room.productable_data?.capacity || room.productableData?.capacity }}
+                                            pers. max
                                         </span>
                                     </div>
                                     <p class="mini-desc">
@@ -226,8 +222,9 @@
                             <div class="summary-section">
                                 <h4><i class="fas fa-calendar"></i> Détails du séjour</h4>
                                 <div class="summary-item">
-                                    <span>Du {{ formatDate(selectedDates.start) }} au {{ formatDate(selectedDates.end)
-                                        }}</span>
+                                    <span>Du {{ formatDate(selectedDates.start) }} au {{
+                                        formatDate(displayEndInclusive(selectedDates.endExclusive)) }}
+                                    </span>
                                 </div>
                                 <div class="summary-item">
                                     <span>{{ selectedDates.guests }} personne{{ selectedDates.guests > 1 ? 's' : ''
@@ -247,18 +244,21 @@
                         <div class="contact-form">
                             <h4>Vos coordonnées</h4>
                             <div class="form-row">
-                                <input type="text" v-model="contactInfo.name" placeholder="Nom complet"
-                                    class="form-input" />
-                                <input type="email" v-model="contactInfo.email" placeholder="Email"
+                                <input type="text" v-model="contactInfo.name" placeholder="Prenom" class="form-input" />
+                                <input type="text" v-model="contactInfo.last_name" placeholder="Nom"
                                     class="form-input" />
                             </div>
-                            <input type="tel" v-model="contactInfo.phone" placeholder="Téléphone" class="form-input" />
+                            <div class="form-row">
+                                <input type="email" v-model="contactInfo.email" placeholder="Email"
+                                    class="form-input" />
+                                <input type="tel" v-model="contactInfo.phone" placeholder="Téléphone"
+                                    class="form-input" />
+                            </div>
                             <textarea v-model="contactInfo.message" placeholder="Message (optionnel)"
                                 class="form-textarea"></textarea>
                         </div>
                     </div>
                 </div>
-
                 <!-- Footer -->
                 <div class="modal-footer">
                     <div class="footer-left">
@@ -333,14 +333,11 @@ export default {
     data() {
         return {
             currentStep: 1,
-            loadingActivities: false,
-            loadingRooms: false,
-            loadingMenus: false,
+            loading: false,
             isSubmitting: false,
 
-            availableActivities: [],
-            availableRooms: [],
-            availableMenus: [],
+            // ✅ SIMPLIFIÉ : Une seule liste au lieu de 3
+            allProducts: [], // Tous les produits depuis /api/products
 
             selectedItems: { activities: [], room: null, menus: [] },
             selectedDates: { start: '', endExclusive: '', guests: 2 },
@@ -349,6 +346,36 @@ export default {
     },
 
     computed: {
+        // Filtrer seulement les types utiles pour les devis
+        relevantProducts() {
+            return this.allProducts.filter(p => {
+                const label = p.typeConfig?.label
+                return ['Activités', 'Menus', 'Hébergements', 'Rooms'].includes(label)
+            })
+        },
+
+        availableActivities() {
+            return this.relevantProducts.filter(p =>
+                p.typeConfig?.label === 'Activités'
+            )
+        },
+
+        availableMenus() {
+            return this.relevantProducts.filter(p =>
+                p.typeConfig?.label === 'Menus'
+            )
+        },
+
+        availableRooms() {
+            return this.relevantProducts.filter(p =>
+                p.typeConfig?.label === 'Hébergements' || p.typeConfig?.label === 'Rooms'
+            ).filter(room => {
+                const capacity = room.productable_data?.capacity || room.productableData?.capacity
+                if (!capacity) return true
+                return capacity >= this.selectedDates.guests
+            })
+        },
+
         calendarApi() { return this.$refs.fc?.getApi?.() },
         stepHelpText() {
             switch (this.currentStep) {
@@ -417,15 +444,31 @@ export default {
                 locale: 'fr',
                 initialView: 'dayGridMonth',
                 firstDay: 1,
+
+                // ✅ plus compact
                 height: 'auto',
-                fixedWeekCount: false,
-                headerToolbar: false,
+                contentHeight: 260,   // 240–300 si tu veux
+                aspectRatio: 1.6,
+                handleWindowResize: false,
+                headerToolbar: { left: 'prev,next today', center: 'title', right: '' },
+                dayHeaderFormat: { weekday: 'short' },
+                titleFormat: { year: 'numeric', month: 'long' },
                 selectable: true,
                 selectMirror: true,
+                fixedWeekCount: false,
                 validRange: { start: this.minDate },
+
+                // navigation natif
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: ''
+                },
+
                 select: this.fcOnSelect,
             }
         }
+
     },
 
     watch: {
@@ -436,56 +479,37 @@ export default {
         async initializeModal() {
             this.currentStep = 1
             this.resetSelections()
-            await Promise.all([this.loadActivities(), this.loadRooms(), this.loadMenus()])
+            await this.loadAllProducts()
             await nextTick()
         },
 
-        async loadActivities() {
-            this.loadingActivities = true
-            console.log('🔍 Début loadActivities')
-            try {
-                const res = await publicApi.getActivities({ per_page: 20, status: 'active' })
-                console.log('🔍 Réponse activités complète:', res)
-                console.log('🔍 res.data:', res?.data)
-                console.log('🔍 Type de res.data:', typeof res?.data)
+        async loadAllProducts() {
+            this.loading = true
+            console.log('🔍 Chargement de tous les produits...')
 
-                this.availableActivities = res?.data || []
-                console.log('🔍 Nombre d\'activités chargées:', this.availableActivities.length)
-            } catch (e) {
-                console.error('❌ Erreur chargement activités:', e)
-                console.error('❌ Détails erreur:', e.response?.data)
-                this.availableActivities = []
-            } finally {
-                this.loadingActivities = false
-            }
-        },
-
-        async loadMenus() {
-            this.loadingMenus = true
-            console.log('🔍 Début loadMenus')
             try {
-                const res = await publicApi.getMenus({ per_page: 20, status: 'active' })
-                console.log('🔍 Réponse menus:', res)
-                this.availableMenus = res?.data || []
-                console.log('🔍 Nombre de menus chargés:', this.availableMenus.length)
-            } catch (e) {
-                console.error('❌ Erreur chargement menus:', e)
-                this.availableMenus = []
-            } finally {
-                this.loadingMenus = false
-            }
-        },
+                // UN SEUL APPEL API pour tous les produits actifs
+                const response = await publicApi.getProducts({
+                    status: 'active',
+                    per_page: 100 // Assez pour avoir tous les produits actifs
+                })
+                console.log('🔍 Structure premier produit:', this.allProducts[0]) // AJOUTER CETTE LIGNE
 
-        async loadRooms() {
-            this.loadingRooms = true
-            try {
-                const res = await publicApi.getRooms({ per_page: 20, status: 'active' })
-                this.availableRooms = res?.data || []
-            } catch (e) {
-                console.error('Erreur chargement hébergements:', e)
-                this.availableRooms = []
+                this.allProducts = response?.data || []
+
+                console.log('✅ Produits chargés:', {
+                    total: this.allProducts.length,
+                    activities: this.availableActivities.length,
+                    menus: this.availableMenus.length,
+                    rooms: this.availableRooms.length,
+                    sample_product: this.allProducts[0] // Voir la structure
+                })
+
+            } catch (error) {
+                console.error('❌ Erreur chargement produits:', error)
+                this.allProducts = []
             } finally {
-                this.loadingRooms = false
+                this.loading = false
             }
         },
 
@@ -515,30 +539,6 @@ export default {
         nextStep() { if (this.canProceed && this.currentStep < 5) this.currentStep++ },
         previousStep() { if (this.currentStep > 1) this.currentStep-- },
 
-        async submitQuote() {
-            if (!this.canSubmit) return
-            this.isSubmitting = true
-            try {
-                const payload = {
-                    activities: this.selectedItems.activities.map(a => a.id),
-                    menus: this.selectedItems.menus.map(m => m.id),
-                    room: this.selectedItems.room?.id || null,
-                    dates: { ...this.selectedDates },
-                    contact: { ...this.contactInfo },
-                    total_price: this.totalPrice
-                }
-                await publicApi.createQuoteRequest(payload)
-                this.$emit('quote-submitted', payload)
-                this.closeModal()
-                alert('Votre demande de devis a été envoyée avec succès !')
-            } catch (e) {
-                console.error('Erreur envoi devis:', e)
-                alert('Une erreur est survenue. Veuillez réessayer.')
-            } finally {
-                this.isSubmitting = false
-            }
-        },
-
         closeModal() { this.$emit('close') },
 
         resetSelections() {
@@ -560,7 +560,6 @@ export default {
         displayEndInclusive(endExclusiveYmd) {
             const e = this.toUTCDateParts(endExclusiveYmd)
             if (e == null) return ''
-            // endExclusive - 1 jour (affichage)
             const d = new Date(e - 24 * 60 * 60 * 1000)
             const yyyy = d.getUTCFullYear()
             const mm = String(d.getUTCMonth() + 1).padStart(2, '0')
@@ -591,6 +590,7 @@ export default {
                 const reservationPayload = {
                     // Données client
                     customer_name: this.contactInfo.name,
+                    customer_last_name: this.contactInfo.last_name,
                     customer_email: this.contactInfo.email,
                     customer_phone: this.contactInfo.phone,
 
@@ -636,28 +636,29 @@ export default {
             this.isSubmitting = 'saving'
 
             try {
-                const quotePayload = {
-                    activities: this.selectedItems.activities.map(a => a.id),
-                    menus: this.selectedItems.menus.map(m => m.id),
-                    room: this.selectedItems.room?.id || null,
-                    dates: { ...this.selectedDates },
-                    contact: { ...this.contactInfo },
-                    total_price: this.totalPrice,
-                    quote_reference: this.generateQuoteReference()
-                }
+                // ✅ NOUVELLE STRUCTURE SIMPLE avec product_ids
+                const result = await publicApi.saveQuote({
+                    activities: this.selectedItems.activities.map(a => a.id), // IDs seulement
+                    menus: this.selectedItems.menus.map(m => m.id),           // IDs seulement
+                    room: this.selectedItems.room?.id || null,               // ID seulement
+                    dates: this.selectedDates,
+                    contact: this.contactInfo,
+                    total_price: this.totalPrice
+                })
 
-                const savedQuote = await publicApi.saveQuote(quotePayload)
+                // ✅ Message adapté au nouveau flow
+                this.showSuccessMessage(result.message || 'Devis sauvegardé ! Consultez vos emails.')
 
-                this.$emit('quote-saved', { quote: savedQuote, type: 'saved_quote' })
+                this.$emit('quote-saved', {
+                    quote: result.quote_request,
+                    type: 'email_validation_required'
+                })
+
                 this.closeModal()
-
-                // Afficher section contacts (scroll vers footer avec info contact)
-                this.showContactsSection()
-                this.showSuccessMessage('Devis sauvegardé ! Nos coordonnées sont affichées ci-dessous.')
 
             } catch (error) {
                 console.error('Erreur sauvegarde devis:', error)
-                this.showErrorMessage('Erreur lors de la sauvegarde. Veuillez réessayer.')
+                this.showErrorMessage(error.message)
             } finally {
                 this.isSubmitting = false
             }
@@ -732,6 +733,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+/* Styles identiques à l'original - pas de changement */
 $primary: #5e72e4;
 $success: #2dce89;
 $warning: #fb6340;
@@ -852,6 +854,7 @@ $terracotta: #c17c4a;
     object-fit: cover;
     display: block;
 }
+
 .step-help {
     background: rgba(94, 114, 228, 0.1);
     border-left: 4px solid #5e72e4;
@@ -860,11 +863,11 @@ $terracotta: #c17c4a;
     border-radius: 4px;
     font-size: 0.9rem;
     color: #5e72e4;
-    
+
     i {
         margin-right: 0.5rem;
     }
-    
+
     &.help-warning {
         background: rgba(251, 99, 64, 0.1);
         border-left-color: #fb6340;
@@ -946,20 +949,66 @@ $terracotta: #c17c4a;
     align-items: start;
 }
 
-.calendar {
-    width: 100%;
-    max-width: 850px;
-    margin: 0 auto 1rem;
-    border-radius: 12px;
-    overflow: hidden;
-    background: rgba(255, 255, 255, 0.9);
+/* ===== CALENDRIER COMPACT ===== */
+.calendar--compact :deep(.fc) {
+  width: 100%;
+  max-width: 520px;   /* ajuste 480–600 si tu veux */
+  margin: 0 auto 1rem; /* centre le bloc */
 }
 
+.calendar--compact :deep(.fc-daygrid-day-number) {
+    padding: 4px 6px;
+    font-size: 0.85rem;
+}
+
+.calendar--compact :deep(.fc-daygrid-day-frame) {
+    min-height: 30px; // cellules moins hautes
+}
+
+/* Header + nav boutons */
 .calendar-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: .5rem;
     margin-bottom: .5rem;
+}
+
+.calendar-nav {
+    display: inline-flex;
+    gap: .25rem;
+}
+
+.nav-btn {
+    border: 1px solid #ddd;
+    background: #fff;
+    border-radius: 8px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.nav-btn:hover {
+    background: #f8f8f8;
+}
+
+.nav-btn:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+/* accessibilité */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
 }
 
 .range-info,

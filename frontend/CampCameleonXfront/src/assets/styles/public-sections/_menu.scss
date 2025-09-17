@@ -3,11 +3,9 @@
 
 .menus-section {
   padding: 6rem 0;
-  background: linear-gradient(
-    135deg,
-    $cream 0%,
-    color.mix($cream, $sand, 70%) 100%
-  );
+  background: linear-gradient(135deg,
+      $cream 0%,
+      color.mix($cream, $sand, 70%) 100%);
   position: relative;
 
   &::before {
@@ -17,7 +15,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: 
+    background:
       radial-gradient(circle at 15% 85%, rgba($terracotta, 0.06) 0%, transparent 50%),
       radial-gradient(circle at 85% 15%, rgba($coffee, 0.04) 0%, transparent 50%);
     pointer-events: none;
@@ -50,14 +48,20 @@
   }
 }
 
+.menu-container {
+  display: flex;
+  justify-content: center;
+}
+
 // ========================================
 // GRILLE DES MENUS
 // ========================================
 .menus-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 2.5rem;
-  margin-bottom: 5rem;
+  width: 80%;
+  margin: 0 0 5rem 0;
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
@@ -125,12 +129,10 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(
-      180deg,
-      transparent 0%,
-      rgba($coffee, 0.1) 70%,
-      rgba($coffee, 0.3) 100%
-    );
+    background: linear-gradient(180deg,
+        transparent 0%,
+        rgba($coffee, 0.1) 70%,
+        rgba($coffee, 0.3) 100%);
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
@@ -322,8 +324,9 @@
 .menus-info {
   .info-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 2rem;
+    margin: 2rem;
 
     .info-card {
       background: rgba(white, 0.8);
@@ -382,6 +385,7 @@
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

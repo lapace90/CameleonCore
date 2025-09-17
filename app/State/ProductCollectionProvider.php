@@ -12,7 +12,6 @@ class ProductCollectionProvider implements ProviderInterface
 {
     public function __construct(private Request $request) {}
 
-    // Dans app/State/ProductCollectionProvider.php, modifiez la méthode provide() :
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): iterable
     {

@@ -1,9 +1,5 @@
 // frontend/CampCameleonXfront/src/services/PublicApi.js
-// ✅ Service public unifié : toutes les requêtes HTTP front passent par ici
-// - Parsing robuste (array brut, Laravel Resource, API Platform Hydra)
-// - Normalisation du param `type` (slug -> FQCN) via productConfigs
-// - Normalisation des objets produits (typeConfig, productableDetail/Data, placeholders)
-// - Cache simple en mémoire (5 minutes)
+// ✅ Service public unifié - LOGIQUE SIMPLE avec product_ids
 
 import axios from 'axios'
 import { getProductableType, buildTypeConfigFromProductableType } from '@/shared/configs/productConfigs'
@@ -75,10 +71,10 @@ class PublicApi {
 
     const pagination = (payload && typeof payload === 'object' && payload.pagination)
       ? {
-          current_page: payload.pagination.current_page ?? 1,
-          last_page: payload.pagination.last_page ?? 1,
-          total: payload.pagination.total ?? items.length,
-        }
+        current_page: payload.pagination.current_page ?? 1,
+        last_page: payload.pagination.last_page ?? 1,
+        total: payload.pagination.total ?? items.length,
+      }
       : { current_page: 1, last_page: 1, total: items.length }
 
     return { data: items, pagination }
@@ -178,7 +174,7 @@ class PublicApi {
     })
     return response.data
   }
-  
+
   // =============================
   // Réservations directes
   // =============================
@@ -191,14 +187,169 @@ class PublicApi {
   }
 
   // =============================
-  // Sauvegarde devis (pour suivi ultérieur)
+  // SAUVEGARDE DEVIS - VERSION SIMPLIFIÉE
   // =============================
+  
   async saveQuote(payload) {
-    const url = `${this.baseURL}/saved-quotes`
-    const response = await axios.post(url, { ...payload, status: 'saved' }, {
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' }
-    })
-    return response.data
+    try {
+      // 🎯 Nouveau endpoint API Platform avec validation email
+      const url = `${this.baseURL}/quote-requests`
+      
+      // 📋 LOGIQUE SIMPLE : Collecter tous les product_ids sélectionnés
+      const productIds = []
+      
+      // Ajouter les IDs des activités sélectionnées
+      if (payload.activities && Array.isArray(payload.activities)) {
+        productIds.push(...payload.activities) // payload.activities contient déjà les IDs
+      }
+      
+      // Ajouter les IDs des menus sélectionnés  
+      if (payload.menus && Array.isArray(payload.menus)) {
+        productIds.push(...payload.menus) // payload.menus contient déjà les IDs
+      }
+      
+      // Ajouter l'ID de l'hébergement sélectionné
+      if (payload.room) {
+        productIds.push(payload.room) // payload.room contient l'ID
+      }
+
+      // 📋 Payload simplifié pour QuoteRequest
+      const requestData = {
+        // ✅ SIMPLE : Liste plate des product_ids
+        product_ids: productIds,
+        
+        // ✅ Contact client (extraction depuis payload existant)
+        email: payload.contact?.email || payload.email,
+        name: payload.contact?.name || payload.name,
+        phone: payload.contact?.phone || payload.phone,
+        message: payload.contact?.message || payload.message,
+        
+        // ✅ Dates séjour
+        dates: {
+          checkin: payload.dates?.start || payload.dates?.checkin,
+          checkout: payload.dates?.endExclusive || payload.dates?.checkout,
+          guests: payload.dates?.guests || 2
+        },
+        
+        // ✅ Prix total
+        total_price: payload.total_price || payload.amount || 0,
+        
+        // ✅ Source
+        source: 'website'
+      }
+
+      console.log('💾 Envoi demande devis SIMPLE:', {
+        endpoint: url,
+        email: requestData.email,
+        product_ids: requestData.product_ids,
+        total_price: requestData.total_price,
+        dates: requestData.dates
+      })
+
+      // 📨 Appel API - Créera le devis + enverra email validation
+      const response = await axios.post(url, requestData, {
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Accept': 'application/json' 
+        }
+      })
+
+      // 📊 Log succès
+      console.log('✅ Devis créé avec succès:', {
+        id: response.data.id,
+        reference: response.data.quote_reference,
+        status: response.data.status,
+        email: response.data.email,
+        products_count: response.data.selected_product_ids?.length || 0
+      })
+
+      return {
+        success: true,
+        quote_request: response.data,
+        message: 'Devis sauvegardé ! Un email de confirmation vous a été envoyé.',
+        next_step: 'validation_email'
+      }
+
+    } catch (error) {
+      console.error('❌ Erreur sauvegarde devis:', error)
+      
+      // 🛡️ Gestion erreurs spécifiques
+      if (error.response?.status === 422) {
+        const violations = error.response.data.violations || []
+        const errorMessages = violations.map(v => v.message).join(', ')
+        throw new Error(`Données invalides: ${errorMessages}`)
+      }
+      
+      if (error.response?.status === 429) {
+        throw new Error('Trop de demandes. Veuillez patienter avant de réessayer.')
+      }
+      
+      if (error.message.includes('email invalide')) {
+        throw new Error('Adresse email invalide. Veuillez vérifier et réessayer.')
+      }
+
+      throw new Error('Erreur lors de la sauvegarde. Veuillez réessayer.')
+    }
+  }
+
+  // =============================
+  // NOUVELLE MÉTHODE : Validation devis via email
+  // =============================
+
+  /**
+   * Valider un devis via le token reçu par email
+   * @param {number} quoteId - ID du devis
+   * @param {string} token - Token de validation
+   */
+  async validateQuote(quoteId, token) {
+    try {
+      const url = `${this.baseURL}/quote-requests/${quoteId}/validate/${token}`
+      
+      console.log('🔐 Validation devis:', { quoteId, url })
+      
+      const response = await axios.get(url, {
+        headers: { 'Accept': 'application/json' }
+      })
+
+      console.log('✅ Devis validé:', response.data)
+
+      return {
+        success: true,
+        quote_request: response.data,
+        message: response.data.status === 'validated' 
+          ? 'Devis validé ! Il vous a été envoyé par email.'
+          : 'Lien expiré ou invalide.',
+        validated: response.data.status === 'validated'
+      }
+
+    } catch (error) {
+      console.error('❌ Erreur validation devis:', error)
+      
+      if (error.response?.status === 404) {
+        throw new Error('Devis introuvable ou lien invalide.')
+      }
+      
+      throw new Error('Erreur lors de la validation.')
+    }
+  }
+
+  // =============================
+  // MÉTHODE HELPER : Vérifier statut devis
+  // =============================
+
+  /**
+   * Vérifier le statut d'un devis
+   * @param {string} reference - Référence du devis
+   */
+  async checkQuoteStatus(reference) {
+    try {
+      const url = `${this.baseURL}/quote-requests/status/${reference}`
+      const response = await axios.get(url)
+      return response.data
+    } catch (error) {
+      console.error('Erreur vérification statut:', error)
+      throw new Error('Impossible de vérifier le statut du devis.')
+    }
   }
 
   // =============================

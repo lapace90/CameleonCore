@@ -11,18 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('customers', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->string('phone');
-            $table->string('address')->nullable();
-            $table->string('city')->nullable();
-            $table->string('state')->nullable();
-            $table->string('postal_code')->nullable();
-            $table->string('country')->nullable();
-            $table->text('notes')->nullable();
-            $table->timestamps();
+        // Migration pour Customer
+        Schema::table('customers', function (Blueprint $table) {
+            $table->string('last_name')->after('name');
+            $table->timestamp('email_verified_at')->nullable();
+            $table->string('limited_token', 64)->nullable();
+            $table->timestamp('token_expires_at')->nullable();
+
+            $table->index('limited_token');
+            $table->index(['email', 'email_verified_at']);
         });
     }
 

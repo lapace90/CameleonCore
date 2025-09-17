@@ -75,7 +75,10 @@ export default {
     name: 'DevisSection',
     components: { QuoteModal },
     data() {
-        return { showQuote: false }
+        return {
+            showQuote: false,
+            isLoading: false  // ✅ AJOUTER CETTE LIGNE
+        }
     },
     methods: {
         onBooking(data) {

@@ -1,14 +1,14 @@
 <template>
   <section class="menus-section">
-    <div class="container">
-      <!-- En-tête de section -->
-      <div class="menu-section-header">
-        <h2 class="menu-section-title-front">Venez découvrir les saveurs du désert</h2>
-        <p class="section-subtitle">
-          Une cuisine authentique préparée avec amour au cœur du Sahara
-        </p>
-      </div>
-
+    <!-- En-tête de section -->
+    <div class="menu-section-header">
+      <h2 class="menu-section-title-front">Venez découvrir les saveurs du désert</h2>
+      <p class="section-subtitle">
+        Une cuisine authentique préparée avec amour au cœur du Sahara
+      </p>
+    </div>
+    
+    <div class="menu-container">
       <!-- Grille des menus -->
       <div class="menus-grid">
         <div v-for="(menu, index) in menus" :key="index" class="menu-card" :class="{ featured: menu.featured }"
@@ -75,7 +75,7 @@
           </div>
         </div>
       </div>
-
+  </div>
       <!-- Section informations complémentaires -->
       <div class="menus-info">
         <div class="info-cards">
@@ -102,7 +102,7 @@
           </div>
         </div>
       </div>
-    </div>
+  
   </section>
   <!-- MODALE DÉTAIL MENU -->
   <Teleport to="body">
