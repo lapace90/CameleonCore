@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
@@ -51,15 +52,12 @@ class QuoteRequest extends Model
 
     protected $fillable = [
         'selected_product_ids',
-        'email',
-        'name',
-        'phone',
+        'customer_id',
         'message',
         'checkin_date',
         'checkout_date',
         'guests',
         'validation_token',
-        'email_verified_at',
         'token_expires_at',
         'status',
         'quote_reference',
@@ -73,6 +71,7 @@ class QuoteRequest extends Model
         'selected_product_ids' => 'array',
         'email_verified_at' => 'datetime',
         'token_expires_at' => 'datetime',
+        'customer_id' => 'integer',
         'checkin_date' => 'date',
         'checkout_date' => 'date',
         'total_amount' => 'decimal:2',
@@ -88,11 +87,15 @@ class QuoteRequest extends Model
      */
     public static function createFromQuoteData(array $data): self
     {
+        if (!array_key_exists('customer_id', $data)) {
+            throw new \InvalidArgumentException('A customer_id is required to create a quote request.');
+        }
+
+        $request = app()->bound('request') ? request() : null;
+
         return self::create([
             'selected_product_ids' => $data['product_ids'] ?? [],
-            'email' => $data['email'],
-            'name' => $data['name'] ?? null,
-            'phone' => $data['phone'] ?? null,
+            'customer_id' => $data['customer_id'],
             'message' => $data['message'] ?? null,
             'checkin_date' => $data['checkin_date'] ?? null,
             'checkout_date' => $data['checkout_date'] ?? null,
@@ -103,8 +106,8 @@ class QuoteRequest extends Model
             'quote_reference' => self::generateQuoteReference(),
             'total_amount' => $data['total_amount'] ?? 0,
             'source' => $data['source'] ?? 'website',
-            'ip_address' => request()->ip(),
-            'user_agent' => request()->userAgent()
+            'ip_address' => $request?->ip(),
+            'user_agent' => $request?->userAgent()
         ]);
     }
 
@@ -201,12 +204,13 @@ class QuoteRequest extends Model
      */
     public function getEmailDataAttribute(): array
     {
+        $customer = $this->customer;
         return [
             'reference' => $this->quote_reference,
             'client' => [
-                'name' => $this->name,
-                'email' => $this->email,
-                'phone' => $this->phone,
+                'name' => $customer?->name,
+                'email' => $customer?->email,
+                'phone' => $customer?->phone,
                 'guests' => $this->guests
             ],
             'dates' => [
@@ -255,6 +259,32 @@ class QuoteRequest extends Model
     {
         return config('app.frontend_url') . "/validate-quote/{$this->id}/{$this->validation_token}";
     }
+
+     public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
+    public function getNameAttribute(): ?string
+    {
+        return optional($this->customer)->name;
+    }
+
+    public function getLastNameAttribute(): ?string
+    {
+        return optional($this->customer)->last_name;
+    }
+
+    public function getEmailAttribute(): ?string
+    {
+        return optional($this->customer)->email;
+    }
+
+    public function getPhoneAttribute(): ?string
+    {
+        return optional($this->customer)->phone;
+    }
+
 
     // ===========================
     // HELPERS PRIVÉS

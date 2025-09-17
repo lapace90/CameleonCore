@@ -12,7 +12,7 @@ use App\Models\Product;
 use App\Services\EmailValidationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Models\Customer; 
+use App\Models\Customer;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -74,20 +74,24 @@ class QuoteRequestProcessor implements ProcessorInterface
         $this->checkRateLimit();
 
         // ✅ 3. Préparation données - STRUCTURE SIMPLE !
-        $quoteData = [
-            'product_ids' => $payload['product_ids'] ?? [], // Liste plate : [1, 2, 5, 8]
+        $contactData = [
             'email' => $payload['email'],
             'name' => $payload['contact']['name'] ?? $payload['name'] ?? null,
+            'last_name' => $payload['contact']['last_name'] ?? $payload['last_name'] ?? null,
             'phone' => $payload['contact']['phone'] ?? $payload['phone'] ?? null,
+        ];
+
+        $quoteData = [
+            'product_ids' => $payload['product_ids'] ?? [], // Liste plate : [1, 2, 5, 8]
             'message' => $payload['contact']['message'] ?? $payload['message'] ?? null,
-            
             // ✅ Dates du séjour
             'checkin_date' => $payload['dates']['checkin'] ?? $payload['dates']['start'] ?? null,
             'checkout_date' => $payload['dates']['checkout'] ?? $payload['dates']['endExclusive'] ?? null,
             'guests' => $payload['dates']['guests'] ?? $payload['guests'] ?? 2,
-            
+
             'total_amount' => $payload['total_price'] ?? 0,
-            'source' => 'website'
+            'source' => 'website',
+            'customer_id' => $this->findOrCreateCustomer($contactData),
         ];
 
         // ✅ 4. Validation des product_ids
@@ -126,7 +130,7 @@ class QuoteRequestProcessor implements ProcessorInterface
         if ($quoteRequest->validateWithToken($token)) {
             // ✅ Token valide - Envoi du devis par email
             $this->sendQuoteConfirmation($quoteRequest);
-            
+
             Log::info('✅ Validation réussie - Devis envoyé', [
                 'id' => $quoteRequest->id,
                 'email' => $quoteRequest->email,
@@ -275,7 +279,7 @@ class QuoteRequestProcessor implements ProcessorInterface
         if (isset($context['request']) && $context['request'] instanceof Request) {
             $request = $context['request'];
             $content = $request->getContent();
-            
+
             if ($content) {
                 $decoded = json_decode($content, true);
                 if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
@@ -298,21 +302,29 @@ class QuoteRequestProcessor implements ProcessorInterface
         throw new \InvalidArgumentException('Données de requête introuvables');
     }
 
-    // Dans QuoteRequestProcessor
-private function findOrCreateCustomer(array $payload): int 
-{
-    $email = $payload['email'];
-    
-    $customer = Customer::where('email', $email)->first();
-    
-    if (!$customer) {
-        $customer = Customer::create([
-            'name' => $payload['name'],
-            'email' => $payload['email'], 
-            'phone' => $payload['phone']
+    private function findOrCreateCustomer(array $payload): int
+    {
+        $email = $payload['email'] ?? null;
+
+        if (!$email) {
+            throw new \InvalidArgumentException('Adresse email du client manquante');
+        }
+
+        $customer = Customer::firstOrNew(['email' => $email]);
+
+        $customer->fill([
+            'name' => $payload['name'] ?? $customer->name ?? 'Client',
+            'last_name' => $payload['last_name'] ?? $customer->last_name ?? ($payload['name'] ?? 'Client'),
         ]);
+
+        if (array_key_exists('phone', $payload) && $payload['phone'] !== null) {
+            $customer->phone = $payload['phone'];
+        }
+
+        if (!$customer->exists || $customer->isDirty()) {
+            $customer->save();
+        }
+
+        return $customer->id;
     }
-    
-    return $customer->id;
-}
 }

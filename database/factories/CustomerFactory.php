@@ -24,15 +24,16 @@ class CustomerFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->name(),
+            'name' => $this->faker->firtName(),
+            'last_name' => $this->faker->lastName(),
             'email' => $this->faker->unique()->safeEmail(),
-            'phone' => $this->faker->phoneNumber(),
-            'address' => $this->faker->address(),
-            'city' => $this->faker->city(),
-            'state' => $this->faker->state(),
-            'postal_code' => $this->faker->postcode(),
-            'country' => $this->faker->country(),
-            'notes' => $this->faker->text(200),
+            'phone' => $this->faker->optional()->phoneNumber(),
+            'address' => $this->faker->optional()->streetAddress(),
+            'city' => $this->faker->optional()->city(),
+            'state' => $this->faker->optional()->state(),
+            'postal_code' => $this->faker->optional()->postcode(),
+            'country' => $this->faker->optional()->country(),
+            'email_verified_at' => null,
         ];
     }
 }
