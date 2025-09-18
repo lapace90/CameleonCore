@@ -3,7 +3,13 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Admin\SettingsController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\StripeController;
 
+
+Route::prefix('stripe')->group(function () {
+    // Créer une session de paiement depuis un devis validé
+    Route::post('/create-payment-session', [StripeController::class, 'createPaymentSession']);
+});
 
 // 🔐 Auth - ça marche
 Route::prefix('auth')->group(function () {

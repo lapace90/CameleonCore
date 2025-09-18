@@ -189,106 +189,120 @@ class PublicApi {
   // =============================
   // SAUVEGARDE DEVIS - VERSION SIMPLIFIÉE
   // =============================
-  
+
   async saveQuote(payload) {
     try {
-      // 🎯 Nouveau endpoint API Platform avec validation email
       const url = `${this.baseURL}/quote-requests`
-      
-      // 📋 LOGIQUE SIMPLE : Collecter tous les product_ids sélectionnés
-      const productIds = []
-      
-      // Ajouter les IDs des activités sélectionnées
-      if (payload.activities && Array.isArray(payload.activities)) {
-        productIds.push(...payload.activities) // payload.activities contient déjà les IDs
-      }
-      
-      // Ajouter les IDs des menus sélectionnés  
-      if (payload.menus && Array.isArray(payload.menus)) {
-        productIds.push(...payload.menus) // payload.menus contient déjà les IDs
-      }
-      
-      // Ajouter l'ID de l'hébergement sélectionné
-      if (payload.room) {
-        productIds.push(payload.room) // payload.room contient l'ID
+
+      console.log('🔍 DEBUG PublicApi - Payload reçu:', payload);
+
+      // ✅ CORRECTION : Utiliser directement product_ids du payload
+      let productIds = [];
+
+      if (payload.product_ids && Array.isArray(payload.product_ids)) {
+        // ✅ Nouveau format depuis QuoteModal (direct)
+        productIds = payload.product_ids;
+        console.log('✅ Product IDs trouvés directement:', productIds);
+      } else {
+        // ✅ Fallback ancienne structure (pour compatibility)
+        if (payload.activities && Array.isArray(payload.activities)) {
+          productIds.push(...payload.activities);
+        }
+        if (payload.menus && Array.isArray(payload.menus)) {
+          productIds.push(...payload.menus);
+        }
+        if (payload.room) {
+          productIds.push(payload.room);
+        }
+        console.log('✅ Product IDs reconstruits:', productIds);
       }
 
-      // 📋 Payload simplifié pour QuoteRequest
+      // ✅ Validation critique
+      if (!productIds || productIds.length === 0) {
+        console.error('❌ Aucun product_id trouvé:', payload);
+        throw new Error('Aucun produit sélectionné. Veuillez sélectionner au moins un hébergement.');
+      }
+
+      // ✅ Payload backend corrigé
       const requestData = {
-        // ✅ SIMPLE : Liste plate des product_ids
+        // ✅ Contact
+        email: payload.email || payload.contact?.email,
+        contact: {
+          name: payload.contact?.name || payload.name,
+          last_name: payload.contact?.last_name || payload.last_name,
+          phone: payload.contact?.phone || payload.phone,
+          message: payload.contact?.message || payload.message || ''
+        },
+
+        // ✅ CLEF : Product IDs (garantis non vides)
         product_ids: productIds,
-        
-        // ✅ Contact client (extraction depuis payload existant)
-        email: payload.contact?.email || payload.email,
-        name: payload.contact?.name || payload.name,
-        phone: payload.contact?.phone || payload.phone,
-        message: payload.contact?.message || payload.message,
-        
-        // ✅ Dates séjour
+
+        // ✅ Dates
         dates: {
-          checkin: payload.dates?.start || payload.dates?.checkin,
-          checkout: payload.dates?.endExclusive || payload.dates?.checkout,
+          checkin: payload.dates?.checkin || payload.dates?.start,
+          endExclusive: payload.dates?.endExclusive || payload.dates?.checkout,
           guests: payload.dates?.guests || 2
         },
-        
-        // ✅ Prix total
-        total_price: payload.total_price || payload.amount || 0,
-        
-        // ✅ Source
-        source: 'website'
-      }
 
-      console.log('💾 Envoi demande devis SIMPLE:', {
+        // ✅ Prix
+        total_price: payload.total_price || payload.amount || 0,
+        source: 'website'
+      };
+
+      console.log('💾 Envoi demande devis CORRIGÉ:', {
         endpoint: url,
         email: requestData.email,
-        product_ids: requestData.product_ids,
+        product_ids: requestData.product_ids,  // ← Plus jamais vide !
+        product_ids_count: requestData.product_ids.length,
         total_price: requestData.total_price,
         dates: requestData.dates
-      })
+      });
 
-      // 📨 Appel API - Créera le devis + enverra email validation
+      // ✅ Appel API
       const response = await axios.post(url, requestData, {
-        headers: { 
-          'Content-Type': 'application/json', 
-          'Accept': 'application/json' 
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         }
-      })
+      });
 
-      // 📊 Log succès
       console.log('✅ Devis créé avec succès:', {
         id: response.data.id,
         reference: response.data.quote_reference,
         status: response.data.status,
         email: response.data.email,
         products_count: response.data.selected_product_ids?.length || 0
-      })
+      });
 
       return {
         success: true,
         quote_request: response.data,
         message: 'Devis sauvegardé ! Un email de confirmation vous a été envoyé.',
         next_step: 'validation_email'
-      }
+      };
 
     } catch (error) {
-      console.error('❌ Erreur sauvegarde devis:', error)
-      
-      // 🛡️ Gestion erreurs spécifiques
+      console.error('❌ Erreur sauvegarde devis:', error);
+
       if (error.response?.status === 422) {
-        const violations = error.response.data.violations || []
-        const errorMessages = violations.map(v => v.message).join(', ')
-        throw new Error(`Données invalides: ${errorMessages}`)
-      }
-      
-      if (error.response?.status === 429) {
-        throw new Error('Trop de demandes. Veuillez patienter avant de réessayer.')
-      }
-      
-      if (error.message.includes('email invalide')) {
-        throw new Error('Adresse email invalide. Veuillez vérifier et réessayer.')
+        const violations = error.response.data.violations || [];
+        const errorMessages = violations.map(v => v.message).join(', ');
+        throw new Error(`Données invalides: ${errorMessages}`);
       }
 
-      throw new Error('Erreur lors de la sauvegarde. Veuillez réessayer.')
+      if (error.response?.status === 429) {
+        throw new Error('Trop de demandes. Veuillez patienter avant de réessayer.');
+      }
+
+      if (error.response?.status === 500) {
+        throw new Error('Erreur serveur. Veuillez réessayer dans quelques instants.');
+      }
+
+      if (error.message.includes('email invalide')) {
+        throw new Error('Adresse email invalide. Veuillez vérifier et réessayer.');
+      }
+
+      throw new Error('Erreur lors de la sauvegarde. Veuillez réessayer.');
     }
   }
 
@@ -304,9 +318,9 @@ class PublicApi {
   async validateQuote(quoteId, token) {
     try {
       const url = `${this.baseURL}/quote-requests/${quoteId}/validate/${token}`
-      
+
       console.log('🔐 Validation devis:', { quoteId, url })
-      
+
       const response = await axios.get(url, {
         headers: { 'Accept': 'application/json' }
       })
@@ -316,7 +330,7 @@ class PublicApi {
       return {
         success: true,
         quote_request: response.data,
-        message: response.data.status === 'validated' 
+        message: response.data.status === 'validated'
           ? 'Devis validé ! Il vous a été envoyé par email.'
           : 'Lien expiré ou invalide.',
         validated: response.data.status === 'validated'
@@ -324,13 +338,149 @@ class PublicApi {
 
     } catch (error) {
       console.error('❌ Erreur validation devis:', error)
-      
+
       if (error.response?.status === 404) {
         throw new Error('Devis introuvable ou lien invalide.')
       }
-      
+
       throw new Error('Erreur lors de la validation.')
     }
+  }
+  /**
+   * Créer une session de paiement Stripe depuis un devis validé
+   * @param {number} quoteId - ID du devis validé
+   */
+  async createStripeSession(quoteId) {
+    try {
+      const url = `${this.baseURL}/stripe/create-payment-session`;
+
+      console.log('💳 Création session Stripe:', { quoteId, url });
+
+      const response = await axios.post(url, {
+        quote_id: quoteId
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+
+      console.log('✅ Session Stripe créée:', {
+        session_id: response.data.session_id,
+        quote_reference: response.data.quote_reference
+      });
+
+      return {
+        success: true,
+        session_id: response.data.session_id,
+        checkout_url: response.data.checkout_url,
+        quote_reference: response.data.quote_reference
+      };
+
+    } catch (error) {
+      console.error('❌ Erreur création session Stripe:', error);
+
+      // Gestion erreurs spécifiques
+      if (error.response?.status === 400) {
+        const errorData = error.response.data;
+        if (errorData.error.includes('validé par email')) {
+          throw new Error('Le devis doit être validé par email avant le paiement');
+        }
+        throw new Error(errorData.error || 'Devis invalide pour le paiement');
+      }
+
+      if (error.response?.status === 422) {
+        const violations = error.response.data.details || {};
+        const errorMessages = Object.values(violations).flat().join(', ');
+        throw new Error(`Données invalides: ${errorMessages}`);
+      }
+
+      if (error.response?.status === 404) {
+        throw new Error('Devis introuvable. Veuillez refaire une demande de devis.');
+      }
+
+      throw new Error('Erreur lors de la création de la session de paiement. Veuillez réessayer.');
+    }
+  }
+
+  /**
+   * Demander un conseil personnalisé
+   * @param {Object} adviceData - Données pour la demande de conseil
+   */
+  async requestAdvice(adviceData) {
+    try {
+      // Pour l'instant, utiliser le même endpoint que les devis
+      // mais avec un flag spécial pour identifier que c'est une demande de conseil
+      const requestData = {
+        email: adviceData.email,
+        contact: {
+          name: adviceData.contact.name,
+          last_name: adviceData.contact.last_name,
+          phone: adviceData.contact.phone,
+          message: `[DEMANDE CONSEIL] ${adviceData.message || 'Conseil personnalisé demandé'}`
+        },
+        product_ids: adviceData.selected_products ?
+          this.extractProductIds(adviceData.selected_products) : [],
+        dates: adviceData.dates,
+        total_price: adviceData.total_price || 0,
+        source: 'website_advice' // Identifier le type de demande
+      };
+
+      console.log('👨‍💼 Envoi demande conseil:', {
+        email: requestData.email,
+        message_preview: requestData.contact.message.substring(0, 100) + '...'
+      });
+
+      // Utiliser le même endpoint pour créer un "devis-conseil"
+      const response = await this.saveQuote(requestData);
+
+      if (response.success) {
+        console.log('✅ Demande conseil créée:', {
+          reference: response.quote_request.quote_reference,
+          type: 'conseil'
+        });
+
+        return {
+          success: true,
+          advice_request: response.quote_request,
+          message: 'Demande de conseil transmise avec succès ! Nous vous contacterons rapidement.'
+        };
+      }
+
+      return response;
+
+    } catch (error) {
+      console.error('❌ Erreur demande conseil:', error);
+      throw new Error('Erreur lors de l\'envoi de la demande de conseil. Veuillez réessayer.');
+    }
+  }
+
+  /**
+   * Extraire les IDs des produits depuis l'objet complexe
+   */
+  extractProductIds(selectedProducts) {
+    const ids = [];
+
+    // Activités
+    if (selectedProducts.activities) {
+      selectedProducts.activities.forEach(activity => {
+        if (activity.id) ids.push(activity.id);
+      });
+    }
+
+    // Hébergement
+    if (selectedProducts.room && selectedProducts.room.id) {
+      ids.push(selectedProducts.room.id);
+    }
+
+    // Menus
+    if (selectedProducts.menus) {
+      selectedProducts.menus.forEach(menu => {
+        if (menu.id) ids.push(menu.id);
+      });
+    }
+
+    return ids;
   }
 
   // =============================

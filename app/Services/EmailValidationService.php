@@ -19,7 +19,7 @@ class EmailValidationService
         'yopmail.com',
         '0-mail.com',
         '33mail.com',
-        // Ajoutez d'autres domaines suspects selon vos besoins
+        // Ajouter d'autres domaines suspects selon besoins
     ];
 
     // Domaines email autorisés (liste blanche optionnelle)

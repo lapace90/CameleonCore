@@ -228,7 +228,7 @@
                                 </div>
                                 <div class="summary-item">
                                     <span>{{ selectedDates.guests }} personne{{ selectedDates.guests > 1 ? 's' : ''
-                                        }}</span>
+                                    }}</span>
                                 </div>
                             </div>
 
@@ -583,118 +583,223 @@ export default {
         },
         // Action 1: Créer réservation directe + paiement
         async createReservationAndPay() {
-            if (!this.canSubmit) return
-            this.isSubmitting = 'booking'
+            if (!this.canSubmit || this.isSubmitting) return;
+
+            this.isSubmitting = 'booking';
 
             try {
-                const reservationPayload = {
-                    // Données client
-                    customer_name: this.contactInfo.name,
-                    customer_last_name: this.contactInfo.last_name,
-                    customer_email: this.contactInfo.email,
-                    customer_phone: this.contactInfo.phone,
+                console.log('💳 Début processus paiement Stripe');
 
-                    // Données réservation
-                    checkin: this.selectedDates.start,
-                    checkout: this.selectedDates.endExclusive,
-                    number_of_adults: this.selectedDates.guests,
-                    number_of_children: 0,
-
-                    // Produits sélectionnés
-                    products: [
-                        ...this.selectedItems.activities.map(a => ({ id: a.id, type: 'activity', price: a.price })),
-                        ...this.selectedItems.menus.map(m => ({ id: m.id, type: 'menu', price: m.price })),
-                        ...(this.selectedItems.room ? [{ id: this.selectedItems.room.id, type: 'room', price: this.selectedItems.room.price * this.durationInDays }] : [])
-                    ],
-
-                    amount: this.totalPrice,
-                    booking_source: 'website',
-                    payment_status: 'pending',
-                    status: 'pending',
-                    comment: this.contactInfo.message || 'Réservation via devis en ligne'
+                // 1. Vérifier qu'on a bien un hébergement (obligatoire)
+                if (!this.selectedItems.room) {
+                    throw new Error('Veuillez sélectionner un hébergement avant de procéder au paiement.');
                 }
 
-                const reservation = await publicApi.createReservation(reservationPayload)
+                // 2. Créer le devis avec la méthode corrigée
+                const quoteResponse = await this.saveQuote();
 
-                this.$emit('booking-confirmed', { reservation, type: 'direct_booking' })
-                this.closeModal()
+                if (!quoteResponse.success) {
+                    throw new Error(quoteResponse.message || 'Impossible de créer le devis');
+                }
 
-                // Redirection vers paiement (à adapter selon votre système de paiement)
-                this.showSuccessMessage('Réservation créée ! Redirection vers le paiement...')
+                const quote = quoteResponse.quote_request;
+                console.log('✅ Devis créé:', {
+                    id: quote.id,
+                    reference: quote.quote_reference,
+                    status: quote.status,
+                    product_ids: quote.selected_product_ids
+                });
+
+                // 3. Vérifier le statut du devis pour Stripe
+                if (quote.status === 'draft') {
+                    // Devis pas encore validé par email
+                    this.showEmailValidationRequired(quote);
+                    return;
+                }
+
+                // 4. Créer la session Stripe
+                const paymentResponse = await this.createStripeSession(quote.id);
+
+                if (!paymentResponse.success) {
+                    throw new Error(paymentResponse.error || 'Impossible de créer la session de paiement');
+                }
+
+                console.log('🚀 Redirection vers Stripe:', paymentResponse.checkout_url);
+
+                // 5. Rediriger vers Stripe Checkout
+                window.location.href = paymentResponse.checkout_url;
 
             } catch (error) {
-                console.error('Erreur création réservation:', error)
-                this.showErrorMessage('Erreur lors de la réservation. Veuillez réessayer.')
+                console.error('❌ Erreur processus paiement:', error);
+
+                if (error.message.includes('hébergement')) {
+                    alert('🏕️ Hébergement obligatoire\n\nVeuillez sélectionner un hébergement à l\'étape 4 avant de procéder au paiement.');
+                    this.currentStep = 4; // Retour à l'étape hébergement
+                } else if (error.message.includes('validé par email')) {
+                    alert('⚠️ Validation email requise\n\nVotre devis doit être validé par email avant le paiement.\nVérifiez votre boîte mail.');
+                } else {
+                    alert('❌ Erreur\n\n' + error.message);
+                }
+
             } finally {
-                this.isSubmitting = false
+                this.isSubmitting = false;
+            }
+        },
+
+        /**
+         * Afficher le modal pour validation email requise
+         */
+        showEmailValidationRequired(quote) {
+            this.closeModal();
+
+            // Message personnalisé pour validation email
+            const message = `
+        📧 Validation email requise
+        
+        Votre devis ${quote.quote_reference} a été créé !
+        
+        Pour procéder au paiement, vous devez d'abord :
+        1. Vérifier votre boîte email (${quote.email || this.contactInfo.email})
+        2. Cliquer sur le lien de validation
+        3. Revenir ici pour effectuer le paiement
+        
+        Le lien est valable 48h.
+    `;
+
+            alert(message);
+
+            // Optionnel : rediriger vers une page dédiée
+            // window.location.href = '/email-validation-pending?quote=' + quote.reference;
+        },
+        /**
+         * Créer une session Stripe depuis un devis validé
+         */
+        async createStripeSession(quoteId) {
+            try {
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/stripe/create-payment-session`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        quote_id: quoteId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    console.error('❌ Erreur API Stripe:', {
+                        status: response.status,
+                        data: data
+                    });
+                    throw new Error(data.error || 'Erreur lors de la création de la session de paiement');
+                }
+
+                console.log('✅ Session Stripe créée:', {
+                    session_id: data.session_id,
+                    quote_reference: data.quote_reference
+                });
+
+                return data;
+
+            } catch (error) {
+                console.error('❌ Erreur createStripeSession:', error);
+                throw error;
             }
         },
 
         // Action 2: Sauvegarder devis + afficher contacts
         async saveQuoteAndShowContacts() {
-            if (!this.canSubmit) return
-            this.isSubmitting = 'saving'
+            if (!this.canSubmit || this.isSubmitting) return;
+
+            this.isSubmitting = 'saving';
 
             try {
-                // ✅ NOUVELLE STRUCTURE SIMPLE avec product_ids
-                const result = await publicApi.saveQuote({
-                    activities: this.selectedItems.activities.map(a => a.id), // IDs seulement
-                    menus: this.selectedItems.menus.map(m => m.id),           // IDs seulement
-                    room: this.selectedItems.room?.id || null,               // ID seulement
-                    dates: this.selectedDates,
-                    contact: this.contactInfo,
-                    total_price: this.totalPrice
-                })
+                console.log('💾 Sauvegarde devis pour validation email');
 
-                // ✅ Message adapté au nouveau flow
-                this.showSuccessMessage(result.message || 'Devis sauvegardé ! Consultez vos emails.')
+                // ✅ Vérifier qu'on a au moins un hébergement
+                if (!this.selectedItems.room) {
+                    throw new Error('Veuillez sélectionner un hébergement avant de sauvegarder le devis.');
+                }
 
-                this.$emit('quote-saved', {
-                    quote: result.quote_request,
-                    type: 'email_validation_required'
-                })
+                // ✅ Utiliser la même méthode saveQuote() pour la cohérence
+                const result = await this.saveQuote();
 
-                this.closeModal()
+                if (result.success) {
+                    // Afficher le message de succès
+                    this.showSuccessModal({
+                        title: '📧 Email de validation envoyé !',
+                        message: `Votre devis ${result.quote_request.quote_reference} a été créé.
+                         
+                         Vérifiez votre boîte email et cliquez sur le lien pour recevoir votre devis détaillé.
+                         
+                         Le lien est valable 48h.`,
+                        showContacts: true
+                    });
+
+                    // Émettre l'événement pour le composant parent
+                    this.$emit('quote-saved', {
+                        quote: result.quote_request,
+                        type: 'email_validation_required'
+                    });
+
+                } else {
+                    throw new Error(result.message || 'Erreur lors de la sauvegarde');
+                }
 
             } catch (error) {
-                console.error('Erreur sauvegarde devis:', error)
-                this.showErrorMessage(error.message)
+                console.error('❌ Erreur sauvegarde devis:', error);
+
+                if (error.message.includes('hébergement')) {
+                    alert('🏕️ Hébergement obligatoire\n\nVeuillez sélectionner un hébergement à l\'étape 4 avant de sauvegarder le devis.');
+                    this.currentStep = 4; // Retour à l'étape hébergement
+                } else {
+                    alert('❌ Erreur sauvegarde\n\n' + error.message);
+                }
             } finally {
-                this.isSubmitting = false
+                this.isSubmitting = false;
             }
         },
 
         // Action 3: Demande de conseil personnalisé
         async requestAdvice() {
-            if (!this.canSubmit) return
-            this.isSubmitting = 'advice'
+            if (!this.canSubmit || this.isSubmitting) return;
+
+            this.isSubmitting = 'advice';
 
             try {
-                const advicePayload = {
-                    contact: { ...this.contactInfo },
-                    preferences: {
-                        activities: this.selectedItems.activities.map(a => a.name),
-                        menus: this.selectedItems.menus.map(m => m.name),
-                        accommodation: this.selectedItems.room?.name || null,
-                        dates: { ...this.selectedDates },
-                        budget_estimate: this.totalPrice
-                    },
-                    request_type: 'personalized_advice',
-                    message: this.contactInfo.message + '\n\n[Demande de conseil personnalisé basée sur la sélection du devis]'
+                // Préparer les données pour l'email de demande de conseil
+                const adviceData = {
+                    type: 'advice_request',
+                    email: this.contactInfo.email,
+                    contact: this.contactInfo,
+                    dates: this.selectedDates,
+                    selected_products: this.getSelectedProducts(),
+                    total_price: this.totalPrice,
+                    message: this.contactInfo.message || 'Demande de conseil personnalisé'
+                };
+
+                // Appel API pour conseil personnalisé
+                const response = await publicApi.requestAdvice(adviceData);
+
+                if (response.success) {
+                    this.showSuccessModal({
+                        title: '👨‍💼 Demande de conseil envoyée !',
+                        message: `Merci ${this.contactInfo.name}, votre demande de conseil a été transmise à nos experts.
+                                 Nous vous contacterons dans les plus brefs délais pour vous proposer un séjour sur mesure.`,
+                        showContacts: true
+                    });
+                } else {
+                    throw new Error(response.message || 'Erreur lors de l\'envoi');
                 }
 
-                await publicApi.requestPersonalAdvice(advicePayload)
-
-                this.$emit('advice-requested', { request: advicePayload, type: 'advice_request' })
-                this.closeModal()
-
-                this.showSuccessMessage('Demande envoyée ! Un expert vous contactera sous 24h pour des conseils personnalisés.')
-
             } catch (error) {
-                console.error('Erreur demande conseil:', error)
-                this.showErrorMessage('Erreur lors de l\'envoi. Veuillez réessayer.')
+                console.error('❌ Erreur demande conseil:', error);
+                alert('Erreur lors de l\'envoi de la demande: ' + error.message);
             } finally {
-                this.isSubmitting = false
+                this.isSubmitting = false;
             }
         },
 
@@ -727,6 +832,113 @@ export default {
 
         showErrorMessage(message) {
             alert(message)
+        },
+
+        async saveQuote() {
+            console.log('💾 DEBUG - État des sélections:', {
+                activities: this.selectedItems.activities,
+                room: this.selectedItems.room,
+                menus: this.selectedItems.menus,
+                activitiesIds: this.selectedItems.activities.map(a => a.id),
+                roomId: this.selectedItems.room?.id,
+                menusIds: this.selectedItems.menus.map(m => m.id)
+            });
+
+            // ✅ Collecter TOUS les IDs des produits sélectionnés
+            const productIds = [];
+
+            // Ajouter les activités
+            this.selectedItems.activities.forEach(activity => {
+                if (activity.id) {
+                    productIds.push(activity.id);
+                }
+            });
+
+            // Ajouter l'hébergement (obligatoire)
+            if (this.selectedItems.room && this.selectedItems.room.id) {
+                productIds.push(this.selectedItems.room.id);
+            }
+
+            // Ajouter les menus
+            this.selectedItems.menus.forEach(menu => {
+                if (menu.id) {
+                    productIds.push(menu.id);
+                }
+            });
+
+            console.log('🎯 Product IDs collectés:', productIds);
+
+            if (productIds.length === 0) {
+                console.warn('⚠️ Aucun produit sélectionné !');
+                throw new Error('Veuillez sélectionner au moins un hébergement.');
+            }
+
+            // ✅ Structure compatible avec ton API existante
+            const quoteData = {
+                email: this.contactInfo.email,
+                contact: {
+                    name: this.contactInfo.name,
+                    last_name: this.contactInfo.last_name,
+                    phone: this.contactInfo.phone,
+                    message: this.contactInfo.message
+                },
+                product_ids: productIds, // ← Voilà le problème résolu !
+                dates: {
+                    checkin: this.selectedDates.start,
+                    endExclusive: this.selectedDates.endExclusive,
+                    guests: this.selectedDates.guests
+                },
+                total_price: this.totalPrice
+            };
+
+            console.log('📤 Données envoyées à l\'API:', quoteData);
+
+            return await publicApi.saveQuote(quoteData);
+        },
+
+        getSelectedProductIds() {
+            // Récupérer les IDs des produits sélectionnés
+            const ids = [];
+
+            // Activités
+            this.selectedItems.activities.forEach(activity => {
+                ids.push(activity.id);
+            });
+
+            // Hébergement
+            if (this.selectedItems.room) {
+                ids.push(this.selectedItems.room.id);
+            }
+
+            // Menus
+            this.selectedItems.menus.forEach(menu => {
+                ids.push(menu.id);
+            });
+
+            return ids;
+        },
+
+        getSelectedProducts() {
+            // Version détaillée pour les emails
+            return {
+                activities: this.selectedItems.activities,
+                room: this.selectedItems.room,
+                menus: this.selectedItems.menus
+            };
+        },
+
+        showSuccessModal({ title, message, showContacts = false }) {
+            // Fermer la modal actuelle
+            this.closeModal();
+
+            // Afficher une notification ou modal de succès
+            // À adapter selon votre système de notifications
+            alert(`${title}\n\n${message}`);
+
+            if (showContacts) {
+                // Optionnel: afficher les coordonnées de contact
+                console.log('📞 Contacts affichés');
+            }
         }
     }
 }
@@ -951,9 +1163,11 @@ $terracotta: #c17c4a;
 
 /* ===== CALENDRIER COMPACT ===== */
 .calendar--compact :deep(.fc) {
-  width: 100%;
-  max-width: 520px;   /* ajuste 480–600 si tu veux */
-  margin: 0 auto 1rem; /* centre le bloc */
+    width: 100%;
+    max-width: 520px;
+    /* ajuste 480–600 si tu veux */
+    margin: 0 auto 1rem;
+    /* centre le bloc */
 }
 
 .calendar--compact :deep(.fc-daygrid-day-number) {

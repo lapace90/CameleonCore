@@ -15,8 +15,8 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Customer;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Mail;
 
-// app/State/QuoteRequestProcessor.php - LOGIQUE SIMPLE : Juste les products !
 class QuoteRequestProcessor implements ProcessorInterface
 {
     public function __construct(
@@ -195,26 +195,25 @@ class QuoteRequestProcessor implements ProcessorInterface
     {
         try {
             $emailData = [
-                'name' => $quoteRequest->name ?? 'Client',
+                'quote' => $quoteRequest,
+                'customer_name' => $quoteRequest->customer?->name ?? 'Client',
                 'reference' => $quoteRequest->quote_reference,
-                'validation_url' => $quoteRequest->validation_url,
+                'verificationUrl' => $quoteRequest->validation_url,
                 'expires_at' => $quoteRequest->token_expires_at->format('d/m/Y à H:i'),
                 'products_count' => count($quoteRequest->selected_product_ids),
                 'total' => $quoteRequest->formatted_total
             ];
 
-            // Pour l'instant, log - à remplacer par Mail::send()
-            Log::info('📧 Email validation à envoyer', [
+            // ✅ ACTIVER l'envoi d'email réel
+            Mail::send('quote-verification', $emailData, function ($message) use ($quoteRequest) {
+                $message->to($quoteRequest->email)
+                    ->subject('Confirmez votre demande de devis - CampCameleonX');
+            });
+
+            Log::info('📧 Email validation envoyé', [
                 'to' => $quoteRequest->email,
-                'data' => $emailData
+                'reference' => $quoteRequest->quote_reference
             ]);
-
-            // TODO: Implémenter avec vraies vues Blade
-            // Mail::send('emails.quote-validation', $emailData, function ($message) use ($quoteRequest) {
-            //     $message->to($quoteRequest->email)
-            //             ->subject('Confirmez votre demande de devis - CampCameleonX');
-            // });
-
         } catch (\Throwable $e) {
             Log::error('Erreur envoi email validation', [
                 'email' => $quoteRequest->email,
@@ -230,19 +229,16 @@ class QuoteRequestProcessor implements ProcessorInterface
             // Récupérer les données complètes pour l'email
             $emailData = $quoteRequest->email_data;
 
-            Log::info('📧 Email devis confirmé à envoyer', [
+            // ✅ ACTIVER l'envoi d'email réel  
+            Mail::send('quote-confirmed', $emailData, function ($message) use ($quoteRequest) {
+                $message->to($quoteRequest->email)
+                    ->subject("Votre devis {$quoteRequest->quote_reference} - CampCameleonX");
+            });
+
+            Log::info('📧 Email devis confirmé envoyé', [
                 'to' => $quoteRequest->email,
-                'reference' => $quoteRequest->quote_reference,
-                'products' => count($emailData['products']),
-                'total' => $emailData['total']['formatted']
+                'reference' => $quoteRequest->quote_reference
             ]);
-
-            // TODO: Template Blade avec devis complet
-            // Mail::send('emails.quote-confirmed', $emailData, function ($message) use ($quoteRequest) {
-            //     $message->to($quoteRequest->email)
-            //             ->subject("Votre devis {$quoteRequest->quote_reference} - CampCameleonX");
-            // });
-
         } catch (\Throwable $e) {
             Log::error('Erreur envoi email devis', [
                 'quote_id' => $quoteRequest->id,
@@ -262,12 +258,19 @@ class QuoteRequestProcessor implements ProcessorInterface
         $currentHour = Carbon::now()->format('Y-m-d-H');
         $fullKey = "{$cacheKey}:{$currentHour}";
 
-        $attempts = cache()->increment($fullKey);
-        cache()->expire($fullKey, 3600); // Expire dans 1h
+        // ✅ CORRECTION : Utiliser put() au lieu d'expire()
+        $attempts = cache()->get($fullKey, 0) + 1;
+        cache()->put($fullKey, $attempts, 3600); // TTL de 3600 secondes (1h)
 
         if ($attempts > 5) { // Max 5 devis par heure par IP
             throw new \InvalidArgumentException('Limite de demandes atteinte. Réessayez dans une heure.');
         }
+
+        Log::info('🛡️ Rate limiting check', [
+            'ip' => $ip,
+            'attempts' => $attempts,
+            'hour' => $currentHour
+        ]);
     }
 
     // ===========================
