@@ -88,7 +88,7 @@
         </div>
 
         <div style="margin-top: 30px;">
-            <a href="{{ config('app.frontend_url', '/') }}" class="button">
+            <a href="{{ env('APP_FRONTEND_URL', '/') }}" class="button">
                 🏠 Retour à l'accueil
             </a>
             <a href="mailto:contact@campcameleonx.com?subject=Problème paiement" class="button danger">

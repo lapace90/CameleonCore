@@ -12,9 +12,9 @@
                     <li class="nav-item">
                         <router-link to="/about" class="nav-link">À PROPOS</router-link>
                     </li>
-                    <li class="nav-item">
+                    <!-- <li class="nav-item">
                         <router-link to="/reservations" class="nav-link">RÉSERVATIONS</router-link>
-                    </li>
+                    </li> -->
                     <li class="nav-item">
                         <router-link to="/services" class="nav-link">SERVICES</router-link>
                     </li>
@@ -64,12 +64,12 @@
                                 <span>À PROPOS</span>
                             </router-link>
                         </li>
-                        <li class="mobile-nav-item">
+                        <!-- <li class="mobile-nav-item">
                             <router-link to="/reservations" class="mobile-nav-link" @click="closeMobileMenu">
                                 <i class="fas fa-calendar-alt"></i>
                                 <span>RÉSERVATIONS</span>
                             </router-link>
-                        </li>
+                        </li> -->
                         <li class="mobile-nav-item">
                             <router-link to="/services" class="mobile-nav-link" @click="closeMobileMenu">
                                 <i class="fas fa-concierge-bell"></i>

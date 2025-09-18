@@ -81,7 +81,7 @@
         @endif
 
         <div style="margin-top: 30px;">
-            <a href="{{ config('app.frontend_url', '/') }}" class="button">
+            <a href="{{ env('APP_FRONTEND_URL', '/') }}" class="button">
                 🏠 Retour à l'accueil
             </a>
             <a href="mailto:contact@campcameleonx.com@if($quote)?subject=Question devis {{ $quote->quote_reference }}@endif" class="button secondary">

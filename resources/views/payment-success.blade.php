@@ -142,7 +142,7 @@
                 <a href="mailto:contact@campcameleonx.com?subject=Commande {{ $quote->quote_reference }}" class="button">
                     📧 Nous contacter
                 </a>
-                <a href="{{ config('app.frontend_url', '/') }}" class="button secondary">
+                <a href="{{ env('APP_FRONTEND_URL', '/') }}" class="button secondary">
                     🏠 Retour à l'accueil
                 </a>
             </div>

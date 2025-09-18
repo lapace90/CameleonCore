@@ -29,7 +29,12 @@ Route::get('/validate-quote/{id}/{token}', function (int $id, string $token) {
     $quote = \App\Models\QuoteRequest::findOrFail($id);
 
     if ($quote->validateWithToken(trim($token))) {
-        return view('quote-verification-success', ['quote' => $quote]);
+        // ✅ MODIFICATION : Passer les données nécessaires pour le paiement
+        return view('quote-verification-success', [
+            'quote' => $quote,
+            'can_pay' => true, // Flag pour activer le bouton paiement
+            'api_url' => config('app.api_url') // URL pour les appels API
+        ]);
     }
 
     return view('quote-verification-error', [
@@ -39,36 +44,59 @@ Route::get('/validate-quote/{id}/{token}', function (int $id, string $token) {
     ]);
 })->whereNumber('id')->where('token', '[A-Za-z0-9]+');
 
+// ✅ NOUVELLE ROUTE : Page de paiement dédiée (Solution 2)
+Route::get('/payment/{quoteId}', function ($quoteId) {
+    // Vérifier que le devis existe et est validé
+    $quote = \App\Models\QuoteRequest::findOrFail($quoteId);
 
-// Route pour gérer les erreurs de validation
-Route::view('/quote-validation-error', 'quote-verification-error', [
-    'message' => 'Lien de validation invalide ou expiré.'
-])->name('quote.validation.error');
-
-
-Route::get('/test-stripe', function () {
-    \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
-
-    try {
-        $account = \Stripe\Account::retrieve();
-        return "✅ Stripe connecté ! Compte : " . $account->id;
-    } catch (\Exception $e) {
-        return "❌ Erreur : " . $e->getMessage();
+    if (!$quote->email_verified_at) {
+        return redirect('/')->with('error', 'Ce devis n\'est pas validé pour le paiement');
     }
-});
 
-// Pages de retour après paiement Stripe
-Route::get('/payment-success', [StripeController::class, 'handlePaymentSuccess'])->name('stripe.success');
-Route::get('/payment-cancel', [StripeController::class, 'handlePaymentCancel'])->name('stripe.cancel');
+    // Retourner la vue frontend (page payment)
+    return view('spa-entry', [
+        'title' => 'Paiement - CampCameleonX',
+        'route' => "/payment/{$quoteId}"
+    ]);
+})->whereNumber('quoteId')->name('payment.page');
 
-// Route temporaire pour tester Stripe (à supprimer plus tard)
-Route::get('/test-stripe', function () {
-    \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
+// ✅ ROUTE de redirection depuis email vers page paiement
+Route::get('/payment-redirect/{id}/{token}', function (int $id, string $token) {
+    $quote = \App\Models\QuoteRequest::findOrFail($id);
 
+    if ($quote->validateWithToken(trim($token))) {
+        // Redirection vers la page de paiement dédiée
+        return redirect()->route('payment.page', ['quoteId' => $quote->id]);
+    }
+
+    return view('quote-verification-error', [
+        'message' => $quote->isTokenExpired()
+            ? 'Ce lien de validation a expiré.'
+            : 'Lien de validation invalide.'
+    ]);
+})->whereNumber('id')->where('token', '[A-Za-z0-9]+');
+
+Route::get('/payment-success', [StripeController::class, 'handlePaymentSuccess']);
+Route::get('/payment-cancel', [StripeController::class, 'handlePaymentCancel']);
+
+// debug
+Route::get('/debug-payment/{sessionId}/{quoteId}', function($sessionId, $quoteId) {
     try {
-        $account = \Stripe\Account::retrieve();
-        return "✅ Stripe connecté ! Compte : " . $account->id;
+        \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
+        
+        $session = \Stripe\Checkout\Session::retrieve($sessionId);
+        $quote = \App\Models\QuoteRequest::findOrFail($quoteId);
+        
+        return [
+            'template_exists' => view()->exists('payment-success'),
+            'session_payment_status' => $session->payment_status,
+            'quote_status' => $quote->status,
+            'amount_paid' => $session->amount_total / 100,
+            'customer_name' => $quote->name,
+            'quote_reference' => $quote->quote_reference,
+        ];
+        
     } catch (\Exception $e) {
-        return "❌ Erreur : " . $e->getMessage();
+        return ['error' => $e->getMessage()];
     }
 });

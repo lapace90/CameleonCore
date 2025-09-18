@@ -1,5 +1,5 @@
 <template>
-    <section class="devis-section">
+    <section class="devis-section" id="devis-section">
         <div class="container">
             <!-- Éléments décoratifs subtils -->
             <div class="decorative-elements">

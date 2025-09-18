@@ -52,7 +52,7 @@
             <a href="mailto:contact@campcameleonx.com?subject=Problème validation devis" class="button">
                 📧 Nous contacter
             </a>
-            <a href="{{ config('app.frontend_url', '/') }}" class="button">
+            <a href="{{ env('APP_FRONTEND_URL', '/') }}" class="button">
                 🏠 Retour à l'accueil
             </a>
         </div>

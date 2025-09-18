@@ -731,7 +731,7 @@ export default {
                     // Afficher le message de succès
                     this.showSuccessModal({
                         title: '📧 Email de validation envoyé !',
-                        message: `Votre devis ${result.quote_request.quote_reference} a été créé.
+                        message: `Votre devis ${result.quote_request.quote_id} a été créé.
                          
                          Vérifiez votre boîte email et cliquez sur le lien pour recevoir votre devis détaillé.
                          
