@@ -102,7 +102,7 @@ class QuoteRequest extends Model
             'guests' => $data['guests'] ?? 2,
             'validation_token' => self::generateValidationToken(),
             'token_expires_at' => Carbon::now()->addHours(48), // 48h pour valider
-            'status' => 'pending_validation',
+            'status' => 'draft',
             'quote_reference' => self::generateQuoteReference(),
             'total_amount' => $data['total_amount'] ?? 0,
             'source' => $data['source'] ?? 'website',
@@ -120,22 +120,28 @@ class QuoteRequest extends Model
      */
     public function validateWithToken(string $token): bool
     {
-        if ($this->validation_token !== $token) {
+        if ($this->email_verified_at) {
+            return true; // déjà validé: OK
+        }
+
+        if (!$this->validation_token || !hash_equals((string)$this->validation_token, (string)$token)) {
             return false;
         }
 
         if ($this->isTokenExpired()) {
-            $this->update(['status' => 'expired']);
             return false;
         }
 
-        $this->update([
-            'email_verified_at' => Carbon::now(),
-            'status' => 'validated'
-        ]);
+        $this->forceFill([
+            'email_verified_at' => now(),
+            // Hotfix: garder un statut permis par la contrainte actuelle
+            // 'status' => 'validated', // ❌ provoque 23514
+            'status' => 'sent',        // ✅ permis ('draft','sent','expired')
+        ])->save();
 
         return true;
     }
+
 
     /**
      * Vérifier si le token a expiré
@@ -239,7 +245,7 @@ class QuoteRequest extends Model
 
     public function scopePendingValidation($query)
     {
-        return $query->where('status', 'pending_validation');
+        return $query->where('status', 'draft');
     }
 
     public function scopeValidated($query)
@@ -257,10 +263,10 @@ class QuoteRequest extends Model
      */
     public function getValidationUrlAttribute(): string
     {
-        return config('app.frontend_url') . "/validate-quote/{$this->id}/{$this->validation_token}";
+        return config('app.url') . "/validate-quote/{$this->id}/{$this->validation_token}";
     }
 
-     public function customer(): BelongsTo
+    public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
     }

@@ -21,7 +21,7 @@
     </div>
     
     <div class="content">
-        <h2>Bonjour {{ $quote->customer_name }} !</h2>
+        <h2>Bonjour {{ $quote->customer }} !</h2>
         
         <p>Merci pour votre demande de devis <strong>{{ $quote->reference }}</strong>.</p>
         

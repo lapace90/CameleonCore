@@ -25,39 +25,20 @@ Route::get('/', [App\Http\Controllers\WelcomeController::class, 'index']);
 | différent (ex: /api/auth, /api/admin) pour éviter les conflits.
 */
 
-Route::get('/validate-quote/{id}/{token}', function ($id, $token) {
-    try {
-        $quoteRequest = QuoteRequest::findOrFail($id);
+Route::get('/validate-quote/{id}/{token}', function (int $id, string $token) {
+    $quote = \App\Models\QuoteRequest::findOrFail($id);
 
-        Log::info('🔗 Clic validation email', [
-            'id' => $id,
-            'status' => $quoteRequest->status,
-            'email' => $quoteRequest->email
-        ]);
-
-        // Valider le token via l'API Platform
-        if ($quoteRequest->validateWithToken($token)) {
-            // Déclencher l'envoi du devis confirmé
-            $processor = app(\App\State\QuoteRequestProcessor::class);
-            $processor->process(null, new \ApiPlatform\Metadata\Get(), ['id' => $id, 'token' => $token], []);
-
-            // Afficher la page de succès
-            return view('quote-verification-success', ['quote' => $quoteRequest]);
-        } else {
-            // Token expiré ou invalide
-            return view('quote-verification-error', [
-                'message' => $quoteRequest->isTokenExpired()
-                    ? 'Ce lien de validation a expiré.'
-                    : 'Lien de validation invalide.'
-            ]);
-        }
-    } catch (\Exception $e) {
-        Log::error('Erreur validation web', ['error' => $e->getMessage()]);
-        return view('quote-verification-error', [
-            'message' => 'Une erreur s\'est produite. Veuillez réessayer.'
-        ]);
+    if ($quote->validateWithToken(trim($token))) {
+        return view('quote-verification-success', ['quote' => $quote]);
     }
-})->name('quote.validate');
+
+    return view('quote-verification-error', [
+        'message' => $quote->isTokenExpired()
+            ? 'Ce lien de validation a expiré.'
+            : 'Lien de validation invalide.'
+    ]);
+})->whereNumber('id')->where('token', '[A-Za-z0-9]+');
+
 
 // Route pour gérer les erreurs de validation
 Route::view('/quote-validation-error', 'quote-verification-error', [
@@ -65,9 +46,9 @@ Route::view('/quote-validation-error', 'quote-verification-error', [
 ])->name('quote.validation.error');
 
 
-Route::get('/test-stripe', function() {
+Route::get('/test-stripe', function () {
     \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
-    
+
     try {
         $account = \Stripe\Account::retrieve();
         return "✅ Stripe connecté ! Compte : " . $account->id;
@@ -81,9 +62,9 @@ Route::get('/payment-success', [StripeController::class, 'handlePaymentSuccess']
 Route::get('/payment-cancel', [StripeController::class, 'handlePaymentCancel'])->name('stripe.cancel');
 
 // Route temporaire pour tester Stripe (à supprimer plus tard)
-Route::get('/test-stripe', function() {
+Route::get('/test-stripe', function () {
     \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
-    
+
     try {
         $account = \Stripe\Account::retrieve();
         return "✅ Stripe connecté ! Compte : " . $account->id;
