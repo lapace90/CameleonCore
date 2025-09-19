@@ -866,277 +866,11 @@ $warning: #fb6340;
 $danger: #f5365c;
 $terracotta: #c17c4a;
 
-/* ===== MODAL BASE ===== */
-.modal-content {
-    display: block !important;
-    padding: 1rem 1.25rem;
-}
-
-.quote-modal .modal-body {
-    max-height: 70vh;
-    overflow: auto;
-}
-
-.quote-modal {
-    max-width: 900px;
-    width: 95%;
-    background: #fff;
-    border-radius: 12px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
-
-/* ===== ÉTAPES PROGRESS ===== */
-.progress-steps {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-    gap: 1rem;
-}
-
-.progress-steps .step {
-    flex: 1;
-    text-align: center;
-    position: relative;
-    font-size: 0.9rem;
-    color: #666;
-}
-
-.progress-steps .step-number {
-    width: 28px;
-    height: 28px;
-    margin: 0 auto 0.25rem;
-    border-radius: 50%;
-    background: #e5e7eb;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-}
-
-.progress-steps .step.active .step-number {
-    background: #6366f1;
-    color: #fff;
-}
-
-.progress-steps .step.completed .step-number {
-    background: #10b981;
-    color: #fff;
-}
-
-/* ===== CONTENU STEPS ===== */
-.step-content {
-    width: 100% !important;
-    max-width: none !important;
-    margin: 0 auto !important;
-    border: 0 !important;
-    box-shadow: none !important;
-    background: transparent;
-}
-
-/* ===== GRILLE HARMONISÉE ===== */
-.mini-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-}
-
-@media (max-width: 640px) {
-    .mini-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* ===== CARTES HARMONISÉES ===== */
-.mini-card {
-    position: relative;
-    display: grid;
-    grid-template-columns: 96px 1fr;
-    gap: 10px;
-    padding: 10px;
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.9);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    cursor: pointer;
-    transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
-}
-
-.mini-card:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, .15);
-}
-
-.mini-card.selected {
-    border-color: $terracotta;
-    background: rgba(193, 124, 74, 0.05);
-}
-
-.mini-thumb {
-    width: 96px;
-    height: 96px;
-    border-radius: 10px;
-    object-fit: cover;
-    display: block;
-}
-
-.step-help {
-    background: rgba(94, 114, 228, 0.1);
-    border-left: 4px solid #5e72e4;
-    padding: 0.75rem 1rem;
-    margin: 1rem 0;
-    border-radius: 4px;
-    font-size: 0.9rem;
-    color: #5e72e4;
-
-    i {
-        margin-right: 0.5rem;
-    }
-
-    &.help-warning {
-        background: rgba(251, 99, 64, 0.1);
-        border-left-color: #fb6340;
-        color: #fb6340;
-    }
-}
-
-.mini-info {
-    display: grid;
-    gap: 6px;
-    align-content: start;
-}
-
-.mini-title {
-    margin: 0;
-    font-size: .95rem;
-    line-height: 1.2;
-    color: #333;
-    font-weight: 600;
-}
-
-.mini-meta {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.mini-price {
-    font-weight: 700;
-    font-size: .9rem;
-    color: $terracotta;
-}
-
-.mini-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: .75rem;
-    opacity: .8;
-    padding: 2px 6px;
-    border-radius: 999px;
-    background: rgba(0, 0, 0, 0.05);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.mini-desc {
-    margin: 0;
-    font-size: .8rem;
-    opacity: .8;
-    color: #666;
-    line-height: 1.3;
-}
-
-.mini-check {
-    position: absolute;
-    right: 8px;
-    bottom: 8px;
-    background: rgba(0, 0, 0, .6);
-    color: white;
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-}
-
 .mini-card.selected .mini-check {
     background: $terracotta;
 }
 
-/* ===== CALENDRIER ===== */
-.dates-layout {
-    display: grid;
-    grid-template-columns: 1fr 300px;
-    gap: 2rem;
-    align-items: start;
-    
-    @media (max-width: 768px) {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-    }
-}
-
-.calendar-section {
-    /* Calendrier plus compact */
-    .fc {
-        font-size: 0.85rem;
-        
-        .fc-header-toolbar {
-            margin-bottom: 0.5rem;
-            
-            .fc-button {
-                padding: 0.25rem 0.5rem;
-                font-size: 0.8rem;
-            }
-        }
-        
-        .fc-daygrid-day {
-            height: 32px;
-        }
-        
-        .fc-col-header-cell {
-            padding: 0.25rem;
-        }
-    }
-}
-
-.booking-info {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-/* Header + nav boutons */
-.calendar-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: .5rem;
-    margin-bottom: .5rem;
-}
-
-.calendar-nav {
-    display: inline-flex;
-    gap: .25rem;
-}
 /* Affichage des dates sélectionnées */
-.selected-dates {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border-radius: 12px;
-    padding: 1rem;
-    border: 2px solid $terracotta;
-}
-
-.dates-display {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 0.75rem;
-}
-
 .date-item {
     display: flex;
     align-items: center;
@@ -1164,11 +898,6 @@ $terracotta: #c17c4a;
             font-size: 0.9rem;
         }
     }
-}
-
-.date-separator {
-    color: $terracotta;
-    opacity: 0.7;
 }
 
 .nights-display {
@@ -1308,295 +1037,20 @@ $terracotta: #c17c4a;
     }
 }
 
-.nav-btn {
-    border: 1px solid #ddd;
-    background: #fff;
-    border-radius: 8px;
 
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-}
-
-.nav-btn:hover {
-    background: #f8f8f8;
-}
-
-.nav-btn:disabled {
-    opacity: .5;
-    cursor: not-allowed;
-}
-
-/* accessibilité */
-.sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    border: 0;
-}
-
-.range-info,
-.duration {
-    margin-top: .5rem;
-    display: flex;
-    align-items: center;
-    gap: .5rem;
-    color: $terracotta;
-    font-weight: 500;
-}
-
-/* ===== SECTION RÉCAP FINALE ===== */
-.quote-final-step {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    margin-top: 1rem;
-}
-
-.actions-explanation {
-    text-align: center;
-    margin-bottom: 0.5rem;
-    padding: 0.75rem;
-    background: rgba(193, 124, 74, 0.1);
-    border-radius: 8px;
-    border-left: 4px solid $terracotta;
-
-    .explanation-text {
-        color: #666;
-        font-size: 0.9rem;
-        margin: 0;
-
-        i {
-            color: $terracotta;
-            margin-right: 0.5rem;
-        }
-    }
-}
-
-.quote-actions {
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-
-    .btn {
-        flex: 1;
-        min-width: 140px;
-        white-space: nowrap;
-        font-size: 0.9rem;
-
-        &.btn-success {
-            background: $success;
-            border-color: $success;
-
-            &:hover {
-                background: darken($success, 10%);
-            }
-        }
-
-        &.btn-primary {
-            background: $primary;
-            border-color: $primary;
-
-            &:hover {
-                background: darken($primary, 10%);
-            }
-        }
-
-        &.btn-outline {
-            background: transparent;
-            border: 2px solid $terracotta;
-            color: $terracotta;
-
-            &:hover {
-                background: $terracotta;
-                color: white;
-            }
-        }
-
-        @media (max-width: 768px) {
-            min-width: 120px;
-            font-size: 0.85rem;
-            padding: 0.5rem 0.75rem;
-        }
-    }
-
-    @media (max-width: 640px) {
-        flex-direction: column;
-
-        .btn {
-            flex: none;
-            width: 100%;
-            min-width: auto;
-        }
-    }
-}
-
-/* ===== LOADING STATE ===== */
-.loading-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    padding: 2rem;
-    color: #666;
-}
-
-.spinner {
-    width: 24px;
-    height: 24px;
-    border: 2px solid #f3f3f3;
-    border-top: 2px solid $terracotta;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-
-    100% {
-        transform: rotate(360deg);
-    }
-}
 
 /* ===== RÉCAP SUMMARY ===== */
-.quote-summary {
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.summary-section {
-    margin-bottom: 1.5rem;
-
-    &:last-child {
-        margin-bottom: 0;
-    }
-
-    h4 {
-        color: $terracotta;
-        font-size: 1.1rem;
-        margin-bottom: 0.75rem;
-        font-weight: 600;
-
-        i {
-            margin-right: 0.5rem;
-        }
-    }
-}
-
-.summary-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-
-    &:last-child {
-        border-bottom: none;
-    }
-
-    span:first-child {
-        color: #333;
-        font-weight: 500;
-    }
-
-    span:last-child {
-        color: $terracotta;
-        font-weight: 600;
-    }
-}
-// Dans QuoteModal.vue, ajouter ou modifier cette règle CSS :
-
 .step-title {
     color: $terracotta;
     font-size: 1.3rem;
     font-weight: 600;
-    margin-bottom: 1.5rem; // ← Augmenter cet espacement (était probablement 0.5rem ou 1rem)
+    margin-bottom: 1.5rem; 
     text-align: center;
 }
 
 // Et pour l'étape 1 spécifiquement :
 .step-dates .step-title {
     margin-bottom: 1.5rem;
-}
-
-.summary-item.enhanced {
-    display: grid;
-    grid-template-columns: 1fr auto auto;
-    gap: 15px;
-    align-items: center;
-    padding: 15px 0;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-
-    &:last-child {
-        border-bottom: none;
-    }
-}
-
-.item-info {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.item-name {
-    font-weight: 500;
-    color: #333;
-    font-size: 0.95rem;
-}
-
-.item-unit-price {
-    font-size: 0.85rem;
-    color: #666;
-}
-
-.item-controls {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    white-space: nowrap;
-}
-
-.qty-label {
-    font-size: 0.85rem;
-    color: #666;
-}
-
-.qty-select {
-    padding: 4px 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    background: white;
-    min-width: 70px;
-    font-size: 0.85rem;
-
-    &:focus {
-        border-color: $terracotta;
-        outline: none;
-        box-shadow: 0 0 0 2px rgba(193, 124, 74, 0.2);
-    }
-}
-
-.qty-fixed {
-    font-size: 0.9rem;
-    color: #666;
-    font-weight: 500;
-}
-
-.item-total {
-    text-align: right;
-    color: $terracotta;
-    font-weight: bold;
-    min-width: 80px;
 }
 
 /* Responsive pour mobile */
@@ -1617,17 +1071,6 @@ $terracotta: #c17c4a;
 }
 
 /* Animation hover */
-.summary-item.enhanced {
-    transition: background-color 0.3s ease;
-    border-radius: 8px;
-    padding: 15px 10px;
-    margin: 0 -10px;
-
-    &:hover {
-        background-color: rgba(193, 124, 74, 0.05);
-    }
-}
-
 .summary-total {
     border-top: 2px solid $terracotta;
     padding-top: 1rem;
@@ -1675,33 +1118,32 @@ $terracotta: #c17c4a;
     }
 }
 
-.form-input,
-.form-textarea {
-    width: 100%;
-    padding: 0.75rem;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    margin-bottom: 1rem;
-
-    &:focus {
-        outline: none;
-        border-color: $terracotta;
-    }
-}
-
-.form-textarea {
-    min-height: 100px;
-    resize: vertical;
-}
-
-.qty-select {
-    margin-left: .5rem;
-    padding: .25rem .5rem;
-    font-size: .85rem;
-}
-
 .muted {
     color: #777;
     margin-left: .25rem;
+}
+
+// ce qui doit rester
+.mini-desc {
+    margin: 0;
+    font-size: .8rem;
+    opacity: .8;
+    color: #666;
+    line-height: 1.3;
+}
+
+.mini-check {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    background: rgba(0, 0, 0, .6);
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
 }
 </style>

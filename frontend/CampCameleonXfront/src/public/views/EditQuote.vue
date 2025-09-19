@@ -821,15 +821,6 @@ export default {
     margin-top: 20px;
 }
 
-.summary-item.enhanced {
-    display: grid;
-    grid-template-columns: 1fr auto auto;
-    gap: 15px;
-    align-items: center;
-    padding: 15px 0;
-    border-bottom: 1px solid #dee2e6;
-}
-
 .item-info {
     display: flex;
     flex-direction: column;
@@ -850,27 +841,6 @@ export default {
     display: flex;
     align-items: center;
     gap: 8px;
-}
-
-.qty-label {
-    font-size: 0.9em;
-    color: #666;
-    white-space: nowrap;
-}
-
-.qty-select {
-    padding: 5px 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    background: white;
-    min-width: 70px;
-    font-size: 0.9em;
-}
-
-.qty-select:focus {
-    border-color: #c17c4a;
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(193, 124, 74, 0.2);
 }
 
 .item-total {
@@ -901,6 +871,15 @@ export default {
     .item-total {
         text-align: left;
     }
+}
+/* doit rester scoped */
+.summary-item.enhanced {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 15px;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid #dee2e6;
 }
 
 /* Animation pour les changements de quantité */
