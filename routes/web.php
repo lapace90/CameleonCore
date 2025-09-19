@@ -29,11 +29,13 @@ Route::get('/validate-quote/{id}/{token}', function (int $id, string $token) {
     $quote = \App\Models\QuoteRequest::findOrFail($id);
 
     if ($quote->validateWithToken(trim($token))) {
-        // ✅ MODIFICATION : Passer les données nécessaires pour le paiement
+        $editUrl = env('APP_FRONTEND_URL', 'http://localhost:5173') . "/edit-quote/{$quote->id}/{$quote->validation_token}";
+
         return view('quote-verification-success', [
             'quote' => $quote,
-            'can_pay' => true, // Flag pour activer le bouton paiement
-            'api_url' => config('app.api_url') // URL pour les appels API
+            'can_pay' => true,
+            'api_url' => config('app.api_url'),
+            'editUrl' => $editUrl
         ]);
     }
 
@@ -80,13 +82,13 @@ Route::get('/payment-success', [StripeController::class, 'handlePaymentSuccess']
 Route::get('/payment-cancel', [StripeController::class, 'handlePaymentCancel']);
 
 // debug
-Route::get('/debug-payment/{sessionId}/{quoteId}', function($sessionId, $quoteId) {
+Route::get('/debug-payment/{sessionId}/{quoteId}', function ($sessionId, $quoteId) {
     try {
         \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
-        
+
         $session = \Stripe\Checkout\Session::retrieve($sessionId);
         $quote = \App\Models\QuoteRequest::findOrFail($quoteId);
-        
+
         return [
             'template_exists' => view()->exists('payment-success'),
             'session_payment_status' => $session->payment_status,
@@ -95,7 +97,6 @@ Route::get('/debug-payment/{sessionId}/{quoteId}', function($sessionId, $quoteId
             'customer_name' => $quote->name,
             'quote_reference' => $quote->quote_reference,
         ];
-        
     } catch (\Exception $e) {
         return ['error' => $e->getMessage()];
     }

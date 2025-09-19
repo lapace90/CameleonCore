@@ -15,7 +15,6 @@ use App\Models\Product;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 
-// app/Models/QuoteRequest.php - LOGIQUE SIMPLE : Juste les products !
 #[ApiResource(
     uriTemplate: '/quote-requests',
     operations: [
@@ -43,7 +42,7 @@ use Carbon\Carbon;
             uriTemplate: '/admin/quote-requests/{id}',
             processor: QuoteRequestProcessor::class,
             security: "is_granted('ROLE_ADMIN')"
-        )
+        ),
     ]
 )]
 class QuoteRequest extends Model

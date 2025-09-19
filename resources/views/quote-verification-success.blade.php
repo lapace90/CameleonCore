@@ -154,7 +154,7 @@
 
         <br><br>
         <!-- BOUTON POUR REVENIR MODIFIER LE DEVIS -->
-        <a href="#" class="button-secondary" id="editQuoteBtn">
+        <a href="{{ $editUrl }}" class="button-secondary" id="editQuoteBtn">
             📝 Modifier mon devis
         </a>
 
@@ -165,12 +165,28 @@
     </div>
 
     <script>
-        // Attacher l'événement click au chargement
         document.addEventListener('DOMContentLoaded', function() {
             const payButton = document.getElementById('payButton');
+            const editButton = document.getElementById('editQuoteBtn');
+
+            // Bouton paiement (existant)
             payButton.addEventListener('click', function() {
                 const quoteId = parseInt(this.dataset.quoteId);
                 proceedToPayment(quoteId);
+            });
+
+            // ✅ NOUVEAU : Bouton édition
+            editButton.addEventListener('click', function(event) {
+                event.preventDefault();
+
+                // URL du frontend Vue configurée
+                const frontendUrl = '{{ env("APP_FRONTEND_URL", "http://localhost:5173") }}';
+                const editUrl = `${frontendUrl}/edit-quote/{{ $quote->id }}/{{ $quote->validation_token }}`;
+
+                console.log('📝 Redirection vers édition:', editUrl);
+
+                // Redirection vers le SPA Vue
+                window.location.href = editUrl;
             });
         });
 

@@ -193,39 +193,49 @@ class PublicApi {
   async saveQuote(payload) {
     try {
       const url = `${this.baseURL}/quote-requests`
+      console.log('🔍 DEBUG PublicApi - Payload reçu:', payload)
 
-      console.log('🔍 DEBUG PublicApi - Payload reçu:', payload);
+      // -- Normalisation éventuelle des items
+      const rawItems = Array.isArray(payload.items) ? payload.items : null
+      const items = rawItems
+        ? rawItems
+          .map(it => ({
+            product_id: Number(it.product_id),
+            quantity: Math.max(0, Number(it.quantity) || 0)
+          }))
+          .filter(it => it.product_id && it.quantity > 0)
+        : null
 
-      // ✅ CORRECTION : Utiliser directement product_ids du payload
-      let productIds = [];
-
-      if (payload.product_ids && Array.isArray(payload.product_ids)) {
-        // ✅ Nouveau format depuis QuoteModal (direct)
-        productIds = payload.product_ids;
-        console.log('✅ Product IDs trouvés directement:', productIds);
+      // -- Construction finale des product_ids
+      let productIds = []
+      if (items && items.length) {
+        // Items → duplication en product_ids
+        for (const it of items) {
+          for (let i = 0; i < it.quantity; i++) {
+            productIds.push(it.product_id)
+          }
+        }
+        console.log('✅ Product IDs (depuis items):', productIds)
+      } else if (payload.product_ids && Array.isArray(payload.product_ids)) {
+        // Chemin actuel
+        productIds = payload.product_ids
+        console.log('✅ Product IDs (payload direct):', productIds)
       } else {
-        // ✅ Fallback ancienne structure (pour compatibility)
-        if (payload.activities && Array.isArray(payload.activities)) {
-          productIds.push(...payload.activities);
-        }
-        if (payload.menus && Array.isArray(payload.menus)) {
-          productIds.push(...payload.menus);
-        }
-        if (payload.room) {
-          productIds.push(payload.room);
-        }
-        console.log('✅ Product IDs reconstruits:', productIds);
+        // Fallback legacy
+        if (payload.activities && Array.isArray(payload.activities)) productIds.push(...payload.activities)
+        if (payload.menus && Array.isArray(payload.menus)) productIds.push(...payload.menus)
+        if (payload.room) productIds.push(payload.room)
+        console.log('✅ Product IDs (fallback legacy):', productIds)
       }
 
-      // ✅ Validation critique
-      if (!productIds || productIds.length === 0) {
-        console.error('❌ Aucun product_id trouvé:', payload);
-        throw new Error('Aucun produit sélectionné. Veuillez sélectionner au moins un hébergement.');
+      // -- Validation
+      if (!productIds.length) {
+        console.error('❌ Aucun product_id trouvé:', payload)
+        throw new Error('Aucun produit sélectionné. Veuillez sélectionner au moins un hébergement.')
       }
 
-      // ✅ Payload backend corrigé
+      // -- Corps de requête
       const requestData = {
-        // ✅ Contact
         email: payload.email || payload.contact?.email,
         contact: {
           name: payload.contact?.name || payload.name,
@@ -233,78 +243,61 @@ class PublicApi {
           phone: payload.contact?.phone || payload.phone,
           message: payload.contact?.message || payload.message || ''
         },
-
-        // ✅ CLEF : Product IDs (garantis non vides)
         product_ids: productIds,
-
-        // ✅ Dates
         dates: {
           checkin: payload.dates?.checkin || payload.dates?.start,
           endExclusive: payload.dates?.endExclusive || payload.dates?.checkout,
           guests: payload.dates?.guests || 2
         },
-
-        // ✅ Prix
         total_price: payload.total_price || payload.amount || 0,
         source: 'website'
-      };
+      }
 
-      console.log('💾 Envoi demande devis CORRIGÉ:', {
+      // -- N’ENVOYER "items" que si explicitement demandé
+      if (payload.include_line_items === true && items && items.length) {
+        requestData.items = items
+      }
+
+      console.log('💾 Envoi demande devis:', {
         endpoint: url,
         email: requestData.email,
-        product_ids: requestData.product_ids,  // ← Plus jamais vide !
         product_ids_count: requestData.product_ids.length,
+        has_items: !!requestData.items,
         total_price: requestData.total_price,
         dates: requestData.dates
-      });
+      })
 
-      // ✅ Appel API
       const response = await axios.post(url, requestData, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        }
-      });
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
+      })
 
-      console.log('✅ Devis créé avec succès:', {
+      console.log('✅ Devis créé:', {
         id: response.data.id,
         reference: response.data.quote_reference,
         status: response.data.status,
-        email: response.data.email,
         products_count: response.data.selected_product_ids?.length || 0
-      });
+      })
 
       return {
         success: true,
         quote_request: response.data,
         message: 'Devis sauvegardé ! Un email de confirmation vous a été envoyé.',
         next_step: 'validation_email'
-      };
-
+      }
     } catch (error) {
-      console.error('❌ Erreur sauvegarde devis:', error);
-
+      console.error('❌ Erreur sauvegarde devis:', error)
       if (error.response?.status === 422) {
-        const violations = error.response.data.violations || [];
-        const errorMessages = violations.map(v => v.message).join(', ');
-        throw new Error(`Données invalides: ${errorMessages}`);
+        const violations = error.response.data.violations || []
+        const errorMessages = violations.map(v => v.message).join(', ')
+        throw new Error(`Données invalides: ${errorMessages}`)
       }
-
-      if (error.response?.status === 429) {
-        throw new Error('Trop de demandes. Veuillez patienter avant de réessayer.');
-      }
-
-      if (error.response?.status === 500) {
-        throw new Error('Erreur serveur. Veuillez réessayer dans quelques instants.');
-      }
-
-      if (error.message.includes('email invalide')) {
-        throw new Error('Adresse email invalide. Veuillez vérifier et réessayer.');
-      }
-
-      throw new Error('Erreur lors de la sauvegarde. Veuillez réessayer.');
+      if (error.response?.status === 429) throw new Error('Trop de demandes. Veuillez patienter avant de réessayer.')
+      if (error.response?.status === 500) throw new Error('Erreur serveur. Veuillez réessayer dans quelques instants.')
+      if (error.message?.includes('email invalide')) throw new Error('Adresse email invalide. Veuillez vérifier et réessayer.')
+      throw new Error('Erreur lors de la sauvegarde. Veuillez réessayer.')
     }
   }
+
 
   // =============================
   // NOUVELLE MÉTHODE : Validation devis via email
@@ -513,6 +506,39 @@ class PublicApi {
     return response.data
   }
 
+  // Dans PublicApi.js - AJOUTER
+  /**
+   * Récupérer un devis pour édition
+   */
+  async getQuoteForEdit(quoteId, editToken) {
+    try {
+      const response = await axios.get(`${this.baseURL}/quote-requests/${quoteId}/edit/${editToken}`);
+      return {
+        success: true,
+        quote: response.data
+      };
+    } catch (error) {
+      console.error('❌ Erreur récupération devis:', error);
+      throw new Error('Devis introuvable ou non modifiable');
+    }
+  }
+
+  /**
+   * Mettre à jour un devis
+   */
+  async updateQuote(quoteId, editToken, quoteData) {
+    try {
+      const response = await axios.patch(`${this.baseURL}/quote-requests/${quoteId}/edit/${editToken}`, quoteData);
+      return {
+        success: true,
+        quote: response.data
+      };
+    } catch (error) {
+      console.error('❌ Erreur mise à jour devis:', error);
+      throw new Error('Erreur lors de la mise à jour du devis');
+    }
+  }
+
   // =============================
   // Maintenance du cache
   // =============================
@@ -524,6 +550,90 @@ class PublicApi {
     const now = Date.now()
     for (const [key, value] of this.cache.entries()) {
       if (now - value.timestamp > this.cacheTimeout) this.cache.delete(key)
+    }
+  }
+  // DANS frontend/CampCameleonXfront/src/services/PublicApi.js
+  // AJOUTER ces méthodes :
+
+  /**
+   * Récupérer un devis pour édition
+   * @param {number} quoteId - ID du devis
+   * @param {string} editToken - Token d'édition
+   */
+  async getQuoteForEdit(quoteId, editToken) {
+    try {
+      const url = `${this.baseURL}/quote-requests/${quoteId}/edit/${editToken}`;
+
+      console.log('📝 Récupération devis pour édition:', { quoteId, url });
+
+      const response = await axios.get(url, {
+        headers: { 'Accept': 'application/json' }
+      });
+
+      console.log('✅ Devis récupéré pour édition:', response.data);
+
+      return {
+        success: true,
+        quote: response.data
+      };
+
+    } catch (error) {
+      console.error('❌ Erreur récupération devis:', error);
+
+      if (error.response?.status === 404) {
+        throw new Error('Devis introuvable ou lien invalide.');
+      }
+
+      if (error.response?.status === 400) {
+        const errorMessage = error.response.data?.error || 'Devis non modifiable';
+        throw new Error(errorMessage);
+      }
+
+      throw new Error('Erreur lors du chargement du devis.');
+    }
+  }
+
+  /**
+   * Mettre à jour un devis
+   * @param {number} quoteId - ID du devis
+   * @param {string} editToken - Token d'édition
+   * @param {Object} quoteData - Nouvelles données du devis
+   */
+  async updateQuote(quoteId, editToken, quoteData) {
+    try {
+      const url = `${this.baseURL}/quote-requests/${quoteId}/edit/${editToken}`;
+
+      console.log('📝 Mise à jour devis:', { quoteId, url, quoteData });
+
+      const response = await axios.patch(url, quoteData, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+
+      console.log('✅ Devis mis à jour:', response.data);
+
+      return {
+        success: true,
+        quote: response.data
+      };
+
+    } catch (error) {
+      console.error('❌ Erreur mise à jour devis:', error);
+
+      if (error.response?.status === 400) {
+        const errorMessage = error.response.data?.error || 'Erreur de validation';
+        throw new Error(errorMessage);
+      }
+
+      if (error.response?.status === 422) {
+        const violations = error.response.data.details || {};
+        const errorMessages = Object.values(violations).flat().join(', ');
+        throw new Error(`Données invalides: ${errorMessages}`);
+      }
+
+      throw new Error('Erreur lors de la mise à jour du devis.');
     }
   }
 }

@@ -330,4 +330,149 @@ class QuoteRequestProcessor implements ProcessorInterface
 
         return $customer->id;
     }
+
+    // ===========================
+    // ÉDITION DEVIS CLIENT
+    // ===========================
+
+    /**
+     * Récupérer un devis pour édition par le client
+     */
+    private function getQuoteForEdit(int $id, string $editToken): QuoteRequest
+    {
+        $quoteRequest = QuoteRequest::findOrFail($id);
+
+        Log::info('📝 Récupération devis pour édition', [
+            'id' => $id,
+            'quote_reference' => $quoteRequest->quote_reference,
+            'current_status' => $quoteRequest->status,
+            'email_verified' => (bool) $quoteRequest->email_verified_at
+        ]);
+
+        // ✅ 1. Vérifier que le token correspond
+        if (!$quoteRequest->validation_token || !hash_equals((string)$quoteRequest->validation_token, (string)$editToken)) {
+            Log::warning('❌ Token édition invalide', ['id' => $id]);
+            throw new \InvalidArgumentException('Token d\'édition invalide');
+        }
+
+        // ✅ 2. Vérifier que le devis n'est pas expiré
+        if ($quoteRequest->isTokenExpired()) {
+            Log::warning('❌ Token édition expiré', ['id' => $id]);
+            throw new \InvalidArgumentException('Le lien d\'édition a expiré');
+        }
+
+        // ✅ 3. Vérifier que le devis n'est pas déjà payé
+        if ($quoteRequest->status === 'paid') {
+            Log::warning('❌ Devis déjà payé, non modifiable', ['id' => $id]);
+            throw new \InvalidArgumentException('Ce devis a déjà été payé et ne peut plus être modifié');
+        }
+
+        // ✅ 4. Charger les produits sélectionnés pour le frontend
+        $quoteRequest->load('customer');
+
+        Log::info('✅ Devis récupéré pour édition', [
+            'id' => $quoteRequest->id,
+            'reference' => $quoteRequest->quote_reference,
+            'products_count' => count($quoteRequest->selected_product_ids)
+        ]);
+
+        return $quoteRequest;
+    }
+
+    /**
+     * Mettre à jour un devis via édition client
+     */
+    private function updateQuoteForEdit(int $id, string $editToken, array $context): QuoteRequest
+    {
+        $quoteRequest = QuoteRequest::findOrFail($id);
+        $payload = $this->getDataFromRequest($context);
+
+        Log::info('📝 Mise à jour devis client', [
+            'id' => $id,
+            'quote_reference' => $quoteRequest->quote_reference,
+            'new_products' => $payload['product_ids'] ?? [],
+            'new_total' => $payload['total_price'] ?? 0
+        ]);
+
+        // ✅ 1. Mêmes vérifications que getQuoteForEdit
+        if (!$quoteRequest->validation_token || !hash_equals((string)$quoteRequest->validation_token, (string)$editToken)) {
+            throw new \InvalidArgumentException('Token d\'édition invalide');
+        }
+
+        if ($quoteRequest->isTokenExpired()) {
+            throw new \InvalidArgumentException('Le lien d\'édition a expiré');
+        }
+
+        if ($quoteRequest->status === 'paid') {
+            throw new \InvalidArgumentException('Ce devis a déjà été payé et ne peut plus être modifié');
+        }
+
+        // ✅ 2. Rate limiting par IP (même logique que création)
+        $this->checkRateLimit();
+
+        // ✅ 3. Validation des nouveaux produits
+        if (isset($payload['product_ids'])) {
+            $this->validateProductIds($payload['product_ids']);
+        }
+
+        // ✅ 4. Mise à jour des données autorisées
+        $updateData = [];
+
+        if (isset($payload['product_ids'])) {
+            $updateData['selected_product_ids'] = $payload['product_ids'];
+        }
+
+        if (isset($payload['total_price'])) {
+            $updateData['total_amount'] = $payload['total_price'];
+        }
+
+        if (isset($payload['dates']['checkin'])) {
+            $updateData['checkin_date'] = $payload['dates']['checkin'];
+        }
+
+        if (isset($payload['dates']['checkout']) || isset($payload['dates']['endExclusive'])) {
+            $updateData['checkout_date'] = $payload['dates']['checkout'] ?? $payload['dates']['endExclusive'];
+        }
+
+        if (isset($payload['dates']['guests']) || isset($payload['guests'])) {
+            $updateData['guests'] = $payload['dates']['guests'] ?? $payload['guests'];
+        }
+
+        if (isset($payload['contact']['message']) || isset($payload['message'])) {
+            $updateData['message'] = $payload['contact']['message'] ?? $payload['message'];
+        }
+
+        // ✅ 5. Remettre le devis en statut draft + régénérer token si changements importants
+        if (!empty($updateData)) {
+            $hasImportantChanges = isset($updateData['selected_product_ids']) || isset($updateData['total_amount']);
+
+            if ($hasImportantChanges) {
+                // Régénérer token et remettre à l'état non validé pour nouvelle validation email
+                $updateData['validation_token'] = \Illuminate\Support\Str::random(64);
+                $updateData['token_expires_at'] = \Carbon\Carbon::now()->addHours(48);
+                $updateData['status'] = 'draft';
+                $updateData['email_verified_at'] = null;
+            }
+
+            $quoteRequest->update($updateData);
+
+            // ✅ 6. Envoyer nouvel email de validation si changements importants
+            if ($hasImportantChanges) {
+                $this->sendValidationEmail($quoteRequest);
+
+                Log::info('✅ Devis modifié - Nouvel email envoyé', [
+                    'id' => $quoteRequest->id,
+                    'reference' => $quoteRequest->quote_reference,
+                    'new_token' => substr($quoteRequest->validation_token, 0, 10) . '...'
+                ]);
+            } else {
+                Log::info('✅ Devis modifié - Changements mineurs', [
+                    'id' => $quoteRequest->id,
+                    'reference' => $quoteRequest->quote_reference
+                ]);
+            }
+        }
+
+        return $quoteRequest;
+    }
 }

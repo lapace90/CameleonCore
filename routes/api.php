@@ -37,3 +37,19 @@ Route::get('admin/stats/dashboard', function() {
         'products_count' => \App\Models\Product::count(),
     ]);
 })->middleware(['auth:sanctum']);
+
+Route::get('/quote-requests/{id}/edit/{token}', function($id, $token) {
+    $processor = new \App\State\QuoteRequestProcessor(new \App\Services\EmailValidationService());
+    
+    try {
+        $quote = \App\Models\QuoteRequest::findOrFail($id);
+        
+        if (!$quote->validation_token || !hash_equals($quote->validation_token, $token)) {
+            return response()->json(['error' => 'Token invalide'], 400);
+        }
+        
+        return response()->json($quote);
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Devis non trouvé'], 404);
+    }
+});

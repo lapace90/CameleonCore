@@ -36,6 +36,11 @@ export default [
         name: 'Testimonials',
         component: Testimonials
       },
+      {
+        path: '/edit-quote/:quoteId/:editToken',
+        name: 'EditQuote',
+        component: () => import('../views/EditQuote.vue')
+      }
     ]
   }
 ]
