@@ -99,7 +99,7 @@ class QuoteRequestProcessor implements ProcessorInterface
 
         // ✅ 5. Création en base
         $quoteRequest = QuoteRequest::createFromQuoteData($quoteData);
-
+        $this->syncDetailedQuantities($quoteRequest, $payload);
         // ✅ 6. Envoi email de validation
         $this->sendValidationEmail($quoteRequest);
 
@@ -113,10 +113,57 @@ class QuoteRequestProcessor implements ProcessorInterface
         return $quoteRequest;
     }
 
+
+    /**
+     * Synchroniser les quantités détaillées si disponibles dans le payload
+     */
+    private function syncDetailedQuantities(QuoteRequest $quoteRequest, array $payload): void
+    {
+        // Si le frontend envoie des quantités détaillées (nouveau format)
+        if (isset($payload['items']) && is_array($payload['items'])) {
+            $quantities = [];
+
+            foreach ($payload['items'] as $item) {
+                if (isset($item['product_id'], $item['quantity'])) {
+                    $productId = (int) $item['product_id'];
+                    $quantity = max(1, (int) $item['quantity']);
+                    $quantities[$productId] = $quantity;
+                }
+            }
+
+            if (!empty($quantities)) {
+                // Synchroniser directement la table pivot
+                $pivotData = [];
+                foreach ($quantities as $productId => $quantity) {
+                    $pivotData[$productId] = ['quantity' => $quantity];
+                }
+
+                $quoteRequest->products()->sync($pivotData);
+
+                // Reconstruire selected_product_ids pour compatibilité
+                $productIds = [];
+                foreach ($quantities as $productId => $quantity) {
+                    for ($i = 0; $i < $quantity; $i++) {
+                        $productIds[] = $productId;
+                    }
+                }
+
+                $quoteRequest->update([
+                    'selected_product_ids' => $productIds,
+                    'pivot_migrated' => true
+                ]);
+
+                Log::info('✅ Quantités détaillées synchronisées', [
+                    'quote_id' => $quoteRequest->id,
+                    'quantities' => $quantities
+                ]);
+            }
+        }
+    }
+
     // ===========================
     // VALIDATION VIA TOKEN
     // ===========================
-
     private function validateQuoteRequest(int $id, string $token): QuoteRequest
     {
         $quoteRequest = QuoteRequest::findOrFail($id);
@@ -169,28 +216,47 @@ class QuoteRequestProcessor implements ProcessorInterface
     // ===========================
     // VALIDATION MÉTIER
     // ===========================
-
     private function validateProductIds(array $productIds): void
     {
         if (empty($productIds)) {
             throw new \InvalidArgumentException('Aucun produit sélectionné');
         }
 
+        // ✅ FIX: Obtenir les IDs uniques pour la validation
+        $uniqueProductIds = array_unique($productIds);
+
         // Vérifier que tous les products existent et sont actifs
-        $validProductsCount = Product::whereIn('id', $productIds)
+        $validProductsCount = Product::whereIn('id', $uniqueProductIds)
             ->where('status', true)
             ->where('is_draft', false)
             ->count();
 
-        if ($validProductsCount !== count($productIds)) {
-            throw new \InvalidArgumentException('Certains produits ne sont plus disponibles');
+        if ($validProductsCount !== count($uniqueProductIds)) {
+            // ✅ Diagnostic détaillé pour debug
+            $validProducts = Product::whereIn('id', $uniqueProductIds)
+                ->where('status', true)
+                ->where('is_draft', false)
+                ->pluck('id')
+                ->toArray();
+
+            $invalidIds = array_diff($uniqueProductIds, $validProducts);
+
+            Log::warning('Produits invalides détectés', [
+                'requested_unique_ids' => $uniqueProductIds,
+                'valid_ids' => $validProducts,
+                'invalid_ids' => $invalidIds,
+                'total_requested' => count($productIds),
+                'unique_requested' => count($uniqueProductIds),
+                'valid_found' => $validProductsCount
+            ]);
+
+            throw new \InvalidArgumentException('Certains produits ne sont plus disponibles : ' . implode(', ', $invalidIds));
         }
     }
 
     // ===========================
     // SERVICES EMAIL
     // ===========================
-
     private function sendValidationEmail(QuoteRequest $quoteRequest): void
     {
         try {
@@ -382,7 +448,7 @@ class QuoteRequestProcessor implements ProcessorInterface
     /**
      * Mettre à jour un devis via édition client
      */
-    private function updateQuoteForEdit(int $id, string $editToken, array $context): QuoteRequest
+    public function updateQuoteForEdit(int $id, string $editToken, array $context): QuoteRequest
     {
         $quoteRequest = QuoteRequest::findOrFail($id);
         $payload = $this->getDataFromRequest($context);
@@ -455,7 +521,9 @@ class QuoteRequestProcessor implements ProcessorInterface
             }
 
             $quoteRequest->update($updateData);
-
+            if (isset($updateData['selected_product_ids'])) {
+                $this->syncDetailedQuantities($quoteRequest, $payload);
+            }
             // ✅ 6. Envoyer nouvel email de validation si changements importants
             if ($hasImportantChanges) {
                 $this->sendValidationEmail($quoteRequest);

@@ -19,6 +19,8 @@ use App\Data\ProductData;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\Models\QuoteRequestItem;
+use App\Models\QuoteRequest;
 use App\Models\Category;
 use App\Models\Reservation;
 use App\Models\Option;
@@ -177,5 +179,23 @@ class Product extends Model
     public function scopeDrafts($query)
     {
         return $query->where('is_draft', true);
+    }
+
+    /**
+     * Relation avec les items de devis (table pivot)
+     */
+    public function quoteRequestItems()
+    {
+        return $this->hasMany(QuoteRequestItem::class);
+    }
+
+    /**
+     * Relation many-to-many avec les devis via la table pivot
+     */
+    public function quoteRequests()
+    {
+        return $this->belongsToMany(QuoteRequest::class, 'quote_request_items')
+            ->withPivot('quantity')
+            ->withTimestamps();
     }
 }

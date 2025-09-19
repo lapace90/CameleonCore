@@ -11,6 +11,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Patch;
 use App\State\QuoteRequestProcessor;
+use App\Models\QuoteRequestItem;
 use App\Models\Product;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
@@ -307,5 +308,145 @@ class QuoteRequest extends Model
         $random = Str::upper(Str::random(4));
 
         return "{$prefix}-{$date}-{$random}";
+    }
+    /**
+     * Retourne les produits avec leurs quantités pour l'API
+     * Format enrichi pour l'interface admin
+     */
+    public function getProductsWithQuantities()
+    {
+        if (!$this->pivot_migrated) {
+            // Mode legacy : calculer depuis selected_product_ids
+            $quantities = array_count_values($this->selected_product_ids ?? []);
+
+            return collect($quantities)->map(function ($quantity, $productId) {
+                $product = Product::find($productId);
+
+                return [
+                    'product_id' => (int) $productId,
+                    'quantity' => $quantity,
+                    'product' => $product ? [
+                        'id' => $product->id,
+                        'name' => $product->name,
+                        'price' => $product->price,
+                        'type' => class_basename($product->productable_type ?? 'Product')
+                    ] : null
+                ];
+            })->values();
+        }
+
+        // Mode nouveau : utiliser la table pivot
+        return $this->items->load('product')->map(function ($item) {
+            return [
+                'product_id' => $item->product_id,
+                'quantity' => $item->quantity,
+                'product' => $item->product ? [
+                    'id' => $item->product->id,
+                    'name' => $item->product->name,
+                    'price' => $item->product->price,
+                    'type' => class_basename($item->product->productable_type ?? 'Product')
+                ] : null
+            ];
+        });
+    }
+
+    // Ajouter aussi cet accessor pour l'API
+    protected $appends = ['products_with_quantities'];
+
+    public function getProductsWithQuantitiesAttribute()
+    {
+        return $this->getProductsWithQuantities();
+    }
+    /**
+     * Relation avec les items (table pivot avec quantités)
+     */
+    public function items()
+    {
+        return $this->hasMany(QuoteRequestItem::class);
+    }
+
+    /**
+     * Relation many-to-many avec les produits via la table pivot
+     */
+    public function products()
+    {
+        return $this->belongsToMany(Product::class, 'quote_request_items')
+            ->withPivot('quantity')
+            ->withTimestamps();
+    }
+
+/**
+ * Synchronise la table pivot à partir de selected_product_ids
+ * Cette méthode convertit l'ancien format vers le nouveau
+ */
+public function syncItemsFromProductIds(): void
+{
+    if ($this->pivot_migrated || empty($this->selected_product_ids)) {
+        return;
+    }
+
+    // Compter les occurrences de chaque product_id
+    $quantities = array_count_values($this->selected_product_ids);
+    
+    // Synchroniser la table pivot
+    $pivotData = [];
+    foreach ($quantities as $productId => $quantity) {
+        $pivotData[$productId] = ['quantity' => $quantity];
+    }
+    
+    $this->products()->sync($pivotData);
+    
+    // ✅ FIX: Utiliser updateQuietly pour éviter les events
+    $this->updateQuietly(['pivot_migrated' => true]);
+}
+
+/**
+ * Met à jour selected_product_ids à partir de la table pivot
+ * Pour maintenir la compatibilité avec le frontend
+ */
+public function updateProductIdsFromItems(): void
+{
+    if (!$this->pivot_migrated) {
+        return;
+    }
+
+    $productIds = [];
+    foreach ($this->items as $item) {
+        for ($i = 0; $i < $item->quantity; $i++) {
+            $productIds[] = $item->product_id;
+        }
+    }
+    
+    // ✅ FIX: Utiliser updateQuietly pour éviter les events
+    $this->updateQuietly(['selected_product_ids' => $productIds]);
+}
+
+    /**
+     * Obtient les quantités sous forme de tableau associatif
+     * Utile pour l'API ou les vues
+     */
+    public function getQuantitiesAttribute(): array
+    {
+        if (!$this->pivot_migrated) {
+            return array_count_values($this->selected_product_ids ?? []);
+        }
+
+        return $this->items->pluck('quantity', 'product_id')->toArray();
+    }
+
+    /**
+     * Boot method pour synchroniser automatiquement
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // ✅ FIX: Seulement après création, pas après update pour éviter boucle infinie
+        static::created(function ($quoteRequest) {
+            // Synchroniser uniquement si on a des product_ids et pas encore migré
+            if (!$quoteRequest->pivot_migrated && !empty($quoteRequest->selected_product_ids)) {
+                $quoteRequest->syncItemsFromProductIds();
+            }
+        });
     }
 }

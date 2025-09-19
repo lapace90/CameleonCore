@@ -128,14 +128,44 @@
                 <!-- Summary & Actions -->
                 <div class="quote-summary">
                     <h3>📋 Récapitulatif</h3>
-                    <div class="summary-items">
+
+                    <!-- Si on a des produits avec quantités du backend -->
+                    <div v-if="quote?.products_with_quantities?.length" class="summary-items">
+                        <div v-for="item in selectedItemsForDisplay" :key="item.id" class="summary-item enhanced">
+                            <div class="item-info">
+                                <span class="item-name">{{ item.name }}</span>
+                                <span class="item-unit-price">{{ item.unitPrice }}€/unité</span>
+                            </div>
+
+                            <div class="item-controls">
+                                <label class="qty-label">Quantité:</label>
+                                <select class="qty-select" :value="item.quantity"
+                                    @change="setProductQuantity(item.product_id, $event.target.value)">
+                                    <option value="0">Supprimer</option>
+                                    <option v-for="n in getMaxQuantity(item.product_id)" :key="n" :value="n">{{ n }}
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div class="item-total">
+                                <strong>{{ item.price }}€</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fallback pour l'ancien système -->
+                    <div v-else class="summary-items">
                         <div v-for="item in selectedItemsForDisplay" :key="item.id" class="summary-item">
                             <span>{{ item.name }}</span>
                             <span>{{ item.price }}€</span>
                         </div>
                     </div>
+
                     <div class="summary-total">
                         <strong>Total: {{ totalPrice }}€</strong>
+                        <small v-if="Object.keys(formData.quantityOverrides).length > 0" class="modified-notice">
+                            * Quantités personnalisées appliquées
+                        </small>
                     </div>
                 </div>
 
@@ -164,275 +194,389 @@ import PublicApi from '@/services/PublicApi'
 import { computeQuoteTotal } from '@/shared/composables/useQuotePricing'
 
 export default {
-  name: 'EditQuote',
+    name: 'EditQuote',
 
-  setup() {
-    const route = useRoute()
-    const router = useRouter()
+    setup() {
+        const route = useRoute()
+        const router = useRouter()
 
-    // --- ÉTAT
-    const isLoading = ref(true)
-    const error = ref(null)
-    const quote = ref(null)
-    const isSubmitting = ref(false)
+        // --- ÉTAT
+        const isLoading = ref(true)
+        const error = ref(null)
+        const quote = ref(null)
+        const isSubmitting = ref(false)
 
-    // --- FORM DATA
-    const formData = reactive({
-      dates: { checkin: '', checkout: '', guests: 2 },
-      selectedItems: { activity: [], menu: [], room: [] },
-      message: ''
-    })
+        // --- FORM DATA
+        const formData = reactive({
+            dates: { checkin: '', checkout: '', guests: 2 },
+            selectedItems: { activity: [], menu: [], room: [] },
+            message: '',
+            quantityOverrides: {} // { productId: quantity }
+        })
 
-    // --- CATALOGUES
-    const activities = ref([])
-    const menus = ref([])
-    const rooms = ref([])
-    const activitiesLoading = ref(false)
-    const menusLoading = ref(false)
-    const roomsLoading = ref(false)
+        // --- CATALOGUES
+        const activities = ref([])
+        const menus = ref([])
+        const rooms = ref([])
+        const activitiesLoading = ref(false)
+        const menusLoading = ref(false)
+        const roomsLoading = ref(false)
 
-    // --- API
-    const api = new PublicApi()
+        // --- API
+        const api = new PublicApi()
 
-    // --- HELPERS
-    const toLocalDateInput = (iso) => {
-      if (!iso) return ''
-      const d = new Date(iso)
-      const y = d.getFullYear()
-      const m = String(d.getMonth() + 1).padStart(2, '0')
-      const day = String(d.getDate()).padStart(2, '0')
-      return `${y}-${m}-${day}`
-    }
-    const dateOnly = (s) => (s ? String(s).split('T')[0] : '')
-
-    // --- COMPUTED
-    const minDate = computed(() => {
-      const tomorrow = new Date()
-      tomorrow.setDate(tomorrow.getDate() + 1)
-      return tomorrow.toISOString().split('T')[0]
-    })
-
-    // Calcul centralisé (composable)
-    const pricing = computed(() =>
-      computeQuoteTotal({
-        selected: formData.selectedItems,
-        catalog: { activities: activities.value, menus: menus.value, rooms: rooms.value },
-        dates: formData.dates,
-        rules: {
-          roomPerNight: true,
-          menuPerGuest: true,
-          activityParGuest: true 
+        // --- HELPERS
+        const toLocalDateInput = (iso) => {
+            if (!iso) return ''
+            const d = new Date(iso)
+            const y = d.getFullYear()
+            const m = String(d.getMonth() + 1).padStart(2, '0')
+            const day = String(d.getDate()).padStart(2, '0')
+            return `${y}-${m}-${day}`
         }
-      })
-    )
+        const dateOnly = (s) => (s ? String(s).split('T')[0] : '')
+        // Obtenir la quantité effective d'un produit
+        const getProductQuantity = (productId) => {
+            // Si override personnalisé défini, l'utiliser
+            if (formData.quantityOverrides[productId] !== undefined) {
+                return formData.quantityOverrides[productId]
+            }
 
-    const totalPrice = computed(() => pricing.value.total)
-    const nights = computed(() => pricing.value.nights)
+            // Sinon utiliser les données du backend
+            const productWithQty = quote.value?.products_with_quantities?.find(p => p.product_id === productId)
+            if (productWithQty) {
+                return productWithQty.quantity
+            }
 
-    const selectedItemsForDisplay = computed(() =>
-      pricing.value.lines.map((l) => ({
-        id: `${l.type}-${l.id}`,
-        name: l.name + (l.qty > 1 ? ` × ${l.qty}` : ''),
-        price: l.lineTotal
-      }))
-    )
-
-    const statusClass = computed(() => ({
-      'status-draft': quote.value?.status === 'draft',
-      'status-sent': quote.value?.status === 'sent',
-      'status-validated': !!quote.value?.email_verified_at
-    }))
-
-    const statusText = computed(() => {
-      if (!quote.value) return ''
-      if (quote.value.email_verified_at) return 'Validé'
-      return quote.value.status === 'sent' ? 'Envoyé' : 'Brouillon'
-    })
-
-    const hasChanges = computed(() => {
-      if (!quote.value) return false
-      const originalIds = quote.value.selected_product_ids || []
-      const currentIds = Object.values(formData.selectedItems).flat()
-
-      return (
-        dateOnly(formData.dates.checkin) !== dateOnly(quote.value.checkin_date) ||
-        dateOnly(formData.dates.checkout) !== dateOnly(quote.value.checkout_date) ||
-        Number(formData.dates.guests) !== Number(quote.value.guests || 2) ||
-        formData.message !== (quote.value.message || '') ||
-        JSON.stringify([...originalIds].sort()) !== JSON.stringify([...currentIds].sort())
-      )
-    })
-
-    // --- LOADERS
-    const loadQuote = async () => {
-      try {
-        isLoading.value = true
-        error.value = null
-
-        const { quoteId, editToken } = route.params
-        const result = await api.getQuoteForEdit(quoteId, editToken)
-        quote.value = result.quote
-
-        // 1) produits
-        await loadProducts()
-
-        // 2) pré-remplir form
-        formData.dates.checkin = toLocalDateInput(quote.value.checkin_date)
-        formData.dates.checkout = toLocalDateInput(quote.value.checkout_date)
-        formData.dates.guests = quote.value.guests || 2
-        formData.message = quote.value.message || ''
-
-        // 3) sélections
-        populateSelectedItems()
-      } catch (err) {
-        error.value = err.message || 'Erreur lors du chargement du devis.'
-      } finally {
-        isLoading.value = false
-      }
-    }
-
-    const loadProducts = async () => {
-      activitiesLoading.value = true
-      menusLoading.value = true
-      roomsLoading.value = true
-      try {
-        const [acts, mens, rms] = await Promise.all([
-          api.getActivities({ per_page: 20 }),
-          api.getMenus({ per_page: 20 }),
-          api.getRooms({ per_page: 20 })
-        ])
-
-        activities.value = acts.data ?? []
-        menus.value = mens.data ?? []
-        rooms.value = rms.data ?? []
-
-        // Si certains IDs sélectionnés ne sont pas dans la page chargée
-        await ensureProductsForSelectedIds()
-      } catch (err) {
-        console.error('❌ Erreur chargement produits:', err)
-      } finally {
-        activitiesLoading.value = false
-        menusLoading.value = false
-        roomsLoading.value = false
-      }
-    }
-
-    // Charge les produits manquants (hors page) via /products/:id
-    const ensureProductsForSelectedIds = async () => {
-      if (!quote.value?.selected_product_ids?.length) return
-
-      const present = new Set([
-        ...activities.value.map((p) => p.id),
-        ...menus.value.map((p) => p.id),
-        ...rooms.value.map((p) => p.id)
-      ])
-
-      const missing = quote.value.selected_product_ids.filter((id) => !present.has(id))
-      if (!missing.length) return
-
-      const results = await Promise.allSettled(missing.map((id) => api.getProduct(id)))
-      for (const r of results) {
-        if (r.status === 'fulfilled') {
-          const p = r.value
-          const cls = p.productable_type || p.productableType || ''
-          if (cls.includes('Activity')) activities.value.push(p)
-          else if (cls.includes('Menu')) menus.value.push(p)
-          else if (cls.includes('Room')) rooms.value.push(p)
-        }
-      }
-    }
-
-    // --- SELECTIONS
-    const populateSelectedItems = () => {
-      if (!quote.value?.selected_product_ids) return
-
-      // reset pour éviter doublons au retry
-      formData.selectedItems.activity = []
-      formData.selectedItems.menu = []
-      formData.selectedItems.room = []
-
-      for (const productId of quote.value.selected_product_ids) {
-        if (activities.value.some((a) => a.id === productId)) {
-          formData.selectedItems.activity.push(productId)
-        } else if (menus.value.some((m) => m.id === productId)) {
-          formData.selectedItems.menu.push(productId)
-        } else if (rooms.value.some((r) => r.id === productId)) {
-          formData.selectedItems.room.push(productId)
-        }
-      }
-    }
-
-    const isProductSelected = (type, productId) => formData.selectedItems[type].includes(productId)
-
-    const toggleProduct = (type, product) => {
-      const selectedList = formData.selectedItems[type]
-      const idx = selectedList.indexOf(product.id)
-
-      if (idx > -1) {
-        selectedList.splice(idx, 1)
-      } else {
-        if (type === 'room') {
-          formData.selectedItems.room = [product.id] // une chambre max
-        } else {
-          selectedList.push(product.id)
-        }
-      }
-    }
-
-    // --- ACTIONS
-    const saveChanges = async () => {
-      if (isSubmitting.value || !hasChanges.value) return
-      try {
-        isSubmitting.value = true
-
-        if (formData.selectedItems.room.length === 0) {
-          throw new Error('Veuillez sélectionner un hébergement')
+            // Fallback : compter dans selected_product_ids
+            return (quote.value?.selected_product_ids || []).filter(id => id === productId).length
         }
 
-        const updateData = {
-          product_ids: Object.values(formData.selectedItems).flat(),
-          total_price: totalPrice.value,
-          dates: formData.dates,
-          message: formData.message
+        // Ajouter cette méthode pour synchroniser selectedItems avec les overrides
+        const syncSelectedItemsWithOverrides = () => {
+            if (!quote.value?.products_with_quantities) return
+
+            // Vider les sélections actuelles
+            formData.selectedItems.activity = []
+            formData.selectedItems.menu = []
+            formData.selectedItems.room = []
+
+            // Reconstruire selon les quantités effectives
+            for (const item of quote.value.products_with_quantities) {
+                const quantity = getProductQuantity(item.product_id)
+
+                if (quantity > 0) {
+                    // Répéter l'ID selon la quantité pour le système de calcul
+                    for (let i = 0; i < quantity; i++) {
+                        if (activities.value.some(a => a.id === item.product_id)) {
+                            formData.selectedItems.activity.push(item.product_id)
+                        } else if (menus.value.some(m => m.id === item.product_id)) {
+                            formData.selectedItems.menu.push(item.product_id)
+                        } else if (rooms.value.some(r => r.id === item.product_id)) {
+                            formData.selectedItems.room.push(item.product_id)
+                        }
+                    }
+                }
+            }
         }
 
-        const { quoteId, editToken } = route.params
-        const result = await api.updateQuote(quoteId, editToken, updateData)
+        // Modifier setProductQuantity pour synchroniser après chaque changement
+        const setProductQuantity = (productId, quantity) => {
+            const qty = Math.max(0, parseInt(quantity) || 0)
 
-        alert('✅ Modifications sauvegardées !')
-        router.push('/')
-      } catch (err) {
-        console.error('❌ Erreur sauvegarde:', err)
-        alert('❌ Erreur\n\n' + (err.message || 'Sauvegarde impossible'))
-      } finally {
-        isSubmitting.value = false
-      }
+            if (qty === 0) {
+                delete formData.quantityOverrides[productId]
+            } else {
+                formData.quantityOverrides[productId] = qty
+            }
+
+            // Synchroniser selectedItems pour que computeQuoteTotal voie les changements
+            syncSelectedItemsWithOverrides()
+        }
+
+        // Obtenir la quantité max autorisée pour un produit
+        const getMaxQuantity = (productId) => {
+            // Pour les activités/menus, limiter au nombre d'invités × nombre de nuits
+            const currentNights = nights.value
+            const currentGuests = Math.max(1, formData.dates.guests || 1)
+            return currentGuests * currentNights
+        }
+
+        // --- COMPUTED
+        const minDate = computed(() => {
+            const tomorrow = new Date()
+            tomorrow.setDate(tomorrow.getDate() + 1)
+            return tomorrow.toISOString().split('T')[0]
+        })
+
+        // Calcul centralisé (composable)
+        const pricing = computed(() =>
+            computeQuoteTotal({
+                selected: formData.selectedItems,
+                catalog: { activities: activities.value, menus: menus.value, rooms: rooms.value },
+                dates: formData.dates,
+                rules: {
+                    roomPerNight: true,
+                    menuPerGuest: true,
+                    activityParGuest: true
+                }
+            })
+        )
+
+        const totalPrice = computed(() => {
+            if (quote.value?.products_with_quantities && Object.keys(formData.quantityOverrides).length > 0) {
+                // Recalcul avec les overrides
+                let total = 0
+                for (const item of quote.value.products_with_quantities) {
+                    const quantity = getProductQuantity(item.product_id)
+                    const unitPrice = item.product?.price || 0
+                    total += unitPrice * quantity
+                }
+                return total
+            }
+
+            if (quote.value?.total_amount) {
+                return parseFloat(quote.value.total_amount)
+            }
+
+            return pricing.value.total
+        })
+
+        const nights = computed(() => pricing.value.nights)
+
+        const selectedItemsForDisplay = computed(() => {
+            if (quote.value?.products_with_quantities && Array.isArray(quote.value.products_with_quantities)) {
+                return quote.value.products_with_quantities.map(item => {
+                    const quantity = getProductQuantity(item.product_id)
+                    const unitPrice = item.product?.price || 0
+
+                    return {
+                        id: `product-${item.product_id}`,
+                        product_id: item.product_id,
+                        name: item.product?.name || `Produit #${item.product_id}`,
+                        quantity: quantity,
+                        unitPrice: unitPrice,
+                        price: unitPrice * quantity
+                        // ✅ SUPPRIMÉ: type qui causait des erreurs
+                    }
+                }).filter(item => item.quantity > 0)
+            }
+
+            // Fallback
+            return pricing.value.lines.map((l) => ({
+                id: `${l.type}-${l.id}`,
+                name: l.name + (l.qty > 1 ? ` × ${l.qty}` : ''),
+                price: l.lineTotal
+            }))
+        })
+
+        const statusClass = computed(() => ({
+            'status-draft': quote.value?.status === 'draft',
+            'status-sent': quote.value?.status === 'sent',
+            'status-validated': !!quote.value?.email_verified_at
+        }))
+
+        const statusText = computed(() => {
+            if (!quote.value) return ''
+            if (quote.value.email_verified_at) return 'Validé'
+            return quote.value.status === 'sent' ? 'Envoyé' : 'Brouillon'
+        })
+
+        const hasChanges = computed(() => {
+            if (!quote.value) return false
+            const originalIds = quote.value.selected_product_ids || []
+            const currentIds = Object.values(formData.selectedItems).flat()
+
+            return (
+                dateOnly(formData.dates.checkin) !== dateOnly(quote.value.checkin_date) ||
+                dateOnly(formData.dates.checkout) !== dateOnly(quote.value.checkout_date) ||
+                Number(formData.dates.guests) !== Number(quote.value.guests || 2) ||
+                formData.message !== (quote.value.message || '') ||
+                JSON.stringify([...originalIds].sort()) !== JSON.stringify([...currentIds].sort())
+            )
+        })
+
+        // --- LOADERS
+        const loadQuote = async () => {
+            try {
+                isLoading.value = true
+                error.value = null
+
+                const { quoteId, editToken } = route.params
+                const result = await api.getQuoteForEdit(quoteId, editToken)
+                quote.value = result.quote
+
+                // 1) produits
+                await loadProducts()
+
+                // 2) pré-remplir form
+                formData.dates.checkin = toLocalDateInput(quote.value.checkin_date)
+                formData.dates.checkout = toLocalDateInput(quote.value.checkout_date)
+                formData.dates.guests = quote.value.guests || 2
+                formData.message = quote.value.message || ''
+
+                // 3) sélections
+                populateSelectedItems()
+            } catch (err) {
+                error.value = err.message || 'Erreur lors du chargement du devis.'
+            } finally {
+                isLoading.value = false
+            }
+        }
+
+        const loadProducts = async () => {
+            activitiesLoading.value = true
+            menusLoading.value = true
+            roomsLoading.value = true
+            try {
+                const [acts, mens, rms] = await Promise.all([
+                    api.getActivities({ per_page: 20 }),
+                    api.getMenus({ per_page: 20 }),
+                    api.getRooms({ per_page: 20 })
+                ])
+
+                activities.value = acts.data ?? []
+                menus.value = mens.data ?? []
+                rooms.value = rms.data ?? []
+
+                // Si certains IDs sélectionnés ne sont pas dans la page chargée
+                await ensureProductsForSelectedIds()
+            } catch (err) {
+                console.error('❌ Erreur chargement produits:', err)
+            } finally {
+                activitiesLoading.value = false
+                menusLoading.value = false
+                roomsLoading.value = false
+            }
+        }
+
+        // Charge les produits manquants (hors page) via /products/:id
+        const ensureProductsForSelectedIds = async () => {
+            if (!quote.value?.selected_product_ids?.length) return
+
+            const present = new Set([
+                ...activities.value.map((p) => p.id),
+                ...menus.value.map((p) => p.id),
+                ...rooms.value.map((p) => p.id)
+            ])
+
+            const missing = quote.value.selected_product_ids.filter((id) => !present.has(id))
+            if (!missing.length) return
+
+            const results = await Promise.allSettled(missing.map((id) => api.getProduct(id)))
+            for (const r of results) {
+                if (r.status === 'fulfilled') {
+                    const p = r.value
+                    const cls = p.productable_type || p.productableType || ''
+                    if (cls.includes('Activity')) activities.value.push(p)
+                    else if (cls.includes('Menu')) menus.value.push(p)
+                    else if (cls.includes('Room')) rooms.value.push(p)
+                }
+            }
+        }
+
+        // --- SELECTIONS
+        const populateSelectedItems = () => {
+            if (!quote.value?.selected_product_ids) return
+
+            // reset pour éviter doublons au retry
+            formData.selectedItems.activity = []
+            formData.selectedItems.menu = []
+            formData.selectedItems.room = []
+
+            for (const productId of quote.value.selected_product_ids) {
+                if (activities.value.some((a) => a.id === productId)) {
+                    formData.selectedItems.activity.push(productId)
+                } else if (menus.value.some((m) => m.id === productId)) {
+                    formData.selectedItems.menu.push(productId)
+                } else if (rooms.value.some((r) => r.id === productId)) {
+                    formData.selectedItems.room.push(productId)
+                }
+            }
+        }
+
+        const isProductSelected = (type, productId) => formData.selectedItems[type].includes(productId)
+
+        const toggleProduct = (type, product) => {
+            const selectedList = formData.selectedItems[type]
+            const idx = selectedList.indexOf(product.id)
+
+            if (idx > -1) {
+                selectedList.splice(idx, 1)
+            } else {
+                if (type === 'room') {
+                    formData.selectedItems.room = [product.id] // une chambre max
+                } else {
+                    selectedList.push(product.id)
+                }
+            }
+        }
+
+        // --- ACTIONS
+        const saveChanges = async () => {
+            if (isSubmitting.value || !hasChanges.value) return
+            try {
+                isSubmitting.value = true
+
+                // ✅ Utiliser votre logique existante pour vérifier les hébergements
+                if (formData.selectedItems.room.length === 0) {
+                    throw new Error('Veuillez sélectionner un hébergement')
+                }
+
+                // Construire product_ids en "dépliant" les quantités
+                const productIds = []
+                for (const item of selectedItemsForDisplay.value) {
+                    for (let i = 0; i < item.quantity; i++) {
+                        productIds.push(item.product_id)
+                    }
+                }
+
+                const updateData = {
+                    product_ids: productIds,
+                    total_price: totalPrice.value,
+                    dates: formData.dates,
+                    message: formData.message
+                }
+
+                const { quoteId, editToken } = route.params
+                const result = await api.updateQuote(quoteId, editToken, updateData)
+
+                alert('✅ Modifications sauvegardées !')
+                router.push('/')
+            } catch (err) {
+                console.error('❌ Erreur sauvegarde:', err)
+                alert('❌ Erreur\n\n' + (err.message || 'Sauvegarde impossible'))
+            } finally {
+                isSubmitting.value = false
+            }
+        }
+
+        const cancelEdit = () => {
+            if (hasChanges.value && !confirm('Abandonner les modifications ?')) return
+            router.push('/')
+        }
+
+        const retryLoad = () => loadQuote()
+
+        // --- LIFECYCLE
+        onMounted(loadQuote)
+
+        // --- RETURN
+        return {
+            // état
+            isLoading, error, quote, isSubmitting,
+            // form/catalogues  
+            formData, activities, menus, rooms,
+            activitiesLoading, menusLoading, roomsLoading,
+            // computed
+            minDate, statusClass, statusText,
+            selectedItemsForDisplay, totalPrice, nights, hasChanges,
+            // méthodes existantes
+            isProductSelected, toggleProduct, saveChanges, cancelEdit, retryLoad,
+            // méthodes pour les quantités
+            getProductQuantity, setProductQuantity, getMaxQuantity
+        }
     }
-
-    const cancelEdit = () => {
-      if (hasChanges.value && !confirm('Abandonner les modifications ?')) return
-      router.push('/')
-    }
-
-    const retryLoad = () => loadQuote()
-
-    // --- LIFECYCLE
-    onMounted(loadQuote)
-
-    // --- RETURN
-    return {
-      // état
-      isLoading, error, quote, isSubmitting,
-      // form/catalogues
-      formData, activities, menus, rooms,
-      activitiesLoading, menusLoading, roomsLoading,
-      // computed
-      minDate, statusClass, statusText,
-      selectedItemsForDisplay, totalPrice, nights, hasChanges,
-      // méthodes
-      isProductSelected, toggleProduct, saveChanges, cancelEdit, retryLoad
-    }
-  }
 }
 </script>
 
@@ -675,5 +819,96 @@ export default {
     gap: 15px;
     justify-content: center;
     margin-top: 20px;
+}
+
+.summary-item.enhanced {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 15px;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.item-name {
+    font-weight: 500;
+    color: #333;
+}
+
+.item-unit-price {
+    font-size: 0.9em;
+    color: #666;
+}
+
+.item-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.qty-label {
+    font-size: 0.9em;
+    color: #666;
+    white-space: nowrap;
+}
+
+.qty-select {
+    padding: 5px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
+    min-width: 70px;
+    font-size: 0.9em;
+}
+
+.qty-select:focus {
+    border-color: #c17c4a;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(193, 124, 74, 0.2);
+}
+
+.item-total {
+    text-align: right;
+    color: #c17c4a;
+    font-weight: bold;
+}
+
+.modified-notice {
+    display: block;
+    margin-top: 5px;
+    color: #856404;
+    font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .summary-item.enhanced {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        text-align: left;
+    }
+
+    .item-controls {
+        justify-content: flex-start;
+    }
+
+    .item-total {
+        text-align: left;
+    }
+}
+
+/* Animation pour les changements de quantité */
+.summary-item.enhanced {
+    transition: background-color 0.3s ease;
+}
+
+.summary-item.enhanced:hover {
+    background-color: rgba(193, 124, 74, 0.05);
 }
 </style>

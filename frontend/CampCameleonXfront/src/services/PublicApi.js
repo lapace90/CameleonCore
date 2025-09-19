@@ -506,23 +506,6 @@ class PublicApi {
     return response.data
   }
 
-  // Dans PublicApi.js - AJOUTER
-  /**
-   * Récupérer un devis pour édition
-   */
-  async getQuoteForEdit(quoteId, editToken) {
-    try {
-      const response = await axios.get(`${this.baseURL}/quote-requests/${quoteId}/edit/${editToken}`);
-      return {
-        success: true,
-        quote: response.data
-      };
-    } catch (error) {
-      console.error('❌ Erreur récupération devis:', error);
-      throw new Error('Devis introuvable ou non modifiable');
-    }
-  }
-
   /**
    * Mettre à jour un devis
    */
