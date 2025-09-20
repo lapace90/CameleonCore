@@ -37,10 +37,10 @@
                         </div>
 
                         <!-- Navigation -->
-                        <button @click="prevSlide" class="nav-btn prev" v-show="activities.length > 1">
+                        <button @click="prevSlide" class="carrousel-nav-btn prev" v-show="activities.length > 1">
                             <i class="fas fa-chevron-left"></i>
                         </button>
-                        <button @click="nextSlide" class="nav-btn next" v-show="activities.length > 1">
+                        <button @click="nextSlide" class="carrousel-nav-btn next" v-show="activities.length > 1">
                             <i class="fas fa-chevron-right"></i>
                         </button>
                     </div>
