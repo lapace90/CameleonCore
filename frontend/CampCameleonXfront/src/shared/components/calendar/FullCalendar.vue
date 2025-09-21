@@ -76,6 +76,7 @@ import interactionPlugin from '@fullcalendar/interaction'
 import frLocale from '@fullcalendar/core/locales/fr'
 import EventModal from './EventModal.vue'
 import ConfirmModal from './ConfirmModal.vue'
+import axios from 'axios'
 
 export default {
   name: 'FullAgenda',
@@ -93,13 +94,13 @@ export default {
       type: Boolean,
       default: true
     },
-    // Mode : 'admin' pour toutes les fonctionnalités, 'client' pour lecture seule
     mode: {
       type: String,
       default: 'admin',
       validator: value => ['admin', 'client'].includes(value)
     }
   },
+
   data() {
     return {
       currentView: 'dayGridMonth',
@@ -108,367 +109,186 @@ export default {
       isEditing: false,
       eventToDelete: null,
       currentEvent: this.getEmptyEvent(),
+      isLoading: false,
 
-      // Vues disponibles selon le mode
       availableViews: [
         { value: 'dayGridMonth', label: 'Mois', icon: 'fas fa-calendar' },
         { value: 'timeGridWeek', label: 'Semaine', icon: 'fas fa-calendar-week' },
         { value: 'timeGridDay', label: 'Jour', icon: 'fas fa-calendar-day' }
       ],
 
-      // Stats du camping
       stats: {
         reservations: 24,
         events: 8,
         occupancy: 78
       },
 
-      // Configuration FullCalendar
       calendarOptions: {
         plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
         locale: frLocale,
         initialView: 'dayGridMonth',
-        headerToolbar: false, // On utilise notre propre header
+        headerToolbar: false,
         height: 'auto',
-
-        // Apparence
         dayMaxEvents: 3,
         moreLinkClick: 'popover',
         nowIndicator: true,
         weekNumbers: false,
-
-        // Heures d'ouverture du camping
         businessHours: {
-          daysOfWeek: [0, 1, 2, 3, 4, 5, 6], // Tous les jours
+          daysOfWeek: [0, 1, 2, 3, 4, 5, 6],
           startTime: '08:00',
           endTime: '22:00'
         },
-
-        // Interactions (selon le mode)
         editable: this.mode === 'admin',
         selectable: this.mode === 'admin',
         selectMirror: true,
         droppable: this.mode === 'admin',
 
-        // Events sources
-        events: this.fetchEvents,
+        events: (info, successCallback, failureCallback) => {
+          this.fetchEvents(info).then(events => {
+            successCallback(events);
+          }).catch(error => {
+            console.error('Erreur fetchEvents:', error);
+            failureCallback(error);
+          });
+        },
 
-        // Callbacks
         select: this.handleDateSelect,
         eventClick: this.handleEventClick,
         eventDrop: this.handleEventDrop,
         eventResize: this.handleEventResize,
-        datesSet: this.handleDatesChange,
-
-        // Custom rendering
-        eventClassNames: this.getEventClasses,
-        eventContent: this.renderEventContent
+        viewDidMount: this.handleViewChange
       }
-    }
-  },
-
-  computed: {
-    calendarApi() {
-      return this.$refs.calendar?.getApi()
     }
   },
 
   methods: {
-    // === GESTION DES ÉVÉNEMENTS ===
-    fetchEvents(fetchInfo, successCallback, failureCallback) {
-      // Simulation - remplacez par votre API
-      const events = this.getSimulatedEvents(fetchInfo.start, fetchInfo.end)
-
-      // En production, remplacez par :
-      // this.$http.get('/api/events', {
-      //   params: {
-      //     start: fetchInfo.startStr,
-      //     end: fetchInfo.endStr
-      //   }
-      // }).then(response => {
-      //   successCallback(response.data)
-      // }).catch(error => {
-      //   failureCallback(error)
-      // })
-
-      successCallback(events)
-    },
-
-    getSimulatedEvents(start, end) {
-      return [
-        {
-          id: '1',
-          title: 'Réservation - Famille Dupont',
-          start: '2025-07-22T15:00:00',
-          end: '2025-07-25T11:00:00',
-          backgroundColor: '#28a745',
-          borderColor: '#1e7e34',
-          extendedProps: {
-            type: 'reservation',
-            customerName: 'Famille Dupont',
-            phone: '06 12 34 56 78',
-            notes: 'Emplacement proche sanitaires demandé'
-          }
-        },
-        {
-          id: '2',
-          title: 'Animation - Soirée karaoké',
-          start: '2025-07-23T20:00:00',
-          end: '2025-07-23T23:00:00',
-          backgroundColor: '#ffc107',
-          borderColor: '#e0a800',
-          extendedProps: {
-            type: 'animation',
-            location: 'Salle principale',
-            capacity: 50
-          }
-        },
-        {
-          id: '3',
-          title: 'Maintenance - Piscine',
-          start: '2025-07-24T08:00:00',
-          end: '2025-07-24T12:00:00',
-          backgroundColor: '#dc3545',
-          borderColor: '#c82333',
-          extendedProps: {
-            type: 'maintenance',
-            priority: 'high'
-          }
-        },
-        {
-          id: '4',
-          title: 'Formation équipe',
-          start: '2025-07-25T14:00:00',
-          end: '2025-07-25T17:00:00',
-          backgroundColor: '#6f42c1',
-          borderColor: '#59359a',
-          extendedProps: {
-            type: 'formation',
-            participants: 8
-          }
-        }
-      ]
-    },
-
-    // === INTERACTIONS UTILISATEUR ===
-    handleDateSelect(selectInfo) {
-      if (this.mode !== 'admin') return
-
-      this.currentEvent = {
-        ...this.getEmptyEvent(),
-        start: selectInfo.start.toISOString(),
-        end: selectInfo.end.toISOString()
-      }
-      this.isEditing = false
-      this.showModal = true
-
-      // Déselectionner après ouverture modal
-      selectInfo.view.calendar.unselect()
-    },
-
-    handleEventClick(clickInfo) {
-      this.currentEvent = this.extractEventData(clickInfo.event)
-      this.isEditing = true
-
-      if (this.mode === 'admin') {
-        this.showModal = true
-      } else {
-        // Mode client : juste afficher les détails
-        this.showEventDetails(this.currentEvent)
-      }
-    },
-
-    handleEventDrop(dropInfo) {
-      this.updateEvent({
-        ...this.extractEventData(dropInfo.event),
-        start: dropInfo.event.start.toISOString(),
-        end: dropInfo.event.end?.toISOString()
-      })
-    },
-
-    handleEventResize(resizeInfo) {
-      this.updateEvent({
-        ...this.extractEventData(resizeInfo.event),
-        start: resizeInfo.event.start.toISOString(),
-        end: resizeInfo.event.end?.toISOString()
-      })
-    },
-
-    handleDatesChange(dateInfo) {
-      this.currentView = dateInfo.view.type
-      // Mettre à jour les stats pour la période visible
-      this.updateStatsForPeriod(dateInfo.start, dateInfo.end)
-    },
-
-    // === CRUD OPERATIONS ===
-    handleSaveEvent(eventData) {
-      if (this.isEditing) {
-        this.updateEvent(eventData)
-      } else {
-        this.createEvent(eventData)
-      }
-      this.closeModal()
-    },
-
-    async createEvent(eventData) {
+    async fetchEvents(info) {
       try {
-        // Simulation - remplacez par votre API
-        const newEvent = {
-          ...eventData,
-          id: this.generateId()
-        }
-
-        // En production :
-        // const response = await this.$http.post('/api/events', eventData)
-        // this.calendarApi.addEvent(response.data)
-
-        this.calendarApi.addEvent(newEvent)
-        this.$emit('event-created', newEvent)
-
-        this.showNotification('Événement créé avec succès', 'success')
+        this.isLoading = true;
+        
+        const params = new URLSearchParams({
+          start: info.startStr,
+          end: info.endStr,
+          view: this.currentView
+        });
+        
+        console.log('Requête événements calendrier', {
+          url: '/api/admin/reservations/calendar-events',
+          params: params.toString()
+        });
+        
+        const response = await axios.get(`/api/admin/reservations/events?${params}`);
+        
+        console.log('Réponse calendrier:', {
+          status: response.status,
+          data: response.data
+        });
+        
+        const events = response.data || [];
+        console.log('Événements chargés:', events.length);
+        
+        return events;
+        
       } catch (error) {
-        this.showNotification('Erreur lors de la création', 'error')
-        console.error('Error creating event:', error)
+        console.error('Erreur chargement calendrier:', error);
+        return [];
+      } finally {
+        this.isLoading = false;
       }
     },
 
-    async updateEvent(eventData) {
-      try {
-        // En production :
-        // await this.$http.put(`/api/events/${eventData.id}`, eventData)
-
-        const calendarEvent = this.calendarApi.getEventById(eventData.id)
-        if (calendarEvent) {
-          calendarEvent.setProp('title', eventData.title)
-          calendarEvent.setStart(eventData.start)
-          calendarEvent.setEnd(eventData.end)
-          calendarEvent.setProp('backgroundColor', eventData.backgroundColor)
-          calendarEvent.setExtendedProp('notes', eventData.notes)
-        }
-
-        this.$emit('event-updated', eventData)
-        this.showNotification('Événement modifié avec succès', 'success')
-      } catch (error) {
-        this.showNotification('Erreur lors de la modification', 'error')
-        console.error('Error updating event:', error)
-      }
-    },
-
-    handleDeleteEvent(eventData) {
-      this.eventToDelete = eventData
-      this.showConfirmDelete = true
-    },
-
-    async confirmDelete() {
-      try {
-        // En production :
-        // await this.$http.delete(`/api/events/${this.eventToDelete.id}`)
-
-        const calendarEvent = this.calendarApi.getEventById(this.eventToDelete.id)
-        if (calendarEvent) {
-          calendarEvent.remove()
-        }
-
-        this.$emit('event-deleted', this.eventToDelete.id)
-        this.showNotification('Événement supprimé', 'success')
-      } catch (error) {
-        this.showNotification('Erreur lors de la suppression', 'error')
-        console.error('Error deleting event:', error)
-      }
-
-      this.showConfirmDelete = false
-      this.closeModal()
-    },
-
-    // === NAVIGATION ET VUES ===
-    changeView(viewName) {
-      this.currentView = viewName
-      this.calendarApi.changeView(viewName)
-    },
-
-    goToDate(date) {
-      this.calendarApi.gotoDate(date)
-    },
-
-    // === HELPERS ===
     getEmptyEvent() {
       return {
         id: null,
         title: '',
-        start: '',
-        end: '',
-        backgroundColor: '#3788d8',
-        notes: '',
-        type: 'reservation'
+        start: null,
+        end: null,
+        type: 'reservation',
+        customerName: '',
+        phone: '',
+        email: '',
+        guests: 1,
+        pitchType: '',
+        comment: '',
+        amount: 0
       }
     },
 
-    extractEventData(calendarEvent) {
-      return {
-        id: calendarEvent.id,
-        title: calendarEvent.title,
-        start: calendarEvent.start?.toISOString(),
-        end: calendarEvent.end?.toISOString(),
-        backgroundColor: calendarEvent.backgroundColor,
-        notes: calendarEvent.extendedProps?.notes || '',
-        type: calendarEvent.extendedProps?.type || 'reservation',
-        ...calendarEvent.extendedProps
-      }
+    changeView(viewName) {
+      this.currentView = viewName;
+      this.$refs.fullCalendar.getApi().changeView(viewName);
     },
 
-    generateId() {
-      return `event_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    handleDateSelect(selectInfo) {
+      if (this.mode !== 'admin') return;
+      this.currentEvent = {
+        ...this.getEmptyEvent(),
+        start: selectInfo.start,
+        end: selectInfo.end
+      };
+      this.isEditing = false;
+      this.showModal = true;
     },
 
-    getEventClasses(eventInfo) {
-      const type = eventInfo.event.extendedProps?.type || 'default'
-      return [`event-${type}`]
+    handleEventClick(clickInfo) {
+      const event = clickInfo.event;
+      this.currentEvent = {
+        id: event.id,
+        title: event.title,
+        start: event.start,
+        end: event.end,
+        type: event.extendedProps.type || 'reservation',
+        customerName: event.extendedProps.customer_name || '',
+        phone: event.extendedProps.customer_phone || '',
+        email: event.extendedProps.customer_email || '',
+        guests: event.extendedProps.guests || 1,
+        pitchType: event.extendedProps.product_type || '',
+        comment: event.extendedProps.comment || '',
+        amount: event.extendedProps.amount || 0
+      };
+      this.isEditing = true;
+      this.showModal = true;
     },
 
-    renderEventContent(eventInfo) {
-      const type = eventInfo.event.extendedProps?.type
-      const icons = {
-        reservation: 'fas fa-bed',
-        animation: 'fas fa-music',
-        maintenance: 'fas fa-tools',
-        formation: 'fas fa-graduation-cap'
-      }
-
-      return {
-        html: `
-          <div class="event-content">
-            <i class="${icons[type] || 'fas fa-calendar'}"></i>
-            <span class="event-title">${eventInfo.event.title}</span>
-            <span class="event-time">${eventInfo.timeText}</span>
-          </div>
-        `
-      }
+    handleEventDrop(dropInfo) {
+      if (this.mode !== 'admin') return;
+      console.log('Événement déplacé:', dropInfo);
     },
 
-    openCreateModal() {
-      this.currentEvent = this.getEmptyEvent()
-      this.isEditing = false
-      this.showModal = true
+    handleEventResize(resizeInfo) {
+      if (this.mode !== 'admin') return;
+      console.log('Événement redimensionné:', resizeInfo);
+    },
+
+    handleViewChange() {
+      console.log('Vue changée:', this.currentView);
+    },
+
+    handleSaveEvent() {
+      console.log('Sauvegarde événement:', this.currentEvent);
+      this.showModal = false;
+    },
+
+    handleDeleteEvent() {
+      this.eventToDelete = this.currentEvent;
+      this.showConfirmDelete = true;
     },
 
     closeModal() {
-      this.showModal = false
-      this.currentEvent = this.getEmptyEvent()
+      this.showModal = false;
+      this.currentEvent = this.getEmptyEvent();
     },
 
-    showEventDetails(event) {
-      // Pour le mode client - afficher les détails en lecture seule
-      this.$emit('show-event-details', event)
+    confirmDelete() {
+      console.log('Suppression événement:', this.eventToDelete);
+      this.showConfirmDelete = false;
+      this.showModal = false;
+      this.eventToDelete = null;
     },
 
-    updateStatsForPeriod(start, end) {
-      // Calculer les stats pour la période visible
-      // En production, faire un appel API
-    },
-
-    showNotification(message, type) {
-      // Intégrer avec votre système de notifications
-      this.$emit('notification', { message, type })
+    refreshCalendar() {
+      console.log('Actualisation calendrier');
+      this.$refs.fullCalendar.getApi().refetchEvents();
     }
   }
 }
@@ -632,7 +452,7 @@ export default {
 @media (max-width: 768px) {
   .calendar-header {
     flex-direction: column;
-    text-align: center; 
+    text-align: center;
   }
 
   .view-switcher {
@@ -674,7 +494,7 @@ export default {
 }
 
 :deep(.fc-timegrid-slot-label-cushion) {
-    font-weight: 700;
-    padding: .7rem;
+  font-weight: 700;
+  padding: .7rem;
 }
 </style>

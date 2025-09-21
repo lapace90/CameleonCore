@@ -64,7 +64,12 @@ class QuoteRequest extends Model
         'total_amount',
         'source',
         'ip_address',
-        'user_agent'
+        'user_agent',
+        
+        'converted_to_reservation_at',
+        'main_reservation_id',
+        'stripe_session_id',
+        'payment_intent_id',
     ];
 
     protected $casts = [
@@ -75,7 +80,8 @@ class QuoteRequest extends Model
         'checkin_date' => 'date',
         'checkout_date' => 'date',
         'total_amount' => 'decimal:2',
-        'guests' => 'integer'
+        'guests' => 'integer',
+        'converted_to_reservation_at' => 'datetime'
     ];
 
     // ===========================
@@ -375,51 +381,51 @@ class QuoteRequest extends Model
             ->withTimestamps();
     }
 
-/**
- * Synchronise la table pivot à partir de selected_product_ids
- * Cette méthode convertit l'ancien format vers le nouveau
- */
-public function syncItemsFromProductIds(): void
-{
-    if ($this->pivot_migrated || empty($this->selected_product_ids)) {
-        return;
-    }
-
-    // Compter les occurrences de chaque product_id
-    $quantities = array_count_values($this->selected_product_ids);
-    
-    // Synchroniser la table pivot
-    $pivotData = [];
-    foreach ($quantities as $productId => $quantity) {
-        $pivotData[$productId] = ['quantity' => $quantity];
-    }
-    
-    $this->products()->sync($pivotData);
-    
-    // ✅ FIX: Utiliser updateQuietly pour éviter les events
-    $this->updateQuietly(['pivot_migrated' => true]);
-}
-
-/**
- * Met à jour selected_product_ids à partir de la table pivot
- * Pour maintenir la compatibilité avec le frontend
- */
-public function updateProductIdsFromItems(): void
-{
-    if (!$this->pivot_migrated) {
-        return;
-    }
-
-    $productIds = [];
-    foreach ($this->items as $item) {
-        for ($i = 0; $i < $item->quantity; $i++) {
-            $productIds[] = $item->product_id;
+    /**
+     * Synchronise la table pivot à partir de selected_product_ids
+     * Cette méthode convertit l'ancien format vers le nouveau
+     */
+    public function syncItemsFromProductIds(): void
+    {
+        if ($this->pivot_migrated || empty($this->selected_product_ids)) {
+            return;
         }
+
+        // Compter les occurrences de chaque product_id
+        $quantities = array_count_values($this->selected_product_ids);
+
+        // Synchroniser la table pivot
+        $pivotData = [];
+        foreach ($quantities as $productId => $quantity) {
+            $pivotData[$productId] = ['quantity' => $quantity];
+        }
+
+        $this->products()->sync($pivotData);
+
+        // ✅ FIX: Utiliser updateQuietly pour éviter les events
+        $this->updateQuietly(['pivot_migrated' => true]);
     }
-    
-    // ✅ FIX: Utiliser updateQuietly pour éviter les events
-    $this->updateQuietly(['selected_product_ids' => $productIds]);
-}
+
+    /**
+     * Met à jour selected_product_ids à partir de la table pivot
+     * Pour maintenir la compatibilité avec le frontend
+     */
+    public function updateProductIdsFromItems(): void
+    {
+        if (!$this->pivot_migrated) {
+            return;
+        }
+
+        $productIds = [];
+        foreach ($this->items as $item) {
+            for ($i = 0; $i < $item->quantity; $i++) {
+                $productIds[] = $item->product_id;
+            }
+        }
+
+        // ✅ FIX: Utiliser updateQuietly pour éviter les events
+        $this->updateQuietly(['selected_product_ids' => $productIds]);
+    }
 
     /**
      * Obtient les quantités sous forme de tableau associatif
@@ -432,6 +438,12 @@ public function updateProductIdsFromItems(): void
         }
 
         return $this->items->pluck('quantity', 'product_id')->toArray();
+    }
+
+    // Relation vers la réservation principale
+    public function mainReservation()
+    {
+        return $this->belongsTo(Reservation::class, 'main_reservation_id');
     }
 
     /**
