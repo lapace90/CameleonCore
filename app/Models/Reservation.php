@@ -7,6 +7,7 @@ use App\Models\Customer;
 use App\Models\User;
 use ApiPlatform\Metadata\ApiResource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\State\CalendarProvider;
 use App\State\ReservationCalendarProvider;
 use App\State\DashboardStatsProvider;
 use ApiPlatform\Metadata\Get;
@@ -20,12 +21,11 @@ use ApiPlatform\Metadata\Delete;
     operations: [
         // 🟢 Événements calendrier — collection dédiée, aucun risque de collision
         new GetCollection(
-            uriTemplate: '/admin/calendar/reservations',
-            provider: ReservationCalendarProvider::class,
+            uriTemplate: '/admin/calendar/events', // ← NOUVEAU ENDPOINT UNIFIÉ
+            provider: CalendarProvider::class,     // ← NOUVEAU PROVIDER UNIFIÉ
             security: "is_granted('ROLE_ADMIN')",
-            description: 'Événements FullCalendar (réservations)'
+            description: 'Tous les événements FullCalendar (réservations + événements)'
         ),
-
         // 🔵 CRUD admin standard
         new GetCollection(uriTemplate: '/admin/reservations', security: "is_granted('ROLE_ADMIN')"),
         new Get(uriTemplate: '/admin/reservations/{id}', security: "is_granted('ROLE_ADMIN')"),

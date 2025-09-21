@@ -17,16 +17,16 @@
         <button @click="openCreateModal" class="btn-create">
           <i class="fas fa-plus"></i>
           Nouvel événement
-          </button>
-        </div>
+        </button>
       </div>
+    </div>
 
     <!-- Stats rapides -->
     <div class="calendar-stats" v-if="showStats">
       <div class="stat-card">
         <div class="stat-icon reservations">
           <i class="fas fa-calendar-check"></i>
-    </div>
+        </div>
         <div class="stat-content">
           <span class="stat-number">{{ stats.reservations }}</span>
           <span class="stat-label">Réservations ce mois</span>
@@ -110,8 +110,6 @@ export default {
       eventToDelete: null,
       currentEvent: this.getEmptyEvent(),
       isLoading: false,
-      notification: null,
-      lastError: null,
 
       availableViews: [
         { value: 'dayGridMonth', label: 'Mois', icon: 'fas fa-calendar' },
@@ -145,7 +143,6 @@ export default {
         selectMirror: true,
         droppable: true,
 
-        // ✅ CORRECTION : Utilisation du nouveau service AdminApi
         events: this.fetchEventsFromApi,
 
         select: this.handleDateSelect,
@@ -163,110 +160,32 @@ export default {
   },
 
   methods: {
-    /**
-     * ✅ NOUVELLE MÉTHODE : Chargement événements via AdminApi
-     */
+    // =============================
+    // CHARGEMENT ÉVÉNEMENTS UNIFIÉ
+    // =============================
+    
     async fetchEventsFromApi(info, successCallback, failureCallback) {
       try {
         this.isLoading = true
-        const raw = await AdminApi.getReservationsForCalendar({
-          start: info.startStr,
-          end: info.endStr
-        })
 
-        // 🔧 Normalisation pour ton composant + classes CSS + end inclusif (allDay)
-        const events = (raw || []).map(ev => {
-          const xp = ev.extendedProps || {}
-          const customer = xp.customer || {}
-          const status = xp.status || 'pending'
+        const startDate = info.start.toISOString().split('T')[0]
+        const endDate = info.end.toISOString().split('T')[0]
 
-          // end exclusif → +1 jour pour un allDay afin d’inclure la dernière nuit
-          let startISO = ev.start
-          let endISO = ev.end || ev.start
-          try {
-            const start = new Date(ev.start)
-            const end = new Date(endISO)
-            // on considère que ce sont des séjours allDay : +1 jour pour l’affichage
-            end.setDate(end.getDate() + 1)
-            startISO = start.toISOString()
-            endISO = end.toISOString()
-          } catch (_) { }
+        console.log('📡 Chargement événements unifiés:', { startDate, endDate })
 
-          return {
-            ...ev,
-            start: startISO,
-            end: endISO,
-            allDay: true,
-            // ✅ classes pour tes dégradés/couleurs CSS
-            classNames: ['event-reservation', `status-${status}`],
-            // ✅ props attendues par handleEventClick
-            extendedProps: {
-              ...xp,
-              type: 'reservation',
-              customerName: customer.name || null,
-              email: customer.email || null,
-              phone: customer.phone || null,
-              guests: xp.people ?? xp.people_count ?? 1,
-              pitchType: xp.pitchType || '',   // garde vide si non fourni
-              amount: xp.amount ?? 0,
-              status: status,
-              notes: xp.notes || ''
-            }
-          }
-        })
+        const events = await AdminApi.getCalendarEvents(startDate, endDate)
 
-        // 📊 mets à jour les stats (tu as déjà une fonction prévue)
-        this.updateStatsFromEvents(events)
-
+        console.log('✅ Événements reçus du backend:', events)
         successCallback(events)
-      } catch (err) {
-        console.error('❌ Erreur chargement événements:', err)
-        this.showNotification(err?.message || 'Erreur de chargement', 'error')
-        failureCallback(err)
+
+      } catch (error) {
+        console.error('❌ Erreur chargement événements:', error)
+        failureCallback(error)
       } finally {
         this.isLoading = false
       }
-    }
-    ,
-    async onEventDrop(dropInfo) {
-      const { event } = dropInfo
-      try {
-        const eventId = event.id
-        const newStart = event.start
-        const newEnd = event.end || newStart
-
-        await AdminApi.updateReservation(eventId, {
-          checkin: newStart.toISOString(),
-          checkout: newEnd.toISOString()
-        })
-
-        this.showNotification('Événement déplacé avec succès', 'success')
-      } catch (e) {
-        console.error('❌ Erreur déplacement:', e)
-        dropInfo.revert()
-        this.showNotification(e?.message || 'Impossible de déplacer', 'error')
-      }
-    },
-    /**
-     * Mise à jour des statistiques depuis les événements
-     */
-    updateStatsFromEvents(events) {
-      this.stats.events = events.length
-      this.stats.reservations = events.filter(e => e.type === 'reservation').length
-
-      // Calcul occupation approximatif
-      const today = new Date()
-      const todayEvents = events.filter(e => {
-        const eventDate = new Date(e.start)
-        return eventDate.toDateString() === today.toDateString()
-      })
-
-      this.stats.occupancy = Math.min(100, Math.round((todayEvents.length / 20) * 100))
     },
 
-    /**
-     * ✅ NOUVELLE MÉTHODE : Chargement stats initiales
-     */
     async loadInitialStats() {
       try {
         const stats = await AdminApi.getDashboardStats()
@@ -281,20 +200,20 @@ export default {
 
       } catch (error) {
         console.warn('⚠️ Impossible de charger les stats:', error)
-        // Garder les stats par défaut
       }
     },
 
-    /**
-     * Gestion des événements FullCalendar
-     */
+    // =============================
+    // GESTION ÉVÉNEMENTS CALENDRIER
+    // =============================
+
     handleDateSelect(selectInfo) {
       if (this.mode !== 'admin') return
 
       this.currentEvent = {
         ...this.getEmptyEvent(),
-        start: selectInfo.start,
-        end: selectInfo.end || selectInfo.start
+        start: selectInfo.start?.toISOString().slice(0, 16) || '',
+        end: selectInfo.end?.toISOString().slice(0, 16) || ''
       }
 
       this.isEditing = false
@@ -305,28 +224,59 @@ export default {
 
     handleEventClick(clickInfo) {
       const event = clickInfo.event
+      const props = event.extendedProps
 
-      this.currentEvent = {
-        id: event.id,
-        title: event.title,
-        start: event.start,
-        end: event.end,
-        type: event.extendedProps.type || 'reservation',
-        customerName: event.extendedProps.customerName || '',
-        email: event.extendedProps.email || '',
-        phone: event.extendedProps.phone || '',
-        guests: event.extendedProps.guests || 1,
-        pitchType: event.extendedProps.pitchType || '',
-        amount: event.extendedProps.amount || 0,
-        status: event.extendedProps.status || 'pending',
-        notes: event.extendedProps.notes || ''
+      console.log('🖱️ Clic événement:', { title: event.title, id: event.id, props })
 
+      // Mapper différemment selon la source (reservation vs event)
+      if (props.source === 'reservation') {
+        this.currentEvent = {
+          id: event.id,
+          title: event.title,
+          start: event.start?.toISOString().slice(0, 16) || '',
+          end: event.end?.toISOString().slice(0, 16) || '',
+          type: 'reservation',
+          
+          // Données réservation
+          customerName: props.customer_name || '',
+          phone: props.customer_phone || '',
+          email: props.customer_email || '',
+          guests: props.guests || 1,
+          amount: props.amount || 0,
+          status: props.status || 'pending',
+          notes: props.comment || '',
+          
+          // Champs autres par défaut
+          location: '',
+          responsible: '',
+          backgroundColor: event.backgroundColor || '#28a745'
+        }
+      } else {
+        this.currentEvent = {
+          id: event.id,
+          title: event.title,
+          start: event.start?.toISOString().slice(0, 16) || '',
+          end: event.end?.toISOString().slice(0, 16) || '',
+          type: props.type || 'autre',
+          
+          // Données événement générique
+          location: props.location || '',
+          responsible: props.responsible || '',
+          notes: props.notes || '',
+          backgroundColor: event.backgroundColor || '#28a745',
+          
+          // Champs réservation par défaut
+          customerName: '',
+          phone: '',
+          email: '',
+          guests: 1,
+          amount: 0,
+          status: 'active'
+        }
       }
 
       this.isEditing = true
       this.showModal = true
-
-      console.log('🖱️ Clic événement:', this.currentEvent)
     },
 
     async handleEventDrop(dropInfo) {
@@ -339,18 +289,17 @@ export default {
 
         console.log('📅 Déplacement événement:', { eventId, newStart, newEnd })
 
-        // Appel API pour mise à jour
-        await AdminApi.updateReservation(eventId, {
+        // Mettre à jour via l'API
+        await AdminApi.updateEventOrReservation(eventId, {
+          start_date: newStart.toISOString(),
+          end_date: newEnd?.toISOString(),
           checkin: newStart.toISOString(),
-          checkout: newEnd?.toISOString() || newStart.toISOString()
+          checkout: newEnd?.toISOString()
         })
-
-        this.showNotification('Événement déplacé avec succès', 'success')
 
       } catch (error) {
         console.error('❌ Erreur déplacement:', error)
         dropInfo.revert() // Annuler le déplacement
-        this.showNotification('Erreur lors du déplacement', 'error')
       }
     },
 
@@ -361,171 +310,181 @@ export default {
         const eventId = resizeInfo.event.id
         const newEnd = resizeInfo.event.end
 
-        console.log('📏 Redimensionnement événement:', { eventId, newEnd })
-
-        await AdminApi.updateReservation(eventId, {
+        await AdminApi.updateEventOrReservation(eventId, {
+          end_date: newEnd.toISOString(),
           checkout: newEnd.toISOString()
         })
-
-        this.showNotification('Durée modifiée avec succès', 'success')
 
       } catch (error) {
         console.error('❌ Erreur redimensionnement:', error)
         resizeInfo.revert()
-        this.showNotification('Erreur lors de la modification', 'error')
       }
     },
 
-    async handleEventSave(eventData) {
-      try {
-        this.isLoading = true
+    // =============================
+    // SAUVEGARDE ÉVÉNEMENTS
+    // =============================
 
-        if (this.isEditing) {
-          // Mise à jour
-          await AdminApi.updateReservation(eventData.id, eventData)
-          console.log('✅ Événement mis à jour:', eventData.id)
+    async handleSaveEvent(eventData) {
+      console.log('💾 Sauvegarde événement:', eventData)
+
+      try {
+        const cleanData = this.prepareEventData(eventData)
+
+        if (this.isEditing && eventData.id) {
+          console.log('📝 Modification événement ID:', eventData.id)
+          await AdminApi.updateEventOrReservation(eventData.id, cleanData)
         } else {
-          // Création
-          await AdminApi.createReservation(eventData)
-          console.log('✅ Événement créé')
+          console.log('🆕 Création événement, type:', cleanData.type || eventData.type)
+          await AdminApi.createEventOrReservation(cleanData)
         }
 
-        this.closeModal()
         this.refreshCalendar()
-        this.showNotification(
-          this.isEditing ? 'Événement mis à jour' : 'Événement créé',
-          'success'
-        )
+        this.showModal = false
+        console.log('✅ Événement sauvegardé avec succès')
 
       } catch (error) {
         console.error('❌ Erreur sauvegarde:', error)
-        this.showNotification('Erreur lors de la sauvegarde', 'error')
-      } finally {
-        this.isLoading = false
+        alert(`Erreur lors de la sauvegarde: ${error.response?.data?.message || error.message}`)
       }
+    },
+
+    prepareEventData(eventData) {
+      const baseData = {
+        title: eventData.title,
+        status: eventData.status || 'active',
+        notes: eventData.notes || ''
+      }
+
+      // Si réservation
+      if (eventData.type === 'reservation') {
+        return {
+          ...baseData,
+          checkin: eventData.start ? new Date(eventData.start).toISOString() : null,
+          checkout: eventData.end ? new Date(eventData.end).toISOString() : null,
+          amount: parseFloat(eventData.amount || 0).toFixed(2),
+          comment: eventData.notes,
+          number_of_adults: parseInt(eventData.guests || 1),
+          number_of_children: 0,
+          payment_status: 'pending',
+          booking_source: 'admin',
+          customer_id: 1 // Temporaire
+        }
+      }
+
+      // Sinon événement générique
+      return {
+        ...baseData,
+        start_date: eventData.start ? new Date(eventData.start).toISOString() : null,
+        end_date: eventData.end ? new Date(eventData.end).toISOString() : null,
+        type: eventData.type || 'autre',
+        location: eventData.location || '',
+        responsible: eventData.responsible || '',
+        background_color: eventData.backgroundColor || this.getColorForType(eventData.type)
+      }
+    },
+
+    getColorForType(type) {
+      const colors = {
+        reservation: '#28a745',
+        activite: '#ffc107',
+        maintenance: '#dc3545',
+        autre: '#17a2b8'
+      }
+      return colors[type] || colors.autre
+    },
+
+    // =============================
+    // ACTIONS MODALES
+    // =============================
+
+    openCreateModal() {
+      console.log('🆕 Ouverture modal création')
+      this.currentEvent = this.getEmptyEvent()
+      this.isEditing = false
+      this.showModal = true
+    },
+
+    handleDeleteEvent() {
+      this.eventToDelete = this.currentEvent
+      this.showConfirmDelete = true
     },
 
     async confirmDelete() {
       if (!this.eventToDelete) return
 
       try {
-        this.isLoading = true
-
-        await AdminApi.deleteReservation(this.eventToDelete.id)
-
+        await AdminApi.deleteEventOrReservation(this.eventToDelete.id, this.eventToDelete.type)
         this.showConfirmDelete = false
         this.eventToDelete = null
         this.refreshCalendar()
-        this.showNotification('Événement supprimé', 'success')
-
+        console.log('✅ Événement supprimé')
       } catch (error) {
         console.error('❌ Erreur suppression:', error)
-        this.showNotification('Erreur lors de la suppression', 'error')
-      } finally {
-        this.isLoading = false
       }
     },
 
-         /**
-     * Utilitaires
-     */
+    closeModal() {
+      this.showModal = false
+      this.currentEvent = this.getEmptyEvent()
+    },
+
+    // =============================
+    // UTILITAIRES
+    // =============================
+
     getEmptyEvent() {
       return {
         id: null,
         title: '',
-        start: null,
-        end: null,
-        type: 'reservation',
+        start: new Date().toISOString().slice(0, 16),
+        end: '',
+        type: 'autre',
+        backgroundColor: '#17a2b8',
+
+        // Champs réservation
         customerName: '',
         phone: '',
         email: '',
-        guests: 1,
-        pitchType: '',
+        guests: 2,
         amount: 0,
         status: 'pending',
+
+        // Champs événement
+        location: '',
+        responsible: '',
         notes: ''
       }
     },
 
     changeView(viewName) {
-      this.currentView = viewName;
-      this.$refs.fullCalendar.getApi().changeView(viewName);
+      this.currentView = viewName
+      this.$refs.calendar.getApi().changeView(viewName)
     },
 
-    handleDateSelect(selectInfo) {
-      if (this.mode !== 'admin') return;
-      this.currentEvent = {
-        ...this.getEmptyEvent(),
-        start: selectInfo.start,
-        end: selectInfo.end
-      };
-      this.isEditing = false;
-      this.showModal = true;
-    },
-
-    handleEventClick(clickInfo) {
-      const event = clickInfo.event;
-      this.currentEvent = {
-        id: event.id,
-        title: event.title,
-        start: event.start,
-        end: event.end,
-        type: event.extendedProps.type || 'reservation',
-        customerName: event.extendedProps.customer_name || '',
-        phone: event.extendedProps.customer_phone || '',
-        email: event.extendedProps.customer_email || '',
-        guests: event.extendedProps.guests || 1,
-        pitchType: event.extendedProps.product_type || '',
-        comment: event.extendedProps.comment || '',
-        amount: event.extendedProps.amount || 0
-      };
-      this.isEditing = true;
-      this.showModal = true;
-    },
-
-    handleEventDrop(dropInfo) {
-      if (this.mode !== 'admin') return;
-      console.log('Événement déplacé:', dropInfo);
-    },
-
-    handleEventResize(resizeInfo) {
-      if (this.mode !== 'admin') return;
-      console.log('Événement redimensionné:', resizeInfo);
-    },
-
-    handleViewChange() {
-      console.log('Vue changée:', this.currentView);
-    },
-
-    handleSaveEvent() {
-      console.log('Sauvegarde événement:', this.currentEvent);
-      this.showModal = false;
-    },
-
-    handleDeleteEvent() {
-      this.eventToDelete = this.currentEvent;
-      this.showConfirmDelete = true;
-    },
-
-    closeModal() {
-      this.showModal = false;
-      this.currentEvent = this.getEmptyEvent();
-    },
-
-    confirmDelete() {
-      console.log('Suppression événement:', this.eventToDelete);
-      this.showConfirmDelete = false;
-      this.showModal = false;
-      this.eventToDelete = null;
+    handleDatesChange() {
+      // Appelé quand la vue change de période
     },
 
     refreshCalendar() {
-      console.log('Actualisation calendrier');
-      this.$refs.fullCalendar.getApi().refetchEvents();
+      console.log('Actualisation calendrier')
+      
+      try {
+        const calendarRef = this.$refs.calendar
+        if (calendarRef && typeof calendarRef.getApi === 'function') {
+          calendarRef.getApi().refetchEvents()
+          console.log('✅ Calendrier actualisé avec succès')
+        } else {
+          console.warn('⚠️ API calendrier non disponible')
+        }
+      } catch (error) {
+        console.error('❌ Erreur actualisation calendrier:', error)
+      }
     }
   }
 }
 </script>
+
 
 <style scoped>
 .calendar-container {
