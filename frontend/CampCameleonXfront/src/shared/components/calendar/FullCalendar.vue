@@ -163,7 +163,7 @@ export default {
     // =============================
     // CHARGEMENT ÉVÉNEMENTS UNIFIÉ
     // =============================
-    
+
     async fetchEventsFromApi(info, successCallback, failureCallback) {
       try {
         this.isLoading = true
@@ -236,7 +236,7 @@ export default {
           start: event.start?.toISOString().slice(0, 16) || '',
           end: event.end?.toISOString().slice(0, 16) || '',
           type: 'reservation',
-          
+
           // Données réservation
           customerName: props.customer_name || '',
           phone: props.customer_phone || '',
@@ -245,7 +245,7 @@ export default {
           amount: props.amount || 0,
           status: props.status || 'pending',
           notes: props.comment || '',
-          
+
           // Champs autres par défaut
           location: '',
           responsible: '',
@@ -258,13 +258,13 @@ export default {
           start: event.start?.toISOString().slice(0, 16) || '',
           end: event.end?.toISOString().slice(0, 16) || '',
           type: props.type || 'autre',
-          
+
           // Données événement générique
           location: props.location || '',
           responsible: props.responsible || '',
           notes: props.notes || '',
           backgroundColor: event.backgroundColor || '#28a745',
-          
+
           // Champs réservation par défaut
           customerName: '',
           phone: '',
@@ -329,14 +329,10 @@ export default {
       console.log('💾 Sauvegarde événement:', eventData)
 
       try {
-        const cleanData = this.prepareEventData(eventData)
-
         if (this.isEditing && eventData.id) {
-          console.log('📝 Modification événement ID:', eventData.id)
-          await AdminApi.updateEventOrReservation(eventData.id, cleanData)
+          await AdminApi.updateEventOrReservation(eventData.id, eventData) // ← Utilisez eventData directement
         } else {
-          console.log('🆕 Création événement, type:', cleanData.type || eventData.type)
-          await AdminApi.createEventOrReservation(cleanData)
+          await AdminApi.createEventOrReservation(eventData) // ← Utilisez eventData directement
         }
 
         this.refreshCalendar()
@@ -468,7 +464,7 @@ export default {
 
     refreshCalendar() {
       console.log('Actualisation calendrier')
-      
+
       try {
         const calendarRef = this.$refs.calendar
         if (calendarRef && typeof calendarRef.getApi === 'function') {

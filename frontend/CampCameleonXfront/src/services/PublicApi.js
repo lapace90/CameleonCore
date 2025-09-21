@@ -175,6 +175,8 @@ class PublicApi {
     return response.data
   }
 
+
+
   // =============================
   // Réservations directes
   // =============================
@@ -185,11 +187,18 @@ class PublicApi {
     })
     return response.data
   }
+  async findOrCreateCustomer(customerData) {
+    const response = await axios.post(`${this.baseURL}/customers/find-or-create`, {
+      email: customerData.customer_email || '',
+      name: customerData.customer_name,
+      phone: customerData.customer_phone || ''
+    })
+    return response.data
+  }
 
   // =============================
   // SAUVEGARDE DEVIS - VERSION SIMPLIFIÉE
   // =============================
-
   async saveQuote(payload) {
     try {
       const url = `${this.baseURL}/quote-requests`
