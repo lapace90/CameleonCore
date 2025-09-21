@@ -15,54 +15,29 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Delete;
 
+
 #[ApiResource(
     operations: [
-        // ✅ Routes standard pour les réservations
+        // 🟢 Événements calendrier — collection dédiée, aucun risque de collision
         new GetCollection(
-            uriTemplate: '/admin/reservations',
-            security: "is_granted('ROLE_ADMIN')",
-            description: 'Liste des réservations pour les admins'
-        ),
-        new Get(
-            uriTemplate: '/admin/reservations/{id}',
-            security: "is_granted('ROLE_ADMIN')",
-            description: 'Détail d\'une réservation'
-        ),
-        new Post(
-            uriTemplate: '/admin/reservations',
-            security: "is_granted('ROLE_ADMIN')",
-            description: 'Créer une nouvelle réservation'
-        ),
-        new Put(
-            uriTemplate: '/admin/reservations/{id}',
-            security: "is_granted('ROLE_ADMIN')",
-            description: 'Modifier une réservation'
-        ),
-        new Delete(
-            uriTemplate: '/admin/reservations/{id}',
-            security: "is_granted('ROLE_ADMIN')",
-            description: 'Supprimer une réservation'
-        ),
-        
-        // 🆕 NOUVEAUX ENDPOINTS SPÉCIALISÉS
-        new GetCollection(
-            uriTemplate: '/admin/reservations/events',
+            uriTemplate: '/admin/calendar/reservations',
             provider: ReservationCalendarProvider::class,
             security: "is_granted('ROLE_ADMIN')",
-            description: 'Événements pour FullCalendar'
+            description: 'Événements FullCalendar (réservations)'
         ),
-        new Get(
-            uriTemplate: '/admin/dashboard/stats',
-            provider: DashboardStatsProvider::class,
-            security: "is_granted('ROLE_ADMIN')",
-            description: 'Statistiques pour le dashboard admin'
-        ),
+
+        // 🔵 CRUD admin standard
+        new GetCollection(uriTemplate: '/admin/reservations', security: "is_granted('ROLE_ADMIN')"),
+        new Get(uriTemplate: '/admin/reservations/{id}', security: "is_granted('ROLE_ADMIN')"),
+        new Post(uriTemplate: '/admin/reservations', security: "is_granted('ROLE_ADMIN')"),
+        new Put(uriTemplate: '/admin/reservations/{id}', security: "is_granted('ROLE_ADMIN')"),
+        new Delete(uriTemplate: '/admin/reservations/{id}', security: "is_granted('ROLE_ADMIN')"),
     ]
 )]
 class Reservation extends Model
 {
     use HasFactory;
-    
+
     protected $fillable = [
         'customer_id',
         'date',
@@ -140,11 +115,11 @@ class Reservation extends Model
     {
         return $query->where(function ($q) use ($startDate, $endDate) {
             $q->whereBetween('checkin', [$startDate, $endDate])
-              ->orWhereBetween('checkout', [$startDate, $endDate])
-              ->orWhere(function ($subQ) use ($startDate, $endDate) {
-                  $subQ->where('checkin', '<=', $startDate)
-                       ->where('checkout', '>=', $endDate);
-              });
+                ->orWhereBetween('checkout', [$startDate, $endDate])
+                ->orWhere(function ($subQ) use ($startDate, $endDate) {
+                    $subQ->where('checkin', '<=', $startDate)
+                        ->where('checkout', '>=', $endDate);
+                });
         });
     }
 }
