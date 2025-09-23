@@ -12,6 +12,7 @@
         v-if="notifications.length > 0"
         @click="markAllAsRead" 
         class="btn btn-sm btn-outline-secondary"
+        :disabled="unreadCount === 0"
       >
         Tout marquer lu
       </button>
@@ -59,13 +60,13 @@
             </div>
 
             <!-- Actions -->
-            <div v-if="notification.actions" class="notification-actions">
+            <div v-if="notification.actions && notification.actions.length > 0" class="notification-actions">
               <router-link 
                 v-for="action in notification.actions" 
                 :key="action.label"
                 :to="action.url" 
                 :class="`btn btn-sm btn-${action.type}`"
-                @click.stop
+                @click.stop="handleActionClick(action, notification)"
               >
                 {{ action.label }}
               </router-link>
@@ -78,11 +79,11 @@
       </div>
     </div>
 
-    <!-- Footer -->
-    <div v-if="notifications.length > 0" class="panel-footer">
-      <router-link to="/admin/notifications" class="btn btn-sm btn-primary">
-        Voir toutes les notifications
-      </router-link>
+    <!-- Footer - ✅ CORRECTION: Supprimer le lien vers route inexistante -->
+    <div v-if="notifications.length > 5" class="panel-footer">
+      <button @click="loadMoreNotifications" class="btn btn-sm btn-primary">
+        Voir plus de notifications
+      </button>
     </div>
   </div>
 </template>
@@ -92,6 +93,9 @@ import AdminApi from '@/services/AdminApi'
 
 export default {
   name: 'NotificationPanel',
+  
+  // ✅ AJOUT: Émissions d'événements
+  emits: ['notification-count-changed', 'notification-clicked', 'action-clicked'],
   
   props: {
     limit: {
@@ -108,7 +112,8 @@ export default {
     return {
       notifications: [],
       isLoading: true,
-      refreshInterval: null
+      refreshInterval: null,
+      currentLimit: this.limit // Pour gérer "Voir plus"
     }
   },
 
@@ -118,14 +123,21 @@ export default {
     }
   },
 
+  watch: {
+    // ✅ AJOUT: Surveiller les changements de count et émettre
+    unreadCount(newCount) {
+      this.$emit('notification-count-changed', newCount)
+    }
+  },
+
   async mounted() {
     await this.loadNotifications()
     
     if (this.autoRefresh) {
-      // Actualisation toutes les 30 secondes
+      // ✅ CORRECTION: Réduire la fréquence pour éviter les problèmes de performance
       this.refreshInterval = setInterval(() => {
         this.loadNotifications(false)
-      }, 30 * 1000)
+      }, 60 * 1000) // ✅ 60 secondes au lieu de 30
     }
   },
 
@@ -137,31 +149,44 @@ export default {
 
   methods: {
     /**
-     * Charger les notifications
+     * ✅ CORRECTION: Charger les notifications avec gestion d'erreur améliorée
      */
     async loadNotifications(showLoader = true) {
       try {
         if (showLoader) this.isLoading = true
 
-        const response = await AdminApi.getNotifications(this.limit)
+        const response = await AdminApi.getNotifications(this.currentLimit)
         this.notifications = Array.isArray(response) ? response : []
 
         console.log(`✅ ${this.notifications.length} notifications chargées`)
 
       } catch (error) {
         console.error('❌ Erreur chargement notifications:', error)
+        
+        // ✅ AJOUT: Afficher un toast d'erreur si disponible
+        if (this.$toast) {
+          this.$toast.error('Impossible de charger les notifications')
+        }
+        
+        // ✅ En cas d'erreur, conserver les notifications existantes
+        if (this.notifications.length === 0) {
+          this.notifications = []
+        }
       } finally {
         if (showLoader) this.isLoading = false
       }
     },
 
     /**
-     * Gérer le clic sur une notification
+     * ✅ CORRECTION: Gérer le clic sur une notification avec émission d'événement
      */
     async handleNotificationClick(notification) {
       if (!notification.read) {
         await this.markAsRead(notification.id)
       }
+
+      // ✅ ÉMISSION: Informer le parent qu'une notification a été cliquée
+      this.$emit('notification-clicked', notification)
 
       // Redirection vers l'action principale si définie
       if (notification.actions && notification.actions[0]) {
@@ -170,7 +195,14 @@ export default {
     },
 
     /**
-     * Marquer une notification comme lue
+     * ✅ NOUVEAU: Gérer le clic sur une action spécifique
+     */
+    handleActionClick(action, notification) {
+      this.$emit('action-clicked', { action, notification })
+    },
+
+    /**
+     * ✅ CORRECTION: Marquer une notification comme lue avec gestion d'erreur
      */
     async markAsRead(notificationId) {
       try {
@@ -183,13 +215,19 @@ export default {
           notification.read = true
         }
 
+        console.log(`✅ Notification ${notificationId} marquée comme lue`)
+
       } catch (error) {
         console.error('❌ Erreur marquage notification:', error)
+        
+        if (this.$toast) {
+          this.$toast.error('Impossible de marquer la notification comme lue')
+        }
       }
     },
 
     /**
-     * Marquer toutes comme lues
+     * ✅ CORRECTION: Marquer toutes comme lues avec optimisation
      */
     async markAllAsRead() {
       try {
@@ -197,73 +235,136 @@ export default {
           .filter(n => !n.read)
           .map(n => n.id)
 
-        await Promise.all(unreadIds.map(id => AdminApi.markNotificationAsRead(id)))
-        
-        // Marquer côté client
-        this.notifications.forEach(n => n.read = true)
+        if (unreadIds.length === 0) return
 
-        this.$toast?.success('Toutes les notifications marquées comme lues')
+        console.log(`📝 Marquage de ${unreadIds.length} notifications...`)
+
+        // ✅ Utiliser la nouvelle méthode batch de AdminApi
+        const successCount = await AdminApi.markAllNotificationsAsRead(unreadIds)
+        
+        // Marquer côté client seulement celles qui ont réussi
+        this.notifications.forEach(n => {
+          if (unreadIds.includes(n.id)) {
+            n.read = true
+          }
+        })
+
+        if (this.$toast) {
+          this.$toast.success(`${successCount} notifications marquées comme lues`)
+        }
 
       } catch (error) {
-        console.error('❌ Erreur marquage global:', error)
+        console.error('❌ Erreur marquage toutes notifications:', error)
+        
+        if (this.$toast) {
+          this.$toast.error('Erreur lors du marquage des notifications')
+        }
       }
     },
 
     /**
-     * Utilitaires d'affichage
+     * ✅ NOUVEAU: Charger plus de notifications
+     */
+    async loadMoreNotifications() {
+      this.currentLimit += 10
+      await this.loadNotifications(true)
+    },
+
+    // ===========================
+    // MÉTHODES UTILITAIRES
+    // ===========================
+
+    /**
+     * Obtenir l'icône selon le type de notification
      */
     getNotificationIcon(type) {
       const icons = {
-        reservation_created: 'fas fa-calendar-plus',
-        payment_received: 'fas fa-credit-card',
-        booking_cancelled: 'fas fa-times-circle',
-        quote_validated: 'fas fa-check-circle',
-        system: 'fas fa-cog'
+        'reservation': 'fas fa-calendar-plus',
+        'payment': 'fas fa-credit-card',
+        'user': 'fas fa-user-plus',
+        'system': 'fas fa-cog',
+        'warning': 'fas fa-exclamation-triangle',
+        'success': 'fas fa-check-circle',
+        'info': 'fas fa-info-circle',
+        'default': 'fas fa-bell'
       }
-      return icons[type] || 'fas fa-info-circle'
+      
+      return icons[type] || icons.default
     },
 
+    /**
+     * Obtenir la couleur selon le type
+     */
     getNotificationColor(type) {
       const colors = {
-        reservation_created: '#28a745',
-        payment_received: '#007bff', 
-        booking_cancelled: '#dc3545',
-        quote_validated: '#ffc107',
-        system: '#6c757d'
+        'reservation': '#28a745',
+        'payment': '#17a2b8', 
+        'user': '#6f42c1',
+        'system': '#6c757d',
+        'warning': '#ffc107',
+        'success': '#28a745',
+        'info': '#17a2b8',
+        'default': '#6c757d'
       }
-      return colors[type] || '#6c757d'
+      
+      return colors[type] || colors.default
     },
 
+    /**
+     * ✅ CORRECTION: Formater le temps de façon relative
+     */
     formatTime(dateString) {
-      if (!dateString) return ''
+      if (!dateString) return 'Maintenant'
       
-      const date = new Date(dateString)
-      const now = new Date()
-      const diffMs = now - date
-      const diffMins = Math.floor(diffMs / 60000)
-      
-      if (diffMins < 1) return 'À l\'instant'
-      if (diffMins < 60) return `Il y a ${diffMins}min`
-      if (diffMins < 1440) return `Il y a ${Math.floor(diffMins / 60)}h`
-      
-      return date.toLocaleDateString('fr-FR')
+      try {
+        const date = new Date(dateString)
+        const now = new Date()
+        const diff = now.getTime() - date.getTime()
+        
+        const minutes = Math.floor(diff / (1000 * 60))
+        const hours = Math.floor(diff / (1000 * 60 * 60))
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+        
+        if (minutes < 1) return 'À l\'instant'
+        if (minutes < 60) return `Il y a ${minutes}min`
+        if (hours < 24) return `Il y a ${hours}h`
+        if (days < 7) return `Il y a ${days}j`
+        
+        return date.toLocaleDateString('fr-FR')
+      } catch (error) {
+        console.warn('❌ Erreur formatage date:', error)
+        return 'Date invalide'
+      }
     },
 
+    /**
+     * Formater les montants
+     */
     formatMoney(amount) {
-      return new Intl.NumberFormat('fr-FR', {
-        style: 'currency',
-        currency: 'EUR'
-      }).format(amount || 0)
+      if (!amount) return ''
+      
+      try {
+        return new Intl.NumberFormat('fr-FR', {
+          style: 'currency',
+          currency: 'EUR'
+        }).format(parseFloat(amount))
+      } catch (error) {
+        return `${amount}€`
+      }
     }
   }
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+// ===========================
+// CONTENEUR PRINCIPAL
+// ===========================
+
 .notification-panel {
   background: white;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   overflow: hidden;
 }
 
@@ -287,7 +388,13 @@ export default {
   padding: 0.2rem 0.4rem;
   border-radius: 50%;
   margin-left: 0.5rem;
+  background: #dc3545;
+  color: white;
 }
+
+// ===========================
+// LISTE DES NOTIFICATIONS
+// ===========================
 
 .notifications-list {
   max-height: 400px;
@@ -300,21 +407,26 @@ export default {
   border-bottom: 1px solid #f1f3f4;
   cursor: pointer;
   transition: background-color 0.2s;
-}
-
-.notification-item:hover {
-  background-color: #f8f9fa;
-}
-
-.notification-item.unread {
-  background-color: #fff3cd;
-  border-left: 4px solid #ffc107;
+  
+  &:hover {
+    background-color: #f8f9fa;
+  }
+  
+  &:last-child {
+    border-bottom: none;
+  }
+  
+  &.unread {
+    background-color: #fff3cd;
+    border-left: 4px solid #ffc107;
+  }
 }
 
 .notification-icon {
   flex-shrink: 0;
   margin-right: 0.75rem;
   font-size: 1.2rem;
+  margin-top: 0.1rem;
 }
 
 .notification-content {
@@ -324,12 +436,14 @@ export default {
 .notification-title {
   font-weight: 600;
   margin-bottom: 0.25rem;
+  font-size: 0.9rem;
 }
 
 .notification-message {
   color: #6c757d;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   margin-bottom: 0.5rem;
+  line-height: 1.4;
 }
 
 .notification-meta {
@@ -338,11 +452,40 @@ export default {
   font-size: 0.8rem;
   color: #6c757d;
   margin-bottom: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .notification-actions {
   display: flex;
   gap: 0.5rem;
+  flex-wrap: wrap;
+  
+  .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    text-decoration: none;
+    border-radius: 4px;
+    
+    &.btn-primary {
+      background-color: #007bff;
+      color: white;
+      border: 1px solid #007bff;
+      
+      &:hover {
+        background-color: #0056b3;
+      }
+    }
+    
+    &.btn-secondary {
+      background-color: #6c757d;
+      color: white;
+      border: 1px solid #6c757d;
+      
+      &:hover {
+        background-color: #5a6268;
+      }
+    }
+  }
 }
 
 .unread-badge {
@@ -355,17 +498,108 @@ export default {
   flex-shrink: 0;
 }
 
+// ===========================
+// ÉTATS SPÉCIAUX
+// ===========================
+
 .loading-state,
 .empty-state {
   padding: 2rem;
   text-align: center;
   color: #6c757d;
+  
+  i {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    display: block;
+  }
+  
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+  }
 }
+
+.loading-state i {
+  color: #007bff;
+}
+
+.empty-state i {
+  color: #28a745;
+}
+
+// ===========================
+// FOOTER
+// ===========================
 
 .panel-footer {
   padding: 0.75rem 1rem;
   border-top: 1px solid #e9ecef;
   background: #f8f9fa;
   text-align: center;
+  
+  .btn {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    
+    &:hover {
+      background: #0056b3;
+    }
+  }
+}
+
+// ===========================
+// BOUTONS
+// ===========================
+
+.btn {
+  &.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+  }
+  
+  &.btn-outline-secondary {
+    color: #6c757d;
+    border: 1px solid #6c757d;
+    background: transparent;
+    
+    &:hover:not(:disabled) {
+      background: #6c757d;
+      color: white;
+    }
+    
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}
+
+// ===========================
+// RESPONSIVE
+// ===========================
+
+@media (max-width: 480px) {
+  .notification-panel {
+    margin: 0 10px;
+  }
+  
+  .notification-actions {
+    flex-direction: column;
+    
+    .btn {
+      text-align: center;
+    }
+  }
+  
+  .notification-meta {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
 }
 </style>

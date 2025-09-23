@@ -21,8 +21,8 @@ use ApiPlatform\Metadata\Delete;
     operations: [
         // 🟢 Événements calendrier — collection dédiée, aucun risque de collision
         new GetCollection(
-            uriTemplate: '/admin/calendar/events', // ← NOUVEAU ENDPOINT UNIFIÉ
-            provider: CalendarProvider::class,     // ← NOUVEAU PROVIDER UNIFIÉ
+            uriTemplate: '/admin/calendar/events',
+            provider: CalendarProvider::class, 
             security: "is_granted('ROLE_ADMIN')",
             description: 'Tous les événements FullCalendar (réservations + événements)'
         ),

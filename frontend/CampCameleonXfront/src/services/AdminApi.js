@@ -1,6 +1,5 @@
 // ===================================
-// FICHIER: frontend/CampCameleonXfront/src/services/AdminApi.js  
-// CORRIGÉ - Service API pour les appels admin
+//  Service API pour les appels admin
 // ===================================
 
 import axios from 'axios'
@@ -21,79 +20,189 @@ class AdminApi {
     }
 
     // =============================
+    // DASHBOARD & STATS
+    // =============================
+
+    async getDashboardStats() {
+        try {
+            const response = await axios.get(`${this.baseURL}/admin/dashboard/stats`)
+            return response.data
+        } catch (error) {
+            console.error('❌ Erreur stats dashboard:', error)
+            throw this.handleError(error)
+        }
+    }
+
+    /**
+     * ✅ CORRECTION: Récupérer les notifications avec gestion d'erreur améliorée
+     */
+    async getNotifications(limit = 10) {
+        try {
+            console.log(`📡 Récupération de ${limit} notifications...`)
+            const startTime = Date.now()
+            
+            const response = await axios.get(`${this.baseURL}/admin/notifications`, {
+                params: { limit },
+                timeout: 10000 // ✅ Timeout de 10 secondes
+            })
+            
+            const duration = Date.now() - startTime
+            console.log(`✅ Notifications récupérées en ${duration}ms`)
+            
+            return response.data?.['hydra:member'] || response.data || []
+        } catch (error) {
+            console.error('❌ Erreur récupération notifications:', error)
+            
+            if (error.code === 'ECONNABORTED') {
+                throw new Error('Timeout: Le serveur met trop de temps à répondre')
+            }
+            
+            throw this.handleError(error)
+        }
+    }
+
+    /**
+     * ✅ CORRECTION: Endpoint correct pour marquer comme lue
+     */
+    async markNotificationAsRead(notificationId) {
+        try {
+            console.log(`📝 Marquage notification ${notificationId} comme lue...`)
+            
+            const response = await axios.patch(
+                `${this.baseURL}/admin/notifications/${notificationId}/mark-read`, // ✅ CORRECTION: /read → /mark-read
+                {}, // Pas de body nécessaire pour un PATCH simple
+                {
+                    timeout: 5000, // ✅ Timeout réduit pour les actions rapides
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }
+            )
+            
+            console.log(`✅ Notification ${notificationId} marquée comme lue`)
+            return response.data
+        } catch (error) {
+            console.error(`❌ Erreur marquage notification ${notificationId}:`, error)
+            throw this.handleError(error)
+        }
+    }
+
+    /**
+     * ✅ AJOUT: Marquer toutes les notifications comme lues (batch)
+     */
+    async markAllNotificationsAsRead(notificationIds) {
+        try {
+            console.log(`📝 Marquage de ${notificationIds.length} notifications...`)
+            
+            const promises = notificationIds.map(id => 
+                this.markNotificationAsRead(id).catch(error => {
+                    console.warn(`⚠️ Échec marquage notification ${id}:`, error.message)
+                    return null // Continuer avec les autres même si une échoue
+                })
+            )
+            
+            const results = await Promise.allSettled(promises)
+            const successCount = results.filter(r => r.status === 'fulfilled' && r.value !== null).length
+            
+            console.log(`✅ ${successCount}/${notificationIds.length} notifications marquées`)
+            return successCount
+        } catch (error) {
+            console.error('❌ Erreur marquage batch:', error)
+            throw error
+        }
+    }
+
+    // =============================
     // RÉSERVATIONS & CALENDRIER
     // =============================
 
     async getReservationsForCalendar({ start, end }) {
         try {
-            const res = await axios.get(`${this.baseURL}/admin/calendar/reservations`, { params: { start, end } })
-            return res.data || []
-        } catch (e) {
-            throw this.handleError(e)
+            const response = await axios.get(`${this.baseURL}/admin/calendar/reservations`, { 
+                params: { start, end },
+                timeout: 15000 // ✅ Timeout plus long pour les données calendrier
+            })
+            return response.data || []
+        } catch (error) {
+            console.error('❌ Erreur réservations calendrier:', error)
+            throw this.handleError(error)
         }
     }
 
     async getReservation(id) {
-        const response = await axios.get(`${this.baseURL}/admin/reservations/${id}`)
-        return response.data
+        try {
+            const response = await axios.get(`${this.baseURL}/admin/reservations/${id}`)
+            return response.data
+        } catch (error) {
+            console.error(`❌ Erreur récupération réservation ${id}:`, error)
+            throw this.handleError(error)
+        }
     }
 
     async createReservation(data) {
-        const response = await axios.post(`${this.baseURL}/admin/reservations`, data)
-        return response.data
+        try {
+            const response = await axios.post(`${this.baseURL}/admin/reservations`, data)
+            console.log('✅ Réservation créée:', response.data.id)
+            return response.data
+        } catch (error) {
+            console.error('❌ Erreur création réservation:', error)
+            throw this.handleError(error)
+        }
     }
 
     async updateReservation(id, payload) {
         try {
-            const res = await axios.patch(`${this.baseURL}/admin/reservations/${id}`, payload, {
-                headers: { 'Content-Type': 'application/merge-patch+json' }
-            })
-            return res.data
-        } catch (e) {
-            throw this.handleError(e)
+            const response = await axios.put(`${this.baseURL}/admin/reservations/${id}`, payload)
+            console.log('✅ Réservation mise à jour:', id)
+            return response.data
+        } catch (error) {
+            console.error(`❌ Erreur mise à jour réservation ${id}:`, error)
+            throw this.handleError(error)
+        }
+    }
+
+    // =============================
+    // ÉVÉNEMENTS CALENDRIER
+    // =============================
+
+    async createEvent(data) {
+        try {
+            const response = await axios.post(`${this.baseURL}/admin/events`, data)
+            return response.data
+        } catch (error) {
+            throw this.handleError(error)
+        }
+    }
+
+    async updateEvent(id, data) {
+        try {
+            const response = await axios.put(`${this.baseURL}/admin/events/${id}`, data)
+            return response.data
+        } catch (error) {
+            throw this.handleError(error)
+        }
+    }
+
+    async deleteEvent(id) {
+        try {
+            const response = await axios.delete(`${this.baseURL}/admin/events/${id}`)
+            return response.data
+        } catch (error) {
+            throw this.handleError(error)
         }
     }
 
     async deleteReservation(id) {
-        const response = await axios.delete(`${this.baseURL}/admin/reservations/${id}`)
-        return response.data
+        try {
+            const response = await axios.delete(`${this.baseURL}/admin/reservations/${id}`)
+            return response.data
+        } catch (error) {
+            throw this.handleError(error)
+        }
     }
 
     // =============================
-    // ÉVÉNEMENTS GÉNÉRIQUES - NOUVEAU
-    // =============================
-
-    async createEvent(data) {
-        const response = await axios.post(`${this.baseURL}/admin/events`, data)
-        return response.data
-    }
-
-    async updateEvent(id, data) {
-        const response = await axios.put(`${this.baseURL}/admin/events/${id}`, data)
-        return response.data
-    }
-
-    async deleteEvent(id) {
-        const response = await axios.delete(`${this.baseURL}/admin/events/${id}`)
-        return response.data
-    }
-
-    // =============================
-    // CALENDRIER UNIFIÉ - NOUVEAU
-    // =============================
-
-    async getCalendarEvents(startDate, endDate) {
-        const params = new URLSearchParams({
-            start: startDate,
-            end: endDate
-        })
-        
-        const response = await axios.get(`${this.baseURL}/admin/calendar/events?${params}`)
-        return response.data
-    }
-
-    // =============================
-    // ROUTAGE INTELLIGENT - NOUVEAU
+    // MÉTHODES UTILITAIRES
     // =============================
 
     async createEventOrReservation(data) {
@@ -128,28 +237,48 @@ class AdminApi {
     }
 
     // =============================
-    // DASHBOARD & STATS
+    // GESTION D'ERREURS AMÉLIORÉE
     // =============================
 
-    async getDashboardStats() {
-        const response = await axios.get(`${this.baseURL}/admin/dashboard/stats`)
-        return response.data
+    handleError(error) {
+        // ✅ Gestion spécifique des timeouts
+        if (error.code === 'ECONNABORTED') {
+            return new Error('Le serveur met trop de temps à répondre. Vérifiez votre connexion.')
+        }
+
+        // ✅ Gestion des erreurs d'authentification
+        if (error.response?.status === 401) {
+            const authStore = useAuthStore()
+            authStore.logout()
+            return new Error('Session expirée, veuillez vous reconnecter')
+        }
+
+        // ✅ Gestion des erreurs de serveur
+        if (error.response?.status >= 500) {
+            return new Error('Erreur serveur temporaire. Veuillez réessayer.')
+        }
+
+        // ✅ Gestion des erreurs de validation
+        if (error.response?.status === 422) {
+            const validationErrors = error.response.data?.errors || {}
+            const firstError = Object.values(validationErrors)[0]?.[0]
+            return new Error(firstError || 'Données invalides')
+        }
+
+        // ✅ Gestion des erreurs 404
+        if (error.response?.status === 404) {
+            return new Error('Ressource non trouvée')
+        }
+
+        // ✅ Erreur générique avec message du serveur
+        const serverMessage = error.response?.data?.message || 
+                             error.response?.data?.error || 
+                             error.message
+
+        return new Error(serverMessage || 'Erreur inconnue')
     }
 
-    async getNotifications(limit = 10) {
-        const response = await axios.get(`${this.baseURL}/admin/notifications?limit=${limit}`)
-        return response.data?.['hydra:member'] || response.data || []
-    }
-
-    async markNotificationAsRead(notificationId) {
-        const response = await axios.patch(`${this.baseURL}/admin/notifications/${notificationId}/read`)
-        return response.data
-    }
-
-    // =============================
-    // GESTION D'ERREURS
-    // =============================
-
+    // ✅ Méthodes d'aide pour les autres composants
     async get(endpoint) {
         try {
             const response = await axios.get(`${this.baseURL}${endpoint}`)
@@ -168,17 +297,6 @@ class AdminApi {
             console.error(`❌ AdminApi POST ${endpoint}:`, error)
             throw this.handleError(error)
         }
-    }
-
-    handleError(error) {
-        if (error.response?.status === 401) {
-            // Token expiré, rediriger vers login
-            const authStore = useAuthStore()
-            authStore.logout()
-            return new Error('Session expirée')
-        }
-
-        return error.response?.data?.message || error.message || 'Erreur API'
     }
 }
 

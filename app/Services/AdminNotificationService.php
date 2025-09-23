@@ -125,7 +125,7 @@ Voir: " . config('app.url') . "/admin/reservations/{$reservation->id}
                 ],
                 [
                     'label' => 'Calendrier',
-                    'url' => '/admin/calendar',
+                    'url' => '/admin/agenda',
                     'type' => 'secondary'
                 ]
             ]

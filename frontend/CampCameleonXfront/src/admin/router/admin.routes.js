@@ -98,6 +98,26 @@ export default [
         name: 'FullAgenda',
         component: FullCalendar
       },
+
+      // Routes réservations  
+      {
+        path: 'reservations',
+        name: 'AdminReservations',
+        component: () => import('@/admin/views/reservations/ReservationsList.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: 'reservations/:id',
+        name: 'ReservationDetail',
+        component: () => import('@/admin/views/reservations/ReservationDetail.vue'),
+        props: true,
+        meta: { requiresAuth: true }
+      },
+      // Redirection calendar -> agenda
+      {
+        path: 'calendar',
+        redirect: '/admin/agenda'
+      },
       // Routes catégories
       {
         path: 'categories',

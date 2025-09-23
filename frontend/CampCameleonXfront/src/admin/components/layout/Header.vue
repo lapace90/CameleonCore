@@ -5,7 +5,7 @@
       <div class="header-left">
         <h1 class="page-title">{{ pageTitle }}</h1>
         
-        <!-- 🔥 Breadcrumb simplifié - génération automatique -->
+        <!-- Breadcrumb simplifié - génération automatique -->
         <Breadcrumb />
       </div>
 
@@ -22,35 +22,25 @@
           >
         </div>
 
-        <!-- Notifications -->
+        <!-- ✅ CORRECTION: Utiliser NotificationPanel au lieu de notifications hardcodées -->
         <div class="header-notification">
           <button class="notification-btn" @click="toggleNotifications">
             <i class="fas fa-bell"></i>
-            <span class="notification-badge" v-if="notificationCount">{{ notificationCount }}</span>
+            <span class="notification-badge" v-if="notificationCount > 0">{{ notificationCount }}</span>
           </button>
 
-          <!-- Dropdown notifications -->
-          <div class="notification-dropdown" v-show="showNotifications">
-            <div class="dropdown-header">
-              <h6>Notifications</h6>
-              <span class="mark-all-read" @click="markAllRead">Tout marquer comme lu</span>
-            </div>
-            
-            <div class="notification-list">
-              <div 
-                v-for="notification in notifications" 
-                :key="notification.id"
-                class="notification-item"
-              >
-                <div class="notification-icon">
-                  <i :class="notification.icon"></i>
-                </div>
-                <div class="notification-content">
-                  <p class="notification-message">{{ notification.message }}</p>
-                  <span class="notification-time">{{ notification.time }}</span>
-                </div>
-              </div>
-            </div>
+          <!-- ✅ Remplacement du dropdown par NotificationPanel -->
+          <div 
+            class="notification-dropdown" 
+            v-show="showNotifications"
+            @click.stop
+          >
+            <NotificationPanel 
+              :limit="10" 
+              :autoRefresh="false"
+              @notification-count-changed="handleNotificationCountChanged"
+              @notification-clicked="handleNotificationClick"
+            />
           </div>
         </div>
 
@@ -90,14 +80,15 @@
 
 <script>
 import Breadcrumb from '@/admin/components/Breadcrumb.vue'
+import NotificationPanel from '@/admin/components/NotificationPanel.vue'
 import { useAuthStore } from '@/shared/stores/auth'
-import { PRODUCT_CONFIGS } from '@/shared/configs/productConfigs'
 
 export default {
   name: 'AdminHeader',
 
   components: {
-    Breadcrumb
+    Breadcrumb,
+    NotificationPanel
   },
 
   setup() {
@@ -110,120 +101,116 @@ export default {
       searchQuery: '',
       showNotifications: false,
       showUserMenu: false,
-      notificationCount: 3,
-      notifications: [
-        {
-          id: 1,
-          icon: 'fas fa-user text-success',
-          message: 'Nouvel utilisateur inscrit',
-          time: 'Il y a 2 minutes'
-        },
-        {
-          id: 2,
-          icon: 'fas fa-calendar text-warning',
-          message: 'Nouvelle réservation',
-          time: 'Il y a 5 minutes'
-        },
-        {
-          id: 3,
-          icon: 'fas fa-exclamation-triangle text-danger',
-          message: 'Alerte système',
-          time: 'Il y a 10 minutes'
-        }
-      ]
+      notificationCount: 0 // ✅ CORRECTION: Initialiser à 0, sera mis à jour par NotificationPanel
     }
   },
 
   computed: {
     pageTitle() {
-      const route = this.$route
+      // Génération automatique du titre depuis la route
+      const routeName = this.$route.name
+      const routeParams = this.$route.params
 
-      // Page dashboard
-      if (route.name === 'AdminDashboard') {
-        return 'Dashboard'
-      }
-
-      // Routes produits
-      if (route.path.includes('/products/')) {
-        const type = route.params.type
-        const config = PRODUCT_CONFIGS[type]
-        const label = config?.label || 'Produit'
-
-        if (route.name === 'ProductCreate') {
-          return `Nouveau ${config?.singular || label}`
-        } else if (route.name === 'ProductEdit') {
-          return `Modifier ${config?.singular || label}`
-        } else if (route.name === 'ProductDetail') {
-          return `Détails ${config?.singular || label}`
-        } else {
-          return label
-        }
-      }
-
-      // Autres routes avec titres personnalisés
-      const routeTitles = {
-        'AdminUsers': 'Gestion des utilisateurs',
-        'UserCreate': 'Nouvel utilisateur', 
-        'UserEdit': 'Modifier utilisateur',
-        'AdminRoles': 'Rôles',
-        'RoleCreate': 'Nouveau rôle',
-        'RoleEdit': 'Modifier rôle',
-        'AdminPermissions': 'Permissions',
+      // Mapping des titres de page
+      const pageTitles = {
+        'AdminDashboard': 'Dashboard',
+        'FullAgenda': 'Agenda',
+        'AdminUsers': 'Utilisateurs',
+        'AdminRoles': 'Rôles et Permissions',
         'AdminCategories': 'Catégories',
-        'CategoryCreate': 'Nouvelle catégorie',
-        'CategoryEdit': 'Modifier catégorie',
-        'AdminAnalytics': 'Analytics',
-        'AdminSettings': 'Paramètres',
-        'AdminReservations': 'Réservations',
-        'FullAgenda': 'Planning'
+        'ProductsShow': this.getProductTitle(routeParams.type),
+        'ProductCreate': `Créer ${this.getProductLabel(routeParams.type)}`,
+        'ProductEdit': `Modifier ${this.getProductLabel(routeParams.type)}`,
+        'AdminProfile': 'Mon Profil',
+        'AdminSettings': 'Paramètres'
       }
 
-      return routeTitles[route.name] || route.meta?.title || 'Administration'
-    }
-  },
-
-  methods: {
-    handleSearch() {
-      console.log('Recherche:', this.searchQuery)
-      // Implémenter la logique de recherche
-    },
-
-    toggleNotifications() {
-      this.showNotifications = !this.showNotifications
-      this.showUserMenu = false
-    },
-
-    toggleUserMenu() {
-      this.showUserMenu = !this.showUserMenu  
-      this.showNotifications = false
-    },
-
-    markAllRead() {
-      this.notificationCount = 0
-      this.showNotifications = false
-      // Implémenter la logique de marquage lu
-    },
-
-    handleLogout() {
-      this.auth.logout()
-      this.$router.push('/admin/login')
-    },
-
-    // Fermer les dropdowns en cliquant ailleurs
-    handleClickOutside(event) {
-      if (!this.$el.contains(event.target)) {
-        this.showNotifications = false
-        this.showUserMenu = false
-      }
+      return pageTitles[routeName] || 'Administration'
     }
   },
 
   mounted() {
-    document.addEventListener('click', this.handleClickOutside)
+    // ✅ CORRECTION: Fermer les dropdowns en cliquant ailleurs
+    document.addEventListener('click', this.closeDropdowns)
   },
 
   beforeUnmount() {
-    document.removeEventListener('click', this.handleClickOutside)
+    document.removeEventListener('click', this.closeDropdowns)
+  },
+
+  methods: {
+    // ✅ Gestionnaire pour la recherche
+    handleSearch() {
+      if (this.searchQuery.length > 2) {
+        console.log('🔍 Recherche:', this.searchQuery)
+        // TODO: Implémenter la logique de recherche
+      }
+    },
+
+    // ✅ Toggle notifications
+    toggleNotifications() {
+      this.showNotifications = !this.showNotifications
+      this.showUserMenu = false // Fermer l'autre dropdown
+    },
+
+    // ✅ Toggle user menu
+    toggleUserMenu() {
+      this.showUserMenu = !this.showUserMenu
+      this.showNotifications = false // Fermer l'autre dropdown
+    },
+
+    // ✅ NOUVEAU: Gestionnaire pour le count de notifications
+    handleNotificationCountChanged(count) {
+      this.notificationCount = count
+    },
+
+    // ✅ NOUVEAU: Gestionnaire pour le clic sur une notification
+    handleNotificationClick(notification) {
+      // Fermer le dropdown
+      this.showNotifications = false
+      
+      // Émettre un événement si nécessaire pour d'autres composants
+      this.$emit('notification-clicked', notification)
+    },
+
+    // ✅ Fermer les dropdowns
+    closeDropdowns() {
+      this.showNotifications = false
+      this.showUserMenu = false
+    },
+
+    // ✅ Logout
+    async handleLogout() {
+      try {
+        await this.auth.logout()
+        this.$router.push('/admin/login')
+      } catch (error) {
+        console.error('❌ Erreur logout:', error)
+      }
+    },
+
+    // ✅ Helpers pour les titres de produits
+    getProductTitle(type) {
+      const titles = {
+        'room': 'Chambres',
+        'activity': 'Activités',
+        'menu': 'Menus',
+        'dish': 'Plats',
+        'ingredient': 'Ingrédients'
+      }
+      return titles[type] || 'Produits'
+    },
+
+    getProductLabel(type) {
+      const labels = {
+        'room': 'une Chambre',
+        'activity': 'une Activité', 
+        'menu': 'un Menu',
+        'dish': 'un Plat',
+        'ingredient': 'un Ingrédient'
+      }
+      return labels[type] || 'un Produit'
+    }
   }
 }
 </script>

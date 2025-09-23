@@ -1,17 +1,17 @@
 <template>
   <div class="modal-overlay" v-if="show" @click="handleOverlayClick">
-    <div class="modal-container" @click.stop>
+    <div class="modal-container large-modal" @click.stop>
       <div class="modal-header">
         <h3 class="modal-title">
           <i :class="modalIcon"></i>
-          {{ isEditing ? 'Modifier l\'événement' : 'Nouvel événement' }}
+          {{ isEditing ? 'Modifier' : 'Créer' }}
         </h3>
-        <button @click="$emit('close')" class="modal-close">
+        <button @click="confirmClose" class="modal-close">
           <i class="fas fa-times"></i>
         </button>
       </div>
 
-      <form @submit.prevent="handleSubmit" class="modal-body">
+      <form @submit.prevent="handleSubmit" class="modal-body expanded-content">
         <!-- Type d'événement -->
         <div class="form-group">
           <label class="form-label">Type d'événement</label>
@@ -49,38 +49,239 @@
           </div>
         </div>
 
-        <!-- Champs spécifiques selon le type -->
+        <!-- SECTION RÉSERVATION ÉTENDUE -->
         <div v-if="formData.type === 'reservation'" class="form-section">
-          <h4 class="section-title">Détails de la réservation</h4>
+          <h4 class="section-title">Informations client</h4>
 
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label">Nom du client</label>
-              <input v-model="formData.customerName" type="text" class="form-input" placeholder="Nom de famille">
+              <label class="form-label">Prénom <span class="required">*</span></label>
+              <input v-model="formData.customerName" type="text" class="form-input" placeholder="Prénom" required>
             </div>
             <div class="form-group">
-              <label class="form-label">Téléphone</label>
-              <input v-model="formData.phone" type="tel" class="form-input" placeholder="06 12 34 56 78">
+              <label class="form-label">Nom de famille <span class="required">*</span></label>
+              <input v-model="formData.customerLastName" type="text" class="form-input" placeholder="Nom de famille"
+                required>
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label">Nombre de personnes</label>
-              <input v-model.number="formData.guests" type="number" class="form-input" min="1" placeholder="4">
+              <label class="form-label">Email <span class="required">*</span></label>
+              <input v-model="formData.customerEmail" type="email" class="form-input" placeholder="client@example.com"
+                required>
             </div>
             <div class="form-group">
-              <label class="form-label">Hébergement</label>
-              <select v-model="formData.accommodationId" class="form-select" :disabled="loadingAccommodations">
-                <option value="">{{ loadingAccommodations ? 'Chargement...' : 'Choisir un hébergement' }}</option>
-                <option v-for="room in accommodations" :key="room.id" :value="room.id">
-                  {{ room.name }} - {{ room.formatted_price }}
-                </option>
-              </select>
+              <label class="form-label">Téléphone <span class="required">*</span></label>
+              <input v-model="formData.phone" type="tel" class="form-input" placeholder="+212 6 12 34 56 78" required>
+            </div>
+          </div>
+
+          <h4 class="section-title">Adresse (optionnel)</h4>
+
+          <div class="form-group">
+            <label class="form-label">Adresse</label>
+            <input v-model="formData.customerAddress" type="text" class="form-input" placeholder="Rue, avenue...">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Ville</label>
+              <input v-model="formData.customerCity" type="text" class="form-input"
+                placeholder="Marrakech, Casablanca...">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Code postal</label>
+              <input v-model="formData.customerPostalCode" type="text" class="form-input" placeholder="40000">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Pays</label>
+            <select v-model="formData.customerCountry" class="form-select">
+              <option value="">Sélectionner un pays</option>
+              <option value="MA">Maroc</option>
+              <option value="FR">France</option>
+              <option value="ES">Espagne</option>
+              <option value="DE">Allemagne</option>
+              <option value="IT">Italie</option>
+              <option value="US">États-Unis</option>
+              <option value="GB">Royaume-Uni</option>
+              <option value="other">Autre</option>
+            </select>
+          </div>
+
+          <h4 class="section-title">Détails du séjour</h4>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Adultes <span class="required">*</span></label>
+              <input v-model.number="formData.numberOfAdults" type="number" class="form-input" min="1" max="12"
+                required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Enfants</label>
+              <input v-model.number="formData.numberOfChildren" type="number" class="form-input" min="0" max="8">
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h4 class="section-title">Hébergements et services</h4>
+            
+            <div class="form-group">
+              <label class="form-label">Hébergements <span class="required">*</span></label>
+              <div class="services-list">
+                <div v-for="room in accommodations" :key="room.id" class="service-item">
+                  <label class="checkbox-wrapper">
+                    <input 
+                      type="checkbox" 
+                      :value="room.id"
+                      :checked="selectedAccommodations.includes(room.id)"
+                      @change="toggleAccommodation(room.id)"
+                    >
+                    <span class="checkmark"></span>
+                    <div class="service-info">
+                      <span class="service-name">{{ room.name }}</span>
+                      <span class="service-price">{{ room.formatted_price || (room.price + '€') }}</span>
+                      <span class="service-meta" v-if="room.capacity">Capacité: {{ room.capacity }} pers.</span>
+                    </div>
+                  </label>
+                  <div v-if="selectedAccommodations.includes(room.id)" class="quantity-control">
+                    <label>Qté:</label>
+                    <input 
+                      type="number" 
+                      min="1" 
+                      max="5"
+                      :value="getAccommodationQuantity(room.id)"
+                      @input="setAccommodationQuantity(room.id, $event.target.value)"
+                      class="qty-input"
+                    >
+                  </div>
+                </div>
+                
+                <div v-if="loadingAccommodations" class="loading-item">
+                  <i class="fas fa-spinner fa-spin"></i> Chargement des hébergements...
+                </div>
+                
+                <div v-if="!loadingAccommodations && accommodations.length === 0" class="empty-item">
+                  Aucun hébergement disponible
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Activités</label>
+              <div class="services-list">
+                <div v-for="activity in availableActivities" :key="activity.id" class="service-item">
+                  <label class="checkbox-wrapper">
+                    <input type="checkbox" :value="activity.id" :checked="selectedActivities.includes(activity.id)"
+                      @change="toggleActivity(activity.id)">
+                    <span class="checkmark"></span>
+                    <div class="service-info">
+                      <span class="service-name">{{ activity.name }}</span>
+                      <span class="service-price">{{ activity.formatted_price || (activity.price + '€') }}</span>
+                    </div>
+                  </label>
+                  <div v-if="selectedActivities.includes(activity.id)" class="quantity-control">
+                    <label>Qté:</label>
+                    <input type="number" min="1" :max="formData.numberOfAdults + formData.numberOfChildren"
+                      :value="getActivityQuantity(activity.id)"
+                      @input="setActivityQuantity(activity.id, $event.target.value)" class="qty-input">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Menus</label>
+              <div class="services-list">
+                <div v-for="menu in availableMenus" :key="menu.id" class="service-item">
+                  <label class="checkbox-wrapper">
+                    <input type="checkbox" :value="menu.id" :checked="selectedMenus.includes(menu.id)"
+                      @change="toggleMenu(menu.id)">
+                    <span class="checkmark"></span>
+                    <div class="service-info">
+                      <span class="service-name">{{ menu.name }}</span>
+                      <span class="service-price">{{ menu.formatted_price || (menu.price + '€') }}</span>
+                    </div>
+                  </label>
+                  <div v-if="selectedMenus.includes(menu.id)" class="quantity-control">
+                    <label>Qté:</label>
+                    <input type="number" min="1" :max="formData.numberOfAdults + formData.numberOfChildren"
+                      :value="getMenuQuantity(menu.id)" @input="setMenuQuantity(menu.id, $event.target.value)"
+                      class="qty-input">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Commentaires / Demandes spéciales</label>
+              <textarea v-model="formData.comment" class="form-textarea" rows="3"
+                placeholder="Allergies, préférences, demandes particulières..."></textarea>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h4 class="section-title">Réservation et paiement</h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Source de réservation</label>
+                <select v-model="formData.bookingSource" class="form-select">
+                  <option value="direct">Réservation directe</option>
+                  <option value="website">Site web</option>
+                  <option value="phone">Téléphone</option>
+                  <option value="email">Email</option>
+                  <option value="booking.com">Booking.com</option>
+                  <option value="airbnb">Airbnb</option>
+                  <option value="agent">Agent local</option>
+                  <option value="walk-in">Sur place</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Statut de la réservation</label>
+                <select v-model="formData.status" class="form-select">
+                  <option value="pending">En attente</option>
+                  <option value="confirmed">Confirmée</option>
+                  <option value="cancelled">Annulée</option>
+                  <option value="completed">Terminée</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Statut du paiement</label>
+                <select v-model="formData.paymentStatus" class="form-select">
+                  <option value="pending">En attente</option>
+                  <option value="partial">Acompte versé</option>
+                  <option value="paid">Payé intégralement</option>
+                  <option value="failed">Échec de paiement</option>
+                  <option value="refunded">Remboursé</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Mode de paiement</label>
+                <select v-model="formData.paymentMethod" class="form-select">
+                  <option value="">Sélectionner</option>
+                  <option value="cash">Espèces</option>
+                  <option value="card">Carte bancaire</option>
+                  <option value="transfer">Virement</option>
+                  <option value="paypal">PayPal</option>
+                  <option value="stripe">Stripe</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Montant total (€)</label>
+              <input v-model.number="formData.amount" type="number" class="form-input" min="0" step="0.01"
+                placeholder="0.00">
             </div>
           </div>
         </div>
 
+        <!-- SECTION AUTRES ÉVÉNEMENTS (conservée) -->
         <div v-if="formData.type === 'activite'" class="form-section">
           <h4 class="section-title">Détails de l'activité</h4>
 
@@ -137,36 +338,34 @@
           </div>
         </div>
 
-        <!-- Couleur -->
-        <div class="form-group">
-          <label class="form-label">Couleur</label>
-          <div class="color-picker">
-            <div v-for="color in availableColors" :key="color.value" @click="formData.backgroundColor = color.value"
-              class="color-option" :class="{ active: formData.backgroundColor === color.value }"
-              :style="{ backgroundColor: color.value }" :title="color.name">
+        <!-- Couleur et notes générales -->
+        <div class="form-section">
+          <h4 class="section-title">Apparence et notes</h4>
+
+          <div class="form-group">
+            <label class="form-label">Couleur</label>
+            <div class="color-picker">
+              <div v-for="color in availableColors" :key="color.value" @click="formData.backgroundColor = color.value"
+                class="color-option" :class="{ active: formData.backgroundColor === color.value }"
+                :style="{ backgroundColor: color.value }" :title="color.name">
+              </div>
             </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Notes internes</label>
+            <textarea v-model="formData.notes" class="form-textarea" rows="3"
+              placeholder="Notes visibles uniquement par l'équipe..."></textarea>
           </div>
         </div>
 
-        <!-- Notes -->
-        <div class="form-group">
-          <label class="form-label">Notes</label>
-          <textarea v-model="formData.notes" class="form-textarea" rows="3"
-            placeholder="Informations complémentaires..."></textarea>
-        </div>
-
-        <!-- Actions -->
         <div class="form-actions">
-          <button type="button" @click="$emit('close')" class="btn btn-secondary">
+          <button type="button" @click="confirmClose" class="btn btn-secondary btn-sm">
             Annuler
           </button>
-          <button v-if="isEditing" type="button" @click="$emit('delete', event)" class="btn btn-danger">
-            <i class="fas fa-trash"></i>
-            Supprimer
-          </button>
-          <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
-            <i v-if="isSubmitting" class="fas fa-spinner fa-spin"></i>
-            {{ isEditing ? 'Modifier' : 'Créer' }}
+          <button type="submit" class="btn btn-primary btn-sm" :disabled="isSubmitting">
+            <i class="fas fa-save"></i>
+            {{ isSubmitting ? 'Sauvegarde...' : isEditing ? 'Modifier' : 'Créer' }}
           </button>
         </div>
       </form>
@@ -203,11 +402,26 @@ export default {
         type: 'autre',
         backgroundColor: '#17a2b8',
         notes: '',
-        // Réservation
+        // Client
         customerName: '',
+        customerLastName: '',
+        customerEmail: '',
         phone: '',
-        guests: 2,
-        accommodationId: null,
+        customerAddress: '',
+        customerCity: '',
+        customerPostalCode: '',
+        customerCountry: '',
+        // Séjour
+        numberOfAdults: 2,
+        numberOfChildren: 0,
+        accommodationId: null, // Gardé pour compatibilité
+        // Réservation
+        bookingSource: 'direct',
+        status: 'pending',
+        paymentStatus: 'pending',
+        paymentMethod: '',
+        amount: 0,
+        comment: '',
         // Événements génériques
         location: '',
         capacity: null,
@@ -216,6 +430,14 @@ export default {
       },
 
       accommodations: [],
+      availableActivities: [],
+      availableMenus: [],
+      selectedAccommodations: [],
+      selectedActivities: [],
+      selectedMenus: [],
+      accommodationQuantities: {},
+      activityQuantities: {},
+      menuQuantities: {},
       loadingAccommodations: false,
       isSubmitting: false,
 
@@ -263,6 +485,37 @@ export default {
     modalIcon() {
       const type = this.eventTypes.find(t => t.value === this.formData.type)
       return type ? type.icon : 'fas fa-calendar'
+    },
+
+    totalGuests() {
+      return (this.formData.numberOfAdults || 0) + (this.formData.numberOfChildren || 0)
+    },
+
+    // Détecte si le formulaire a été modifié
+    hasFormChanges() {
+      // Pour les réservations
+      if (this.formData.type === 'reservation') {
+        return !!(
+          this.formData.title ||
+          this.formData.customerName ||
+          this.formData.customerLastName ||
+          this.formData.customerEmail ||
+          this.formData.phone ||
+          this.selectedAccommodations.length > 0 ||
+          this.selectedActivities.length > 0 ||
+          this.selectedMenus.length > 0 ||
+          this.formData.comment ||
+          this.formData.amount > 0
+        )
+      }
+      
+      // Pour les autres événements
+      return !!(
+        this.formData.title ||
+        this.formData.location ||
+        this.formData.responsible ||
+        this.formData.notes
+      )
     }
   },
 
@@ -270,21 +523,40 @@ export default {
     show(newVal) {
       if (newVal) {
         this.loadAccommodations()
+        this.loadActivitiesAndMenus()
         this.resetForm()
         if (this.event && Object.keys(this.event).length > 0) {
           this.populateForm()
         }
+        // Ajouter listener pour Escape
+        document.addEventListener('keydown', this.handleEscape)
+      } else {
+        // Retirer listener quand modal fermée
+        document.removeEventListener('keydown', this.handleEscape)
       }
     },
 
     'formData.type'(newType) {
       if (newType === 'reservation') {
         this.loadAccommodations()
+        this.loadActivitiesAndMenus()
       }
     }
   },
 
+  beforeUnmount() {
+    // Nettoyer les event listeners
+    document.removeEventListener('keydown', this.handleEscape)
+  },
+
   methods: {
+    // Gestion de la touche Escape
+    handleEscape(e) {
+      if (e.key === 'Escape') {
+        this.confirmClose()
+      }
+    },
+
     async loadAccommodations() {
       if (this.accommodations.length > 0) return
 
@@ -303,14 +575,107 @@ export default {
       }
     },
 
+    async loadActivitiesAndMenus() {
+      if (this.availableActivities.length > 0 && this.availableMenus.length > 0) return
+
+      try {
+        const response = await ProductsApi.getProducts({
+          status: 'active',
+          per_page: 100
+        })
+
+        const products = response.data || []
+
+        this.availableActivities = products.filter(p =>
+          p.productable_type === 'App\\Models\\Activity' ||
+          p.typeConfig?.label === 'Activités'
+        )
+
+        this.availableMenus = products.filter(p =>
+          p.productable_type === 'App\\Models\\Menu' ||
+          p.typeConfig?.label === 'Menus'
+        )
+
+        console.log('✅ Chargé:', this.availableActivities.length, 'activités et', this.availableMenus.length, 'menus')
+
+      } catch (error) {
+        console.error('Erreur chargement activités/menus:', error)
+      }
+    },
+
+    // Gestion des hébergements
+    toggleAccommodation(accommodationId) {
+      const index = this.selectedAccommodations.indexOf(accommodationId)
+      if (index > -1) {
+        this.selectedAccommodations.splice(index, 1)
+        delete this.accommodationQuantities[accommodationId]
+      } else {
+        this.selectedAccommodations.push(accommodationId)
+        this.accommodationQuantities[accommodationId] = 1
+      }
+    },
+
+    getAccommodationQuantity(accommodationId) {
+      return this.accommodationQuantities[accommodationId] || 1
+    },
+
+    setAccommodationQuantity(accommodationId, quantity) {
+      this.accommodationQuantities[accommodationId] = Math.max(1, parseInt(quantity) || 1)
+    },
+
+    // Gestion des activités
+    toggleActivity(activityId) {
+      const index = this.selectedActivities.indexOf(activityId)
+      if (index > -1) {
+        this.selectedActivities.splice(index, 1)
+        delete this.activityQuantities[activityId]
+      } else {
+        this.selectedActivities.push(activityId)
+        this.activityQuantities[activityId] = 1
+      }
+    },
+
+    getActivityQuantity(activityId) {
+      return this.activityQuantities[activityId] || 1
+    },
+
+    setActivityQuantity(activityId, quantity) {
+      this.activityQuantities[activityId] = Math.max(1, parseInt(quantity) || 1)
+    },
+
+    // Gestion des menus
+    toggleMenu(menuId) {
+      const index = this.selectedMenus.indexOf(menuId)
+      if (index > -1) {
+        this.selectedMenus.splice(index, 1)
+        delete this.menuQuantities[menuId]
+      } else {
+        this.selectedMenus.push(menuId)
+        this.menuQuantities[menuId] = 1
+      }
+    },
+
+    getMenuQuantity(menuId) {
+      return this.menuQuantities[menuId] || 1
+    },
+
+    setMenuQuantity(menuId, quantity) {
+      this.menuQuantities[menuId] = Math.max(1, parseInt(quantity) || 1)
+    },
+
     populateForm() {
       this.formData = {
         ...this.formData,
         ...this.event,
+        // Mapping des données existantes
         customerName: this.event.extendedProps?.customer_name || '',
+        customerEmail: this.event.extendedProps?.customer_email || '',
         phone: this.event.extendedProps?.customer_phone || '',
-        guests: this.event.extendedProps?.guests || 2,
-        accommodationId: this.event.extendedProps?.product_id || null
+        numberOfAdults: this.event.extendedProps?.number_of_adults || 2,
+        numberOfChildren: this.event.extendedProps?.number_of_children || 0,
+        accommodationId: this.event.extendedProps?.product_id || null,
+        amount: this.event.extendedProps?.amount || 0,
+        comment: this.event.extendedProps?.comment || ''
       }
     },
 
@@ -324,28 +689,66 @@ export default {
         backgroundColor: '#17a2b8',
         notes: '',
         customerName: '',
+        customerLastName: '',
+        customerEmail: '',
         phone: '',
-        guests: 2,
-        accommodationId: null,
+        customerAddress: '',
+        customerCity: '',
+        customerPostalCode: '',
+        customerCountry: '',
+        numberOfAdults: 2,
+        numberOfChildren: 0,
+        accommodationId: null, // Gardé pour compatibilité
+        bookingSource: 'direct',
+        status: 'pending',
+        paymentStatus: 'pending',
+        paymentMethod: '',
+        amount: 0,
+        comment: '',
         location: '',
         capacity: null,
         responsible: '',
         priority: 'medium'
       }
+
+      // Réinitialiser les services
+      this.selectedAccommodations = []
+      this.selectedActivities = []
+      this.selectedMenus = []
+      this.accommodationQuantities = {}
+      this.activityQuantities = {}
+      this.menuQuantities = {}
     },
 
     handleOverlayClick(e) {
       if (e.target === e.currentTarget) {
-        this.$emit('close')
+        this.confirmClose()
       }
+    },
+
+    // Demande confirmation avant fermeture si formulaire modifié
+    confirmClose() {
+      if (this.hasFormChanges) {
+        if (confirm('Vous avez des modifications non sauvegardées. Voulez-vous vraiment fermer sans sauvegarder ?')) {
+          this.forceClose()
+        }
+      } else {
+        this.forceClose()
+      }
+    },
+
+    // Ferme sans demander (pour les sauvegardes et annulations confirmées)
+    forceClose() {
+      this.$emit('close')
     },
 
     async handleSubmit() {
       this.isSubmitting = true
       try {
-        // Préparer les données selon le type
         const eventData = this.prepareEventData(this.formData)
         this.$emit('save', eventData)
+        // Après sauvegarde, fermer directement sans confirmation
+        this.forceClose()
       } catch (error) {
         console.error('Erreur:', error)
       } finally {
@@ -354,29 +757,67 @@ export default {
     },
 
     prepareEventData(formData) {
-      // Pour les réservations
       if (formData.type === 'reservation') {
+        // Préparer tous les produits sélectionnés
+        const selectedProducts = []
+        
+        // Ajouter les hébergements avec quantités
+        this.selectedAccommodations.forEach(accommodationId => {
+          const quantity = this.getAccommodationQuantity(accommodationId)
+          for (let i = 0; i < quantity; i++) {
+            selectedProducts.push(accommodationId)
+          }
+        })
+        
+        // Ajouter les activités avec quantités
+        this.selectedActivities.forEach(activityId => {
+          const quantity = this.getActivityQuantity(activityId)
+          for (let i = 0; i < quantity; i++) {
+            selectedProducts.push(activityId)
+          }
+        })
+        
+        // Ajouter les menus avec quantités
+        this.selectedMenus.forEach(menuId => {
+          const quantity = this.getMenuQuantity(menuId)
+          for (let i = 0; i < quantity; i++) {
+            selectedProducts.push(menuId)
+          }
+        })
+
         return {
           ...formData,
-          // Mapper vers les champs attendus par l'API reservations
+          // Données pour l'API réservations
           checkin: formData.start ? new Date(formData.start).toISOString() : null,
           checkout: formData.end ? new Date(formData.end).toISOString() : null,
-          // On va créer le customer en amont, pas ici
-          customer_name: formData.customerName,
-          customer_phone: formData.phone,
-          customer_email: formData.customerEmail || '',
-          product_id: formData.accommodationId,
-          number_of_adults: formData.guests || 1,
-          amount: "0.00",
-          booking_source: 'admin',
-          payment_status: 'pending'
+          // Données customer pour auto-création
+          customer_data: {
+            name: formData.customerName,
+            last_name: formData.customerLastName,
+            email: formData.customerEmail,
+            phone: formData.phone,
+            address: formData.customerAddress,
+            city: formData.customerCity,
+            postal_code: formData.customerPostalCode,
+            country: formData.customerCountry
+          },
+          // Hébergement principal (premier sélectionné pour compatibilité)
+          product_id: this.selectedAccommodations[0] || null,
+          number_of_adults: formData.numberOfAdults,
+          number_of_children: formData.numberOfChildren,
+          booking_source: formData.bookingSource,
+          payment_status: formData.paymentStatus,
+          payment_method: formData.paymentMethod,
+          amount: formData.amount,
+          status: formData.status,
+          // Tous les produits sélectionnés
+          selected_product_ids: selectedProducts
         }
       }
 
-      // Pour les événements génériques
+      // Événements génériques
       return {
         ...formData,
-        // Mapper vers les champs attendus par l'API events
         start_date: formData.start ? new Date(formData.start).toISOString() : null,
         end_date: formData.end ? new Date(formData.end).toISOString() : null,
         background_color: formData.backgroundColor,
@@ -386,3 +827,92 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.large-modal {
+  max-width: 1200px;
+  width: 95vw;
+  max-height: 90vh;
+}
+
+.expanded-content {
+  max-height: 75vh;
+  overflow-y: auto;
+}
+
+.services-list {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  background: white;
+}
+
+.service-item {
+  padding: 0.75rem;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.service-item:last-child {
+  border-bottom: none;
+}
+
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  cursor: pointer;
+}
+
+.checkbox-wrapper input[type="checkbox"] {
+  margin: 0;
+}
+
+.service-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.service-name {
+  font-weight: 600;
+  color: #333;
+}
+
+.service-price {
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.service-meta {
+  font-size: 0.8rem;
+  color: #888;
+  font-style: italic;
+}
+
+.loading-item, .empty-item {
+  padding: 1rem;
+  text-align: center;
+  color: #666;
+  font-style: italic;
+}
+
+.quantity-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.qty-input {
+  width: 60px;
+  padding: 0.25rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  text-align: center;
+}
+</style>
