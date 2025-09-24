@@ -22,14 +22,14 @@
           >
         </div>
 
-        <!-- ✅ CORRECTION: Utiliser NotificationPanel au lieu de notifications hardcodées -->
-        <div class="header-notification">
+        <!-- Notifications -->
+        <div class="header-notification" ref="notificationContainer">
           <button class="notification-btn" @click="toggleNotifications">
             <i class="fas fa-bell"></i>
             <span class="notification-badge" v-if="notificationCount > 0">{{ notificationCount }}</span>
           </button>
 
-          <!-- ✅ Remplacement du dropdown par NotificationPanel -->
+          <!-- Notification Dropdown -->
           <div 
             class="notification-dropdown" 
             v-show="showNotifications"
@@ -45,7 +45,7 @@
         </div>
 
         <!-- User menu -->
-        <div class="user-menu">
+        <div class="user-menu" ref="userMenuContainer">
           <button class="user-btn" @click="toggleUserMenu">
             <img 
               :src="auth.user?.avatar || '/default-avatar.png'" 
@@ -53,16 +53,16 @@
               class="user-avatar"
             >
             <span class="user-name">{{ auth.user?.name || 'Admin' }}</span>
-            <i class="fas fa-chevron-down"></i>
+            <i class="fas fa-chevron-down" :class="{ 'rotated': showUserMenu }"></i>
           </button>
 
           <!-- Dropdown user menu -->
-          <div class="user-dropdown" v-show="showUserMenu">
-            <router-link to="/admin/profile" class="dropdown-item">
+          <div class="user-dropdown" v-show="showUserMenu" @click.stop>
+            <router-link to="/admin/profile" class="dropdown-item" @click="closeDropdowns">
               <i class="fas fa-user"></i>
               <span>Mon profil</span>
             </router-link>
-            <router-link to="/admin/settings" class="dropdown-item">
+            <router-link to="/admin/settings" class="dropdown-item" @click="closeDropdowns">
               <i class="fas fa-cog"></i>
               <span>Paramètres</span>
             </router-link>
@@ -101,7 +101,7 @@ export default {
       searchQuery: '',
       showNotifications: false,
       showUserMenu: false,
-      notificationCount: 0 // ✅ CORRECTION: Initialiser à 0, sera mis à jour par NotificationPanel
+      notificationCount: 0
     }
   },
 
@@ -130,16 +130,16 @@ export default {
   },
 
   mounted() {
-    // ✅ CORRECTION: Fermer les dropdowns en cliquant ailleurs
-    document.addEventListener('click', this.closeDropdowns)
+    // Écouter les clics globaux pour fermer les dropdowns
+    document.addEventListener('click', this.handleGlobalClick)
   },
 
   beforeUnmount() {
-    document.removeEventListener('click', this.closeDropdowns)
+    document.removeEventListener('click', this.handleGlobalClick)
   },
 
   methods: {
-    // ✅ Gestionnaire pour la recherche
+    // Gestionnaire pour la recherche
     handleSearch() {
       if (this.searchQuery.length > 2) {
         console.log('🔍 Recherche:', this.searchQuery)
@@ -147,24 +147,51 @@ export default {
       }
     },
 
-    // ✅ Toggle notifications
+    // Toggle notifications
     toggleNotifications() {
       this.showNotifications = !this.showNotifications
       this.showUserMenu = false // Fermer l'autre dropdown
     },
 
-    // ✅ Toggle user menu
+    // Toggle user menu
     toggleUserMenu() {
       this.showUserMenu = !this.showUserMenu
       this.showNotifications = false // Fermer l'autre dropdown
     },
 
-    // ✅ NOUVEAU: Gestionnaire pour le count de notifications
+    // Gestionnaire global des clics
+    handleGlobalClick(event) {
+      // Vérifier si le clic est à l'intérieur des conteneurs de dropdown
+      const notificationContainer = this.$refs.notificationContainer
+      const userMenuContainer = this.$refs.userMenuContainer
+
+      let clickInsideNotification = false
+      let clickInsideUserMenu = false
+
+      if (notificationContainer) {
+        clickInsideNotification = notificationContainer.contains(event.target)
+      }
+
+      if (userMenuContainer) {
+        clickInsideUserMenu = userMenuContainer.contains(event.target)
+      }
+
+      // Fermer les dropdowns si le clic est à l'extérieur
+      if (!clickInsideNotification) {
+        this.showNotifications = false
+      }
+
+      if (!clickInsideUserMenu) {
+        this.showUserMenu = false
+      }
+    },
+
+    // Gestionnaire pour le count de notifications
     handleNotificationCountChanged(count) {
       this.notificationCount = count
     },
 
-    // ✅ NOUVEAU: Gestionnaire pour le clic sur une notification
+    // Gestionnaire pour le clic sur une notification
     handleNotificationClick(notification) {
       // Fermer le dropdown
       this.showNotifications = false
@@ -173,23 +200,24 @@ export default {
       this.$emit('notification-clicked', notification)
     },
 
-    // ✅ Fermer les dropdowns
+    // Fermer les dropdowns manuellement
     closeDropdowns() {
       this.showNotifications = false
       this.showUserMenu = false
     },
 
-    // ✅ Logout
+    // Logout
     async handleLogout() {
       try {
         await this.auth.logout()
+        this.closeDropdowns() // Fermer les dropdowns avant de rediriger
         this.$router.push('/admin/login')
       } catch (error) {
         console.error('❌ Erreur logout:', error)
       }
     },
 
-    // ✅ Helpers pour les titres de produits
+    // Helpers pour les titres de produits
     getProductTitle(type) {
       const titles = {
         'room': 'Chambres',
@@ -217,17 +245,63 @@ export default {
 
 <style lang="scss" scoped>
 .admin-header {
-  padding: 0 2rem;
-  top: 0;
 
   .header-content {
-    display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 100%;
     max-width: 100%;
   }
 
+  .header-left {
+    display: flex;
+    flex-direction: column;
+
+    .page-title {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    i {
+      position: absolute;
+      left: 0.75rem;
+      color: #adb5bd;
+      font-size: 0.875rem;
+    }
+
+    input {
+      padding: 0.5rem 0.75rem 0.5rem 2.5rem;
+      border: 1px solid #dee2e6;
+      border-radius: 0.375rem;
+      background: #f8f9fa;
+      font-size: 0.875rem;
+      width: 250px;
+      transition: all 0.2s ease;
+
+      &:focus {
+        outline: none;
+        border-color: #5e72e4;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(94, 114, 228, 0.1);
+      }
+
+      &::placeholder {
+        color: #adb5bd;
+      }
+    }
+  }
 
   // Styles pour les notifications
   .header-notification {
@@ -236,65 +310,49 @@ export default {
     .notification-btn {
       background: none;
       border: none;
-      color: var(--text-light);
+      color: #8898aa;
       font-size: 1.2rem;
       padding: 0.5rem;
       border-radius: 0.375rem;
       cursor: pointer;
       position: relative;
-      transition: color 0.2s ease;
+      transition: all 0.2s ease;
 
       &:hover {
-        color: var(--primary);
-        background: var(--text-light);
+        color: #5e72e4;
+        background: #f6f9fc;
       }
     }
 
+    .notification-badge {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      background: #f5365c;
+      color: white;
+      font-size: 0.625rem;
+      font-weight: 600;
+      padding: 0.125rem 0.375rem;
+      border-radius: 10px;
+      min-width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
     .notification-dropdown {
-      
-
-      .dropdown-header {
-        padding: 1rem 1.25rem 0.75rem;
-        border-bottom: 1px solid #e9ecef;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-
-        .mark-all-read {
-          font-size: 0.875rem;
-          color: var(--primary);
-          cursor: pointer;
-          text-decoration: none;
-
-          &:hover {
-            color: #576ff8;
-          }
-        }
-      }
-
-      .notification-list {
-        max-height: 300px;
-        overflow-y: auto;
-      }
-
-      .notification-item {
-        padding: 1rem 1.25rem;
-        border-bottom: 1px solid #f6f9fc;
-        display: flex;
-        align-items: flex-start;
-        gap: 0.75rem;
-
-        &:last-child {
-          border-bottom: none;
-        }
-
-        &:hover {
-          background: #f8f9ff;
-        }
-
-
-       
-      }
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      width: 320px;
+      margin-top: 0.5rem;
+      z-index: 1001;
+      overflow: hidden;
+      animation: dropdownAppear 0.2s ease-out;
     }
   }
 
@@ -317,6 +375,13 @@ export default {
         background: #f8f9ff;
       }
 
+      .user-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 2px solid #dee2e6;
+      }
+
       .user-name {
         font-size: 0.875rem;
         font-weight: 500;
@@ -331,10 +396,10 @@ export default {
         font-size: 0.75rem;
         color: #adb5bd;
         transition: transform 0.2s ease;
-      }
 
-      &:hover i {
-        transform: rotate(180deg);
+        &.rotated {
+          transform: rotate(180deg);
+        }
       }
     }
 
@@ -350,6 +415,7 @@ export default {
       margin-top: 0.5rem;
       z-index: 1050;
       padding: 0.5rem 0;
+      animation: dropdownAppear 0.2s ease-out;
 
       .dropdown-item {
         display: flex;
@@ -392,6 +458,17 @@ export default {
         }
       }
     }
+  }
+}
+
+@keyframes dropdownAppear {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 

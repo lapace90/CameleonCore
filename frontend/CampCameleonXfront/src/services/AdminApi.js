@@ -43,7 +43,7 @@ class AdminApi {
             
             const response = await axios.get(`${this.baseURL}/admin/notifications`, {
                 params: { limit },
-                timeout: 10000 // ✅ Timeout de 10 secondes
+                timeout: 30000 // ✅ Timeout de 10 secondes
             })
             
             const duration = Date.now() - startTime
@@ -72,7 +72,7 @@ class AdminApi {
                 `${this.baseURL}/admin/notifications/${notificationId}/mark-read`, // ✅ CORRECTION: /read → /mark-read
                 {}, // Pas de body nécessaire pour un PATCH simple
                 {
-                    timeout: 5000, // ✅ Timeout réduit pour les actions rapides
+                    timeout: 30000, // ✅ Timeout réduit pour les actions rapides
                     headers: {
                         'Content-Type': 'application/json'
                     }
@@ -115,12 +115,111 @@ class AdminApi {
     // =============================
     // RÉSERVATIONS & CALENDRIER
     // =============================
+async getReservations(params = {}) {
+        try {
+            const queryParams = {}
 
+            const normalized = {
+                page: params.page ?? params.currentPage,
+                itemsPerPage: params.itemsPerPage ?? params.perPage,
+                search: params.search ?? params.query,
+                status: params.status,
+                startDate: params.startDate,
+                endDate: params.endDate
+            }
+
+            Object.entries(normalized).forEach(([key, value]) => {
+                if (value !== undefined && value !== null && value !== '') {
+                    queryParams[key] = value
+                }
+            })
+
+            const sortField = params.sortField || params.sort?.field
+            const sortDirection = params.sortDirection || params.sort?.direction
+            if (sortField) {
+                queryParams[`order[${sortField}]`] = sortDirection || 'asc'
+            }
+
+            const response = await axios.get(`${this.baseURL}/admin/reservations`, {
+                params: queryParams,
+                timeout: 30000
+            })
+
+            const payload = response.data ?? {}
+            const items = Array.isArray(payload)
+                ? payload
+                : payload['hydra:member'] || payload.member || payload.data || payload.items || []
+
+            const extractPage = (url) => {
+                if (!url || typeof url !== 'string') return null
+                const match = url.match(/[?&]page=(\d+)/)
+                return match ? Number(match[1]) : null
+            }
+
+            const hydraView = payload['hydra:view'] || payload.view || {}
+            const totalItems = Number(
+                payload['hydra:totalItems'] ??
+                payload.total ??
+                payload.meta?.total ??
+                payload.pagination?.total ??
+                items.length
+            ) || 0
+
+            const fallbackPerPage = Number(queryParams.itemsPerPage) || (items.length > 0 ? items.length : 10)
+
+            const rawPerPage = payload['hydra:itemsPerPage'] ??
+                payload.meta?.per_page ??
+                payload.pagination?.per_page ??
+                queryParams.itemsPerPage ??
+                (items.length > 0 ? items.length : null)
+
+            const perPageFromResponse = Number(rawPerPage ?? fallbackPerPage) || fallbackPerPage
+
+            const currentPage = Number(
+                extractPage(hydraView['hydra:self']) ??
+                payload.meta?.current_page ??
+                payload.pagination?.current_page ??
+                queryParams.page ??
+                1
+            ) || 1
+
+            const lastPage = Number(
+                extractPage(hydraView['hydra:last']) ??
+                payload.meta?.last_page ??
+                payload.pagination?.last_page ??
+                (perPageFromResponse ? Math.ceil(totalItems / perPageFromResponse) : 1)
+            ) || Math.max(1, Math.ceil(totalItems / (perPageFromResponse || 1)))
+
+            return {
+                data: items,
+                meta: {
+                    total: totalItems,
+                    perPage: perPageFromResponse,
+                    currentPage,
+                    lastPage
+                }
+            }
+        } catch (error) {
+            console.error('❌ Erreur liste réservations:', error)
+            throw this.handleError(error)
+        }
+    }
+
+       async getCalendarEvents(startDate, endDate) {
+        const params = new URLSearchParams({
+            start: startDate,
+            end: endDate
+        })
+        
+        const response = await axios.get(`${this.baseURL}/admin/calendar/events?${params}`)
+        return response.data
+    }
+    
     async getReservationsForCalendar({ start, end }) {
         try {
             const response = await axios.get(`${this.baseURL}/admin/calendar/reservations`, { 
                 params: { start, end },
-                timeout: 15000 // ✅ Timeout plus long pour les données calendrier
+                timeout: 30000 // ✅ Timeout plus long pour les données calendrier
             })
             return response.data || []
         } catch (error) {
