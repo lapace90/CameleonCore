@@ -40,23 +40,23 @@ class AdminApi {
         try {
             console.log(`📡 Récupération de ${limit} notifications...`)
             const startTime = Date.now()
-            
+
             const response = await axios.get(`${this.baseURL}/admin/notifications`, {
                 params: { limit },
                 timeout: 30000 // ✅ Timeout de 10 secondes
             })
-            
+
             const duration = Date.now() - startTime
             console.log(`✅ Notifications récupérées en ${duration}ms`)
-            
+
             return response.data?.['hydra:member'] || response.data || []
         } catch (error) {
             console.error('❌ Erreur récupération notifications:', error)
-            
+
             if (error.code === 'ECONNABORTED') {
                 throw new Error('Timeout: Le serveur met trop de temps à répondre')
             }
-            
+
             throw this.handleError(error)
         }
     }
@@ -67,7 +67,7 @@ class AdminApi {
     async markNotificationAsRead(notificationId) {
         try {
             console.log(`📝 Marquage notification ${notificationId} comme lue...`)
-            
+
             const response = await axios.patch(
                 `${this.baseURL}/admin/notifications/${notificationId}/mark-read`, // ✅ CORRECTION: /read → /mark-read
                 {}, // Pas de body nécessaire pour un PATCH simple
@@ -78,7 +78,7 @@ class AdminApi {
                     }
                 }
             )
-            
+
             console.log(`✅ Notification ${notificationId} marquée comme lue`)
             return response.data
         } catch (error) {
@@ -93,17 +93,17 @@ class AdminApi {
     async markAllNotificationsAsRead(notificationIds) {
         try {
             console.log(`📝 Marquage de ${notificationIds.length} notifications...`)
-            
-            const promises = notificationIds.map(id => 
+
+            const promises = notificationIds.map(id =>
                 this.markNotificationAsRead(id).catch(error => {
                     console.warn(`⚠️ Échec marquage notification ${id}:`, error.message)
                     return null // Continuer avec les autres même si une échoue
                 })
             )
-            
+
             const results = await Promise.allSettled(promises)
             const successCount = results.filter(r => r.status === 'fulfilled' && r.value !== null).length
-            
+
             console.log(`✅ ${successCount}/${notificationIds.length} notifications marquées`)
             return successCount
         } catch (error) {
@@ -115,7 +115,7 @@ class AdminApi {
     // =============================
     // RÉSERVATIONS & CALENDRIER
     // =============================
-async getReservations(params = {}) {
+    async getReservations(params = {}) {
         try {
             const queryParams = {}
 
@@ -205,19 +205,19 @@ async getReservations(params = {}) {
         }
     }
 
-       async getCalendarEvents(startDate, endDate) {
+    async getCalendarEvents(startDate, endDate) {
         const params = new URLSearchParams({
             start: startDate,
             end: endDate
         })
-        
+
         const response = await axios.get(`${this.baseURL}/admin/calendar/events?${params}`)
         return response.data
     }
-    
+
     async getReservationsForCalendar({ start, end }) {
         try {
-            const response = await axios.get(`${this.baseURL}/admin/calendar/reservations`, { 
+            const response = await axios.get(`${this.baseURL}/admin/calendar/reservations`, {
                 params: { start, end },
                 timeout: 30000 // ✅ Timeout plus long pour les données calendrier
             })
@@ -230,10 +230,23 @@ async getReservations(params = {}) {
 
     async getReservation(id) {
         try {
-            const response = await axios.get(`${this.baseURL}/admin/reservations/${id}`)
+            console.log(`📋 Chargement réservation #${id}`)
+
+            const response = await axios.get(`${this.baseURL}/admin/reservations/${id}`, {
+                timeout: 10000 // 10 secondes max
+            })
+
+            console.log(`✅ Réservation #${id} chargée:`, response.data)
             return response.data
+
         } catch (error) {
             console.error(`❌ Erreur récupération réservation ${id}:`, error)
+
+            // Message d'erreur plus spécifique
+            if (error.response?.status === 404) {
+                throw new Error(`Réservation #${id} introuvable`)
+            }
+
             throw this.handleError(error)
         }
     }
@@ -370,9 +383,9 @@ async getReservations(params = {}) {
         }
 
         // ✅ Erreur générique avec message du serveur
-        const serverMessage = error.response?.data?.message || 
-                             error.response?.data?.error || 
-                             error.message
+        const serverMessage = error.response?.data?.message ||
+            error.response?.data?.error ||
+            error.message
 
         return new Error(serverMessage || 'Erreur inconnue')
     }

@@ -37,32 +37,15 @@ const router = createRouter({
   routes
 })
 
-// 🔧 ROUTER GUARD AMÉLIORÉ : Meilleure gestion de l'initialisation
+// 🔧 ROUTER GUARD SIMPLIFIÉ : SANS ATTENTE BLOQUANTE
 router.beforeEach(async (to, from, next) => {
   console.log(`🧭 Navigation: ${from.path} → ${to.path}`)
   
   const authStore = useAuthStore()
   
-  // 🔧 ATTENDRE L'INITIALISATION si nécessaire
-  if (authStore.isInitializing) {
-    console.log('⏳ Attente de l\'initialisation de l\'authentification...')
-    
-    // Créer une promesse qui se résout quand l'initialisation est terminée
-    await new Promise((resolve) => {
-      const checkInitialization = () => {
-        if (!authStore.isInitializing) {
-          resolve()
-        } else {
-          // Vérifier toutes les 50ms
-          setTimeout(checkInitialization, 50)
-        }
-      }
-      checkInitialization()
-    })
-    
-    console.log('✅ Initialisation terminée, auth:', authStore.isAuthenticated)
-  }
-
+  // 🚀 SUPPRIMÉ : La partie qui bloque pendant 5 secondes
+  // Plus d'attente de authStore.isInitializing !
+  
   // 🔧 ROUTES INVITÉ : Rediriger si déjà connecté
   if (to.meta.requiresGuest && authStore.isAuthenticated) {
     console.log('🔒 Déjà connecté, redirection vers dashboard')

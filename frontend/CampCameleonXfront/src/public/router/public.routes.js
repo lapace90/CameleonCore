@@ -1,46 +1,44 @@
-// Import des vues publiques
-import PublicApp from '../PublicApp.vue'
-import Home from '../views/Home.vue'
-import About from '../views/About.vue'
-import Services from '../views/Services.vue'
-import Contact from '../views/Contact.vue'
-import Testimonials from '../views/Testimonials.vue'
+// routes/public.routes.js
 
 export default [
   {
     path: '/',
-    component: PublicApp,
+    component: () => import('../PublicApp.vue'),
     children: [
+      // Page d'accueil en enfant par défaut
       {
         path: 'home',
         name: 'Home',
-        component: Home
+        component: () => import('../views/Home.vue'),
       },
       {
         path: 'about',
         name: 'About',
-        component: About
+        component: () => import('../views/About.vue'),
       },
       {
         path: 'services',
         name: 'Services',
-        component: Services
+        component: () => import('../views/Services.vue'),
       },
       {
         path: 'contact',
         name: 'Contact',
-        component: Contact
+        component: () => import('../views/Contact.vue'),
       },
       {
         path: 'testimonials',
         name: 'Testimonials',
-        component: Testimonials
+        component: () => import('../views/Testimonials.vue'),
       },
+
+      // ⚠️ Chemin ABSOLU : restera en dehors du layout si tu gardes le slash.
+      // Si tu veux qu'il soit *sous* PublicApp (ex: /edit-quote/...), enlève le slash initial.
       {
         path: '/edit-quote/:quoteId/:editToken',
         name: 'EditQuote',
-        component: () => import('../views/EditQuote.vue')
-      }
-    ]
-  }
+        component: () => import('../views/EditQuote.vue'),
+      },
+    ],
+  },
 ]
