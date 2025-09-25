@@ -7,6 +7,7 @@ use ApiPlatform\State\ProviderInterface;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Services\ProductTransformer;
+use Illuminate\Support\Facades\Log;
 
 class ProductCollectionProvider implements ProviderInterface
 {
@@ -15,27 +16,32 @@ class ProductCollectionProvider implements ProviderInterface
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): iterable
     {
+        Log::info("1");
         $query = Product::with([
             'category',
             'productable',
             'globalTags'
         ]);
 
+        Log::info("2");
         // Appliquer les filtres
         $this->applyFilters($query);
-
+        
         // Pagination
         $perPage = (int) $this->request->query('per_page', 20);
         $page = (int) $this->request->query('page', 1);
-
+        
         $paginator = $query->paginate($perPage, ['*'], 'page', $page);
-
+        
         // Charger conditionnellement les tags spécifiques pour les modèles qui les supportent
+        Log::info("3");
         $collection = $paginator->getCollection();
+        Log::info("4");
 
         $types = $collection->pluck('productable_type')->unique();
         $morphMap = [];
 
+        Log::info("5");
         foreach ($types as $type) {
             if (class_exists($type) && method_exists($type, 'specificTags')) {
                 $morphMap[$type] = ['specificTags' => function ($query) {
@@ -43,15 +49,18 @@ class ProductCollectionProvider implements ProviderInterface
                 }];
             }
         }
+        Log::info("6");
 
         if (!empty($morphMap)) {
             $collection->loadMorph('productable', $morphMap);
         }
 
+        Log::info("7");
         // Transformer les données pour le frontend
         $collection->transform(function ($product) {
             return $this->transformProduct($product);
         });
+        Log::info("8");
 
         return $paginator;
     }
@@ -191,7 +200,6 @@ class ProductCollectionProvider implements ProviderInterface
 
     public function getTypeConfig(string $type): array
     {
-        // Utiliser la méthode existante de ProductTransformer
         return ProductTransformer::getTypeConfig($type);
     }
 

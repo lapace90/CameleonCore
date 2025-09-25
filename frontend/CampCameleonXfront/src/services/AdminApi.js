@@ -233,7 +233,7 @@ class AdminApi {
             console.log(`📋 Chargement réservation #${id}`)
 
             const response = await axios.get(`${this.baseURL}/admin/reservations/${id}`, {
-                timeout: 10000 // 10 secondes max
+                timeout: 30000 // 10 secondes max
             })
 
             console.log(`✅ Réservation #${id} chargée:`, response.data)

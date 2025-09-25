@@ -51,6 +51,25 @@ return [
         'pagination_maximum_items_per_page' => 30,
         'route_prefix' => '/api',
         'middleware' => [],
+        'cache_headers' => [
+            // Automatically generate etags for API responses.
+            'etag' => true,
+
+            // Default value for the response max age.
+            'max_age' => 3600,
+
+            // Default value for the response shared (proxy) max age.
+            'shared_max_age' => 3600,
+
+            // Default values of the "Vary" HTTP header.
+            'vary' => ['Accept'],
+
+            'invalidation' => [
+                'xkey' => [
+                    'glue' => ' ',
+                ],
+            ],
+        ],
     ],
 
     'pagination' => [
@@ -113,5 +132,5 @@ return [
     'serializer' => [
         'hydra_prefix' => false,
         // 'datetime_format' => \DateTimeInterface::RFC3339
-    ]
+    ],
 ];

@@ -45,7 +45,7 @@ class ProductableData extends Data
     }
 
     /**
-     * 🔧 CORRECTION COMPLÈTE - Création à partir d'un tableau avec mapping automatique
+     *  Création à partir d'un tableau avec mapping automatique
      */
     public static function fromArray(array $data): static
     {

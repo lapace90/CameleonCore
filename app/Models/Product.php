@@ -34,7 +34,7 @@ use App\Models\Tag;
             provider: ProductCollectionProvider::class,
             output: ProductOutputData::class
         ),
-        new GetCollection(),
+        // new GetCollection(),
         new Get(
             uriTemplate: '/products/{id}',
             provider: ProductItemProvider::class,

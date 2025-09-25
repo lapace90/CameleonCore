@@ -1,4 +1,3 @@
-// services/ProductsApi.js
 import axios from 'axios'
 import { buildTypeConfigFromProductableType } from '@/shared/configs/productConfigs'
 
@@ -6,7 +5,6 @@ class ProductsApi {
 
   constructor() {
     this.baseURL = '/api'
-    // ⚠️ Ne PAS définir Content-Type globalement ici
     this.defaultHeaders = {
       'Accept': 'application/json'
     }
@@ -18,6 +16,7 @@ class ProductsApi {
   // ==========================================
   async getProducts(params = {}) {
     try {
+      console.log("1: ", new Date())
       const searchParams = new URLSearchParams()
       Object.entries(params).forEach(([key, value]) => {
         if (value !== null && value !== undefined && value !== '') {
@@ -25,10 +24,12 @@ class ProductsApi {
         }
       })
       const url = `${this.baseURL}/products${searchParams.toString() ? '?' + searchParams.toString() : ''}`
-
+      
+      console.log("2", new Date())
       const response = await axios.get(url, {
         headers: this.defaultHeaders
       })
+      console.log("3: ", new Date())
 
       return {
         data: response.data.member || response.data || [],

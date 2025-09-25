@@ -26,7 +26,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     operations: [
         new GetCollection(
             uriTemplate: '/admin/users',
-            middleware: ['auth:sanctum'],
+            // middleware: ['auth:sanctum'],
             provider: UserCollectionProvider::class,
             output: UserOutputData::class
         ),
