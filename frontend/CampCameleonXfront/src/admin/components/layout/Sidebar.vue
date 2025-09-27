@@ -17,6 +17,13 @@
             <span>Agenda</span>
           </router-link>
         </li>
+        <!-- ✅ RÉSERVATIONS AJOUTÉ -->
+        <li class="nav-item">
+          <router-link to="/admin/reservations" class="nav-link">
+            <i class="fas fa-calendar-check"></i>
+            <span>Réservations</span>
+          </router-link>
+        </li>
         <!-- Divider -->
         <li class="nav-divider">
           <hr>
@@ -64,16 +71,16 @@
               </router-link>
             </li>
             <!-- Tags et étiquettes -->
-            <li class="nav-item">
+            <!-- <li class="nav-item">
               <router-link to="/admin/tags" class="nav-link">
                 <i class="fas fa-bookmark"></i>
                 <span>Tags</span>
               </router-link>
-            </li>
+            </li> -->
         <!-- Divider -->
         <li class="nav-divider">
           <hr>
-          <span>???</span>
+          <span>Administration</span>
         </li>
         <!-- Users -->
         <li class="nav-item">

@@ -1,48 +1,42 @@
 <template>
   <div class="reservations-page">
+    <!-- Header -->
     <div class="page-header">
       <div class="header-left">
         <h1 class="page-title">
           <i class="fas fa-calendar-check"></i>
           Réservations
         </h1>
-        <p class="page-subtitle">
-          Suivez et gérez toutes les réservations clients
-        </p>
+        <p class="page-subtitle">Gestion des réservations et demandes client</p>
       </div>
-
       <div class="header-actions">
-        <button type="button" class="btn btn-outline btn-sm" @click="refresh" :disabled="loading">
-          <i :class="['fas', 'fa-sync-alt', { 'fa-spin': loading }]"></i>
-          Rafraîchir
+        <button type="button" class="btn btn-outline btn-sm" @click="refresh">
+          <i class="fas fa-sync"></i>
+          Actualiser
         </button>
-
-        <router-link to="/admin/agenda" class="btn btn-primary btn-sm">
-          <i class="fas fa-calendar-alt"></i>
-          Ouvrir le calendrier
-        </router-link>
       </div>
     </div>
 
+    <!-- Filtres -->
     <div class="filters-card">
       <div class="filters-row">
         <div class="search-field">
-          <label for="search-reservations">Recherche</label>
+          <label for="search">Rechercher</label>
           <div class="search-box">
             <i class="fas fa-search"></i>
             <input
-              id="search-reservations"
+              id="search"
               v-model="filters.search"
               type="text"
-              placeholder="Nom du client, email, numéro de réservation..."
+              placeholder="Nom client, email, ID réservation..."
               @input="onSearchInput"
             />
           </div>
         </div>
 
         <div class="filter-control">
-          <label for="status-filter">Statut</label>
-          <select id="status-filter" v-model="filters.status" @change="applyFilters">
+          <label for="status">Statut</label>
+          <select id="status" v-model="filters.status" @change="applyFilters">
             <option value="">Tous les statuts</option>
             <option v-for="option in statusOptions" :key="option.value" :value="option.value">
               {{ option.label }}
@@ -51,17 +45,26 @@
         </div>
 
         <div class="filter-control">
-          <label for="start-date">Arrivée après le</label>
-          <input id="start-date" type="date" v-model="filters.startDate" @change="applyFilters" />
+          <label for="start-date">Date début</label>
+          <input
+            id="start-date"
+            v-model="filters.startDate"
+            type="date"
+            @change="applyFilters"
+          />
         </div>
 
         <div class="filter-control">
-          <label for="end-date">Départ avant le</label>
-          <input id="end-date" type="date" v-model="filters.endDate" @change="applyFilters" />
+          <label for="end-date">Date fin</label>
+          <input
+            id="end-date"
+            v-model="filters.endDate"
+            type="date"
+            @change="applyFilters"
+          />
         </div>
 
-        <div class="filter-control reset-control">
-          <label>&nbsp;</label>
+        <div class="reset-control">
           <button
             type="button"
             class="btn btn-outline btn-sm"
@@ -69,12 +72,13 @@
             :disabled="!hasActiveFilters"
           >
             <i class="fas fa-times"></i>
-            Réinitialiser
+            Reset
           </button>
         </div>
       </div>
     </div>
 
+    <!-- Toolbar -->
     <div class="list-toolbar">
       <div class="list-toolbar-left">
         <span class="results-count">
@@ -97,11 +101,13 @@
       </div>
     </div>
 
+    <!-- Loading -->
     <div v-if="loading" class="state-card">
       <i class="fas fa-spinner fa-spin"></i>
       <p>Chargement des réservations...</p>
     </div>
 
+    <!-- Error -->
     <div v-else-if="error" class="state-card error">
       <i class="fas fa-exclamation-triangle"></i>
       <p>{{ error }}</p>
@@ -111,6 +117,7 @@
       </button>
     </div>
 
+    <!-- Empty -->
     <div v-else-if="reservations.length === 0" class="state-card empty">
       <i class="fas fa-clipboard-list"></i>
       <h3>Aucune réservation trouvée</h3>
@@ -122,98 +129,97 @@
       </p>
     </div>
 
-    <div v-else class="table-wrapper">
-      <table class="reservations-table table">
+    <!-- Table -->
+    <div v-else class="table-container">
+      <table class="table">
         <thead>
           <tr>
             <th>
-              <button type="button" class="sort-button" @click="changeSort('date')">
+              <button type="button" class="sortable" @click="changeSort('created_at')">
                 Réservation
-                <i :class="getSortIcon('date')"></i>
+                <i :class="getSortIcon('created_at')"></i>
               </button>
             </th>
             <th>Client</th>
             <th>
-              <button type="button" class="sort-button" @click="changeSort('checkin')">
+              <button type="button" class="sortable" @click="changeSort('checkin')">
                 Séjour
                 <i :class="getSortIcon('checkin')"></i>
               </button>
             </th>
             <th>
-              <button type="button" class="sort-button" @click="changeSort('status')">
+              <button type="button" class="sortable" @click="changeSort('status')">
                 Statut
                 <i :class="getSortIcon('status')"></i>
               </button>
             </th>
             <th>
-              <button type="button" class="sort-button" @click="changeSort('amount')">
+              <button type="button" class="sortable" @click="changeSort('amount')">
                 Montant
                 <i :class="getSortIcon('amount')"></i>
               </button>
             </th>
-            <th>Actions</th>
+            <th class="actions-col">Actions</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="reservation in reservations" :key="reservation.id">
-            <td class="reservation-meta">
-              <div class="reservation-id">#{{ reservation.id }}</div>
-              <div class="reservation-created">
-                Créée le {{ formatDate(reservation.date) }}
-              </div>
-              <div v-if="reservation.invoice_number" class="reservation-invoice">
-                <i class="fas fa-file-invoice"></i>
-                {{ reservation.invoice_number }}
-              </div>
+            <!-- Réservation -->
+            <td>
+              <strong>#{{ reservation.id }}</strong><br>
+              <small class="text-muted">{{ formatDate(reservation.created_at) }}</small><br>
+              <small v-if="reservation.invoice_number" class="text-muted">
+                <i class="fas fa-file-invoice"></i> {{ reservation.invoice_number }}
+              </small>
             </td>
-            <td class="customer-cell">
-              <div class="customer-name">{{ getCustomerName(reservation) }}</div>
-              <div class="customer-contact">
-                <span v-if="reservation.customer?.email">
-                  <i class="fas fa-envelope"></i>
-                  {{ reservation.customer.email }}
-                </span>
-                <span v-if="reservation.customer?.phone">
-                  <i class="fas fa-phone"></i>
-                  {{ reservation.customer.phone }}
-                </span>
-              </div>
+
+            <!-- Client -->
+            <td>
+              <strong>{{ getCustomerName(reservation) }}</strong><br>
+              <small v-if="getCustomerEmail(reservation)" class="text-muted">
+                <i class="fas fa-envelope"></i> {{ getCustomerEmail(reservation) }}
+              </small><br>
+              <small v-if="getCustomerPhone(reservation)" class="text-muted">
+                <i class="fas fa-phone"></i> {{ getCustomerPhone(reservation) }}
+              </small>
             </td>
-            <td class="stay-cell">
-              <div class="stay-dates">{{ formatDateRange(reservation.checkin, reservation.checkout) }}</div>
-              <div class="stay-meta">
-                <span v-if="getNights(reservation)">
-                  <i class="fas fa-moon"></i>
-                  {{ getNights(reservation) }} nuit<span v-if="getNights(reservation) > 1">s</span>
-                </span>
-                <span>
-                  <i class="fas fa-user-friends"></i>
-                  {{ getGuestsLabel(reservation) }}
-                </span>
-              </div>
+
+            <!-- Séjour -->
+            <td>
+              <strong>{{ formatDateRange(reservation.checkin, reservation.checkout) }}</strong><br>
+              <small v-if="getNights(reservation)" class="text-muted">
+                <i class="fas fa-moon"></i> {{ getNights(reservation) }} nuit{{ getNights(reservation) > 1 ? 's' : '' }}
+              </small><br>
+              <small class="text-muted">
+                <i class="fas fa-user-friends"></i> {{ getGuestsLabel(reservation) }}
+              </small>
             </td>
-            <td class="status-cell">
+
+            <!-- Statut -->
+            <td>
               <span :class="['status-badge', getStatusClass(reservation.status)]">
-                <i :class="getStatusIcon(reservation.status)"></i>
                 {{ getStatusLabel(reservation.status) }}
-              </span>
-              <span v-if="getPaymentStatusLabel(reservation.payment_status)" class="payment-badge">
-                {{ getPaymentStatusLabel(reservation.payment_status) }}
-              </span>
+              </span><br>
+              <small v-if="getPaymentStatusLabel(reservation.payment_status)" class="text-muted">
+                Paiement: {{ getPaymentStatusLabel(reservation.payment_status) }}
+              </small>
             </td>
-            <td class="amount-cell">
-              <div class="amount-primary">{{ formatAmount(reservation.amount) }}</div>
-              <div class="amount-secondary">
-                <i class="fas fa-map-marker-alt"></i>
-                {{ getBookingSourceLabel(reservation.booking_source) }}
-              </div>
+
+            <!-- Montant -->
+            <td>
+              <span class="price-value">{{ formatAmount(reservation.amount) }}</span><br>
+              <small class="text-muted">
+                <i class="fas fa-map-marker-alt"></i> {{ getBookingSourceLabel(reservation.booking_source) }}
+              </small>
             </td>
-            <td class="actions-cell">
-              <div class="action-buttons">
+
+            <!-- Actions -->
+            <td class="actions-col">
+              <div class="table-actions">
                 <button
                   type="button"
                   class="btn-icon"
-                  title="Voir la réservation"
+                  title="Voir"
                   @click="viewReservation(reservation)"
                 >
                   <i class="fas fa-eye"></i>
@@ -241,6 +247,7 @@
       </table>
     </div>
 
+    <!-- Pagination -->
     <Pagination
       v-if="reservations.length > 0 && pagination.lastPage > 1"
       :pagination="pagination"
@@ -259,6 +266,7 @@ export default {
   components: {
     Pagination
   },
+  
   data() {
     return {
       loading: false,
@@ -274,10 +282,11 @@ export default {
         { label: 'Confirmée', value: 'confirmed' },
         { label: 'En attente', value: 'pending' },
         { label: 'Annulée', value: 'cancelled' },
-        { label: 'Terminée', value: 'completed' }
+        { label: 'Terminée', value: 'completed' },
+        { label: 'Brouillon', value: 'draft' }
       ],
       sort: {
-        field: 'checkin',
+        field: 'created_at',
         direction: 'desc'
       },
       pagination: {
@@ -290,6 +299,7 @@ export default {
       debouncedSearch: null
     }
   },
+  
   computed: {
     hasActiveFilters() {
       return Boolean(
@@ -300,15 +310,18 @@ export default {
       )
     }
   },
+  
   created() {
     this.debouncedSearch = debounce(() => {
       this.pagination.currentPage = 1
       this.fetchReservations()
     }, 400)
   },
+  
   mounted() {
     this.fetchReservations()
   },
+  
   methods: {
     async fetchReservations() {
       if (this.filters.startDate && this.filters.endDate && this.filters.startDate > this.filters.endDate) {
@@ -347,24 +360,29 @@ export default {
         this.loading = false
       }
     },
+
     updatePagination(meta) {
       this.pagination.total = Number(meta.total) || 0
       this.pagination.perPage = Number(meta.perPage) || this.pagination.perPage
       this.pagination.currentPage = Number(meta.currentPage) || 1
       this.pagination.lastPage = Number(meta.lastPage) || Math.max(1, Math.ceil(this.pagination.total / this.pagination.perPage))
     },
+
     refresh() {
       this.fetchReservations()
     },
+
     onSearchInput() {
       if (typeof this.debouncedSearch === 'function') {
         this.debouncedSearch()
       }
     },
+
     applyFilters() {
       this.pagination.currentPage = 1
       this.fetchReservations()
     },
+
     resetFilters() {
       this.filters.search = ''
       this.filters.status = ''
@@ -372,15 +390,18 @@ export default {
       this.filters.endDate = ''
       this.applyFilters()
     },
+
     changePage(page) {
       if (page === this.pagination.currentPage) return
       this.pagination.currentPage = page
       this.fetchReservations()
     },
+
     changePerPage() {
       this.pagination.currentPage = 1
       this.fetchReservations()
     },
+
     changeSort(field) {
       if (this.sort.field === field) {
         this.sort.direction = this.sort.direction === 'asc' ? 'desc' : 'asc'
@@ -390,30 +411,64 @@ export default {
       }
       this.fetchReservations()
     },
+
     getSortIcon(field) {
       if (this.sort.field !== field) return 'fas fa-sort text-muted'
       return this.sort.direction === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'
     },
-    formatDate(date, options = {}) {
-      if (!date) {
-        return '—'
-      }
+
+    // Formatage
+    formatDate(date) {
+      if (!date) return '—'
       try {
         return new Intl.DateTimeFormat('fr-FR', {
           day: '2-digit',
           month: 'short',
-          year: 'numeric',
-          ...options
+          year: 'numeric'
         }).format(new Date(date))
       } catch (error) {
         return date
       }
     },
+
     formatDateRange(start, end) {
       const startFormatted = this.formatDate(start)
       const endFormatted = this.formatDate(end)
       return `${startFormatted} → ${endFormatted}`
     },
+
+    formatAmount(amount) {
+      if (!amount) return '0,00 €'
+      const value = typeof amount === 'string' ? parseFloat(amount) : amount
+      return new Intl.NumberFormat('fr-FR', {
+        style: 'currency',
+        currency: 'EUR'
+      }).format(value)
+    },
+
+    // Getters pour données
+    getCustomerName(reservation) {
+      if (typeof reservation.customer === 'object' && reservation.customer) {
+        const c = reservation.customer
+        return c.name && c.last_name ? `${c.name} ${c.last_name}` : c.name || c.email
+      }
+      return reservation.customer_name || 'Client inconnu'
+    },
+
+    getCustomerEmail(reservation) {
+      if (typeof reservation.customer === 'object' && reservation.customer) {
+        return reservation.customer.email
+      }
+      return null
+    },
+
+    getCustomerPhone(reservation) {
+      if (typeof reservation.customer === 'object' && reservation.customer) {
+        return reservation.customer.phone
+      }
+      return null
+    },
+
     getNights(reservation) {
       if (!reservation?.checkin || !reservation?.checkout) return null
       const start = new Date(reservation.checkin)
@@ -421,38 +476,22 @@ export default {
       const diff = Math.round((end - start) / (1000 * 60 * 60 * 24))
       return diff > 0 ? diff : null
     },
+
     getGuestsLabel(reservation) {
       const adults = Number(reservation?.number_of_adults) || 0
       const children = Number(reservation?.number_of_children) || 0
+      const total = adults + children
+      
+      if (total === 0) return 'Non défini'
+      
       const parts = []
-      if (adults) {
-        parts.push(`${adults} ${adults > 1 ? 'adultes' : 'adulte'}`)
-      }
-      if (children) {
-        parts.push(`${children} ${children > 1 ? 'enfants' : 'enfant'}`)
-      }
-      return parts.length ? parts.join(' • ') : '—'
+      if (adults) parts.push(`${adults} ${adults > 1 ? 'adultes' : 'adulte'}`)
+      if (children) parts.push(`${children} ${children > 1 ? 'enfants' : 'enfant'}`)
+      
+      return parts.length ? parts.join(', ') : `${total} personne${total > 1 ? 's' : ''}`
     },
-    formatAmount(amount) {
-      if (amount === null || amount === undefined || amount === '') {
-        return '—'
-      }
-      try {
-        return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(Number(amount))
-      } catch (error) {
-        return `${amount} €`
-      }
-    },
-    getBookingSourceLabel(source) {
-      const labels = {
-        website: 'Site web',
-        phone: 'Téléphone',
-        agent: 'Agence',
-        email: 'Email',
-        partner: 'Partenaire'
-      }
-      return labels[source] || source || '—'
-    },
+
+    // Labels statuts
     getStatusLabel(status) {
       const labels = {
         confirmed: 'Confirmée',
@@ -463,6 +502,7 @@ export default {
       }
       return labels[status] || (status ? status.charAt(0).toUpperCase() + status.slice(1) : '—')
     },
+
     getStatusClass(status) {
       const classes = {
         confirmed: 'status-confirmed',
@@ -473,6 +513,7 @@ export default {
       }
       return classes[status] || 'status-unknown'
     },
+
     getStatusIcon(status) {
       const icons = {
         confirmed: 'fas fa-check-circle',
@@ -483,6 +524,7 @@ export default {
       }
       return icons[status] || 'fas fa-question-circle'
     },
+
     getPaymentStatusLabel(status) {
       const labels = {
         paid: 'Payée',
@@ -492,24 +534,31 @@ export default {
       }
       return labels[status] || null
     },
-    getCustomerName(reservation) {
-      const customer = reservation?.customer || {}
-      if (customer.name && customer.last_name) {
-        return `${customer.name} ${customer.last_name}`
+
+    getBookingSourceLabel(source) {
+      const labels = {
+        website: 'Site web',
+        direct: 'Direct',
+        phone: 'Téléphone',
+        booking: 'Booking.com',
+        airbnb: 'Airbnb'
       }
-      return customer.name || customer.last_name || reservation?.customer_name || 'Client inconnu'
+      return labels[source] || source || 'Non défini'
     },
+
+    // Actions
     viewReservation(reservation) {
       this.$router.push({ name: 'ReservationDetail', params: { id: reservation.id } })
     },
+
     editReservation(reservation) {
       this.$router.push({ name: 'ReservationDetail', params: { id: reservation.id }, query: { mode: 'edit' } })
     },
+
     async deleteReservation(reservation) {
       const confirmed = window.confirm(`Supprimer la réservation #${reservation.id} ?`)
-      if (!confirmed) {
-        return
-      }
+      if (!confirmed) return
+
       try {
         await AdminApi.deleteReservation(reservation.id)
         await this.fetchReservations()
@@ -530,31 +579,10 @@ export default {
   padding: 24px;
 }
 
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-  background: #ffffff;
-  padding: 24px;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
-  flex-wrap: wrap;
-}
-
-.header-left {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
 .page-title {
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 24px;
-  margin: 0;
-  color: #111827;
 }
 
 .page-title i {
@@ -565,13 +593,6 @@ export default {
   margin: 0;
   color: #6b7280;
   font-size: 15px;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
 }
 
 .filters-card {
@@ -596,18 +617,10 @@ export default {
 }
 
 .search-box {
-  position: relative;
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: #f9fafb;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
-  padding: 10px 14px;
-}
-
-.search-box i {
-  color: #9ca3af;
 }
 
 .search-box input {
@@ -625,19 +638,9 @@ export default {
   border: 1px solid #e5e7eb;
   border-radius: 10px;
   padding: 10px 12px;
-  font-size: 14px;
+  font-size: .9rem;
   color: #111827;
   background: #f9fafb;
-}
-
-.filter-control label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #6b7280;
-}
-
-.reset-control {
-  align-items: flex-end;
 }
 
 .list-toolbar {
@@ -649,46 +652,12 @@ export default {
   flex-wrap: wrap;
 }
 
-.list-toolbar-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: #6b7280;
-}
-
 .results-count {
   font-weight: 600;
   color: #111827;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-}
-
-.filters-indicator {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background: #eef2ff;
-  color: #4338ca;
-  border-radius: 9999px;
-  font-size: 13px;
-}
-
-.list-toolbar-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: #6b7280;
-}
-
-.list-toolbar-right select {
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 8px 12px;
-  background: #ffffff;
-  font-size: 14px;
-  color: #111827;
 }
 
 .state-card {
@@ -713,286 +682,21 @@ export default {
   color: #dc2626;
 }
 
-.state-card.empty i {
-  color: #6b7280;
-}
-
-.table-wrapper {
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.05);
-  overflow: hidden;
-}
-
-.reservations-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.reservations-table thead {
-  background: #f9fafb;
-}
-
-.reservations-table th {
-  padding: 16px;
-  font-size: 13px;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: #6b7280;
-  letter-spacing: 0.05em;
-  text-align: left;
-}
-
-.reservations-table td {
-  padding: 20px 16px;
-  border-top: 1px solid #f3f4f6;
-  vertical-align: top;
-}
-
-.sort-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: transparent;
-  border: none;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
-  padding: 0;
-}
-
-.sort-button i {
-  color: #9ca3af;
-  transition: color 0.2s ease;
-}
-
-.sort-button:hover i {
-  color: #111827;
-}
-
-.reservation-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.reservation-id {
-  font-weight: 700;
-  color: #111827;
-}
-
-.reservation-created {
-  font-size: 13px;
-  color: #6b7280;
-}
-
-.reservation-invoice {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: #2563eb;
-}
-
-.customer-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.customer-name {
-  font-weight: 600;
-  color: #111827;
-}
-
-.customer-contact {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 13px;
-  color: #6b7280;
-}
-
-.customer-contact span {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.stay-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.stay-dates {
-  font-weight: 600;
-  color: #111827;
-}
-
-.stay-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-size: 13px;
-  color: #6b7280;
-}
-
-.stay-meta span {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.status-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: flex-start;
-}
-
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 9999px;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.status-confirmed {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.status-pending {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.status-cancelled {
-  background: #fee2e2;
-  color: #b91c1c;
-}
-
-.status-completed {
-  background: #e0f2fe;
-  color: #075985;
-}
-
-.status-draft {
-  background: #ede9fe;
-  color: #5b21b6;
-}
-
-.status-unknown {
-  background: #e5e7eb;
-  color: #374151;
-}
-
-.payment-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: 9999px;
-  background: #f3f4f6;
-  color: #4b5563;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.amount-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  align-items: flex-start;
-}
-
-.amount-primary {
-  font-weight: 700;
-  color: #111827;
-}
-
-.amount-secondary {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  color: #6b7280;
-}
-
-.actions-cell {
-  text-align: right;
-}
-
-.action-buttons {
-  display: inline-flex;
-  gap: 8px;
-}
-
-.btn-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: #4b5563;
-  transition: all 0.2s ease;
-}
-
-.btn-icon:hover {
-  border-color: #2563eb;
-  color: #2563eb;
-}
-
-.btn-icon.text-danger {
-  border-color: #fee2e2;
-  color: #b91c1c;
-}
-
-.btn-icon.text-danger:hover {
-  border-color: #dc2626;
-  color: #ffffff;
-  background: #dc2626;
-}
-
-@media (max-width: 1200px) {
-  .filters-row {
-    grid-template-columns: 1fr 1fr;
-  }
-}
+/* Styles pour les statuts - utilise les classes existantes */
+.status-active { background: #d1fae5; color: #065f46; }
+.status-confirmed { background: #d1fae5; color: #065f46; }
+.status-pending { background: #fef3c7; color: #92400e; }
+.status-cancelled { background: #fee2e2; color: #991b1b; }
+.status-completed { background: #dbeafe; color: #1e40af; }
+.status-draft { background: #fef3c7; color: #92400e; }
 
 @media (max-width: 768px) {
-  .reservations-page {
-    padding: 16px;
-  }
-
-  .page-header {
-    padding: 20px;
-  }
-
   .filters-row {
     grid-template-columns: 1fr;
   }
-
   .list-toolbar {
     flex-direction: column;
     align-items: flex-start;
-  }
-
-  .reservations-table th,
-  .reservations-table td {
-    padding: 12px;
-  }
-
-  .action-buttons {
-    width: 100%;
-    justify-content: flex-start;
   }
 }
 </style>

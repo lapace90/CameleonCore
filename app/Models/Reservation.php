@@ -8,14 +8,12 @@ use App\Models\User;
 use ApiPlatform\Metadata\ApiResource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\State\CalendarProvider;
-use App\State\ReservationCalendarProvider;
-use App\State\DashboardStatsProvider;
+use App\State\ReservationProvider; // ✅ NOUVEAU PROVIDER
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Delete;
-
 
 #[ApiResource(
     operations: [
@@ -26,9 +24,17 @@ use ApiPlatform\Metadata\Delete;
             security: "is_granted('ROLE_ADMIN')",
             description: 'Tous les événements FullCalendar (réservations + événements)'
         ),
-        // 🔵 CRUD admin standard
-        new GetCollection(uriTemplate: '/admin/reservations', security: "is_granted('ROLE_ADMIN')"),
-        new Get(uriTemplate: '/admin/reservations/{id}', security: "is_granted('ROLE_ADMIN')"),
+        // 🔵 CRUD admin standard avec relations
+        new GetCollection(
+            uriTemplate: '/admin/reservations', 
+            provider: ReservationProvider::class, // ✅ PROVIDER PERSONNALISÉ
+            security: "is_granted('ROLE_ADMIN')"
+        ),
+        new Get(
+            uriTemplate: '/admin/reservations/{id}', 
+            provider: ReservationProvider::class, // ✅ PROVIDER PERSONNALISÉ
+            security: "is_granted('ROLE_ADMIN')"
+        ),
         new Post(uriTemplate: '/admin/reservations', security: "is_granted('ROLE_ADMIN')"),
         new Put(uriTemplate: '/admin/reservations/{id}', security: "is_granted('ROLE_ADMIN')"),
         new Delete(uriTemplate: '/admin/reservations/{id}', security: "is_granted('ROLE_ADMIN')"),
@@ -69,6 +75,8 @@ class Reservation extends Model
         'amount' => 'decimal:2',
     ];
 
+    // ✅ RELATIONS BIEN DÉFINIES
+
     public function customer()
     {
         return $this->belongsTo(Customer::class);
@@ -81,15 +89,10 @@ class Reservation extends Model
 
     public function product()
     {
-        return $this->morphTo();
+        return $this->belongsTo(Product::class);
     }
 
-    // ✅ NOUVELLES RELATIONS AJOUTÉES
-    public function quoteRequest()
-    {
-        return $this->hasOne(QuoteRequest::class, 'main_reservation_id');
-    }
-
+    // ✅ RELATION PARENT/ENFANT POUR RÉSERVATIONS LIÉES
     public function parentReservation()
     {
         return $this->belongsTo(Reservation::class, 'parent_reservation_id');
@@ -100,26 +103,59 @@ class Reservation extends Model
         return $this->hasMany(Reservation::class, 'parent_reservation_id');
     }
 
-    // ✅ SCOPES UTILES
-    public function scopePaid($query)
+    // ✅ SCOPES UTILES POUR LES REQUÊTES
+
+    public function scopeActive($query)
     {
-        return $query->where('payment_status', 'paid');
+        return $query->whereIn('status', ['pending', 'confirmed']);
     }
 
-    public function scopeConfirmed($query)
+    public function scopeByDateRange($query, $startDate, $endDate)
     {
-        return $query->where('status', 'confirmed');
-    }
-
-    public function scopeForPeriod($query, $startDate, $endDate)
-    {
-        return $query->where(function ($q) use ($startDate, $endDate) {
+        return $query->where(function($q) use ($startDate, $endDate) {
             $q->whereBetween('checkin', [$startDate, $endDate])
-                ->orWhereBetween('checkout', [$startDate, $endDate])
-                ->orWhere(function ($subQ) use ($startDate, $endDate) {
-                    $subQ->where('checkin', '<=', $startDate)
+              ->orWhereBetween('checkout', [$startDate, $endDate])
+              ->orWhere(function($inner) use ($startDate, $endDate) {
+                  $inner->where('checkin', '<=', $startDate)
                         ->where('checkout', '>=', $endDate);
-                });
+              });
         });
+    }
+
+    // ✅ ACCESSORS POUR FACILITER L'USAGE
+
+    public function getCustomerNameAttribute()
+    {
+        if (!$this->customer) {
+            return 'Client inconnu';
+        }
+
+        if ($this->customer->name && $this->customer->last_name) {
+            return $this->customer->name . ' ' . $this->customer->last_name;
+        }
+
+        return $this->customer->name ?: $this->customer->email ?: 'Client inconnu';
+    }
+
+    public function getProductNameAttribute()
+    {
+        return $this->product?->name ?? 'Produit supprimé';
+    }
+
+    public function getNightsCountAttribute()
+    {
+        if (!$this->checkin || !$this->checkout) {
+            return 0;
+        }
+
+        $checkin = $this->checkin instanceof \Carbon\Carbon ? $this->checkin : \Carbon\Carbon::parse($this->checkin);
+        $checkout = $this->checkout instanceof \Carbon\Carbon ? $this->checkout : \Carbon\Carbon::parse($this->checkout);
+        
+        return $checkin->diffInDays($checkout);
+    }
+
+    public function getTotalGuestsAttribute()
+    {
+        return ($this->number_of_adults ?? 0) + ($this->number_of_children ?? 0);
     }
 }
