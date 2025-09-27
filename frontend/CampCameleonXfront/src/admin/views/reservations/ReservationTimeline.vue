@@ -1,5 +1,6 @@
 <template>
   <div class="reservation-timeline">
+    <h3>Historique des Communications</h3>
     <div v-if="!hasItems" class="empty-state">
       <i class="fas fa-envelope-open-text"></i>
       <p>Aucune communication enregistrée pour le moment.</p>

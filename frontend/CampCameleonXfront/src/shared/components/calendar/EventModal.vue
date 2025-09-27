@@ -127,18 +127,14 @@
 
           <div class="form-section">
             <h4 class="section-title">Hébergements et services</h4>
-            
+
             <div class="form-group">
               <label class="form-label">Hébergements <span class="required">*</span></label>
               <div class="services-list">
                 <div v-for="room in accommodations" :key="room.id" class="service-item">
                   <label class="checkbox-wrapper">
-                    <input 
-                      type="checkbox" 
-                      :value="room.id"
-                      :checked="selectedAccommodations.includes(room.id)"
-                      @change="toggleAccommodation(room.id)"
-                    >
+                    <input type="checkbox" :value="room.id" :checked="selectedAccommodations.includes(room.id)"
+                      @change="toggleAccommodation(room.id)">
                     <span class="checkmark"></span>
                     <div class="service-info">
                       <span class="service-name">{{ room.name }}</span>
@@ -148,21 +144,15 @@
                   </label>
                   <div v-if="selectedAccommodations.includes(room.id)" class="quantity-control">
                     <label>Qté:</label>
-                    <input 
-                      type="number" 
-                      min="1" 
-                      max="5"
-                      :value="getAccommodationQuantity(room.id)"
-                      @input="setAccommodationQuantity(room.id, $event.target.value)"
-                      class="qty-input"
-                    >
+                    <input type="number" min="1" max="5" :value="getAccommodationQuantity(room.id)"
+                      @input="setAccommodationQuantity(room.id, $event.target.value)" class="qty-input">
                   </div>
                 </div>
-                
+
                 <div v-if="loadingAccommodations" class="loading-item">
                   <i class="fas fa-spinner fa-spin"></i> Chargement des hébergements...
                 </div>
-                
+
                 <div v-if="!loadingAccommodations && accommodations.length === 0" class="empty-item">
                   Aucun hébergement disponible
                 </div>
@@ -281,7 +271,7 @@
           </div>
         </div>
 
-        <!-- SECTION AUTRES ÉVÉNEMENTS (conservée) -->
+        <!-- SECTION AUTRES ÉVÉNEMENTS -->
         <div v-if="formData.type === 'activite'" class="form-section">
           <h4 class="section-title">Détails de l'activité</h4>
 
@@ -375,6 +365,9 @@
 
 <script>
 import ProductsApi from '@/services/ProductsApi'
+import { watchEffect } from 'vue'
+import { computeQuoteTotal } from '@/shared/composables/useQuotePricing'
+import { publicApi } from '@/services/PublicApi'
 
 export default {
   name: 'EventModal',
@@ -508,7 +501,7 @@ export default {
           this.formData.amount > 0
         )
       }
-      
+
       // Pour les autres événements
       return !!(
         this.formData.title ||
@@ -548,6 +541,37 @@ export default {
     // Nettoyer les event listeners
     document.removeEventListener('keydown', this.handleEscape)
   },
+  mounted() {
+    watchEffect(() => {
+      if (this.formData.type !== 'reservation') return
+
+      const selected = {
+        room: this._expandSelectedRooms(),
+        activity: [...this.selectedActivities],
+        menu: [...this.selectedMenus]
+      }
+
+      const catalog = {
+        rooms: this.accommodations.map(p => ({ id: p.id, name: p.name, price: Number(p.price || 0) })),
+        activities: this.availableActivities.map(p => ({ id: p.id, name: p.name, price: Number(p.price || 0) })),
+        menus: this.availableMenus.map(p => ({ id: p.id, name: p.name, price: Number(p.price || 0) }))
+      }
+
+      const dates = {
+        checkin: this.dateOnly(this.formData.start),
+        checkout: this.dateOnly(this.formData.end),
+        guests: (this.formData.numberOfAdults || 0) + (this.formData.numberOfChildren || 0) || 1
+      }
+
+      const overrides = {
+        activity: { ...this.activityQuantities },
+        menu: { ...this.menuQuantities }
+      }
+
+      const { total } = computeQuoteTotal({ selected, catalog, dates, overrides })
+      this.formData.amount = total
+    })
+  },
 
   methods: {
     // Gestion de la touche Escape
@@ -555,6 +579,26 @@ export default {
       if (e.key === 'Escape') {
         this.confirmClose()
       }
+    },
+    // Attendu par computeNights: 'YYYY-MM-DD'
+    dateOnly(isoOrDateStr) {
+      if (!isoOrDateStr) return ''
+      const d = new Date(isoOrDateStr)
+      if (Number.isNaN(d.getTime())) return String(isoOrDateStr).slice(0, 10)
+      const y = d.getFullYear()
+      const m = String(d.getMonth() + 1).padStart(2, '0')
+      const day = String(d.getDate()).padStart(2, '0')
+      return `${y}-${m}-${day}`
+    },
+
+    // Le composable n'a PAS d'override pour 'room' → on duplique l'ID selon la quantité choisie
+    _expandSelectedRooms() {
+      const rooms = []
+      for (const id of this.selectedAccommodations) {
+        const q = Math.max(1, parseInt(this.accommodationQuantities[id] || 1))
+        for (let i = 0; i < q; i++) rooms.push(id)
+      }
+      return rooms
     },
 
     async loadAccommodations() {
@@ -743,16 +787,20 @@ export default {
     },
 
     async handleSubmit() {
-      this.isSubmitting = true
+      this.isSubmitting = true;
       try {
-        const eventData = this.prepareEventData(this.formData)
-        this.$emit('save', eventData)
-        // Après sauvegarde, fermer directement sans confirmation
-        this.forceClose()
+        // Le backend gère automatiquement la création du customer
+
+        this.formData.amount = (Number(this.formData.amount) || 0).toFixed(2);
+        const eventData = this.prepareEventData(this.formData);
+
+        // Pas besoin de customer_id, le backend le gère dans prepareEventData
+        this.$emit('save', eventData);
+        this.forceClose();
       } catch (error) {
-        console.error('Erreur:', error)
+        console.error('Erreur:', error);
       } finally {
-        this.isSubmitting = false
+        this.isSubmitting = false;
       }
     },
 
@@ -760,7 +808,7 @@ export default {
       if (formData.type === 'reservation') {
         // Préparer tous les produits sélectionnés
         const selectedProducts = []
-        
+
         // Ajouter les hébergements avec quantités
         this.selectedAccommodations.forEach(accommodationId => {
           const quantity = this.getAccommodationQuantity(accommodationId)
@@ -768,7 +816,7 @@ export default {
             selectedProducts.push(accommodationId)
           }
         })
-        
+
         // Ajouter les activités avec quantités
         this.selectedActivities.forEach(activityId => {
           const quantity = this.getActivityQuantity(activityId)
@@ -776,7 +824,7 @@ export default {
             selectedProducts.push(activityId)
           }
         })
-        
+
         // Ajouter les menus avec quantités
         this.selectedMenus.forEach(menuId => {
           const quantity = this.getMenuQuantity(menuId)
@@ -786,32 +834,35 @@ export default {
         })
 
         return {
-          ...formData,
-          // Données pour l'API réservations
-          checkin: formData.start ? new Date(formData.start).toISOString() : null,
-          checkout: formData.end ? new Date(formData.end).toISOString() : null,
-          // Données customer pour auto-création
-          customer_data: {
-            name: formData.customerName,
-            last_name: formData.customerLastName,
-            email: formData.customerEmail,
-            phone: formData.phone,
-            address: formData.customerAddress,
-            city: formData.customerCity,
-            postal_code: formData.customerPostalCode,
-            country: formData.customerCountry
-          },
-          // Hébergement principal (premier sélectionné pour compatibilité)
-          product_id: this.selectedAccommodations[0] || null,
-          number_of_adults: formData.numberOfAdults,
-          number_of_children: formData.numberOfChildren,
-          booking_source: formData.bookingSource,
-          payment_status: formData.paymentStatus,
-          payment_method: formData.paymentMethod,
-          amount: formData.amount,
-          status: formData.status,
-          // Tous les produits sélectionnés
-          selected_product_ids: selectedProducts
+          type: 'reservation', // Important pour FullCalendar
+          title: formData.title,
+          start: formData.start,
+          end: formData.end,
+
+          // ✅ DONNÉES CUSTOMER (format QuoteRequestProcessor)
+          customerEmail: formData.customerEmail,
+          customerName: formData.customerName,
+          customerLastName: formData.customerLastName,
+          phone: formData.phone,
+          customerAddress: formData.customerAddress,
+          customerCity: formData.customerCity,
+          customerPostalCode: formData.customerPostalCode,
+          customerCountry: formData.customerCountry,
+
+          // Données du séjour
+          numberOfAdults: formData.numberOfAdults,
+          numberOfChildren: formData.numberOfChildren,
+          amount: (Number(formData.amount) || 0).toFixed(2),
+          comment: formData.comment,
+
+          // Produits sélectionnés - format liste simple pour QuoteRequestProcessor
+          selected_product_ids: selectedProducts,
+
+          // Métadonnées réservation
+          bookingSource: formData.bookingSource,
+          paymentStatus: formData.paymentStatus,
+          paymentMethod: formData.paymentMethod,
+          status: formData.status
         }
       }
 
@@ -894,7 +945,8 @@ export default {
   font-style: italic;
 }
 
-.loading-item, .empty-item {
+.loading-item,
+.empty-item {
   padding: 1rem;
   text-align: center;
   color: #666;

@@ -14,6 +14,10 @@
           <i class="fas fa-sync"></i>
           Actualiser
         </button>
+        <button type="button" class="btn btn-primary btn-sm" @click="$router.push({ name: 'ReservationCreate' })">
+          <i class="fas fa-plus"></i>
+          Nouvelle Réservation
+        </button>
       </div>
     </div>
 
@@ -24,13 +28,8 @@
           <label for="search">Rechercher</label>
           <div class="search-box">
             <i class="fas fa-search"></i>
-            <input
-              id="search"
-              v-model="filters.search"
-              type="text"
-              placeholder="Nom client, email, ID réservation..."
-              @input="onSearchInput"
-            />
+            <input id="search" v-model="filters.search" type="text" placeholder="Nom client, email, ID réservation..."
+              @input="onSearchInput" />
           </div>
         </div>
 
@@ -46,31 +45,16 @@
 
         <div class="filter-control">
           <label for="start-date">Date début</label>
-          <input
-            id="start-date"
-            v-model="filters.startDate"
-            type="date"
-            @change="applyFilters"
-          />
+          <input id="start-date" v-model="filters.startDate" type="date" @change="applyFilters" />
         </div>
 
         <div class="filter-control">
           <label for="end-date">Date fin</label>
-          <input
-            id="end-date"
-            v-model="filters.endDate"
-            type="date"
-            @change="applyFilters"
-          />
+          <input id="end-date" v-model="filters.endDate" type="date" @change="applyFilters" />
         </div>
 
         <div class="reset-control">
-          <button
-            type="button"
-            class="btn btn-outline btn-sm"
-            @click="resetFilters"
-            :disabled="!hasActiveFilters"
-          >
+          <button type="button" class="btn btn-outline btn-sm" @click="resetFilters" :disabled="!hasActiveFilters">
             <i class="fas fa-times"></i>
             Reset
           </button>
@@ -134,30 +118,22 @@
       <table class="table">
         <thead>
           <tr>
-            <th>
-              <button type="button" class="sortable" @click="changeSort('created_at')">
-                Réservation
-                <i :class="getSortIcon('created_at')"></i>
-              </button>
+            <th @click="changeSort('created_at')" class="sortable">
+              Réservation
+              <i :class="getSortIcon('created_at')"></i>
             </th>
             <th>Client</th>
-            <th>
-              <button type="button" class="sortable" @click="changeSort('checkin')">
-                Séjour
-                <i :class="getSortIcon('checkin')"></i>
-              </button>
+            <th class="sortable" @click="changeSort('checkin')">
+              Séjour
+              <i :class="getSortIcon('checkin')"></i>
             </th>
-            <th>
-              <button type="button" class="sortable" @click="changeSort('status')">
-                Statut
-                <i :class="getSortIcon('status')"></i>
-              </button>
+            <th class="sortable" @click="changeSort('status')">
+              Statut
+              <i :class="getSortIcon('status')"></i>
             </th>
-            <th>
-              <button type="button" class="sortable" @click="changeSort('amount')">
-                Montant
-                <i :class="getSortIcon('amount')"></i>
-              </button>
+            <th class="sortable" @click="changeSort('amount')">
+              Montant
+              <i :class="getSortIcon('amount')"></i>
             </th>
             <th class="actions-col">Actions</th>
           </tr>
@@ -216,28 +192,14 @@
             <!-- Actions -->
             <td class="actions-col">
               <div class="table-actions">
-                <button
-                  type="button"
-                  class="btn-icon"
-                  title="Voir"
-                  @click="viewReservation(reservation)"
-                >
+                <button type="button" class="btn-icon" title="Voir" @click="viewReservation(reservation)">
                   <i class="fas fa-eye"></i>
                 </button>
-                <button
-                  type="button"
-                  class="btn-icon"
-                  title="Modifier"
-                  @click="editReservation(reservation)"
-                >
+                <button type="button" class="btn-icon" title="Modifier" @click="editReservation(reservation)">
                   <i class="fas fa-edit"></i>
                 </button>
-                <button
-                  type="button"
-                  class="btn-icon text-danger"
-                  title="Supprimer"
-                  @click="deleteReservation(reservation)"
-                >
+                <button type="button" class="btn-icon text-danger" title="Supprimer"
+                  @click="deleteReservation(reservation)">
                   <i class="fas fa-trash"></i>
                 </button>
               </div>
@@ -248,11 +210,8 @@
     </div>
 
     <!-- Pagination -->
-    <Pagination
-      v-if="reservations.length > 0 && pagination.lastPage > 1"
-      :pagination="pagination"
-      @page-change="changePage"
-    />
+    <Pagination v-if="reservations.length > 0 && pagination.lastPage > 1" :pagination="pagination"
+      @page-change="changePage" />
   </div>
 </template>
 
@@ -266,7 +225,7 @@ export default {
   components: {
     Pagination
   },
-  
+
   data() {
     return {
       loading: false,
@@ -299,7 +258,7 @@ export default {
       debouncedSearch: null
     }
   },
-  
+
   computed: {
     hasActiveFilters() {
       return Boolean(
@@ -310,18 +269,18 @@ export default {
       )
     }
   },
-  
+
   created() {
     this.debouncedSearch = debounce(() => {
       this.pagination.currentPage = 1
       this.fetchReservations()
     }, 400)
   },
-  
+
   mounted() {
     this.fetchReservations()
   },
-  
+
   methods: {
     async fetchReservations() {
       if (this.filters.startDate && this.filters.endDate && this.filters.startDate > this.filters.endDate) {
@@ -481,13 +440,13 @@ export default {
       const adults = Number(reservation?.number_of_adults) || 0
       const children = Number(reservation?.number_of_children) || 0
       const total = adults + children
-      
+
       if (total === 0) return 'Non défini'
-      
+
       const parts = []
       if (adults) parts.push(`${adults} ${adults > 1 ? 'adultes' : 'adulte'}`)
       if (children) parts.push(`${children} ${children > 1 ? 'enfants' : 'enfant'}`)
-      
+
       return parts.length ? parts.join(', ') : `${total} personne${total > 1 ? 's' : ''}`
     },
 
@@ -683,17 +642,41 @@ export default {
 }
 
 /* Styles pour les statuts - utilise les classes existantes */
-.status-active { background: #d1fae5; color: #065f46; }
-.status-confirmed { background: #d1fae5; color: #065f46; }
-.status-pending { background: #fef3c7; color: #92400e; }
-.status-cancelled { background: #fee2e2; color: #991b1b; }
-.status-completed { background: #dbeafe; color: #1e40af; }
-.status-draft { background: #fef3c7; color: #92400e; }
+.status-active {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-confirmed {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-cancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-completed {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.status-draft {
+  background: #fef3c7;
+  color: #92400e;
+}
 
 @media (max-width: 768px) {
   .filters-row {
     grid-template-columns: 1fr;
   }
+
   .list-toolbar {
     flex-direction: column;
     align-items: flex-start;

@@ -25,13 +25,24 @@ export default [
       { path: 'profile', name: 'AdminProfile', component: () => import('../views/Profile.vue') },
       { path: 'settings', name: 'AdminSettings', component: () => import('../views/Settings.vue') },
 
-      // ⚠️ composant lourd (calendar) → lazy aussi
       { path: 'agenda', name: 'FullAgenda', component: () => import('@/shared/components/calendar/FullCalendar.vue') },
 
       // Réservations
       { path: 'reservations', name: 'AdminReservations', component: () => import('@/admin/views/reservations/ReservationsList.vue'), meta: { requiresAuth: true } },
       { path: 'reservations/:id', name: 'ReservationDetail', component: () => import('@/admin/views/reservations/ReservationDetail.vue'), props: true, meta: { requiresAuth: true } },
-
+      {
+        path: 'reservations/create',
+        name: 'ReservationCreate',
+        component: () => import('../views/reservations/ReservationForm.vue'),
+        props: { action: 'create' }
+      },
+      {
+        path: 'reservations/:id/edit',
+        name: 'ReservationEdit',
+        component: () => import('../views/reservations/ReservationForm.vue'),
+        props: r => ({ action: 'edit' })
+      },
+      
       // Redirection vers agenda (utilise le nom de route, évite l’URL absolue)
       { path: 'calendar', redirect: { name: 'FullAgenda' } },
 

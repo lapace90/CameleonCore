@@ -48,10 +48,7 @@
       <!-- Grid existante avec données complètes -->
       <div class="info-grid">
         <!-- Client -->
-        <ReservationInfoCard 
-          title="Client" 
-          icon="fas fa-user"
-        >
+        <ReservationInfoCard title="Client" icon="fas fa-user">
           <div class="info-item">
             <label>Nom:</label>
             <span>{{ getCustomerName() }}</span>
@@ -67,10 +64,7 @@
         </ReservationInfoCard>
 
         <!-- Séjour -->
-        <ReservationInfoCard 
-          title="Séjour" 
-          icon="fas fa-calendar"
-        >
+        <ReservationInfoCard title="Séjour" icon="fas fa-calendar">
           <div class="info-item">
             <label>Arrivée:</label>
             <span>{{ formatDate(reservation.checkin) }}</span>
@@ -86,10 +80,7 @@
         </ReservationInfoCard>
 
         <!-- Invités -->
-        <ReservationInfoCard 
-          title="Invités" 
-          icon="fas fa-users"
-        >
+        <ReservationInfoCard title="Invités" icon="fas fa-users">
           <div class="info-item">
             <label>Adultes:</label>
             <span>{{ reservation.number_of_adults || 0 }}</span>
@@ -105,10 +96,7 @@
         </ReservationInfoCard>
 
         <!-- Logement -->
-        <ReservationInfoCard 
-          title="Logement" 
-          icon="fas fa-bed"
-        >
+        <ReservationInfoCard title="Logement" icon="fas fa-bed">
           <div class="info-item">
             <label>Nom:</label>
             <span>{{ getProductName() }}</span>
@@ -120,10 +108,7 @@
         </ReservationInfoCard>
 
         <!-- Paiement -->
-        <ReservationInfoCard 
-          title="Paiement" 
-          icon="fas fa-credit-card"
-        >
+        <ReservationInfoCard title="Paiement" icon="fas fa-credit-card">
           <div class="info-item">
             <label>Montant:</label>
             <span class="amount">{{ formatCurrency(reservation.amount) }}</span>
@@ -139,10 +124,7 @@
         </ReservationInfoCard>
 
         <!-- Références -->
-        <ReservationInfoCard 
-          title="Références" 
-          icon="fas fa-hashtag"
-        >
+        <ReservationInfoCard title="Références" icon="fas fa-hashtag">
           <div class="info-item">
             <label>Facture:</label>
             <span>{{ reservation.invoice_number || 'Non générée' }}</span>
@@ -159,15 +141,15 @@
       </div>
 
       <!-- Notes -->
-      <ReservationInfoCard 
-        v-if="reservation.comment" 
-        title="Commentaires" 
-        icon="fas fa-sticky-note"
-      >
+      <ReservationInfoCard v-if="reservation.comment" title="Commentaires" icon="fas fa-sticky-note">
         <div class="comment-box">
           {{ reservation.comment }}
         </div>
       </ReservationInfoCard>
+
+      <div class="timeline-section">
+        <ReservationTimeline :items="reservation.timeline || []" />
+      </div>
     </div>
   </div>
 </template>
@@ -175,13 +157,15 @@
 <script>
 import AdminApi from '@/services/AdminApi'
 import ReservationInfoCard from './ReservationInfoCard.vue'
+import ReservationTimeline from './ReservationTimeline.vue'
 
 export default {
   name: 'ReservationDetail',
   components: {
-    ReservationInfoCard
+    ReservationInfoCard,
+    ReservationTimeline
   },
-  
+
   data() {
     return {
       reservation: null,
@@ -198,7 +182,7 @@ export default {
     async fetchReservation() {
       this.loading = true
       this.error = null
-      
+
       try {
         const data = await AdminApi.getReservation(this.$route.params.id)
         this.reservation = data
@@ -217,10 +201,10 @@ export default {
     },
 
     editReservation() {
-      this.$router.push({ 
-        name: 'ReservationDetail', 
-        params: { id: this.reservation.id }, 
-        query: { mode: 'edit' } 
+      this.$router.push({
+        name: 'ReservationDetail',
+        params: { id: this.reservation.id },
+        query: { mode: 'edit' }
       })
     },
 
@@ -260,7 +244,7 @@ export default {
       return new Date(dateString).toLocaleDateString('fr-FR', {
         weekday: 'long',
         year: 'numeric',
-        month: 'long', 
+        month: 'long',
         day: 'numeric'
       })
     },
@@ -403,8 +387,13 @@ export default {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .comment-box {
@@ -415,5 +404,4 @@ export default {
   white-space: pre-wrap;
   line-height: 1.5;
 }
-
 </style>

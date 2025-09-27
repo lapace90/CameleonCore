@@ -324,24 +324,88 @@ export default {
     // =============================
     // SAUVEGARDE ÉVÉNEMENTS
     // =============================
-
     async handleSaveEvent(eventData) {
       console.log('💾 Sauvegarde événement:', eventData)
 
       try {
-        if (this.isEditing && eventData.id) {
-          await AdminApi.updateEventOrReservation(eventData.id, eventData) // ← Utilisez eventData directement
+        if (eventData.type === 'reservation') {
+          // ✅ CRÉATION D'UNE RÉSERVATION ADMIN directe
+          const reservationPayload = {
+            // Informations de base
+            checkin: eventData.start,
+            checkout: eventData.end,
+            amount: parseFloat(eventData.amount || 0).toFixed(2),
+            comment: eventData.comment,
+
+            // Informations client - CRÉATION AUTOMATIQUE
+            customer_data: {
+              email: eventData.customerEmail,
+              name: eventData.customerName,
+              last_name: eventData.customerLastName,
+              phone: eventData.phone,
+              address: eventData.customerAddress,
+              city: eventData.customerCity,
+              postal_code: eventData.customerPostalCode,
+              country: eventData.customerCountry
+            },
+
+            // Détails séjour
+            number_of_adults: eventData.numberOfAdults || 2,
+            number_of_children: eventData.numberOfChildren || 0,
+
+            // Produits sélectionnés
+            selected_product_ids: eventData.selected_product_ids || [],
+            product_id: eventData.selected_product_ids?.[0], // Premier produit comme principal
+
+            // Métadonnées admin
+            booking_source: eventData.bookingSource || 'admin',
+            payment_status: eventData.paymentStatus || 'pending',
+            payment_method: eventData.paymentMethod,
+            status: eventData.status || 'confirmed'
+          }
+
+          console.log('📝 Création réservation admin:', reservationPayload)
+
+          if (this.isEditing && eventData.id) {
+            // Mise à jour existante
+            const reservationId = eventData.id.replace('reservation_', '') // Enlever préfixe
+            await AdminApi.updateReservation(reservationId, reservationPayload)
+          } else {
+            // Nouvelle réservation
+            await AdminApi.createReservation(reservationPayload)
+          }
+
         } else {
-          await AdminApi.createEventOrReservation(eventData) // ← Utilisez eventData directement
+          // Événements génériques (maintenance, activité, autre)
+          const eventPayload = {
+            title: eventData.title,
+            start_date: eventData.start,
+            end_date: eventData.end,
+            type: eventData.type,
+            location: eventData.location,
+            responsible: eventData.responsible,
+            priority: eventData.priority,
+            background_color: eventData.backgroundColor,
+            notes: eventData.notes
+          }
+
+          if (this.isEditing && eventData.id) {
+            await AdminApi.updateEvent(eventData.id, eventPayload)
+          } else {
+            await AdminApi.createEvent(eventPayload)
+          }
         }
 
         this.refreshCalendar()
-        this.showModal = false
+        this.closeModal()
         console.log('✅ Événement sauvegardé avec succès')
 
       } catch (error) {
         console.error('❌ Erreur sauvegarde:', error)
-        alert(`Erreur lors de la sauvegarde: ${error.response?.data?.message || error.message}`)
+
+        // Affichage de l'erreur à l'utilisateur
+        const errorMessage = error.response?.data?.message || error.message || 'Erreur inconnue'
+        alert(`Erreur lors de la sauvegarde: ${errorMessage}`)
       }
     },
 

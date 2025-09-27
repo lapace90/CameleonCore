@@ -8,12 +8,15 @@ use App\Models\User;
 use ApiPlatform\Metadata\ApiResource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\State\CalendarProvider;
-use App\State\ReservationProvider; // ✅ NOUVEAU PROVIDER
+use App\State\ReservationProvider;
+use App\State\ReservationProcessor;
+use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Delete;
+
 
 #[ApiResource(
     operations: [
@@ -27,17 +30,30 @@ use ApiPlatform\Metadata\Delete;
         // 🔵 CRUD admin standard avec relations
         new GetCollection(
             uriTemplate: '/admin/reservations', 
-            provider: ReservationProvider::class, // ✅ PROVIDER PERSONNALISÉ
+            provider: ReservationProvider::class,
             security: "is_granted('ROLE_ADMIN')"
         ),
         new Get(
             uriTemplate: '/admin/reservations/{id}', 
-            provider: ReservationProvider::class, // ✅ PROVIDER PERSONNALISÉ
+            provider: ReservationProvider::class,
             security: "is_granted('ROLE_ADMIN')"
         ),
-        new Post(uriTemplate: '/admin/reservations', security: "is_granted('ROLE_ADMIN')"),
-        new Put(uriTemplate: '/admin/reservations/{id}', security: "is_granted('ROLE_ADMIN')"),
-        new Delete(uriTemplate: '/admin/reservations/{id}', security: "is_granted('ROLE_ADMIN')"),
+        
+        new Post(
+            uriTemplate: '/admin/reservations', 
+            processor: ReservationProcessor::class,
+            security: "is_granted('ROLE_ADMIN')"
+        ),
+        new Put(
+            uriTemplate: '/admin/reservations/{id}', 
+            processor: ReservationProcessor::class,
+            security: "is_granted('ROLE_ADMIN')"
+        ),
+        new Delete(
+            uriTemplate: '/admin/reservations/{id}', 
+            processor: ReservationProcessor::class,
+            security: "is_granted('ROLE_ADMIN')"
+        ),
     ]
 )]
 class Reservation extends Model
@@ -60,7 +76,6 @@ class Reservation extends Model
         'user_id',
         'product_id',
         'product_type',
-        // ✅ NOUVEAUX CHAMPS AJOUTÉS
         'quote_reference',
         'stripe_session_id',
         'stripe_payment_intent',
@@ -74,8 +89,6 @@ class Reservation extends Model
         'checkout' => 'datetime',
         'amount' => 'decimal:2',
     ];
-
-    // ✅ RELATIONS BIEN DÉFINIES
 
     public function customer()
     {
@@ -103,8 +116,6 @@ class Reservation extends Model
         return $this->hasMany(Reservation::class, 'parent_reservation_id');
     }
 
-    // ✅ SCOPES UTILES POUR LES REQUÊTES
-
     public function scopeActive($query)
     {
         return $query->whereIn('status', ['pending', 'confirmed']);
@@ -121,8 +132,6 @@ class Reservation extends Model
               });
         });
     }
-
-    // ✅ ACCESSORS POUR FACILITER L'USAGE
 
     public function getCustomerNameAttribute()
     {
