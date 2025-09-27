@@ -13,6 +13,7 @@ use App\Models\Customer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
+use App\Models\Product;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -54,35 +55,37 @@ class ReservationProcessor implements ProcessorInterface
         });
     }
 
+    private function normalizeAmount(string|float|int|null $raw): string
+    {
+        return number_format((float)($raw ?? 0), 2, '.', '');
+    }
+
     private function createReservation(array $context, $currentUser): Reservation
     {
         $payload = $this->getDataFromRequest($context);
-
-        Log::info('💾 Création réservation admin', [
-            'customer_email' => $payload['customer_data']['email'] ?? 'N/A',
-            'amount' => $payload['amount'] ?? 0,
-            'checkin' => $payload['checkin'] ?? null
-        ]);
-
-        // 1. Validation de base
         $this->validateReservationData($payload);
 
-        // 2. Gérer le customer automatiquement
         $customerId = $this->findOrCreateCustomer($payload['customer_data'] ?? []);
+        // normaliser amount côté serveur au passage (voir point 2)
+        $payload['amount'] = $this->normalizeAmount($payload['amount'] ?? '0');
 
-        // 3. Préparer les données de réservation
         $reservationData = $this->prepareReservationData($payload, $customerId, $currentUser);
 
-        // 4. Créer la réservation
+        // 1) on crée sans invoice_number
         $reservation = Reservation::create($reservationData);
 
-        Log::info('✅ Réservation créée avec succès', [
-            'id' => $reservation->id,
-            'customer_id' => $reservation->customer_id,
-            'amount' => $reservation->amount
-        ]);
+        // 2) on dérive un numéro 100% unique depuis l'ID
+        $invoiceNumber = $this->formatInvoiceNumberFromId($reservation->id);
+        $reservation->invoice_number = $invoiceNumber;
+        $reservation->save();
 
         return $reservation;
+    }
+
+    private function formatInvoiceNumberFromId(int $id): string
+    {
+        // ex: RES-YYYYMMDD-000123 (id sur 6 chiffres ; date du jour)
+        return 'RES-' . date('Ymd') . '-' . str_pad($id, 6, '0', STR_PAD_LEFT);
     }
 
     private function updateReservation(int $id, array $context, $currentUser): Reservation
@@ -111,9 +114,9 @@ class ReservationProcessor implements ProcessorInterface
     private function deleteReservation(int $id): void
     {
         $reservation = Reservation::findOrFail($id);
-        
+
         Log::info("🗑️ Suppression réservation #{$id}");
-        
+
         $reservation->delete();
     }
 
@@ -188,6 +191,7 @@ class ReservationProcessor implements ProcessorInterface
             'payment_method' => $payload['payment_method'] ?? null,
             'status' => $payload['status'] ?? 'confirmed',
             'product_id' => $payload['product_id'] ?? null,
+            'product_type'        => Product::class,
             'user_id' => $currentUser->id, // Utilisateur Sanctum authentifié
         ];
     }
@@ -218,5 +222,29 @@ class ReservationProcessor implements ProcessorInterface
         }
 
         throw new \InvalidArgumentException('Données de requête introuvables');
+    }
+
+    private function generateInvoiceNumber(): string
+    {
+        // Format : RES-YYYYMMDD-XXXX (ex: RES-20251027-0001)
+        $prefix = 'RES-' . date('Ymd') . '-';
+
+        // Compter les réservations du jour pour avoir un numéro séquentiel
+        $today = date('Y-m-d');
+        $count = Reservation::whereDate('created_at', $today)->count();
+
+        // Incrémenter et formatter sur 4 chiffres
+        $sequence = str_pad($count + 1, 4, '0', STR_PAD_LEFT);
+
+        $invoiceNumber = $prefix . $sequence;
+
+        // Vérifier l'unicité (au cas où il y aurait des suppressions)
+        while (Reservation::where('invoice_number', $invoiceNumber)->exists()) {
+            $count++;
+            $sequence = str_pad($count + 1, 4, '0', STR_PAD_LEFT);
+            $invoiceNumber = $prefix . $sequence;
+        }
+
+        return $invoiceNumber;
     }
 }

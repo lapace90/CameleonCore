@@ -18,7 +18,8 @@ return new class extends Migration
             $table->dateTime('checkin');
             $table->dateTime('checkout');
             $table->decimal('amount', 8, 2);
-            $table->string('invoice_number')->unique();
+             // ← nullable car généré APRÈS insert via l'ID
+            $table->string('invoice_number')->nullable()->unique();
             $table->string('booking_source');
             $table->enum('payment_status', ['paid', 'pending', 'canceled'])->default('pending');
             $table->integer('number_of_children');

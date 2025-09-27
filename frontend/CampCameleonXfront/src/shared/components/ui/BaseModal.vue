@@ -156,7 +156,7 @@ export default {
   margin: 0;
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #fff;
 }
 
 .btn-close {

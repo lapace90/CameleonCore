@@ -65,6 +65,9 @@
     <ConfirmModal :show="showConfirmDelete" title="Supprimer l'événement"
       message="Êtes-vous sûr de vouloir supprimer cet événement ? Cette action est irréversible."
       @confirm="confirmDelete" @cancel="showConfirmDelete = false" />
+    <!-- Modal détails événement (lecture seule) -->
+    <EventDetailsModal v-model="showDetails" :event="selectedEvent" />
+
   </div>
 </template>
 
@@ -77,12 +80,14 @@ import frLocale from '@fullcalendar/core/locales/fr'
 import EventModal from './EventModal.vue'
 import ConfirmModal from './ConfirmModal.vue'
 import AdminApi from '@/services/AdminApi'
+import EventDetailsModal from './EventDetailsModal.vue'
 
 export default {
   name: 'FullAgenda',
   components: {
     FullCalendar,
     EventModal,
+    EventDetailsModal,
     ConfirmModal
   },
   props: {
@@ -110,6 +115,8 @@ export default {
       eventToDelete: null,
       currentEvent: this.getEmptyEvent(),
       isLoading: false,
+      showDetails: false,         // 👈 AJOUT
+      selectedDetail: null,
 
       availableViews: [
         { value: 'dayGridMonth', label: 'Mois', icon: 'fas fa-calendar' },
@@ -222,61 +229,23 @@ export default {
       console.log('📅 Sélection date:', selectInfo)
     },
 
-    handleEventClick(clickInfo) {
-      const event = clickInfo.event
-      const props = event.extendedProps
-
-      console.log('🖱️ Clic événement:', { title: event.title, id: event.id, props })
-
-      // Mapper différemment selon la source (reservation vs event)
-      if (props.source === 'reservation') {
-        this.currentEvent = {
-          id: event.id,
-          title: event.title,
-          start: event.start?.toISOString().slice(0, 16) || '',
-          end: event.end?.toISOString().slice(0, 16) || '',
-          type: 'reservation',
-
-          // Données réservation
-          customerName: props.customer_name || '',
-          phone: props.customer_phone || '',
-          email: props.customer_email || '',
-          guests: props.guests || 1,
-          amount: props.amount || 0,
-          status: props.status || 'pending',
-          notes: props.comment || '',
-
-          // Champs autres par défaut
-          location: '',
-          responsible: '',
-          backgroundColor: event.backgroundColor || '#28a745'
-        }
-      } else {
-        this.currentEvent = {
-          id: event.id,
-          title: event.title,
-          start: event.start?.toISOString().slice(0, 16) || '',
-          end: event.end?.toISOString().slice(0, 16) || '',
-          type: props.type || 'autre',
-
-          // Données événement générique
-          location: props.location || '',
-          responsible: props.responsible || '',
-          notes: props.notes || '',
-          backgroundColor: event.backgroundColor || '#28a745',
-
-          // Champs réservation par défaut
-          customerName: '',
-          phone: '',
-          email: '',
-          guests: 1,
-          amount: 0,
-          status: 'active'
-        }
+    handleEventClick(info) {
+      // ⛔️ block browser navigation / default FC behavior
+      if (info && info.jsEvent) {
+        info.jsEvent.preventDefault();
+        info.jsEvent.stopPropagation();
       }
 
-      this.isEditing = true
-      this.showModal = true
+      const e = info.event
+      this.selectedEvent = {
+        title: e.title,
+        id: e.id,
+        start: e.start,
+        end: e.end,
+        props: e.extendedProps,
+        backgroundColor: e.backgroundColor
+      }
+      this.showDetails = true
     },
 
     async handleEventDrop(dropInfo) {

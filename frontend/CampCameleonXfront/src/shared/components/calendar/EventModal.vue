@@ -367,7 +367,6 @@
 import ProductsApi from '@/services/ProductsApi'
 import { watchEffect } from 'vue'
 import { computeQuoteTotal } from '@/shared/composables/useQuotePricing'
-import { publicApi } from '@/services/PublicApi'
 
 export default {
   name: 'EventModal',
@@ -538,12 +537,19 @@ export default {
   },
 
   beforeUnmount() {
-    // Nettoyer les event listeners
     document.removeEventListener('keydown', this.handleEscape)
   },
   mounted() {
     watchEffect(() => {
       if (this.formData.type !== 'reservation') return
+
+      // 🛡️ Évite d'écraser le montant existant en édition
+      const hasAnySelection =
+        this.selectedAccommodations.length > 0 ||
+        this.selectedActivities.length > 0 ||
+        this.selectedMenus.length > 0
+
+      if (!hasAnySelection) return
 
       const selected = {
         room: this._expandSelectedRooms(),
@@ -569,7 +575,8 @@ export default {
       }
 
       const { total } = computeQuoteTotal({ selected, catalog, dates, overrides })
-      this.formData.amount = total
+      // 👉 garde le type "string" attendu par l'API
+      this.formData.amount = Number(total || 0).toFixed(2)
     })
   },
 
