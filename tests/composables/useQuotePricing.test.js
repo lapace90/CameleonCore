@@ -1,123 +1,129 @@
-// src/shared/composables/useQuotePricing.js
+// tests/composables/useQuotePricing.test.js
+import { describe, it, expect, beforeEach } from 'vitest'
+import { computeQuoteTotal } from '@/shared/composables/useQuotePricing'
 
-const toArray = (v) => {
-  if (v == null) return []
-  if (Array.isArray(v)) return v
-  if (typeof v === 'number' || typeof v === 'string') return [v]
-  if (typeof v === 'object') return Object.keys(v) // {id: qty} -> ['id', ...]
-  return []
-}
+describe('useQuotePricing', () => {
+  let mockCatalog
+  let mockDates
+  let mockSelected
 
-const num = (v, d = 0) => {
-  const n = Number(v)
-  return Number.isFinite(n) ? n : d
-}
+  beforeEach(() => {
+    mockCatalog = {
+      activities: [
+        { id: 1, name: 'Randonnée Chamelière', price: 80 },
+        { id: 2, name: 'Visite Oasis', price: 50 }
+      ],
+      rooms: [  // ✅ "rooms" avec s
+        { id: 4, name: 'Tente Berbère Luxe', price: 120 }
+      ],
+      menus: [
+        { id: 6, name: 'Menu Traditionnel', price: 40 }
+      ]
+    }
 
-// diff de nuits entre start (inclus) et endExclusive (exclu)
-const computeNights = (startStr, endExclusiveStr) => {
-  const s = new Date(startStr)
-  const e = new Date(endExclusiveStr)
-  if (!Number.isFinite(+s) || !Number.isFinite(+e)) return 0
-  const ms = +e - +s
-  if (ms <= 0) return 0
-  return Math.floor(ms / (1000 * 60 * 60 * 24))
-}
+    mockDates = {
+      start: '2024-03-15',
+      endExclusive: '2024-03-18',
+      guests: 2
+    }
 
-/**
- * API attendue par tes tests:
- * computeQuoteTotal({
- *   selected: { activities:Array|Object|..., room:Number|Array|Object, menus:Array|Object },
- *   catalog:  { activities:[], room:[], menus:[] },
- *   dates:    { start, endExclusive, guests },
- *   overrides:{ activity:Object, menu:Object, room:Object },
- *   config?:  { roomPerNight?: boolean } // facultatif
- * })
- */
-export function computeQuoteTotal(input = {}) {
-  const selected = input.selected ?? {}
-  const catalog  = input.catalog ?? {}
-  const dates    = input.dates ?? {}
-  const overrides = input.overrides ?? {}
-  const cfg      = input.config ?? {}
+    mockSelected = {
+      activities: [1, 2],
+      room: [4],  // ✅ Array au lieu de nombre
+      menus: [6]
+    }
+  })
 
-  const nights = computeNights(dates.start, dates.endExclusive)
-  const guests = num(dates.guests, 0)
+  describe('Calculs de base', () => {
+    it('should compute nights correctly', () => {
+      const result = computeQuoteTotal({
+        selected: mockSelected,
+        catalog: mockCatalog,
+        dates: mockDates,
+        overrides: {}
+      })
 
-  const catActivities = Array.isArray(catalog.activities) ? catalog.activities : []
-  const catRooms      = Array.isArray(catalog.room) ? catalog.room : (Array.isArray(catalog.rooms) ? catalog.rooms : [])
-  const catMenus      = Array.isArray(catalog.menus) ? catalog.menus : []
-
-  const selActivities = selected.activities
-  const selRooms      = selected.room
-  const selMenus      = selected.menus
-
-  const ovAct  = overrides.activity || {}
-  const ovMenu = overrides.menu || {}
-  const ovRoom = overrides.room || {}
-
-  const lines = []
-  let total = 0
-
-  // ROOMS — qty = (overrideRooms || 1) * (cfg.roomPerNight ? nights : nights)
-  // => dans tes tests c’est bien "par nuit", donc nights obligatoire
-  for (const id of toArray(selRooms)) {
-    const prod = catRooms.find(r => String(r.id) === String(id))
-    if (!prod) continue
-    const roomsCount = num(ovRoom[String(id)], 1) // override = nb de chambres
-    const nightsCount = Math.max(0, nights)
-    const qty = roomsCount * nightsCount
-    if (qty <= 0) continue
-    const unitPrice = num(prod.price, 0)
-    const lineTotal = unitPrice * qty
-    total += lineTotal
-    lines.push({
-      type: 'room',
-      id: prod.id,
-      name: prod.name,
-      qty,
-      unitPrice,
-      lineTotal
+      expect(result.nights).toBe(3) // 15-18 mars = 3 nuits
     })
-  }
 
-  // ACTIVITIES — qty par défaut = 1 ; override.activity[id] = qty absolue
-  for (const id of toArray(selActivities)) {
-    const prod = catActivities.find(a => String(a.id) === String(id))
-    if (!prod) continue
-    const qty = num(ovAct[String(id)], 1)
-    if (qty <= 0) continue
-    const unitPrice = num(prod.price, 0)
-    const lineTotal = unitPrice * qty
-    total += lineTotal
-    lines.push({
-      type: 'activity',
-      id: prod.id,
-      name: prod.name,
-      qty,
-      unitPrice,
-      lineTotal
+    it('should calculate total without overrides', () => {
+      const result = computeQuoteTotal({
+        selected: mockSelected,
+        catalog: mockCatalog,
+        dates: mockDates,
+        overrides: {}
+      })
+
+      expect(result.total).toBeGreaterThan(0)
+      expect(result.lines).toHaveLength(4) // room + 2 activities + menu
     })
-  }
 
-  // MENUS — qty par défaut = 1 * guests * nights ; override.menu[id] = perGuestPerNight factor
-  for (const id of toArray(selMenus)) {
-    const prod = catMenus.find(m => String(m.id) === String(id))
-    if (!prod) continue
-    const factor = num(ovMenu[String(id)], 1) // "par guest par nuit"
-    const qty = factor * Math.max(0, guests) * Math.max(0, nights)
-    if (qty <= 0) continue
-    const unitPrice = num(prod.price, 0)
-    const lineTotal = unitPrice * qty
-    total += lineTotal
-    lines.push({
-      type: 'menu',
-      id: prod.id,
-      name: prod.name,
-      qty,
-      unitPrice,
-      lineTotal
+    it('should generate correct line items', () => {
+      const result = computeQuoteTotal({
+        selected: mockSelected,
+        catalog: mockCatalog,
+        dates: mockDates,
+        overrides: {}
+      })
+
+      expect(result.lines).toHaveLength(4)
+      
+      // Vérifier ligne hébergement
+      const roomLine = result.lines.find(l => l.type === 'room')
+      expect(roomLine).toBeDefined()
+      expect(roomLine.id).toBe(4)
+      expect(roomLine.unitPrice).toBe(120)
     })
-  }
+  })
 
-  return { nights, total, lines }
-}
+  describe('Gestion des quantités avec overrides', () => {
+    it('should apply activity quantity overrides', () => {
+      const overrides = {
+        activity: { 1: 3 }
+      }
+
+      const result = computeQuoteTotal({
+        selected: mockSelected,
+        catalog: mockCatalog,
+        dates: mockDates,
+        overrides
+      })
+
+      const activityLine = result.lines.find(l => l.type === 'activity' && l.id === 1)
+      expect(activityLine.qty).toBe(3)
+    })
+  })
+
+  describe('Gestion des cas limites', () => {
+    it('should handle empty selections', () => {
+      const result = computeQuoteTotal({
+        selected: { activities: [], room: null, menus: [] },
+        catalog: mockCatalog,
+        dates: mockDates,
+        overrides: {}
+      })
+
+      expect(result.total).toBe(0)
+      expect(result.lines).toHaveLength(0)
+    })
+
+    it('should handle missing catalog items', () => {
+      const incompleteSelected = {
+        activities: [999], // ID inexistant
+        room: 4,
+        menus: [6]
+      }
+
+      const result = computeQuoteTotal({
+        selected: incompleteSelected,
+        catalog: mockCatalog,
+        dates: mockDates,
+        overrides: {}
+      })
+
+      // Ne devrait inclure que les éléments valides
+      expect(result.lines.find(l => l.id === 999)).toBeUndefined()
+      expect(result.lines.find(l => l.id === 4)).toBeDefined()
+    })
+  })
+})
