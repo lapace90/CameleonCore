@@ -13,22 +13,27 @@ class ProductFactory extends Factory
 {
     protected $model = Product::class;
 
-// database/factories/ProductFactory.php
-public function definition(): array
-{
-    // CORRECTION: Toujours créer une catégorie
-    return [
-        'name' => $this->faker->word(),
-        'description' => $this->faker->sentence(),
-        'price' => $this->faker->randomFloat(2, 1, 100),
-        'category_id' => Category::factory(), // AJOUT: Créer automatiquement
-        'productable_type' => Activity::class, // Simplifier pour les tests
-        'productable_id' => Activity::factory(),
-        'image' => $this->faker->imageUrl(),
-        'status' => $this->faker->boolean(),
-        'is_draft' => $this->faker->boolean(),
-    ];
-}
+    public function definition(): array
+    {
+        // Créer un Room simple pour la relation polymorphe
+        $room = \App\Models\Room::firstOrCreate([
+            'capacity' => 4
+        ], [
+            'availability' => true
+        ]);
+        
+        return [
+            'name' => $this->faker->word(),
+            'description' => $this->faker->sentence(),
+            'price' => $this->faker->randomFloat(2, 1, 100),
+            'category_id' => Category::factory(), // AJOUT: Créer automatiquement
+            'productable_type' => \App\Models\Room::class,
+            'productable_id' => $room->id,
+            'image' => $this->faker->imageUrl(),
+            'status' => $this->faker->boolean(),
+            'is_draft' => $this->faker->boolean(),
+        ];
+    }
 
     public function configure()
     {
@@ -39,4 +44,3 @@ public function definition(): array
         });
     }
 }
-

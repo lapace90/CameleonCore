@@ -23,12 +23,12 @@ class ReservationFactory extends Factory
     public function definition(): array
     {
         return [
-            'customer_id' => \App\Models\Customer::factory()->create()->id,
+            'customer_id' => \App\Models\Customer::factory(),
             'date' => $this->faker->date(),
             'checkin' => $this->faker->dateTimeBetween('now', '+1 week'),
             'checkout' => $this->faker->dateTimeBetween('+1 week', '+2 weeks'),
             'amount' => $this->faker->randomFloat(2, 50, 1000),
-            'invoice_number' => \App\Models\Invoice::factory(),
+            'invoice_number' => null,
             'booking_source' => $this->faker->randomElement(['website', 'phone', 'agent']),
             'payment_status' => $this->faker->randomElement(['paid', 'pending', 'failed']),
             'number_of_children' => $this->faker->numberBetween(0, 5),
@@ -37,7 +37,7 @@ class ReservationFactory extends Factory
             'status' => $this->faker->randomElement(['confirmed', 'cancelled', 'pending']),
             'user_id' => \App\Models\User::factory(),
             'product_id' => \App\Models\Product::factory(),
-            'product_type' => $this->faker->randomElement(['room', 'package', 'service']),
+            'product_type' => $this->faker->randomElement(['room', 'activity', 'menu']),
         ];
     }
 }

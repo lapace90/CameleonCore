@@ -3,3 +3,6 @@ vendor
 *.log
 frontend/node_modules
 *.tmp
+public/storage
+storage/logs
+.git

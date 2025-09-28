@@ -17,13 +17,21 @@ RUN apt-get update && apt-get install -y \
 # Installe Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
     composer --version
-    
+
 # Installe les extensions PHP
 RUN apt-get update && apt-get install -y libpq-dev && \
     docker-php-ext-install pdo_pgsql pgsql
 
 # Active les extensions PHP
 RUN docker-php-ext-enable pdo_pgsql
+
+# ✅ Ajouter Xdebug ICI (après les extensions de base)
+RUN pecl install xdebug \
+    && docker-php-ext-enable xdebug
+
+# Configuration Xdebug pour les tests
+RUN echo "xdebug.mode=coverage" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+
 
 # Copie les fichiers du projet
 WORKDIR /app

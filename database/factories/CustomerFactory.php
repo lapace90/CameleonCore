@@ -14,8 +14,8 @@ class CustomerFactory extends Factory
      *
      * @var class-string<\Illuminate\Database\Eloquent\Model>
      */
-    // The model that this factory is for
     protected $model = \App\Models\Customer::class;
+
     /**
      * Define the model's default state.
      *
@@ -24,8 +24,8 @@ class CustomerFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->firtName(),
-            'last_name' => $this->faker->lastName(),
+            'name' => $this->faker->firstName,           // ✅ CORRIGÉ: firstName au lieu de firtName
+            'last_name' => $this->faker->lastName,       // ✅ Correct
             'email' => $this->faker->unique()->safeEmail(),
             'phone' => $this->faker->optional()->phoneNumber(),
             'address' => $this->faker->optional()->streetAddress(),
