@@ -16,7 +16,6 @@
     "type-check": "vue-tsc --noEmit",
     "clean": "rm -rf dist node_modules/.vite",
     "analyze": "vite build --mode analyze",
-
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
@@ -54,12 +53,18 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
+    "@playwright/test": "^1.40.0",
     "@types/node": "^22.0.0",
     "@vitejs/plugin-vue": "^5.2.3",
+    "@vitest/coverage-v8": "^1.0.0",
+    "@vitest/ui": "^1.6.1",
     "@vue/eslint-config-prettier": "^9.0.0",
+    "@vue/test-utils": "^2.4.6",
     "@vue/tsconfig": "^0.5.1",
     "eslint": "^8.56.0",
     "eslint-plugin-vue": "^9.21.1",
+    "happy-dom": "^18.0.1",
+    "jsdom": "^23.2.0",
     "prettier": "3.5.3",
     "sass": "^1.71.1",
     "sass-embedded": "^1.89.2",
@@ -67,16 +72,27 @@
     "typescript": "^5.6.0",
     "vite": "^6.2.4",
     "vite-plugin-vue-devtools": "^7.7.2",
-    "vue-tsc": "^2.1.10",
-
     "vitest": "^1.0.0",
-    "@vitest/ui": "^1.0.0",
-    "@vitest/coverage-v8": "^1.0.0",
-    "jsdom": "^23.0.0",
-    "@vue/test-utils": "^2.4.0",
-    "@playwright/test": "^1.40.0"
+    "vue-tsc": "^2.1.10"
   },
-  "engines": { "node": ">=18.0.0", "npm": ">=8.0.0" },
-  "browserslist": ["> 1%","last 2 versions","not dead","not ie 11"],
-  "keywords": ["vue3","vite","camping","dashboard","admin","pinia","sass","responsive"]
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie 11"
+  ],
+  "keywords": [
+    "vue3",
+    "vite",
+    "camping",
+    "dashboard",
+    "admin",
+    "pinia",
+    "sass",
+    "responsive"
+  ]
 }

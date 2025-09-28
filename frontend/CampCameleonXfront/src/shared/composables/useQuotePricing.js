@@ -11,7 +11,7 @@ export function computeNights(checkin, checkout) {
  */
 export function computeQuoteTotal({ selected, catalog, dates, rules = {}, overrides = {} }) {
   const nights = computeNights(dates?.checkin, dates?.checkout)
-  const guests = Number(dates?.guests ?? 1)
+  const guests = Math.max(1, Number(dates?.guests ?? 1)) 
 
   const cfg = {
     roomPerNight: true,

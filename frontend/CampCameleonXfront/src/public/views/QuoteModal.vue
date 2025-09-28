@@ -67,7 +67,7 @@
                                             <div>
                                                 <label>Départ</label>
                                                 <span>{{ formatDate(displayEndInclusive(selectedDates.endExclusive))
-                                                }}</span>
+                                                    }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -94,7 +94,7 @@
                                         <div class="guests-display">
                                             <span class="guests-number">{{ selectedDates.guests }}</span>
                                             <span class="guests-text">personne{{ selectedDates.guests > 1 ? 's' : ''
-                                            }}</span>
+                                                }}</span>
                                         </div>
 
                                         <button type="button" @click="increaseGuests"
@@ -316,7 +316,7 @@
                                 </div>
                                 <div class="summary-item">
                                     <span>{{ selectedDates.guests }} personne{{ selectedDates.guests > 1 ? 's' : ''
-                                    }}</span>
+                                        }}</span>
                                 </div>
                             </div>
 
@@ -636,11 +636,10 @@ export default {
         selectRoom(room) {
             this.selectedItems.room = room
         },
-
-        // --- Quantités (réglage manuel au récap) ---
         getLineMaxQty() {
-            // par défaut : limité au nombre d’invités
-            return Math.max(1, Number(this.selectedDates.guests || 1))
+            const guests = Math.max(1, this.selectedDates.guests || 1)
+            const nights = Math.max(1, this.nights || 1)
+            return guests * nights  // guests × nights au lieu de juste guests
         },
         getQty(type, id, fallback) {
             const m = this.qtyOverrides?.[type] || {}
@@ -876,22 +875,22 @@ $terracotta: #c17c4a;
     align-items: center;
     gap: 0.5rem;
     flex: 1;
-    
+
     i {
         color: $terracotta;
         font-size: 1.1rem;
     }
-    
+
     div {
         display: flex;
         flex-direction: column;
-        
+
         label {
             font-size: 0.75rem;
             color: #666;
             margin: 0;
         }
-        
+
         span {
             font-weight: 600;
             color: #333;
@@ -911,11 +910,12 @@ $terracotta: #c17c4a;
     border-radius: 6px;
     font-weight: 600;
     font-size: 0.9rem;
-    
+
     i {
         font-size: 0.8rem;
     }
 }
+
 /* Sélecteur d'invités amélioré */
 .guests-selector {
     background: white;
@@ -932,7 +932,7 @@ $terracotta: #c17c4a;
     color: #333;
     margin-bottom: 1rem;
     font-size: 0.9rem;
-    
+
     i {
         color: $terracotta;
     }
@@ -958,12 +958,12 @@ $terracotta: #c17c4a;
     justify-content: center;
     cursor: pointer;
     transition: all 0.3s ease;
-    
+
     &:hover:not(:disabled) {
         background: $terracotta;
         color: white;
     }
-    
+
     &:disabled {
         opacity: 0.4;
         cursor: not-allowed;
@@ -1009,11 +1009,11 @@ $terracotta: #c17c4a;
     gap: 0.5rem;
     margin-bottom: 0.5rem;
     font-size: 0.85rem;
-    
+
     &:last-child {
         margin-bottom: 0;
     }
-    
+
     i {
         color: #0066cc;
         width: 16px;
@@ -1027,11 +1027,11 @@ $terracotta: #c17c4a;
         flex-direction: column;
         gap: 0.75rem;
     }
-    
+
     .date-separator {
         transform: rotate(90deg);
     }
-    
+
     .calendar-section .fc {
         font-size: 0.8rem;
     }
@@ -1044,7 +1044,7 @@ $terracotta: #c17c4a;
     color: $terracotta;
     font-size: 1.3rem;
     font-weight: 600;
-    margin-bottom: 1.5rem; 
+    margin-bottom: 1.5rem;
     text-align: center;
 }
 
