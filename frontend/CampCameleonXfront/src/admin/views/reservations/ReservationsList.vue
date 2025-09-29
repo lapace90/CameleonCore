@@ -554,27 +554,6 @@ export default {
   font-size: 15px;
 }
 
-.filters-card {
-  background: #ffffff;
-  padding: 20px;
-  border-radius: 16px;
-  box-shadow: 0 6px 24px rgba(15, 23, 42, 0.04);
-}
-
-.filters-row {
-  display: grid;
-  grid-template-columns: minmax(260px, 1.4fr) repeat(3, minmax(160px, 1fr)) minmax(120px, auto);
-  gap: 16px;
-  align-items: end;
-}
-
-.search-field,
-.filter-control {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
 .search-box {
   display: flex;
   align-items: center;
@@ -589,34 +568,6 @@ export default {
   background: transparent;
   font-size: 14px;
   color: #111827;
-}
-
-.filter-control select,
-.filter-control input {
-  width: 100%;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 10px 12px;
-  font-size: .9rem;
-  color: #111827;
-  background: #f9fafb;
-}
-
-.list-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  padding: 0 4px;
-  flex-wrap: wrap;
-}
-
-.results-count {
-  font-weight: 600;
-  color: #111827;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
 }
 
 .state-card {
