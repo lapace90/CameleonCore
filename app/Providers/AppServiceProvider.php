@@ -5,7 +5,15 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 
 // Models
-use App\Models\{Ingredient, Tag, Dish, Menu, Activity, Room};
+use App\Models\{
+    Ingredient, 
+    Tag, 
+    Dish, 
+    Menu, 
+    Activity, 
+    Room,
+    Reservation  // 🆕 AJOUT
+};
 
 // Observers
 use App\Observers\{
@@ -14,7 +22,8 @@ use App\Observers\{
     DishObserver,
     MenuObserver,
     ActivityObserver,
-    RoomObserver
+    RoomObserver,
+    ReservationObserver  // 🆕 AJOUT
 };
 
 class AppServiceProvider extends ServiceProvider
@@ -32,12 +41,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // 🔍 Observers pour le système de tags automatiques
+        // 🔍 Observers existants pour le système de tags automatiques
         Ingredient::observe(IngredientObserver::class);
         Tag::observe(TagObserver::class);
         Dish::observe(DishObserver::class);
         Menu::observe(MenuObserver::class);
         Activity::observe(ActivityObserver::class);
         Room::observe(RoomObserver::class);
+
+        // 🆕 Observer pour la création automatique des factures
+        Reservation::observe(ReservationObserver::class);
     }
 }

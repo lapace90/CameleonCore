@@ -30,21 +30,15 @@ export default [
       // Réservations
       { path: 'reservations', name: 'AdminReservations', component: () => import('@/admin/views/reservations/ReservationsList.vue'), meta: { requiresAuth: true } },
       { path: 'reservations/:id', name: 'ReservationDetail', component: () => import('@/admin/views/reservations/ReservationDetail.vue'), props: true, meta: { requiresAuth: true } },
-      {
-        path: 'reservations/create',
-        name: 'ReservationCreate',
-        component: () => import('../views/reservations/ReservationForm.vue'),
-        props: { action: 'create' }
-      },
-      {
-        path: 'reservations/:id/edit',
-        name: 'ReservationEdit',
-        component: () => import('../views/reservations/ReservationForm.vue'),
-        props: r => ({ action: 'edit' })
-      },
-      
-      // Redirection vers agenda (utilise le nom de route, évite l’URL absolue)
+      { path: 'reservations/create', name: 'ReservationCreate', component: () => import('../views/reservations/ReservationForm.vue'), props: { action: 'create' } },
+      { path: 'reservations/:id/edit', name: 'ReservationEdit', component: () => import('../views/reservations/ReservationForm.vue'), props: r => ({ action: 'edit' }) },
+
+      // Redirection vers agenda
       { path: 'calendar', redirect: { name: 'FullAgenda' } },
+
+      // 🆕 FACTURES - Routes ajoutées
+      { path: 'invoices', name: 'InvoiceList', component: () => import('@/admin/views/invoices/InvoiceList.vue'), meta: { requiresAuth: true } },
+      { path: 'invoices/:id', name: 'InvoiceDetail', component: () => import('@/admin/views/invoices/InvoiceDetail.vue'), props: true, meta: { requiresAuth: true } },
 
       // Catégories
       { path: 'categories', name: 'AdminCategories', component: () => import('../views/Categories.vue') },

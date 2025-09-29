@@ -16,91 +16,57 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 })
 
-// Mock window.ResizeObserver
 global.ResizeObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
   disconnect: vi.fn(),
 }))
 
-// Mock des modules problématiques
+// Mock API FullCalendar complète
+const mockCalendarApi = {
+  changeView: vi.fn(),
+  refetchEvents: vi.fn(),
+  getEvents: vi.fn(() => []),
+  render: vi.fn(),
+  destroy: vi.fn()
+}
+
 vi.mock('@fullcalendar/vue3', () => ({
   default: {
     name: 'FullCalendar',
     template: '<div data-testid="fullcalendar-mock">FullCalendar Mock</div>',
-    props: ['options']
+    props: ['options'],
+    methods: {
+      getApi() {
+        return mockCalendarApi
+      }
+    }
   }
 }))
 
-// Configuration globale Vue Test Utils
+vi.mock('@/services/AdminApi', () => ({
+  default: {
+    getCalendarEvents: vi.fn(() => Promise.resolve({ data: [] })),
+    getDashboardStats: vi.fn(() => Promise.resolve({
+      reservations_today: 0,
+      total_events: 0,
+      occupancy: 0
+    })),
+    createReservation: vi.fn(() => Promise.resolve({ success: true })),
+    updateReservation: vi.fn(() => Promise.resolve({ success: true }))
+  }
+}))
+
+vi.mock('@/services/ProductsApi', () => ({
+  default: {
+    getProducts: vi.fn(() => Promise.resolve({ data: [] }))
+  }
+}))
+
 config.global.mocks = {
-  $t: (key) => key, // Mock i18n
+  $t: (key) => key,
   $route: { params: {}, query: {} },
   $router: { push: vi.fn(), replace: vi.fn() }
 }
 
-// Helpers globaux pour les tests
-global.testHelpers = {
-  // Helper pour créer un mock d'événement FullCalendar
-  createMockCalendarEvent: (overrides = {}) => ({
-    id: '1',
-    title: 'Test Event',
-    start: '2024-03-15T14:00:00',
-    end: '2024-03-18T11:00:00',
-    type: 'reservation',
-    backgroundColor: '#28a745',
-    extendedProps: {
-      customer: { name: 'Test', last_name: 'User', email: 'test@test.com' },
-      product: { name: 'Test Product' },
-      status: 'confirmed',
-      amount: 450
-    },
-    ...overrides
-  }),
-
-  // Helper pour créer un mock de produit
-  createMockProduct: (type = 'room', overrides = {}) => ({
-    id: 1,
-    name: 'Test Product',
-    price: 100,
-    description: 'Test description',
-    typeConfig: { label: type === 'room' ? 'Hébergements' : 'Activités' },
-    productableData: type === 'room' ? { capacity: 4 } : { duration: 120 },
-    ...overrides
-  }),
-
-  // Helper pour créer des données de réservation
-  createMockReservationData: (overrides = {}) => ({
-    checkin: '2024-03-15',
-    checkout: '2024-03-18',
-    amount: '450.00',
-    customer_data: {
-      email: 'test@test.com',
-      name: 'Test',
-      last_name: 'User',
-      phone: '+33123456789'
-    },
-    number_of_adults: 2,
-    number_of_children: 0,
-    product_id: 1,
-    ...overrides
-  }),
-
-  // Helper pour attendre les mises à jour asynchrones
-  waitFor: async (callback, options = {}) => {
-    const { timeout = 1000, interval = 50 } = options
-    const start = Date.now()
-    
-    while (Date.now() - start < timeout) {
-      try {
-        const result = await callback()
-        if (result) return result
-      } catch (e) {
-        // Ignorer les erreurs et continuer à essayer
-      }
-      await new Promise(resolve => setTimeout(resolve, interval))
-    }
-    
-    throw new Error(`waitFor timeout after ${timeout}ms`)
-  }
-}
+global.mockCalendarApi = mockCalendarApi

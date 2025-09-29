@@ -1,0 +1,340 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\Invoice;
+use App\Models\Reservation;
+use App\Models\Customer;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
+
+class InvoiceService
+{
+    /**
+     * Créer une facture depuis une réservation
+     */
+    public function createFromReservation(Reservation $reservation): Invoice
+    {
+        Log::info('🧾 Création facture depuis réservation', [
+            'reservation_id' => $reservation->id,
+            'customer_id' => $reservation->customer_id,
+            'amount' => $reservation->amount
+        ]);
+
+        // Vérifier qu'une facture n'existe pas déjà
+        if (Invoice::existsForReservation($reservation->id)) {
+            throw new \Exception("Une facture existe déjà pour cette réservation");
+        }
+
+        // Vérifier que la réservation a un client
+        if (!$reservation->customer_id) {
+            throw new \Exception("La réservation doit avoir un client");
+        }
+
+        // Déterminer le statut initial en fonction du paiement
+        $status = match ($reservation->payment_status) {
+            'paid' => Invoice::STATUS_PAID,
+            'pending' => Invoice::STATUS_UNPAID,
+            'canceled' => Invoice::STATUS_CANCELLED,
+            default => Invoice::STATUS_UNPAID
+        };
+
+        // Préparer les données de la facture
+        $invoiceData = [
+            'customer_id' => $reservation->customer_id,
+            'reservation_id' => $reservation->id,
+            'amount' => $reservation->amount,
+            'issue_date' => Carbon::now(),
+            'due_date' => Carbon::now()->addDays(30), // 30 jours par défaut
+            'status' => $status,
+            'notes' => $this->generateInvoiceNotes($reservation),
+        ];
+
+        // Si déjà payée, ajouter les infos de paiement
+        if ($status === Invoice::STATUS_PAID) {
+            $invoiceData['payment_date'] = Carbon::now();
+            $invoiceData['payment_method'] = $reservation->payment_method ?? Invoice::PAYMENT_METHOD_CARD;
+        }
+
+        // Créer la facture
+        $invoice = Invoice::create($invoiceData);
+
+        Log::info('✅ Facture créée depuis réservation', [
+            'invoice_id' => $invoice->id,
+            'invoice_number' => $invoice->invoice_number,
+            'amount' => $invoice->amount,
+            'status' => $invoice->status
+        ]);
+
+        return $invoice->load(['customer', 'reservation']);
+    }
+
+    /**
+     * Synchroniser le montant de la facture avec la réservation
+     */
+    public function syncAmountFromReservation(Invoice $invoice, Reservation $reservation): Invoice
+    {
+        Log::info('🔄 Synchronisation montant facture', [
+            'invoice_id' => $invoice->id,
+            'old_amount' => $invoice->amount,
+            'new_amount' => $reservation->amount
+        ]);
+
+        // Ne pas modifier une facture déjà payée
+        if ($invoice->status === Invoice::STATUS_PAID) {
+            Log::warning('⚠️ Impossible de modifier une facture payée', [
+                'invoice_id' => $invoice->id
+            ]);
+            throw new \Exception("Impossible de modifier une facture payée");
+        }
+
+        $invoice->update([
+            'amount' => $reservation->amount
+        ]);
+
+        Log::info('✅ Montant facture synchronisé', [
+            'invoice_id' => $invoice->id,
+            'new_amount' => $invoice->amount
+        ]);
+
+        return $invoice->fresh();
+    }
+
+    /**
+     * Générer le PDF de la facture
+     */
+    public function generatePdf(Invoice $invoice): \Barryvdh\DomPDF\PDF
+    {
+        Log::info('📄 Génération PDF facture', [
+            'invoice_id' => $invoice->id,
+            'invoice_number' => $invoice->invoice_number
+        ]);
+
+        // Charger les relations nécessaires
+        $invoice->load(['customer', 'reservation.product']);
+
+        // Préparer les données pour la vue
+        $data = [
+            'invoice' => $invoice,
+            'customer' => $invoice->customer,
+            'reservation' => $invoice->reservation,
+            'company' => $this->getCompanyInfo(),
+            'items' => $this->getInvoiceItems($invoice),
+        ];
+
+        // Générer le PDF avec DomPDF
+        $pdf = Pdf::loadView('invoices.pdf', $data);
+
+        // Options PDF
+        $pdf->setPaper('a4', 'portrait');
+
+        // Sauvegarder le PDF sur le serveur
+        $pdfPath = "invoices/{$invoice->invoice_number}.pdf";
+        $fullPath = storage_path("app/public/{$pdfPath}");
+
+        // Créer le dossier si nécessaire
+        if (!is_dir(dirname($fullPath))) {
+            mkdir(dirname($fullPath), 0775, true);
+        }
+
+        $pdf->save($fullPath);
+
+        // Mettre à jour le chemin dans la base
+        $invoice->update(['pdf_path' => $pdfPath]);
+
+        Log::info('✅ PDF généré et sauvegardé', [
+            'invoice_id' => $invoice->id,
+            'pdf_path' => $pdfPath
+        ]);
+
+        return $pdf;
+    }
+
+    /**
+     * Envoyer la facture par email
+     */
+    public function sendEmail(Invoice $invoice): void
+    {
+        Log::info('📧 Envoi email facture', [
+            'invoice_id' => $invoice->id,
+            'customer_email' => $invoice->customer->email ?? 'N/A'
+        ]);
+
+        // Vérifier que le client a un email
+        if (!$invoice->customer || !$invoice->customer->email) {
+            throw new \Exception("Le client n'a pas d'adresse email");
+        }
+
+        // Charger les relations
+        $invoice->load(['customer', 'reservation.product']);
+
+        // Générer le PDF
+        $pdf = $this->generatePdf($invoice);
+
+        // Préparer les données pour l'email
+        $emailData = $invoice->email_data;
+
+        // Envoyer l'email
+        Mail::send('invoices.email', $emailData, function ($message) use ($invoice, $pdf) {
+            $message->to($invoice->customer->email, $invoice->customer_name)
+                ->subject("Facture {$invoice->invoice_number} - CampCameleonX")
+                ->attachData($pdf->output(), "{$invoice->invoice_number}.pdf", [
+                    'mime' => 'application/pdf',
+                ]);
+        });
+
+        // Mettre à jour les informations d'envoi
+        $invoice->update([
+            'sent_at' => Carbon::now(),
+            'sent_count' => $invoice->sent_count + 1,
+        ]);
+
+        Log::info('✅ Email facture envoyé', [
+            'invoice_id' => $invoice->id,
+            'to' => $invoice->customer->email,
+            'sent_count' => $invoice->sent_count
+        ]);
+    }
+
+    /**
+     * Générer les notes automatiques de la facture
+     */
+    private function generateInvoiceNotes(Reservation $reservation): string
+    {
+        $notes = [];
+
+        // Dates de séjour
+        if ($reservation->checkin && $reservation->checkout) {
+            $notes[] = "Séjour du {$reservation->checkin->format('d/m/Y')} au {$reservation->checkout->format('d/m/Y')}";
+        }
+
+        // Produit/Hébergement
+        if ($reservation->product) {
+            $notes[] = "Hébergement: {$reservation->product->name}";
+        }
+
+        // Nombre de personnes
+        $guests = [];
+        if ($reservation->number_of_adults > 0) {
+            $guests[] = "{$reservation->number_of_adults} adulte(s)";
+        }
+        if ($reservation->number_of_children > 0) {
+            $guests[] = "{$reservation->number_of_children} enfant(s)";
+        }
+        if (!empty($guests)) {
+            $notes[] = implode(', ', $guests);
+        }
+
+        // Commentaire de la réservation
+        if ($reservation->comment) {
+            $notes[] = "Note: {$reservation->comment}";
+        }
+
+        return implode("\n", $notes);
+    }
+
+    /**
+     * Récupérer les informations de l'entreprise pour la facture
+     */
+    private function getCompanyInfo(): array
+    {
+        return [
+            'name' => config('app.name', 'CampCameleonX'),
+            'address' => 'Désert du Maroc',
+            'city' => 'Merzouga',
+            'postal_code' => '52202',
+            'country' => 'Maroc',
+            'phone' => '+212 XXX XXX XXX',
+            'email' => 'contact@campcameleonx.com',
+            'website' => 'www.campcameleonx.com',
+            'siret' => 'XXX XXX XXX XXXXX', // À remplacer
+            'tva' => 'MAXXXXXX', // Numéro de TVA si applicable
+        ];
+    }
+
+    /**
+     * Récupérer les lignes de la facture
+     */
+    private function getInvoiceItems(Invoice $invoice): array
+    {
+        $items = [];
+
+        if ($invoice->reservation) {
+            $reservation = $invoice->reservation;
+
+            // Ligne principale : hébergement
+            $items[] = [
+                'description' => $reservation->product?->name ?? 'Séjour',
+                'quantity' => 1,
+                'unit_price' => $invoice->amount,
+                'total' => $invoice->amount,
+                'details' => $this->getItemDetails($reservation),
+            ];
+
+            // TODO: Ajouter les services supplémentaires si vous gérez ça
+            // (activités, menus, etc.)
+        } else {
+            // Facture sans réservation liée
+            $items[] = [
+                'description' => 'Prestation',
+                'quantity' => 1,
+                'unit_price' => $invoice->amount,
+                'total' => $invoice->amount,
+                'details' => null,
+            ];
+        }
+
+        return $items;
+    }
+
+    /**
+     * Récupérer les détails d'une ligne de facture
+     */
+    private function getItemDetails(Reservation $reservation): ?string
+    {
+        $details = [];
+
+        if ($reservation->checkin && $reservation->checkout) {
+            $nights = $reservation->checkin->diffInDays($reservation->checkout);
+            $details[] = "{$nights} nuit(s)";
+        }
+
+        if ($reservation->number_of_adults > 0) {
+            $details[] = "{$reservation->number_of_adults} adulte(s)";
+        }
+
+        if ($reservation->number_of_children > 0) {
+            $details[] = "{$reservation->number_of_children} enfant(s)";
+        }
+
+        return !empty($details) ? implode(' • ', $details) : null;
+    }
+
+    /**
+     * Calculer le total des factures impayées d'un client
+     */
+    public function getCustomerUnpaidTotal(int $customerId): float
+    {
+        return Invoice::forCustomer($customerId)
+            ->unpaid()
+            ->sum('amount');
+    }
+
+    /**
+     * Marquer les factures en retard automatiquement (commande CRON)
+     */
+    public function updateOverdueInvoices(): int
+    {
+        Log::info('🔄 Mise à jour automatique des factures en retard');
+
+        $count = Invoice::where('status', Invoice::STATUS_UNPAID)
+            ->where('due_date', '<', Carbon::now())
+            ->update(['status' => Invoice::STATUS_OVERDUE]);
+
+        Log::info("✅ {$count} facture(s) marquée(s) comme en retard");
+
+        return $count;
+    }
+}

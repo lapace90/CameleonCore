@@ -1,4 +1,3 @@
-
 networks:
   backend:
     driver: bridge
@@ -31,6 +30,36 @@ services:
         php artisan --verbose migrate &&
         php artisan serve --host=0.0.0.0 --port=8000
       "
+
+  # 🆕 SERVICE SCHEDULER - Gestion automatique des tâches planifiées
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mySchedulerX
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - app
+    networks:
+      - backend
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    command: >
+      sh -c "
+        echo '🕒 Scheduler démarré - Vérification des tâches planifiées toutes les minutes' &&
+        while true; do
+          php artisan schedule:run --verbose &&
+          sleep 60
+        done
+      "
+    restart: unless-stopped
+
   frontend:
     build:
       context: ./frontend
@@ -64,6 +93,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
 volumes:
   campcameleonx_postgres_data:
     driver: local

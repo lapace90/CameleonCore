@@ -115,8 +115,9 @@ export default {
       eventToDelete: null,
       currentEvent: this.getEmptyEvent(),
       isLoading: false,
-      showDetails: false,         // 👈 AJOUT
+      showDetails: false,
       selectedDetail: null,
+      selectedEvent: null,
 
       availableViews: [
         { value: 'dayGridMonth', label: 'Mois', icon: 'fas fa-calendar' },
