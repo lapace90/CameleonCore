@@ -14,10 +14,6 @@
           <i class="fas fa-sync"></i>
           Actualiser
         </button>
-        <button type="button" class="btn btn-primary btn-sm" @click="$router.push({ name: 'InvoiceCreate' })">
-          <i class="fas fa-plus"></i>
-          Nouvelle Facture
-        </button>
       </div>
     </div>
 

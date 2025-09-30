@@ -1,389 +1,385 @@
 <template>
-  <div class="invoices-list">
-    <!-- Header -->
-    <div class="page-header">
-      <div class="header-left">
-        <h1><i class="fas fa-file-invoice"></i> Factures</h1>
-        <p class="subtitle">Gérez vos factures et suivez les paiements</p>
-      </div>
-      <div class="header-right">
-        <router-link to="/admin/invoices/new" class="btn btn-primary">
-          <i class="fas fa-plus"></i> Nouvelle facture
-        </router-link>
-      </div>
+  <div class="product-detail-container">
+    <!-- Loading -->
+    <div v-if="loading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Chargement de la facture...</p>
     </div>
 
-    <!-- Quick Stats -->
-    <div class="quick-stats" v-if="stats">
-      <div class="stat-card">
-        <div class="stat-icon" style="background: #5e72e4;">
-          <i class="fas fa-file-invoice-dollar"></i>
-        </div>
-        <div class="stat-content">
-          <div class="stat-label">Total Factures</div>
-          <div class="stat-value">{{ stats.counts?.total || 0 }}</div>
-        </div>
+    <!-- Erreur -->
+    <div v-else-if="error" class="error-state">
+      <div class="error-icon">
+        <i class="fas fa-exclamation-triangle"></i>
       </div>
-
-      <div class="stat-card">
-        <div class="stat-icon" style="background: #2dce89;">
-          <i class="fas fa-check-circle"></i>
-        </div>
-        <div class="stat-content">
-          <div class="stat-label">Payées</div>
-          <div class="stat-value">{{ stats.counts?.paid || 0 }}</div>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon" style="background: #fb6340;">
-          <i class="fas fa-exclamation-circle"></i>
-        </div>
-        <div class="stat-content">
-          <div class="stat-label">En retard</div>
-          <div class="stat-value">{{ stats.counts?.overdue || 0 }}</div>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon" style="background: #11cdef;">
-          <i class="fas fa-euro-sign"></i>
-        </div>
-        <div class="stat-content">
-          <div class="stat-label">Revenus</div>
-          <div class="stat-value">{{ formatCurrency(stats.revenue?.total || 0) }}</div>
-        </div>
-      </div>
+      <h3>{{ error }}</h3>
+      <router-link to="/admin/invoices" class="btn btn-primary btn-sm mt-6">
+        <i class="fas fa-arrow-left"></i>
+        Retour aux factures
+      </router-link>
     </div>
 
-    <!-- Filters -->
-    <div class="filters-section card">
-      <div class="filters-grid">
-        <div class="filter-item">
-          <label>Statut</label>
-          <select v-model="localFilters.status" @change="applyFilters">
-            <option value="">Tous</option>
-            <option value="paid">Payées</option>
-            <option value="pending">Non payées</option>
-            <option value="overdue">En retard</option>
-            <option value="canceled">Annulées</option>
-          </select>
+    <!-- Contenu principal -->
+    <div v-else-if="invoice">
+      <!-- Header avec navigation -->
+      <div class="detail-header">
+        <div class="header-navigation">
+          <router-link to="/admin/invoices" class="back-link">
+            <i class="fas fa-arrow-left"></i>
+            Retour aux factures
+          </router-link>
         </div>
 
-        <div class="filter-item">
-          <label>Recherche</label>
-          <input
-            type="text"
-            v-model="localFilters.search"
-            @input="debouncedSearch"
-            placeholder="Numéro, client..."
-          />
-        </div>
-
-        <div class="filter-item">
-          <label>Date début</label>
-          <input type="date" v-model="localFilters.start_date" @change="applyFilters" />
-        </div>
-
-        <div class="filter-item">
-          <label>Date fin</label>
-          <input type="date" v-model="localFilters.end_date" @change="applyFilters" />
-        </div>
-
-        <div class="filter-item">
-          <label>Par page</label>
-          <select v-model.number="localFilters.per_page" @change="applyFilters">
-            <option :value="10">10</option>
-            <option :value="15">15</option>
-            <option :value="25">25</option>
-            <option :value="50">50</option>
-          </select>
-        </div>
-
-        <div class="filter-actions">
-          <button @click="resetFilters" class="btn btn-outline btn-sm">
-            <i class="fas fa-redo"></i> Réinitialiser
+        <div class="header-actions">
+          <button 
+            v-if="canBePaid" 
+            @click="handleMarkAsPaid" 
+            class="btn btn-success btn-sm"
+            :disabled="actionLoading"
+          >
+            <i class="fas fa-check-circle"></i>
+            Marquer payée
+          </button>
+          
+          <button 
+            @click="handleSendEmail" 
+            class="btn btn-primary btn-sm"
+            :disabled="actionLoading || !invoice.customer?.email"
+          >
+            <i class="fas fa-envelope"></i>
+            {{ invoice.sent_count > 0 ? 'Renvoyer' : 'Envoyer' }}
+          </button>
+          
+          <button 
+            @click="handleDownloadPdf" 
+            class="btn btn-secondary btn-sm"
+            :disabled="actionLoading"
+          >
+            <i class="fas fa-download"></i>
+            Télécharger PDF
+          </button>
+          
+          <button 
+            v-if="canBeCanceled"
+            @click="handleCancel" 
+            class="btn btn-danger btn-sm"
+            :disabled="actionLoading"
+          >
+            <i class="fas fa-ban"></i>
+            Annuler
           </button>
         </div>
       </div>
-    </div>
 
-    <!-- Error Message -->
-    <div v-if="error" class="alert alert-danger">
-      <i class="fas fa-exclamation-triangle"></i>
-      {{ error }}
-    </div>
+      <!-- Titre et statut -->
+      <div class="product-title-section">
+        <div class="title-left">
+          <h1 class="product-title">{{ invoice.invoice_number }}</h1>
+          <p class="product-category">Facture</p>
+        </div>
 
-    <!-- Loading -->
-    <div v-if="loading" class="loading-container">
-      <div class="spinner"></div>
-      <p>Chargement des factures...</p>
-    </div>
-
-    <!-- Table -->
-    <div v-else-if="invoices.length > 0" class="card">
-      <div class="table-responsive">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th @click="sort('invoice_number')" class="sortable">
-                Numéro
-                <i class="fas fa-sort"></i>
-              </th>
-              <th>Client</th>
-              <th @click="sort('issue_date')" class="sortable">
-                Date émission
-                <i class="fas fa-sort"></i>
-              </th>
-              <th>Date échéance</th>
-              <th @click="sort('amount')" class="sortable">
-                Montant
-                <i class="fas fa-sort"></i>
-              </th>
-              <th>Statut</th>
-              <th class="text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="invoice in invoices" :key="invoice.id">
-              <td>
-                <router-link 
-                  :to="`/admin/invoices/${invoice.id}`"
-                  class="invoice-link"
-                >
-                  <strong>{{ invoice.invoice_number }}</strong>
-                </router-link>
-              </td>
-              <td>
-                <div class="customer-info">
-                  <div class="customer-name">{{ invoice.customer_name }}</div>
-                  <div class="customer-email">{{ invoice.customer?.email }}</div>
-                </div>
-              </td>
-              <td>{{ formatDate(invoice.issue_date) }}</td>
-              <td>
-                <span :class="{ 'text-danger': invoice.is_overdue }">
-                  {{ formatDate(invoice.due_date) }}
-                  <i v-if="invoice.is_overdue" class="fas fa-exclamation-circle"></i>
-                </span>
-              </td>
-              <td>
-                <strong>{{ invoice.formatted_amount }}</strong>
-              </td>
-              <td>
-                <span :class="['badge', `badge-${invoice.status_color}`]">
-                  {{ invoice.status_label }}
-                </span>
-              </td>
-              <td class="text-right">
-                <div class="action-buttons">
-                  <router-link
-                    :to="`/admin/invoices/${invoice.id}`"
-                    class="btn btn-sm btn-icon"
-                    title="Détails"
-                  >
-                    <i class="fas fa-eye"></i>
-                  </router-link>
-
-                  <button
-                    @click="handleDownloadPdf(invoice.id)"
-                    class="btn btn-sm btn-icon"
-                    title="Télécharger PDF"
-                  >
-                    <i class="fas fa-file-pdf"></i>
-                  </button>
-
-                  <button
-                    v-if="invoice.can_be_paid"
-                    @click="handleMarkAsPaid(invoice)"
-                    class="btn btn-sm btn-icon btn-success"
-                    title="Marquer comme payée"
-                  >
-                    <i class="fas fa-check"></i>
-                  </button>
-
-                  <button
-                    @click="handleSendEmail(invoice)"
-                    class="btn btn-sm btn-icon btn-primary"
-                    title="Envoyer par email"
-                  >
-                    <i class="fas fa-envelope"></i>
-                  </button>
-
-                  <button
-                    v-if="invoice.can_be_modified"
-                    @click="handleDelete(invoice)"
-                    class="btn btn-sm btn-icon btn-danger"
-                    title="Supprimer"
-                  >
-                    <i class="fas fa-trash"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="title-right">
+          <span class="status-badge" :class="getStatusClass(invoice.status)">
+            {{ getStatusLabel(invoice.status) }}
+          </span>
+          <div class="amount-display">
+            {{ formatCurrency(invoice.amount) }}
+          </div>
+        </div>
       </div>
 
-      <!-- Pagination -->
-      <div class="pagination" v-if="pagination.last_page > 1">
-        <button
-          @click="goToPage(pagination.current_page - 1)"
-          :disabled="pagination.current_page === 1"
-          class="btn btn-sm btn-outline"
-        >
-          <i class="fas fa-chevron-left"></i>
-        </button>
-
-        <span class="page-info">
-          Page {{ pagination.current_page }} sur {{ pagination.last_page }}
-          ({{ pagination.total }} factures)
-        </span>
-
-        <button
-          @click="goToPage(pagination.current_page + 1)"
-          :disabled="pagination.current_page === pagination.last_page"
-          class="btn btn-sm btn-outline"
-        >
-          <i class="fas fa-chevron-right"></i>
-        </button>
+      <!-- Informations générales -->
+      <div class="info-section">
+        <h3>Informations générales</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Numéro de facture</label>
+            <span>{{ invoice.invoice_number }}</span>
+          </div>
+          
+          <div class="info-item">
+            <label>Montant</label>
+            <span class="amount-text">{{ formatCurrency(invoice.amount) }}</span>
+          </div>
+          
+          <div class="info-item">
+            <label>Date d'émission</label>
+            <span>{{ formatDate(invoice.issue_date) }}</span>
+          </div>
+          
+          <div class="info-item">
+            <label>Date d'échéance</label>
+            <span>{{ formatDate(invoice.due_date) }}</span>
+          </div>
+          
+          <div v-if="invoice.payment_date" class="info-item">
+            <label>Date de paiement</label>
+            <span>{{ formatDate(invoice.payment_date) }}</span>
+          </div>
+          
+          <div v-if="invoice.payment_method" class="info-item">
+            <label>Méthode de paiement</label>
+            <span>{{ getPaymentMethodLabel(invoice.payment_method) }}</span>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <!-- Empty State -->
-    <div v-else class="empty-state card">
-      <i class="fas fa-file-invoice fa-3x"></i>
-      <h3>Aucune facture trouvée</h3>
-      <p>Créez votre première facture ou ajustez vos filtres</p>
-      <router-link to="/admin/invoices/new" class="btn btn-primary">
-        <i class="fas fa-plus"></i> Créer une facture
-      </router-link>
+      <!-- Informations client -->
+      <div v-if="invoice.customer" class="info-section">
+        <h3>Client</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Nom</label>
+            <span>{{ invoice.customer.name }} {{ invoice.customer.last_name || '' }}</span>
+          </div>
+          
+          <div v-if="invoice.customer.email" class="info-item">
+            <label>Email</label>
+            <span>{{ invoice.customer.email }}</span>
+          </div>
+          
+          <div v-if="invoice.customer.phone" class="info-item">
+            <label>Téléphone</label>
+            <span>{{ invoice.customer.phone }}</span>
+          </div>
+          
+          <div v-if="invoice.customer.address" class="info-item full-width">
+            <label>Adresse</label>
+            <span>{{ invoice.customer.address }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Informations réservation -->
+      <div v-if="invoice.reservation" class="info-section">
+        <h3>Réservation associée</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Référence réservation</label>
+            <span>{{ invoice.reservation.invoice_number }}</span>
+          </div>
+          
+          <div v-if="invoice.reservation.checkin" class="info-item">
+            <label>Check-in</label>
+            <span>{{ formatDate(invoice.reservation.checkin) }}</span>
+          </div>
+          
+          <div v-if="invoice.reservation.checkout" class="info-item">
+            <label>Check-out</label>
+            <span>{{ formatDate(invoice.reservation.checkout) }}</span>
+          </div>
+          
+          <div v-if="invoice.reservation.product" class="info-item">
+            <label>Produit</label>
+            <span>{{ invoice.reservation.product.name }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Historique -->
+      <div class="info-section">
+        <h3>Historique</h3>
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-icon created">
+              <i class="fas fa-plus-circle"></i>
+            </div>
+            <div class="timeline-content">
+              <div class="timeline-title">Facture créée</div>
+              <div class="timeline-date">{{ formatDate(invoice.created_at) }}</div>
+            </div>
+          </div>
+          
+          <div v-if="invoice.sent_at" class="timeline-item">
+            <div class="timeline-icon sent">
+              <i class="fas fa-envelope"></i>
+            </div>
+            <div class="timeline-content">
+              <div class="timeline-title">
+                Envoyée par email
+                <span v-if="invoice.sent_count > 1" class="sent-count">({{ invoice.sent_count }}x)</span>
+              </div>
+              <div class="timeline-date">{{ formatDate(invoice.sent_at) }}</div>
+            </div>
+          </div>
+          
+          <div v-if="invoice.payment_date" class="timeline-item">
+            <div class="timeline-icon paid">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="timeline-content">
+              <div class="timeline-title">Paiement reçu</div>
+              <div class="timeline-date">{{ formatDate(invoice.payment_date) }}</div>
+            </div>
+          </div>
+          
+          <div v-if="invoice.status === 'canceled'" class="timeline-item">
+            <div class="timeline-icon canceled">
+              <i class="fas fa-ban"></i>
+            </div>
+            <div class="timeline-content">
+              <div class="timeline-title">Facture annulée</div>
+              <div class="timeline-date">{{ formatDate(invoice.updated_at) }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div v-if="invoice.notes" class="info-section">
+        <h3>Notes</h3>
+        <div class="notes-content">
+          {{ invoice.notes }}
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useInvoiceStore } from '@/shared/stores/invoice'
 
+const route = useRoute()
 const router = useRouter()
 const invoiceStore = useInvoiceStore()
 
 // Refs
-const localFilters = ref({ ...invoiceStore.filters })
-const searchTimeout = ref(null)
+const loading = ref(false)
+const error = ref(null)
+const actionLoading = ref(false)
 
 // Computed
-const invoices = computed(() => invoiceStore.invoices)
-const stats = computed(() => invoiceStore.stats)
-const loading = computed(() => invoiceStore.loading)
-const error = computed(() => invoiceStore.error)
-const pagination = computed(() => invoiceStore.pagination)
+const invoice = computed(() => invoiceStore.currentInvoice)
+
+const canBePaid = computed(() => {
+  return invoice.value && 
+         (invoice.value.status === 'pending' || invoice.value.status === 'overdue')
+})
+
+const canBeCanceled = computed(() => {
+  return invoice.value && invoice.value.status !== 'canceled' && invoice.value.status !== 'paid'
+})
 
 // Methods
-async function loadInvoices(page = 1) {
+async function loadInvoice() {
+  loading.value = true
+  error.value = null
+  
   try {
-    await invoiceStore.fetchInvoices(page)
+    await invoiceStore.fetchInvoiceById(route.params.id, true)
   } catch (err) {
-    console.error('Erreur chargement factures:', err)
+    error.value = err.message || 'Erreur lors du chargement de la facture'
+  } finally {
+    loading.value = false
   }
 }
 
-async function loadStats() {
-  try {
-    await invoiceStore.fetchStats()
-  } catch (err) {
-    console.error('Erreur chargement stats:', err)
-  }
-}
-
-function applyFilters() {
-  invoiceStore.setFilters(localFilters.value)
-  loadInvoices(1)
-}
-
-function debouncedSearch() {
-  clearTimeout(searchTimeout.value)
-  searchTimeout.value = setTimeout(() => {
-    applyFilters()
-  }, 500)
-}
-
-function resetFilters() {
-  invoiceStore.resetFilters()
-  localFilters.value = { ...invoiceStore.filters }
-  loadInvoices(1)
-}
-
-function sort(field) {
-  if (localFilters.value.sort_by === field) {
-    localFilters.value.sort_order = localFilters.value.sort_order === 'asc' ? 'desc' : 'asc'
-  } else {
-    localFilters.value.sort_by = field
-    localFilters.value.sort_order = 'desc'
-  }
-  applyFilters()
-}
-
-function goToPage(page) {
-  if (page >= 1 && page <= pagination.value.last_page) {
-    loadInvoices(page)
-  }
-}
-
-async function handleMarkAsPaid(invoice) {
-  if (!confirm(`Marquer la facture ${invoice.invoice_number} comme payée ?`)) {
+async function handleMarkAsPaid() {
+  if (!confirm(`Marquer la facture ${invoice.value.invoice_number} comme payée ?`)) {
     return
   }
 
+  actionLoading.value = true
   try {
-    await invoiceStore.markAsPaid(invoice.id, 'card')
+    await invoiceStore.markAsPaid(invoice.value.id, 'card')
     alert('✅ Facture marquée comme payée')
-    loadInvoices(pagination.value.current_page)
+    await loadInvoice()
   } catch (err) {
     alert(`❌ Erreur : ${err.message}`)
+  } finally {
+    actionLoading.value = false
   }
 }
 
-async function handleSendEmail(invoice) {
-  if (!confirm(`Envoyer la facture ${invoice.invoice_number} par email à ${invoice.customer?.email} ?`)) {
+async function handleSendEmail() {
+  if (!invoice.value.customer?.email) {
+    alert('❌ Le client n\'a pas d\'adresse email')
     return
   }
 
+  const action = invoice.value.sent_count > 0 ? 'Renvoyer' : 'Envoyer'
+  if (!confirm(`${action} la facture ${invoice.value.invoice_number} par email à ${invoice.value.customer.email} ?`)) {
+    return
+  }
+
+  actionLoading.value = true
   try {
-    await invoiceStore.sendEmail(invoice.id)
+    await invoiceStore.sendEmail(invoice.value.id)
     alert('✅ Email envoyé avec succès')
+    await loadInvoice()
   } catch (err) {
     alert(`❌ Erreur : ${err.message}`)
+  } finally {
+    actionLoading.value = false
   }
 }
 
-async function handleDownloadPdf(id) {
+async function handleDownloadPdf() {
+  actionLoading.value = true
   try {
-    await invoiceStore.downloadPdf(id)
+    await invoiceStore.downloadPdf(invoice.value.id)
   } catch (err) {
-    alert(`❌ Erreur téléchargement PDF : ${err.message}`)
+    alert(`❌ Erreur : ${err.message}`)
+  } finally {
+    actionLoading.value = false
   }
 }
 
-async function handleDelete(invoice) {
-  if (!confirm(`Supprimer la facture ${invoice.invoice_number} ?\n\nCette action est irréversible.`)) {
+async function handleCancel() {
+  if (!confirm(`Annuler la facture ${invoice.value.invoice_number} ?\n\nCette action ne peut pas être annulée.`)) {
     return
   }
 
+  actionLoading.value = true
   try {
-    await invoiceStore.deleteInvoice(invoice.id)
-    alert('✅ Facture supprimée')
-    loadInvoices(pagination.value.current_page)
+    await invoiceStore.cancelInvoice(invoice.value.id, 'Annulée manuellement')
+    alert('✅ Facture annulée')
+    await loadInvoice()
   } catch (err) {
     alert(`❌ Erreur : ${err.message}`)
+  } finally {
+    actionLoading.value = false
   }
+}
+
+function getStatusClass(status) {
+  const classes = {
+    paid: 'status-active',
+    pending: 'status-draft',
+    overdue: 'status-inactive',
+    canceled: 'status-inactive'
+  }
+  return classes[status] || 'status-draft'
+}
+
+function getStatusLabel(status) {
+  const labels = {
+    paid: 'Payée',
+    pending: 'En attente',
+    overdue: 'En retard',
+    canceled: 'Annulée'
+  }
+  return labels[status] || status
+}
+
+function getPaymentMethodLabel(method) {
+  const labels = {
+    card: 'Carte bancaire',
+    cash: 'Espèces',
+    transfer: 'Virement',
+    check: 'Chèque'
+  }
+  return labels[method] || method
 }
 
 function formatDate(date) {
   if (!date) return '-'
-  return new Date(date).toLocaleDateString('fr-FR')
+  return new Date(date).toLocaleDateString('fr-FR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
 }
 
 function formatCurrency(amount) {
@@ -395,176 +391,231 @@ function formatCurrency(amount) {
 
 // Lifecycle
 onMounted(() => {
-  loadInvoices()
-  loadStats()
+  loadInvoice()
 })
 </script>
 
 <style scoped>
-.invoices-list {
+/* Réutilisation des classes existantes */
+.product-detail-container {
   padding: 20px;
+  width: 70%;
 }
 
-.page-header {
+.loading-state,
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-icon {
+  font-size: 48px;
+  color: #f5365c;
+  margin-bottom: 20px;
+}
+
+.header-navigation {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.back-link:hover {
+  color: #324cdd;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.product-title-section {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 30px;
-}
-
-.page-header h1 {
-  font-size: 28px;
-  font-weight: 600;
-  margin: 0;
-  color: #32325d;
-}
-
-.subtitle {
-  color: #8898aa;
-  margin: 5px 0 0;
-}
-
-/* Quick Stats */
-.quick-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 20px;
-  margin-bottom: 30px;
-}
-
-.stat-card {
+  padding: 20px;
   background: white;
   border-radius: 8px;
-  padding: 20px;
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.stat-icon {
-  width: 50px;
-  height: 50px;
-  border-radius: 8px;
+.product-category {
+  font-size: 14px;
+  color: #8898aa;
+  margin: 0;
+}
+
+.title-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.amount-display {
+  font-size: 32px;
+  font-weight: 700;
+  color: #2dce89;
+}
+
+.info-section h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #32325d;
+  margin: 0 0 20px 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 25px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.info-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.info-item label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #8898aa;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-item span {
+  font-size: 15px;
+  color: #32325d;
+  word-break: break-word;
+}
+
+.amount-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2dce89;
+}
+
+/* Timeline horizontale */
+.timeline {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  position: relative;
+  padding: 20px 0;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  top: 36px;
+  left: 5%;
+  right: 5%;
+  height: 2px;
+  background: #e9ecef;
+  z-index: 0;
+}
+
+.timeline-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.timeline-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-size: 20px;
-}
-
-.stat-label {
-  font-size: 13px;
+  background: white;
+  border: 3px solid #e9ecef;
   color: #8898aa;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-size: 18px;
+  margin-bottom: 15px;
 }
 
-.stat-value {
-  font-size: 24px;
-  font-weight: 600;
-  color: #32325d;
-}
-
-/* Filters */
-.filters-section {
-  margin-bottom: 20px;
-  padding: 20px;
-}
-
-.filters-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
-  align-items: end;
-}
-
-.filter-item label {
-  display: block;
-  font-size: 13px;
-  font-weight: 600;
-  color: #525f7f;
-  margin-bottom: 5px;
-}
-
-.filter-item input,
-.filter-item select {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-/* Table */
-.table-responsive {
-  overflow-x: auto;
-}
-
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.data-table thead {
-  background: #f6f9fc;
-}
-
-.data-table th {
-  padding: 15px;
-  text-align: left;
-  font-size: 12px;
-  font-weight: 600;
-  color: #8898aa;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.data-table th.sortable {
-  cursor: pointer;
-  user-select: none;
-}
-
-.data-table th.sortable:hover {
-  background: #e9ecef;
-}
-
-.data-table td {
-  padding: 15px;
-  border-bottom: 1px solid #e9ecef;
-  font-size: 14px;
-  color: #525f7f;
-}
-
-.invoice-link {
+.timeline-icon.created {
+  border-color: #5e72e4;
   color: #5e72e4;
-  text-decoration: none;
-  font-weight: 600;
+  background: #f0f3ff;
 }
 
-.invoice-link:hover {
-  text-decoration: underline;
+.timeline-icon.sent {
+  border-color: #11cdef;
+  color: #11cdef;
+  background: #e8f9fd;
 }
 
-.customer-info {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
+.timeline-icon.paid {
+  border-color: #2dce89;
+  color: #2dce89;
+  background: #e8f8f0;
 }
 
-.customer-name {
+.timeline-icon.canceled {
+  border-color: #f5365c;
+  color: #f5365c;
+  background: #fdebed;
+}
+
+.timeline-content {
+  max-width: 150px;
+}
+
+.timeline-title {
+  font-size: 13px;
   font-weight: 600;
   color: #32325d;
+  margin-bottom: 5px;
+  line-height: 1.3;
 }
 
-.customer-email {
-  font-size: 12px;
+.sent-count {
+  font-size: 11px;
+  color: #8898aa;
+  font-weight: 400;
+}
+
+.timeline-date {
+  font-size: 11px;
   color: #8898aa;
 }
 
-.badge {
-  padding: 5px 12px;
+.notes-content {
+  padding: 15px;
+  background: #f8f9fe;
+  border-radius: 6px;
+  color: #32325d;
+  line-height: 1.6;
+  white-space: pre-wrap;}
+
+/* Status badges */
+.status-badge {
+  padding: 6px 12px;
   border-radius: 20px;
   font-size: 12px;
   font-weight: 600;
@@ -572,78 +623,45 @@ onMounted(() => {
   letter-spacing: 0.5px;
 }
 
-.badge-success { background: #d4edda; color: #155724; }
-.badge-warning { background: #fff3cd; color: #856404; }
-.badge-danger { background: #f8d7da; color: #721c24; }
-.badge-secondary { background: #e2e3e5; color: #383d41; }
-
-/* Actions */
-.action-buttons {
-  display: flex;
-  gap: 5px;
-  justify-content: flex-end;
+.status-active {
+  background: #d4edda;
+  color: #155724;
 }
 
-.btn-icon {
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.status-draft {
+  background: #fff3cd;
+  color: #856404;
 }
 
-/* Pagination */
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-  padding: 20px;
-  border-top: 1px solid #e9ecef;
+.status-inactive {
+  background: #f8d7da;
+  color: #721c24;
 }
 
-.page-info {
-  font-size: 14px;
-  color: #525f7f;
+/* Responsive */
+@media (max-width: 1200px) {
+  .product-detail-container {
+    width: 85%;
+  }
 }
 
-/* Empty State */
-.empty-state {
-  text-align: center;
-  padding: 60px 20px;
-  color: #8898aa;
-}
+@media (max-width: 768px) {
+  .product-detail-container {
+    width: 100%;
+    padding: 15px;
+  }
+  
+  .timeline {
+    flex-direction: column;
+    gap: 20px;
+  }
 
-.empty-state i {
-  color: #dee2e6;
-  margin-bottom: 20px;
-}
+  .timeline::before {
+    display: none;
+  }
 
-.empty-state h3 {
-  font-size: 20px;
-  color: #32325d;
-  margin: 15px 0;
-}
-
-/* Loading */
-.loading-container {
-  text-align: center;
-  padding: 60px 20px;
-}
-
-.spinner {
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #5e72e4;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 20px;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  .timeline-content {
+    max-width: none;
+  }
 }
 </style>
