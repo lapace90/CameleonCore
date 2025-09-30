@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\State\CalendarProvider;
 use App\State\ReservationProvider;
 use App\State\ReservationProcessor;
+use App\State\Reservations\CheckInProcessor;
+use App\State\Reservations\CheckOutProcessor;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
@@ -23,36 +25,51 @@ use ApiPlatform\Metadata\Delete;
         // 🟢 Événements calendrier — collection dédiée, aucun risque de collision
         new GetCollection(
             uriTemplate: '/admin/calendar/events',
-            provider: CalendarProvider::class, 
+            provider: CalendarProvider::class,
             security: "is_granted('ROLE_ADMIN')",
             description: 'Tous les événements FullCalendar (réservations + événements)'
         ),
         // 🔵 CRUD admin standard avec relations
         new GetCollection(
-            uriTemplate: '/admin/reservations', 
+            uriTemplate: '/admin/reservations',
             provider: ReservationProvider::class,
             security: "is_granted('ROLE_ADMIN')"
         ),
         new Get(
-            uriTemplate: '/admin/reservations/{id}', 
+            uriTemplate: '/admin/reservations/{id}',
             provider: ReservationProvider::class,
             security: "is_granted('ROLE_ADMIN')"
         ),
-        
+
         new Post(
-            uriTemplate: '/admin/reservations', 
+            uriTemplate: '/admin/reservations',
             processor: ReservationProcessor::class,
             security: "is_granted('ROLE_ADMIN')"
         ),
         new Put(
-            uriTemplate: '/admin/reservations/{id}', 
+            uriTemplate: '/admin/reservations/{id}',
             processor: ReservationProcessor::class,
             security: "is_granted('ROLE_ADMIN')"
         ),
         new Delete(
-            uriTemplate: '/admin/reservations/{id}', 
+            uriTemplate: '/admin/reservations/{id}',
             processor: ReservationProcessor::class,
             security: "is_granted('ROLE_ADMIN')"
+        ),
+         new Post(
+            uriTemplate: '/admin/reservations/{id}/check-in',
+            name: 'reservation_check_in',
+            // readItem = true => API Platform charge $data (Reservation) et l’injecte au processor
+            read: true,
+            write: true,
+            processor: CheckInProcessor::class
+        ),
+        new Post(
+            uriTemplate: '/admin/reservations/{id}/check-out',
+            name: 'reservation_check_out',
+            read: true,
+            write: true,
+            processor: CheckOutProcessor::class
         ),
     ]
 )]
@@ -65,6 +82,8 @@ class Reservation extends Model
         'date',
         'checkin',
         'checkout',
+        'actual_checkin',
+        'actual_checkout',
         'amount',
         'invoice_number',
         'booking_source',
@@ -87,6 +106,8 @@ class Reservation extends Model
         'date' => 'datetime',
         'checkin' => 'datetime',
         'checkout' => 'datetime',
+        'actual_checkin' => 'datetime',
+        'actual_checkout' => 'datetime',
         'amount' => 'decimal:2',
     ];
 
@@ -123,13 +144,13 @@ class Reservation extends Model
 
     public function scopeByDateRange($query, $startDate, $endDate)
     {
-        return $query->where(function($q) use ($startDate, $endDate) {
+        return $query->where(function ($q) use ($startDate, $endDate) {
             $q->whereBetween('checkin', [$startDate, $endDate])
-              ->orWhereBetween('checkout', [$startDate, $endDate])
-              ->orWhere(function($inner) use ($startDate, $endDate) {
-                  $inner->where('checkin', '<=', $startDate)
+                ->orWhereBetween('checkout', [$startDate, $endDate])
+                ->orWhere(function ($inner) use ($startDate, $endDate) {
+                    $inner->where('checkin', '<=', $startDate)
                         ->where('checkout', '>=', $endDate);
-              });
+                });
         });
     }
 
@@ -159,12 +180,22 @@ class Reservation extends Model
 
         $checkin = $this->checkin instanceof \Carbon\Carbon ? $this->checkin : \Carbon\Carbon::parse($this->checkin);
         $checkout = $this->checkout instanceof \Carbon\Carbon ? $this->checkout : \Carbon\Carbon::parse($this->checkout);
-        
+
         return $checkin->diffInDays($checkout);
     }
 
     public function getTotalGuestsAttribute()
     {
         return ($this->number_of_adults ?? 0) + ($this->number_of_children ?? 0);
+    }
+
+    public function canCheckIn(): bool
+    {
+        return in_array($this->status, ['confirmed']) && is_null($this->actual_checkin);
+    }
+
+    public function canCheckOut(): bool
+    {
+        return in_array($this->status, ['checked_in']) && is_null($this->actual_checkout);
     }
 }

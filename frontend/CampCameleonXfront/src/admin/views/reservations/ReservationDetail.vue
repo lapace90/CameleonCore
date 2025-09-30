@@ -27,6 +27,15 @@
           <button @click="goBack" class="btn btn-secondary btn-sm">
             <i class="fas fa-arrow-left"></i> Retour
           </button>
+
+          <button v-if="reservation.status === 'confirmed'" class="btn btn-success btn-sm" @click="onCheckIn">
+            <i class="fas fa-door-open"></i> Faire check-in
+          </button>
+          <button v-if="reservation.status === 'checked_in'" class="btn btn-info btn-sm" @click="onCheckOut">
+            <i class="fas fa-door-closed"></i> Faire check-out
+          </button>
+
+
           <button @click="editReservation" class="btn btn-primary btn-sm">
             <i class="fas fa-edit"></i> Modifier
           </button>
@@ -194,6 +203,32 @@ export default {
         this.loading = false
       }
     },
+
+    async onCheckIn() {
+  try {
+    const updated = await this.doReservationCheckIn(this.reservation.id)
+    // Selon ta réponse API Platform, c'est souvent la ressource directement :
+    this.reservation = updated
+  } catch (e) {
+    const code = e?.response?.status
+    const msg = e?.response?.data?.message || e.message || 'Erreur check-in'
+    if (code === 403) alert('Action non autorisée (permissions).')
+    else alert(msg)
+  }
+},
+
+async onCheckOut() {
+  try {
+    const updated = await this.doReservationCheckOut(this.reservation.id)
+    this.reservation = updated
+  } catch (e) {
+    const code = e?.response?.status
+    const msg = e?.response?.data?.message || e.message || 'Erreur check-out'
+    if (code === 403) alert('Action non autorisée (permissions).')
+    else alert(msg)
+  }
+},
+
 
     // Navigation
     goBack() {
