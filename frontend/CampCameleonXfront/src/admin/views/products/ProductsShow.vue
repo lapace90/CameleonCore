@@ -9,12 +9,11 @@
           </div>
           <div class="type-details">
             <h1 class="page-title">{{ typeConfig.label }}</h1>
-            <p class="page-subtitle">{{ totalItems }} {{ typeConfig.label.toLowerCase() }}</p>
           </div>
         </div>
       </div>
       <div class="header-actions">
-        <button @click="exportProducts" class="btn btn-secondary btn-sm">
+        <button @click="exportProducts" class="btn btn-outline btn-sm">
           <i class="fas fa-download"></i>
           Exporter
         </button>
@@ -25,49 +24,41 @@
       </div>
     </div>
 
+    <!-- Stats rapides -->
+    <ProductStats :stats="quickStats" :products="products" />
+
     <!-- Filtres et recherche -->
-    <div class="products-filters">
-      <div class="filters-row">
-        <div class="search-box">
-          <i class="fas fa-search"></i>
-          <input v-model="filters.search" type="text" placeholder="Rechercher..." @input="debouncedSearch" />
-        </div>
-
-        <div class="filter-group">
-          <!-- Catégories (dérivées des produits courants) -->
-          <select v-model="filters.category" @change="applyFilters" class="filter-select">
-            <option value="">Toutes les catégories</option>
-            <option v-for="c in availableCategories" :key="c.id" :value="c.id">
-              {{ c.name }} ({{ c.count }})
-            </option>
-          </select>
-
-          <select v-model="filters.status" @change="applyFilters" class="filter-select">
-            <option value="">Tous les statuts</option>
-            <option value="active">Actif</option>
-            <option value="inactive">Inactif</option>
-            <option value="draft">Brouillon</option>
-          </select>
-
-          <button @click="resetFilters" class="btn btn-outline btn-sm">
-            <i class="fas fa-times"></i>
-            Reset
-          </button>
-        </div>
-
+    <AdminFilterBar v-model="filters" :default-filters="defaultFilters" :fields="productFilterFields"
+      search-placeholder="Rechercher un produit..." :search-debounce="400" reset-label="Réinitialiser"
+      @apply="onFiltersApply">
+      <!-- Actions personnalisées : switcher vue -->
+      <template #actions>
         <div class="view-switcher">
-          <button @click="viewMode = 'grid'" class="view-btn" :class="{ active: viewMode === 'grid' }">
+          <button @click="viewMode = 'grid'" class="view-btn" :class="{ active: viewMode === 'grid' }"
+            title="Vue grille">
             <i class="fas fa-th"></i>
           </button>
-          <button @click="viewMode = 'list'" class="view-btn" :class="{ active: viewMode === 'list' }">
+          <button @click="viewMode = 'list'" class="view-btn" :class="{ active: viewMode === 'list' }"
+            title="Vue liste">
             <i class="fas fa-list"></i>
           </button>
         </div>
-      </div>
-    </div>
+      </template>
 
-    <!-- Stats rapides -->
-    <ProductStats :stats="quickStats" :products="products" />
+      <!-- Infos de résultats dans le footer -->
+      <template #footer="{ activeCount }">
+        <div class="filters-footer-content">
+          <span class="results-info">
+            <i class="fas fa-box"></i>
+            {{ visibleProducts.length }} produit(s) affiché(s) sur {{ pagination.total }}
+          </span>
+          <span v-if="activeCount > 0" class="active-filters-info">
+            <i class="fas fa-filter"></i>
+            {{ activeCount }} filtre(s) actif(s)
+          </span>
+        </div>
+      </template>
+    </AdminFilterBar>
 
     <!-- Actions en lot -->
     <BulkActions v-if="selectedProducts.length > 0" :selected-count="selectedProducts.length"
@@ -90,6 +81,23 @@
         <p>Chargement des {{ typeConfig.label }}...</p>
       </div>
 
+      <!-- Empty state -->
+      <div v-else-if="visibleProducts.length === 0" class="empty-state">
+        <div class="empty-icon">
+          <i :class="typeConfig.icon"></i>
+        </div>
+        <h3>Aucun {{ typeConfig.singular.toLowerCase() }} trouvé</h3>
+        <p>{{ emptyStateMessage }}</p>
+        <router-link v-if="pagination.total === 0" :to="createRoute" class="btn btn-primary">
+          <i class="fas fa-plus"></i>
+          Créer le premier {{ typeConfig.singular.toLowerCase() }}
+        </router-link>
+        <button v-else @click="resetFilters" class="btn btn-outline">
+          <i class="fas fa-times"></i>
+          Réinitialiser les filtres
+        </button>
+      </div>
+
       <!-- Vue grille -->
       <div v-else-if="viewMode === 'grid'" class="products-grid">
         <ProductCard v-for="product in visibleProducts" :key="product.id" :product="product"
@@ -104,19 +112,6 @@
           @select="toggleSelection" @select-all="toggleAllSelection" @view="viewProduct" @edit="editProduct"
           @duplicate="duplicateProduct" @delete="deleteProduct" @sort="handleSort" />
       </div>
-
-      <!-- Empty state -->
-      <div v-if="!loading && products.length === 0" class="empty-state">
-        <div class="empty-icon">
-          <i :class="typeConfig.icon"></i>
-        </div>
-        <h3>Aucun {{ typeConfig.singular.toLowerCase() }} trouvé</h3>
-        <p>{{ emptyStateMessage }}</p>
-        <router-link :to="createRoute" class="btn btn-primary">
-          <i class="fas fa-plus"></i>
-          Créer le premier {{ typeConfig.singular.toLowerCase() }}
-        </router-link>
-      </div>
     </div>
 
     <!-- Pagination -->
@@ -125,7 +120,6 @@
 </template>
 
 <script>
-import { debounce } from 'lodash'
 import ProductsApi from '@/services/ProductsApi'
 import ProductCard from './components/ProductCard.vue'
 import ProductTable from './components/ProductTable.vue'
@@ -133,6 +127,7 @@ import ProductStats from './components/ProductStats.vue'
 import BulkActions from './components/BulkActions.vue'
 import Pagination from './components/Pagination.vue'
 import CategoryBadge from './components/CategoryBadge.vue'
+import AdminFilterBar from '@/admin/components/ui/AdminFilterBar.vue'
 import { PRODUCT_CONFIGS } from '@/shared/configs/productConfigs'
 
 export default {
@@ -143,7 +138,8 @@ export default {
     CategoryBadge,
     ProductStats,
     BulkActions,
-    Pagination
+    Pagination,
+    AdminFilterBar
   },
   props: {
     type: { type: String, required: true }
@@ -156,15 +152,23 @@ export default {
       products: [],
       selectedProducts: [],
       error: null,
-      sort: {
-        by: 'createdAt',   // 'name' | 'price' | 'createdAt' | etc.
-        dir: 'desc'        // 'asc' | 'desc'
+
+      // ✅ Filtres avec valeurs par défaut
+      defaultFilters: {
+        search: '',
+        category: '',
+        status: ''
       },
 
       filters: {
         search: '',
         category: '',
         status: ''
+      },
+
+      sort: {
+        by: 'createdAt',
+        dir: 'desc'
       },
 
       pagination: {
@@ -179,84 +183,143 @@ export default {
         active: 0,
         draft: 0,
         revenue: 0
-      },
-      sort: { by: '', dir: 'asc' } // 'name' | 'price' | 'createdAt'... + 'asc' | 'desc'
+      }
     }
   },
 
   computed: {
     typeConfig() {
-      console.log('PRODUCT_CONFIGS:', PRODUCT_CONFIGS)
-      console.log('this.type:', this.type)
-      console.log('PRODUCT_CONFIGS[this.type]:', PRODUCT_CONFIGS[this.type])
       return PRODUCT_CONFIGS[this.type] || PRODUCT_CONFIGS.activity
     },
-    /** Catégories présentes dans les produits actuellement listés
-     *  -> tableau trié: [{ id, name, count }]
-     */
+
+    // ✅ Catégories disponibles (calculé depuis les produits chargés)
     availableCategories() {
       const toCategory = (p) => {
         const c = p?.category
-        if (!c || (!c.id && !c.name)) return { id: 'null', name: 'Sans catégorie' }
-        return { id: String(c.id ?? c.slug ?? c.name), name: c.name ?? String(c.id) }
+        if (!c || (!c.id && !c.name)) {
+          return { id: 'null', name: 'Sans catégorie' }
+        }
+        return {
+          id: String(c.id ?? c.slug ?? c.name),
+          name: c.name ?? String(c.id)
+        }
       }
+
       const map = new Map()
       for (const p of this.products) {
         const c = toCategory(p)
-        if (!map.has(c.id)) map.set(c.id, { ...c, count: 0 })
+        if (!map.has(c.id)) {
+          map.set(c.id, { ...c, count: 0 })
+        }
         map.get(c.id).count++
       }
-      return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name))
+
+      return Array.from(map.values()).sort((a, b) =>
+        a.name.localeCompare(b.name)
+      )
     },
 
+    // ✅ Options pour le select de catégories
+    categoryOptions() {
+      // Si pas encore de produits chargés, retourner un array vide
+      if (!this.products || this.products.length === 0) {
+        return []
+      }
+
+      return this.availableCategories.map(category => ({
+        label: `${category.name} (${category.count})`,
+        value: category.id
+      }))
+    },
+
+    // ✅ Configuration des champs de filtre
+    productFilterFields() {
+      return [
+        {
+          key: 'category',
+          label: 'Catégorie',
+          type: 'select',
+          placeholder: 'Toutes les catégories',
+          options: this.categoryOptions // Réactif, se met à jour automatiquement
+        },
+        {
+          key: 'status',
+          label: 'Statut',
+          type: 'select',
+          placeholder: 'Tous les statuts',
+          options: [
+            { label: 'Actif', value: 'active' },
+            { label: 'Inactif', value: 'inactive' },
+            { label: 'Brouillon', value: 'draft' }
+          ]
+        }
+      ]
+    },
+
+    // ✅ Produits filtrés (côté client)
     visibleProducts() {
       const search = (this.filters.search || '').toLowerCase().trim()
       const wantedCat = this.filters.category ? String(this.filters.category) : ''
-      const wantedStatus = this.filters.status // '', 'active', 'inactive', 'draft'
+      const wantedStatus = this.filters.status
 
-      // helper catégorie robuste
       const catOf = (p) => {
         const c = p?.category
         if (!c || (!c.id && !c.name)) return 'null'
         return String(c.id ?? c.slug ?? c.name)
       }
 
-      // 1) filtre
+      // Filtrage
       let list = this.products.filter(p => {
-        // statut
-        if (wantedStatus === 'active' && !(p.status && !p.is_draft && !p.isDraft)) return false
-        if (wantedStatus === 'inactive' && (p.status)) return false
-        if (wantedStatus === 'draft' && !(p.is_draft || p.isDraft)) return false
+        // Statut
+        if (wantedStatus === 'active' && !(p.status && !p.is_draft && !p.isDraft)) {
+          return false
+        }
+        if (wantedStatus === 'inactive' && p.status) {
+          return false
+        }
+        if (wantedStatus === 'draft' && !(p.is_draft || p.isDraft)) {
+          return false
+        }
 
-        // catégorie
-        if (wantedCat && catOf(p) !== wantedCat) return false
+        // Catégorie
+        if (wantedCat && catOf(p) !== wantedCat) {
+          return false
+        }
 
-        // recherche (nom + desc)
+        // Recherche
         if (search) {
-          const hay = `${p.name || ''} ${p.description || ''}`.toLowerCase()
-          if (!hay.includes(search)) return false
+          const haystack = `${p.name || ''} ${p.description || ''}`.toLowerCase()
+          if (!haystack.includes(search)) {
+            return false
+          }
         }
 
         return true
       })
 
-      // 2) tri
+      // Tri
       const { by, dir } = this.sort
       if (by) {
         const sign = dir === 'desc' ? -1 : 1
         list = [...list].sort((a, b) => {
-          const av = (a?.[by] ?? '')
-          const bv = (b?.[by] ?? '')
-          // num ou date ?
-          const aNum = typeof av === 'number' ? av : Number.isFinite(+av) ? +av : null
-          const bNum = typeof bv === 'number' ? bv : Number.isFinite(+bv) ? +bv : null
+          const av = a?.[by] ?? ''
+          const bv = b?.[by] ?? ''
 
-          if (aNum !== null && bNum !== null) return (aNum - bNum) * sign
-          // tentative date
-          const aTime = Date.parse(av); const bTime = Date.parse(bv)
-          if (!Number.isNaN(aTime) && !Number.isNaN(bTime)) return (aTime - bTime) * sign
+          // Nombres
+          const aNum = typeof av === 'number' ? av : (Number.isFinite(+av) ? +av : null)
+          const bNum = typeof bv === 'number' ? bv : (Number.isFinite(+bv) ? +bv : null)
+          if (aNum !== null && bNum !== null) {
+            return (aNum - bNum) * sign
+          }
 
-          // fallback alpha
+          // Dates
+          const aTime = Date.parse(av)
+          const bTime = Date.parse(bv)
+          if (!Number.isNaN(aTime) && !Number.isNaN(bTime)) {
+            return (aTime - bTime) * sign
+          }
+
+          // Texte
           return String(av).localeCompare(String(bv)) * sign
         })
       }
@@ -264,13 +327,11 @@ export default {
       return list
     },
 
-
     createRoute() {
-      return { name: 'ProductCreate', params: { type: this.type } }
-    },
-
-    totalItems() {
-      return this.pagination.total
+      return {
+        name: 'ProductCreate',
+        params: { type: this.type }
+      }
     },
 
     emptyStateMessage() {
@@ -284,16 +345,14 @@ export default {
     },
 
     allSelected() {
-      return this.products.length > 0 && this.selectedProducts.length === this.products.length
+      return this.products.length > 0 &&
+        this.selectedProducts.length === this.products.length
     }
   },
 
   created() {
-    this.debouncedSearch = debounce(this.applyFilters, 500)
     this.initialize()
   },
-
-
 
   methods: {
     async initialize() {
@@ -311,7 +370,6 @@ export default {
           type: this.getApiType(),
           page: this.pagination.currentPage,
           per_page: this.pagination.perPage,
-          ...this.filters
         }
 
         const response = await ProductsApi.getProducts(params)
@@ -329,10 +387,17 @@ export default {
       }
     },
 
+    // ✅ Méthode pour réinitialiser les filtres
+    resetFilters() {
+      this.filters = { ...this.defaultFilters }
+    },
+
     updatePagination(response) {
       if (response.totalItems !== undefined) {
         this.pagination.total = response.totalItems
-        this.pagination.lastPage = Math.ceil(response.totalItems / this.pagination.perPage)
+        this.pagination.lastPage = Math.ceil(
+          response.totalItems / this.pagination.perPage
+        )
       }
     },
 
@@ -360,13 +425,7 @@ export default {
       return typeMap[this.type]
     },
 
-    applyFilters() {
-      this.pagination.currentPage = 1
-      this.fetchProducts()
-    },
-
-    resetFilters() {
-      this.filters = { search: '', category: '', status: '' }
+    onFiltersApply() {
       this.pagination.currentPage = 1
       this.fetchProducts()
     },
