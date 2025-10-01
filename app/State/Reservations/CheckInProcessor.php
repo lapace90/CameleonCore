@@ -12,19 +12,20 @@ class CheckInProcessor implements ProcessorInterface
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = [])
     {
         /** @var Reservation $reservation */
-        $reservation = $data; // API Platform injecte l'item
+        $reservation = $data;
 
         if (!$reservation->canCheckIn()) {
             abort(422, 'Check-in non autorisé pour cet état ou déjà effectué.');
         }
 
-        $at = data_get($context, 'request')->input('at'); // optionnel
+        $at = data_get($context, 'request')->input('at');
         $when = $at ? Carbon::parse($at) : now();
 
         $reservation->status = 'checked_in';
         $reservation->actual_checkin = $when;
         $reservation->save();
 
-        return $reservation->fresh(); // renvoie la ressource
+        // ⬅️ Masquer les relations sans API
+        return $reservation->fresh()->makeHidden(['customer', 'product']);
     }
 }

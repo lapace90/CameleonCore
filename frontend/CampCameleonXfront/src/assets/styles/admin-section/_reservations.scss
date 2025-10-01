@@ -1,0 +1,76 @@
+// Statuts des réservations
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  
+  i {
+    font-size: 14px;
+  }
+}
+
+// Statuts confirmés
+.status-confirmed {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+// En attente
+.status-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+// Annulées
+.status-cancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+// Client présent (checked-in) - Vert vif
+.status-checked_in {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  
+  i {
+    animation: pulse 2s infinite;
+  }
+}
+
+// Séjour terminé (checked-out) - Bleu
+.status-checked_out {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+}
+
+// Complété
+.status-completed {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+// Brouillon
+.status-draft {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+// Absent (no-show)
+.status-no_show {
+  background: #fecaca;
+  color: #7f1d1d;
+}
+
+// Animation pour le statut "présent"
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}

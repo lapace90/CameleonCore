@@ -61,6 +61,17 @@
         </div>
 
         <template #footer>
+            <!-- Pas de v-permission, juste un v-if simple -->
+            <button v-if="isReservation && p.status === 'confirmed'" class="btn btn-sm btn-success"
+                @click="handleCheckIn">
+                <i class="fas fa-door-open"></i> Check-in
+            </button>
+
+            <button v-if="isReservation && p.status === 'checked_in'" class="btn btn-sm btn-info"
+                @click="handleCheckOut">
+                <i class="fas fa-door-closed"></i> Check-out
+            </button>
+
             <button class="btn btn-sm" @click="$emit('update:modelValue', false)">Fermer</button>
             <button v-if="isReservation && reservationId" class="btn btn-sm btn-primary" @click="goToReservation">
                 Voir la réservation
@@ -72,11 +83,12 @@
 
 <script>
 import BaseModal from '../ui/BaseModal.vue'
+import AdminApi from '@/services/AdminApi'
 
 export default {
     name: 'EventDetailsModal',
     components: { BaseModal },
-    emits: ['update:modelValue', 'close'],
+    emits: ['update:modelValue', 'close', 'refresh'],
     props: {
         modelValue: { type: Boolean, default: false },
         // on passe l'objet brut { title, id, start, end, props, ... }
@@ -131,6 +143,27 @@ export default {
             if (!this.reservationId) return
             this.$router.push(this.reservationRoute)
             this.$emit('update:modelValue', false) // fermer la modal
+        },
+        async handleCheckIn() {
+            if (!confirm('Confirmer l\'arrivée du client ?')) return
+            try {
+                await AdminApi.doReservationCheckIn(this.reservationId)
+                this.$emit('refresh')
+                this.$emit('update:modelValue', false)
+            } catch (error) {
+                alert('❌ ' + (error.response?.data?.message || 'Erreur'))
+            }
+        },
+        
+        async handleCheckOut() {
+            if (!confirm('Confirmer le départ du client ?')) return
+            try {
+                await AdminApi.doReservationCheckOut(this.reservationId)
+                this.$emit('refresh')
+                this.$emit('update:modelValue', false)
+            } catch (error) {
+                alert('❌ ' + (error.response?.data?.message || 'Erreur'))
+            }
         }
     }
 }

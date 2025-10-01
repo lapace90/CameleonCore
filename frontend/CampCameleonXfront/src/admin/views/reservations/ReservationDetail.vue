@@ -28,13 +28,16 @@
             <i class="fas fa-arrow-left"></i> Retour
           </button>
 
-          <button v-if="reservation.status === 'confirmed'" class="btn btn-success btn-sm" @click="onCheckIn">
+          <!-- Boutons conditionnels selon permission ET statut -->
+          <button v-if="reservation.status === 'confirmed' && canCheckIn" class="btn btn-success btn-sm"
+            @click="onCheckIn">
             <i class="fas fa-door-open"></i> Faire check-in
           </button>
-          <button v-if="reservation.status === 'checked_in'" class="btn btn-info btn-sm" @click="onCheckOut">
+
+          <button v-if="reservation.status === 'checked_in' && canCheckOut" class="btn btn-info btn-sm"
+            @click="onCheckOut">
             <i class="fas fa-door-closed"></i> Faire check-out
           </button>
-
 
           <button @click="editReservation" class="btn btn-primary btn-sm">
             <i class="fas fa-edit"></i> Modifier
@@ -105,7 +108,7 @@
         </ReservationInfoCard>
 
         <!-- Logement -->
-        <ReservationInfoCard title="Logement" icon="fas fa-bed">
+        <ReservationInfoCard title="Services" icon="fas fa-bed">
           <div class="info-item">
             <label>Nom:</label>
             <span>{{ getProductName() }}</span>
@@ -155,6 +158,23 @@
           {{ reservation.comment }}
         </div>
       </ReservationInfoCard>
+      <!-- À ajouter dans le template après les cartes existantes -->
+      <div v-if="reservation.actual_checkin || reservation.actual_checkout" class="info-grid">
+        <ReservationInfoCard title="Historique Check-in/out" icon="fas fa-history">
+          <div v-if="reservation.actual_checkin" class="info-row">
+            <span class="info-label">
+              <i class="fas fa-door-open text-success"></i> Check-in réel:
+            </span>
+            <span class="info-value">{{ formatDateTime(reservation.actual_checkin) }}</span>
+          </div>
+          <div v-if="reservation.actual_checkout" class="info-row">
+            <span class="info-label">
+              <i class="fas fa-door-closed text-info"></i> Check-out réel:
+            </span>
+            <span class="info-value">{{ formatDateTime(reservation.actual_checkout) }}</span>
+          </div>
+        </ReservationInfoCard>
+      </div>
 
       <div class="timeline-section">
         <ReservationTimeline :items="reservation.timeline || []" />
@@ -167,9 +187,11 @@
 import AdminApi from '@/services/AdminApi'
 import ReservationInfoCard from './ReservationInfoCard.vue'
 import ReservationTimeline from './ReservationTimeline.vue'
+import { permissionMixin } from '@/plugins/permission-directives'
 
 export default {
   name: 'ReservationDetail',
+  mixins: [permissionMixin],
   components: {
     ReservationInfoCard,
     ReservationTimeline
@@ -185,6 +207,16 @@ export default {
 
   created() {
     this.fetchReservation()
+  },
+
+  computed: {
+    canCheckIn() {
+      return this.$hasPermission('checkin')
+    },
+
+    canCheckOut() {
+      return this.$hasPermission('checkout')
+    }
   },
 
   methods: {
@@ -204,31 +236,36 @@ export default {
       }
     },
 
+    // Actions de check-in/check-out
     async onCheckIn() {
-  try {
-    const updated = await this.doReservationCheckIn(this.reservation.id)
-    // Selon ta réponse API Platform, c'est souvent la ressource directement :
-    this.reservation = updated
-  } catch (e) {
-    const code = e?.response?.status
-    const msg = e?.response?.data?.message || e.message || 'Erreur check-in'
-    if (code === 403) alert('Action non autorisée (permissions).')
-    else alert(msg)
-  }
-},
+      if (!confirm('Confirmer l\'arrivée du client ?')) return
 
-async onCheckOut() {
-  try {
-    const updated = await this.doReservationCheckOut(this.reservation.id)
-    this.reservation = updated
-  } catch (e) {
-    const code = e?.response?.status
-    const msg = e?.response?.data?.message || e.message || 'Erreur check-out'
-    if (code === 403) alert('Action non autorisée (permissions).')
-    else alert(msg)
-  }
-},
+      try {
+        const updated = await AdminApi.doReservationCheckIn(this.reservation.id)
+        this.reservation = updated
+        alert('✅ Check-in effectué avec succès!')
+      } catch (e) {
+        const code = e?.response?.status
+        const msg = e?.response?.data?.message || e.message || 'Erreur check-in'
+        if (code === 403) alert('❌ Action non autorisée (permissions)')
+        else alert(`❌ ${msg}`)
+      }
+    },
 
+    async onCheckOut() {
+      if (!confirm('Confirmer le départ du client ?')) return
+
+      try {
+        const updated = await AdminApi.doReservationCheckOut(this.reservation.id)
+        this.reservation = updated
+        alert('✅ Check-out effectué avec succès!')
+      } catch (e) {
+        const code = e?.response?.status
+        const msg = e?.response?.data?.message || e.message || 'Erreur check-out'
+        if (code === 403) alert('❌ Action non autorisée (permissions)')
+        else alert(`❌ ${msg}`)
+      }
+    },
 
     // Navigation
     goBack() {
@@ -315,7 +352,11 @@ async onCheckOut() {
       const labels = {
         confirmed: 'Confirmée',
         pending: 'En attente',
-        cancelled: 'Annulée'
+        checked_in: 'Client présent',
+        checked_out: 'Séjour terminé',
+        cancelled: 'Annulée',
+        completed: 'Terminée',
+        no_show: 'No-show'
       }
       return labels[status] || status
     },
@@ -328,7 +369,11 @@ async onCheckOut() {
       const icons = {
         confirmed: 'fas fa-check-circle',
         pending: 'fas fa-hourglass-half',
-        cancelled: 'fas fa-times-circle'
+        checked_in: 'fas fa-door-open',
+        checked_out: 'fas fa-door-closed',
+        completed: 'fas fa-flag-checkered',
+        cancelled: 'fas fa-times-circle',
+        no_show: 'fas fa-user-slash'
       }
       return icons[status] || 'fas fa-question-circle'
     },

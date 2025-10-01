@@ -56,20 +56,22 @@ use ApiPlatform\Metadata\Delete;
             processor: ReservationProcessor::class,
             security: "is_granted('ROLE_ADMIN')"
         ),
-         new Post(
+        new Post(
             uriTemplate: '/admin/reservations/{id}/check-in',
             name: 'reservation_check_in',
             // readItem = true => API Platform charge $data (Reservation) et l’injecte au processor
             read: true,
             write: true,
-            processor: CheckInProcessor::class
+            processor: CheckInProcessor::class,
+            security: "is_granted('checkin')"
         ),
         new Post(
             uriTemplate: '/admin/reservations/{id}/check-out',
             name: 'reservation_check_out',
             read: true,
             write: true,
-            processor: CheckOutProcessor::class
+            processor: CheckOutProcessor::class,
+            security: "is_granted('checkout')"
         ),
     ]
 )]

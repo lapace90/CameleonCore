@@ -202,6 +202,18 @@
                   @click="deleteReservation(reservation)">
                   <i class="fas fa-trash"></i>
                 </button>
+
+                <!-- Quick actions for check-in/check-out -->
+                <button v-if="reservation.status === 'confirmed' && canCheckIn" type="button"
+                  class="btn-icon text-success" title="Check-in" @click.stop="quickCheckIn(reservation)">
+                  <i class="fas fa-door-open"></i>
+                </button>
+
+                <button v-if="reservation.status === 'checked_in' && canCheckOut" type="button"
+                  class="btn-icon text-info" title="Check-out" @click.stop="quickCheckOut(reservation)">
+                  <i class="fas fa-door-closed"></i>
+                </button>
+
               </div>
             </td>
           </tr>
@@ -219,9 +231,11 @@
 import AdminApi from '@/services/AdminApi'
 import Pagination from '@/admin/views/products/components/Pagination.vue'
 import { debounce } from '@/shared/utils/helpers'
+import { permissionMixin } from '@/plugins/permission-directives'
 
 export default {
   name: 'ReservationsList',
+  mixins: [permissionMixin],
   components: {
     Pagination
   },
@@ -267,6 +281,12 @@ export default {
         this.filters.startDate ||
         this.filters.endDate
       )
+    },
+    canCheckIn() {
+      return this.$hasPermission('checkin')
+    },
+    canCheckOut() {
+      return this.$hasPermission('checkout')
     }
   },
 
@@ -334,6 +354,34 @@ export default {
     onSearchInput() {
       if (typeof this.debouncedSearch === 'function') {
         this.debouncedSearch()
+      }
+    },
+
+    async quickCheckIn(reservation) {
+      if (!confirm(`Confirmer l'arrivée de ${reservation.customer_name || 'ce client'} ?`)) return
+
+      try {
+        await AdminApi.doReservationCheckIn(reservation.id)
+        await this.fetchReservations() // Rafraîchir la liste
+        alert('✅ Check-in effectué avec succès!')
+      } catch (error) {
+        console.error('Erreur check-in:', error)
+        const msg = error.response?.data?.message || error.message || 'Erreur lors du check-in'
+        alert(`❌ ${msg}`)
+      }
+    },
+
+    async quickCheckOut(reservation) {
+      if (!confirm(`Confirmer le départ de ${reservation.customer_name || 'ce client'} ?`)) return
+
+      try {
+        await AdminApi.doReservationCheckOut(reservation.id)
+        await this.fetchReservations() // Rafraîchir la liste
+        alert('✅ Check-out effectué avec succès!')
+      } catch (error) {
+        console.error('Erreur check-out:', error)
+        const msg = error.response?.data?.message || error.message || 'Erreur lors du check-out'
+        alert(`❌ ${msg}`)
       }
     },
 

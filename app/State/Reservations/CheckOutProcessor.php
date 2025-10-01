@@ -9,6 +9,7 @@ use Carbon\Carbon;
 
 class CheckOutProcessor implements ProcessorInterface
 {
+    // app/State/Reservations/CheckOutProcessor.php
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = [])
     {
         /** @var Reservation $reservation */
@@ -18,17 +19,14 @@ class CheckOutProcessor implements ProcessorInterface
             abort(422, 'Check-out non autorisé pour cet état ou déjà effectué.');
         }
 
-        $at = data_get($context, 'request')->input('at'); // optionnel
+        $at = data_get($context, 'request')->input('at');
         $when = $at ? Carbon::parse($at) : now();
-
-        if ($reservation->actual_checkin && $when->lt($reservation->actual_checkin)) {
-            abort(422, 'Impossible de faire check-out avant le check-in.');
-        }
 
         $reservation->status = 'checked_out';
         $reservation->actual_checkout = $when;
         $reservation->save();
 
-        return $reservation->fresh();
+        // ⬅️ Masquer les relations sans API
+        return $reservation->fresh()->makeHidden(['customer', 'product']);
     }
 }
