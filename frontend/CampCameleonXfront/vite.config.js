@@ -1,23 +1,30 @@
-import { defineConfig } from 'vite';
-import vue from '@vitejs/plugin-vue';
-import { fileURLToPath, URL } from 'node:url';
+// vite.config.js
+import { defineConfig, loadEnv } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import { fileURLToPath, URL } from 'node:url'
 
-export default defineConfig({
-  plugins: [vue()],
-  server: {
-    port: 5173,  // Port du serveur de dev (changez si besoin)
-    proxy: {
-      '/api': {
-        target: 'http://localhost:8000',  // URL du backend Laravel
-        changeOrigin: true,               // pour que l'Origin header corresponde à la cible
-        secure: false,                    // désactive la vérif SSL si HTTPS (inutile en HTTP)
-        // rewrite: (path) => path.replace(/^\/api/, ''), // PAS nécessaire: on garde /api
+export default defineConfig(({ mode }) => {
+  // ✅ Charger les variables d'environnement correctement
+  const env = loadEnv(mode, process.cwd(), '')
+
+  return {
+    plugins: [vue()],
+    
+    server: {
+      port: 5173,
+      proxy: {
+        '/api': {
+          target: env.VITE_API_URL || 'http://localhost:8000',  // ✅ Utilise env au lieu de import.meta.env
+          changeOrigin: true,
+          secure: false,
+        }
+      }
+    },
+    
+    resolve: {
+      alias: {
+        '@': fileURLToPath(new URL('./src', import.meta.url))
       }
     }
-  },
-  resolve: {
-    alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))  // alias @ vers ./src
-    }
   }
-});
+})

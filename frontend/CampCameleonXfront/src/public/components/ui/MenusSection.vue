@@ -160,7 +160,7 @@
 import { onMounted, ref, computed } from 'vue'
 import CouscousImg from '@/assets/images/site/couscous.jpg'
 
-const API = '/api' // si tu n'as pas de proxy, mets 'http://localhost:8000/api'
+const API = import.meta.env.VITE_API_URL || 'http://localhost:8000/api' // si tu n'as pas de proxy, mets 'http://localhost:8000/api'
 
 const selectedMenu = ref(null)
 const loadingList = ref(true)

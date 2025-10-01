@@ -182,7 +182,7 @@ const stats = ref([
 ])
 
 /* ========== DATA CHARGÉE DE L'API (activités réelles) ========== */
-const API = '/api'
+const API = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
 function getJson(data) {
     return data?.['hydra:member'] || data?.member || data || []
 }

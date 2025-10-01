@@ -70,8 +70,8 @@ services:
     networks:
       - backend
       - frontend
-    # env_file:
-    #   - .env
+    env_file:
+      - .env
 
   db:
     image: postgres:17
