@@ -7,8 +7,13 @@ use ApiPlatform\Metadata\ApiResource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use ApiPlatform\Metadata\Get;
 
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new Get(uriTemplate: '/customers/{id}'),
+    ]
+)]
 
 class Customer extends Model
 {

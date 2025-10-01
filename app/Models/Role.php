@@ -22,18 +22,23 @@ use App\State\RoleProcessor;
         // ✅ Routes standard API Platform avec providers/processors
         new Get(),
         new GetCollection(
+            middleware: ['auth:sanctum'],
             provider: RoleCollectionProvider::class,
         ),
         new Post(
+            middleware: ['auth:sanctum'],
             processor: RoleProcessor::class,
         ),
         new Patch(
+            middleware: ['auth:sanctum'],
             processor: RoleProcessor::class,
         ),
         new Put(
+            middleware: ['auth:sanctum'],
             processor: RoleProcessor::class,
         ),
         new Delete(
+            middleware: ['auth:sanctum'],
             processor: RoleProcessor::class,
         )
     ]
@@ -180,7 +185,7 @@ class Role extends Model
     {
         $criticalSlugs = [
             'owner',
-            'super-admin', 
+            'super-admin',
             'admin',
             'system-admin'
         ];

@@ -353,33 +353,15 @@ class AdminApi {
     // =============================
 
     async doReservationCheckIn(reservationId, at = null) {
-        try {
-            const payload = at ? { at } : {}
-            const response = await axios.post(
-                `${this.baseURL}/admin/reservations/${reservationId}/check-in`,
-                payload
-            )
-            console.log('✅ Check-in effectué:', reservationId)
-            return response.data
-        } catch (error) {
-            console.error(`❌ Erreur check-in ${reservationId}:`, error)
-            throw this.handleError(error)
-        }
+        const payload = { status: 'checked_in' }
+        if (at) payload.actual_checkin = at
+        return this.updateReservation(reservationId, payload)
     }
 
     async doReservationCheckOut(reservationId, at = null) {
-        try {
-            const payload = at ? { at } : {}
-            const response = await axios.post(
-                `${this.baseURL}/admin/reservations/${reservationId}/check-out`,
-                payload
-            )
-            console.log('✅ Check-out effectué:', reservationId)
-            return response.data
-        } catch (error) {
-            console.error(`❌ Erreur check-out ${reservationId}:`, error)
-            throw this.handleError(error)
-        }
+        const payload = { status: 'checked_out' }
+        if (at) payload.actual_checkout = at
+        return this.updateReservation(reservationId, payload)
     }
 
     // =============================

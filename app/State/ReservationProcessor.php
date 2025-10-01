@@ -21,7 +21,6 @@ class ReservationProcessor implements ProcessorInterface
 {
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
     {
-        // ✅ SÉCURITÉ SANCTUM (comme votre UserProcessor)
         $currentUser = auth('sanctum')->user();
 
         if (!$currentUser) {
@@ -93,21 +92,41 @@ class ReservationProcessor implements ProcessorInterface
         $payload = $this->getDataFromRequest($context);
         $reservation = Reservation::findOrFail($id);
 
+        // === CHECK-IN/CHECK-OUT : traitement direct, pas de prepareReservationData ===
+        if (isset($payload['status']) && $payload['status'] === 'checked_in') {
+            if (!$reservation->canCheckIn()) {
+                abort(422, 'Check-in non autorisé');
+            }
+            $reservation->status = 'checked_in';
+            $reservation->actual_checkin = $payload['actual_checkin'] ?? now();
+            $reservation->user_id = $reservation->user_id ?? $currentUser->id;
+            $reservation->save();
+            return $reservation; // ⬅️ RETURN ICI, skip prepareReservationData
+        }
+
+        if (isset($payload['status']) && $payload['status'] === 'checked_out') {
+            if (!$reservation->canCheckOut()) {
+                abort(422, 'Check-out non autorisé');
+            }
+            $reservation->status = 'checked_out';
+            $reservation->actual_checkout = $payload['actual_checkout'] ?? now();
+            $reservation->user_id = $reservation->user_id ?? $currentUser->id;
+            $reservation->save();
+            return $reservation; // ⬅️ RETURN ICI, skip prepareReservationData
+        }
+
+        // === UPDATE NORMAL : ton code existant ===
         Log::info("📝 Mise à jour réservation #{$id}");
 
-        // Si customer_data est fourni, créer/mettre à jour le customer
         if (isset($payload['customer_data'])) {
             $customerId = $this->findOrCreateCustomer($payload['customer_data']);
             $payload['customer_id'] = $customerId;
         }
 
-        // Nettoyer les données (enlever customer_data du payload principal)
         $cleanPayload = $this->prepareReservationData($payload, $payload['customer_id'] ?? $reservation->customer_id, $currentUser);
-
         $reservation->update($cleanPayload);
 
         Log::info("✅ Réservation #{$id} mise à jour");
-
         return $reservation;
     }
 
@@ -121,7 +140,7 @@ class ReservationProcessor implements ProcessorInterface
     }
 
     // ===========================
-    // MÉTHODES UTILITAIRES (reprises de QuoteRequestProcessor)
+    // MÉTHODES UTILITAIRES 
     // ===========================
 
     private function findOrCreateCustomer(array $customerData): int

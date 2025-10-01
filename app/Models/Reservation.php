@@ -10,8 +10,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\State\CalendarProvider;
 use App\State\ReservationProvider;
 use App\State\ReservationProcessor;
-use App\State\Reservations\CheckInProcessor;
-use App\State\Reservations\CheckOutProcessor;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
@@ -38,41 +36,28 @@ use ApiPlatform\Metadata\Delete;
         new Get(
             uriTemplate: '/admin/reservations/{id}',
             provider: ReservationProvider::class,
-            security: "is_granted('ROLE_ADMIN')"
+            security: "is_granted('ROLE_ADMIN')",
+            middleware: ['auth:sanctum']
         ),
 
         new Post(
             uriTemplate: '/admin/reservations',
             processor: ReservationProcessor::class,
-            security: "is_granted('ROLE_ADMIN')"
+            security: "is_granted('ROLE_ADMIN')",
+            middleware: ['auth:sanctum']
         ),
         new Put(
             uriTemplate: '/admin/reservations/{id}',
             processor: ReservationProcessor::class,
-            security: "is_granted('ROLE_ADMIN')"
+            security: "is_granted('ROLE_ADMIN')",
+            middleware: ['auth:sanctum']
         ),
         new Delete(
             uriTemplate: '/admin/reservations/{id}',
             processor: ReservationProcessor::class,
-            security: "is_granted('ROLE_ADMIN')"
-        ),
-        new Post(
-            uriTemplate: '/admin/reservations/{id}/check-in',
-            name: 'reservation_check_in',
-            // readItem = true => API Platform charge $data (Reservation) et l’injecte au processor
-            read: true,
-            write: true,
-            processor: CheckInProcessor::class,
-            security: "is_granted('checkin')"
-        ),
-        new Post(
-            uriTemplate: '/admin/reservations/{id}/check-out',
-            name: 'reservation_check_out',
-            read: true,
-            write: true,
-            processor: CheckOutProcessor::class,
-            security: "is_granted('checkout')"
-        ),
+            security: "is_granted('ROLE_ADMIN')",
+            middleware: ['auth:sanctum']
+        )
     ]
 )]
 class Reservation extends Model

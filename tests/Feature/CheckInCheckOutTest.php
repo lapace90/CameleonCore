@@ -164,7 +164,9 @@ class CheckInCheckOutTest extends TestCase
             'payment_status' => 'paid'
         ]);
 
-        $response = $this->postJson("/api/admin/reservations/{$reservation->id}/check-in");
+        $response = $this->putJson("/api/admin/reservations/{$reservation->id}", [
+            'status' => 'checked_in'
+        ]);
 
         $response->assertStatus(201);
 
@@ -193,7 +195,9 @@ class CheckInCheckOutTest extends TestCase
             'payment_status' => 'paid'
         ]);
 
-        $checkinResponse = $this->postJson("/api/admin/reservations/{$reservation->id}/check-in");
+        $checkinResponse = $this->putJson("/api/admin/reservations/{$reservation->id}", [
+            'status' => 'checked_in'  // ⬅️ MANQUAIT
+        ]);
 
         dump($checkinResponse->json()); // ⬅️ Juste ça
 
@@ -209,7 +213,9 @@ class CheckInCheckOutTest extends TestCase
         $this->assertEquals('checked_in', $reservation->status);
 
         // Maintenant faire le check-out
-        $response = $this->postJson("/api/admin/reservations/{$reservation->id}/check-out");
+        $response = $this->putJson("/api/admin/reservations/{$reservation->id}", [
+            'status' => 'checked_out'
+        ]);
         $response->assertStatus(201);
 
         $reservation->refresh();
@@ -237,7 +243,9 @@ class CheckInCheckOutTest extends TestCase
             'payment_status' => 'pending'
         ]);
 
-        $response = $this->postJson("/api/admin/reservations/{$reservation->id}/check-in");
+        $response = $this->putJson("/api/admin/reservations/{$reservation->id}", [
+            'status' => 'checked_in'
+        ]);
 
         $response->assertStatus(422);
     }
@@ -262,7 +270,9 @@ class CheckInCheckOutTest extends TestCase
             'payment_status' => 'paid'
         ]);
 
-        $response = $this->postJson("/api/admin/reservations/{$reservation->id}/check-out");
+        $response = $this->putJson("/api/admin/reservations/{$reservation->id}", [
+            'status' => 'checked_out'
+        ]);
         dump([
             'status' => $reservation->status,
             'actual_checkin' => $reservation->actual_checkin,
@@ -295,7 +305,7 @@ class CheckInCheckOutTest extends TestCase
 
         $customTime = Carbon::now()->subHours(2);
 
-        $response = $this->postJson("/api/admin/reservations/{$reservation->id}/check-in", [
+        $response = $this->putJson("/api/admin/reservations/{$reservation->id}", [
             'at' => $customTime->toIso8601String()
         ]);
 
@@ -334,7 +344,7 @@ class CheckInCheckOutTest extends TestCase
         // Essayer de faire check-out AVANT le check-in
         $checkoutTime = $checkinTime->copy()->subHours(1);
 
-        $response = $this->postJson("/api/admin/reservations/{$reservation->id}/check-out", [
+        $response = $this->putJson("/api/admin/reservations/{$reservation->id}", [
             'at' => $checkoutTime->toIso8601String()
         ]);
 
@@ -360,7 +370,9 @@ class CheckInCheckOutTest extends TestCase
     //     ]);
 
     //     // Pas de Sanctum::actingAs() = guest
-    //     $response = $this->postJson("/api/admin/reservations/{$reservation->id}/check-in");
+    //     $response = $this->putJson("/api/admin/reservations/{$reservation->id}", [
+    //     'status' => 'checked_in'
+    // ]);
 
     //     $response->assertStatus(401);
     // }
