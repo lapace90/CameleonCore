@@ -101,20 +101,29 @@ class ReservationProcessor implements ProcessorInterface
             $reservation->actual_checkin = $payload['actual_checkin'] ?? now();
             $reservation->user_id = $reservation->user_id ?? $currentUser->id;
             $reservation->save();
-            return $reservation; // ⬅️ RETURN ICI, skip prepareReservationData
+            return $reservation; // Retourner la réservation mise à jour
         }
 
         if (isset($payload['status']) && $payload['status'] === 'checked_out') {
             if (!$reservation->canCheckOut()) {
                 abort(422, 'Check-out non autorisé');
             }
+
+            $checkoutTime = isset($payload['actual_checkout'])
+                ? \Carbon\Carbon::parse($payload['actual_checkout'])
+                : now();
+
+            //  Valider que checkout >= checkin
+            if ($checkoutTime < $reservation->actual_checkin) {
+                abort(422, 'Le check-out ne peut pas être avant le check-in');
+            }
+
             $reservation->status = 'checked_out';
-            $reservation->actual_checkout = $payload['actual_checkout'] ?? now();
+            $reservation->actual_checkout = $checkoutTime;
             $reservation->user_id = $reservation->user_id ?? $currentUser->id;
             $reservation->save();
-            return $reservation; // ⬅️ RETURN ICI, skip prepareReservationData
+            return $reservation;
         }
-
         // === UPDATE NORMAL : ton code existant ===
         Log::info("📝 Mise à jour réservation #{$id}");
 
