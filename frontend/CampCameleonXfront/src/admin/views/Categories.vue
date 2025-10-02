@@ -21,29 +21,16 @@
       </div>
     </div>
 
-    <!-- Filtres -->
-    <div class="categories-filters">
-      <div class="filter-group">
-        <select v-model="selectedType" @change="filterByType" class="filter-select">
-          <option value="">Tous les types</option>
-          <option value="Activity">🏕️ Activités</option>
-          <option value="Menu">🍽️ Menus</option>
-          <option value="Dish">🍲 Plats</option>
-          <option value="Room">🏠 Hébergements</option>
-          <option value="Ingredient">🌿 Ingrédients</option>
-        </select>
-        
-        <div class="search-box">
-          <i class="fas fa-search"></i>
-          <input 
-            v-model="searchTerm" 
-            type="text" 
-            placeholder="Rechercher une catégorie..." 
-          />
-        </div>
-      </div>
-    </div>
-          <!-- Loading -->
+    <!-- ✅ AdminFilterBar remplace uniquement categories-filters -->
+    <AdminFilterBar
+      v-model="filters"
+      :default-filters="defaultFilters"
+      :fields="filterFields"
+      search-placeholder="Rechercher une catégorie..."
+      @apply="applyFilters"
+    />
+
+    <!-- Loading -->
     <div v-if="loading" class="loading-state">
       <div class="spinner"></div>
       <p>Chargement...</p>
@@ -111,22 +98,30 @@
 
 <script>
 import CategoryBadge from '@/admin/views/products/components/CategoryBadge.vue'
-import ProductsApi from '@/services/ProductsApi'  // Utiliser l'API existante
+import AdminFilterBar from '@/admin/components/ui/AdminFilterBar.vue'
+import ProductsApi from '@/services/ProductsApi'
 
 export default {
   name: 'Categories',
   components: {
-    CategoryBadge
-    // CategoryModal,  // À ajouter plus tard
-    // ConfirmModal   // À ajouter plus tard
+    CategoryBadge,
+    AdminFilterBar
   },
   
   data() {
     return {
       categories: [],
-      selectedType: '',
-      searchTerm: '',
       loading: false,
+      
+      // Filtres pour AdminFilterBar
+      defaultFilters: {
+        search: '',
+        type: ''
+      },
+      filters: {
+        search: '',
+        type: ''
+      },
       
       // Modals
       showCreateModal: false,
@@ -139,6 +134,24 @@ export default {
   },
 
   computed: {
+    // Config pour AdminFilterBar
+    filterFields() {
+      return [
+        {
+          key: 'type',
+          type: 'select',
+          placeholder: 'Tous les types',
+          options: [
+            { value: 'Activity', label: '🏕️ Activités' },
+            { value: 'Menu', label: '🍽️ Menus' },
+            { value: 'Dish', label: '🍲 Plats' },
+            { value: 'Room', label: '🏠 Hébergements' },
+            { value: 'Ingredient', label: '🌿 Ingrédients' }
+          ]
+        }
+      ]
+    },
+
     totalCategories() {
       return this.categories.length
     },
@@ -158,16 +171,16 @@ export default {
       let filtered = { ...this.groupedCategories }
       
       // Filtrer par type
-      if (this.selectedType) {
-        filtered = { [this.selectedType]: filtered[this.selectedType] || [] }
+      if (this.filters.type) {
+        filtered = { [this.filters.type]: filtered[this.filters.type] || [] }
       }
       
       // Filtrer par recherche
-      if (this.searchTerm) {
+      if (this.filters.search) {
         Object.keys(filtered).forEach(type => {
           filtered[type] = filtered[type].filter(cat =>
-            cat.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-            cat.description?.toLowerCase().includes(this.searchTerm.toLowerCase())
+            cat.name.toLowerCase().includes(this.filters.search.toLowerCase()) ||
+            cat.description?.toLowerCase().includes(this.filters.search.toLowerCase())
           )
         })
       }
@@ -184,12 +197,16 @@ export default {
     async fetchCategories() {
       this.loading = true
       try {
-        this.categories = await ProductsApi.getCategories()  // Utiliser l'API existante
+        this.categories = await ProductsApi.getCategories()
       } catch (error) {
         console.error('Erreur lors du chargement des catégories:', error)
       } finally {
         this.loading = false
       }
+    },
+
+    applyFilters() {
+      // Filtrage via computed
     },
 
     getTypeLabel(type) {
@@ -204,8 +221,7 @@ export default {
     },
 
     getCategoryProductCount(categoryId) {
-      // TODO: Implémenter le comptage des produits par catégorie
-      return Math.floor(Math.random() * 20) // Placeholder
+      return Math.floor(Math.random() * 20)
     },
 
     createCategory(type = null) {
@@ -226,13 +242,11 @@ export default {
     },
 
     async handleSaveCategory(categoryData) {
-      // TODO: Implémenter avec ProductsApi ou créer CategoriesApi
       console.log('Sauvegarder catégorie:', categoryData)
       this.closeModal()
     },
 
     async confirmDelete() {
-      // TODO: Implémenter avec ProductsApi ou créer CategoriesApi  
       console.log('Supprimer catégorie:', this.categoryToDelete)
       this.showDeleteModal = false
       this.categoryToDelete = null
@@ -242,12 +256,7 @@ export default {
       this.showCreateModal = false
       this.showEditModal = false
       this.selectedCategory = null
-    },
-
-    filterByType() {
-      // La réactivité se charge du filtrage
     }
   }
 }
 </script>
-

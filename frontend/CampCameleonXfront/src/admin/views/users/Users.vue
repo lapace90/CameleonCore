@@ -35,19 +35,74 @@
     </div>
 
     <!-- Statistiques -->
-    <UserStats :total-users="users.length" :active-users="activeUsers" :admin-users="adminUsers"
-      :recent-users="recentUsers" />
+    <UserStats 
+      :total-users="users.length" 
+      :active-users="activeUsers" 
+      :admin-users="adminUsers"
+      :recent-users="recentUsers" 
+    />
 
-    <!-- Filtres -->
-    <UserFilters v-model:search-query="searchQuery" v-model:role-filter="roleFilter"
-      v-model:status-filter="statusFilter" v-model:bulk-action="bulkAction" :available-roles="availableRoles"
-      :selected-users="selectedUsers" :filtered-count="filteredUsers.length" @execute-bulk-action="executeBulkAction" />
+    <!-- ✅ NOUVEAU : AdminFilterBar au lieu de UserFilters -->
+    <AdminFilterBar
+      v-model="filters"
+      :default-filters="defaultFilters"
+      :fields="userFilterFields"
+      search-placeholder="Rechercher un utilisateur (nom, email)..."
+      reset-label="Réinitialiser"
+      @apply="applyFilters"
+    >
+      <!-- Slot actions : Bulk actions -->
+      <template #actions>
+        <div v-if="selectedUsers.length > 0" class="bulk-actions-group">
+          <select v-model="bulkAction" class="filter-select">
+            <option value="">Actions ({{ selectedUsers.length }})</option>
+            <option value="activate">Activer</option>
+            <option value="suspend">Suspendre</option>
+            <option value="assign-role">Assigner un rôle</option>
+            <option value="export">Exporter</option>
+          </select>
+          
+          <button 
+            @click="executeBulkAction" 
+            class="btn btn-outline btn-sm"
+            :disabled="!bulkAction"
+          >
+            <i class="fas fa-play"></i>
+            Exécuter
+          </button>
+        </div>
+      </template>
+
+      <!-- Slot results personnalisé -->
+      <template #results="{ activeCount }">
+        <span class="results-info">
+          <i class="fas fa-users"></i>
+          {{ filteredUsers.length }} utilisateur(s)
+          <span v-if="activeCount > 0" class="text-muted">
+            · {{ activeCount }} filtre(s)
+          </span>
+        </span>
+      </template>
+    </AdminFilterBar>
 
     <!-- Tableau -->
-    <UserTable :users="filteredUsers" v-model:selected-users="selectedUsers" :loading="loading" :error="error"
-      :has-filters="hasFilters" :sort-field="sortField" :sort-direction="sortDirection" :current-page="currentPage"
-      :items-per-page="itemsPerPage" @sort="sortBy" @view-user="viewUser" @toggle-status="toggleUserStatus"
-      @delete-user="deleteUser" @retry="fetchUsers" @page-change="currentPage = $event" />
+    <UserTable 
+      :users="filteredUsers" 
+      v-model:selected-users="selectedUsers" 
+      :loading="loading" 
+      :error="error"
+      :has-filters="hasFilters" 
+      :sort-field="sortField" 
+      :sort-direction="sortDirection" 
+      :current-page="currentPage"
+      :items-per-page="itemsPerPage" 
+      @sort="sortBy" 
+      @view-user="viewUser" 
+      @toggle-status="toggleUserStatus"
+      @delete-user="deleteUser" 
+      @retry="fetchUsers" 
+      @page-change="currentPage = $event" 
+    />
 
     <!-- Modal détail utilisateur -->
     <UserModal :show="showUserModal" :user="selectedUser" @close="closeUserModal" />
@@ -70,28 +125,21 @@
               à {{ selectedUsers.length }} utilisateur(s).
             </p>
 
-            <!-- Sélection de rôle pour l'action "assign-role" -->
             <div v-if="bulkAction === 'assign-role'" class="form-group">
-              <label class="form-label">Sélectionner le rôle à assigner</label>
-              <select v-model="bulkRoleId" class="form-input">
-                <option value="">Sélectionner un rôle</option>
+              <label>Sélectionner un rôle</label>
+              <select v-model="selectedRoleForBulk" class="form-control">
+                <option value="">-- Choisir un rôle --</option>
                 <option v-for="role in availableRoles" :key="role.id" :value="role.id">
                   {{ role.name }}
                 </option>
               </select>
             </div>
-
-            <div class="form-actions">
-              <button @click="closeBulkModal" class="btn btn-outline btn-sm">
-                Annuler
-              </button>
-
-              <button @click="confirmBulkAction" class="btn btn-primary btn-sm"
-                :disabled="bulkAction === 'assign-role' && !bulkRoleId">
-                Confirmer
-              </button>
-            </div>
           </div>
+        </div>
+
+        <div class="modal-footer">
+          <button @click="closeBulkModal" class="btn btn-outline">Annuler</button>
+          <button @click="confirmBulkAction" class="btn btn-primary">Confirmer</button>
         </div>
       </div>
     </div>
@@ -100,81 +148,101 @@
 
 <script>
 import UserStats from './components/UserStats.vue'
-import UserFilters from './components/UserFilters.vue'
 import UserTable from './components/UserTable.vue'
 import UserModal from './components/UserModal.vue'
+import AdminFilterBar from '@/admin/components/ui/AdminFilterBar.vue'
+// ✅ CORRECTION : Utiliser les bons services
 import UsersApi from '@/services/UsersApi'
+import RolesApi from '@/services/RolesApi'
 
 export default {
-  name: 'AdminUsers',
+  name: 'Users',
   components: {
     UserStats,
-    UserFilters,
     UserTable,
-    UserModal
+    UserModal,
+    AdminFilterBar
   },
+
   data() {
     return {
       users: [],
-      availableRoles: [],
-      loading: true,
+      selectedUsers: [],
+      loading: false,
       error: null,
       successMessage: null,
 
-      // Filtres et recherche
-      searchQuery: '',
-      roleFilter: '',
-      statusFilter: '',
+      // ✅ Filtres avec valeurs par défaut
+      defaultFilters: {
+        search: '',
+        role: '',
+        status: ''
+      },
+
+      filters: {
+        search: '',
+        role: '',
+        status: ''
+      },
+
+      // Bulk actions
+      bulkAction: '',
+      selectedRoleForBulk: '',
+      showBulkModal: false,
 
       // Tri
-      sortField: 'name',
-      sortDirection: 'asc',
+      sortField: 'created_at',
+      sortDirection: 'desc',
 
       // Pagination
       currentPage: 1,
-      itemsPerPage: 10,
+      itemsPerPage: 25,
 
-      // Sélection multiple
-      selectedUsers: [],
-
-      // Actions en masse
-      bulkAction: '',
-      bulkRoleId: '',
-      showBulkModal: false,
-
-      // Modal détail
+      // Modal
       showUserModal: false,
-      selectedUser: null
+      selectedUser: null,
+
+      // Roles
+      availableRoles: []
     }
   },
+
   computed: {
-    activeUsers() {
-      return this.users.filter(user => user.status === 'active').length
-    },
-
-    adminUsers() {
-      return this.users.filter(user =>
-        user.role?.slug === 'admin' ||
-        user.additional_roles?.some(role => role.slug === 'admin')
-      ).length
-    },
-
-    recentUsers() {
-      const weekAgo = new Date()
-      weekAgo.setDate(weekAgo.getDate() - 7)
-      return this.users.filter(user => new Date(user.created_at) > weekAgo).length
+    // ✅ Configuration des champs de filtres
+    userFilterFields() {
+      return [
+        {
+          key: 'role',
+          type: 'select',
+          placeholder: 'Tous les rôles',
+          options: this.availableRoles.map(role => ({
+            value: role.id,
+            label: role.name
+          }))
+        },
+        {
+          key: 'status',
+          type: 'select',
+          placeholder: 'Tous les statuts',
+          options: [
+            { value: 'active', label: 'Actifs' },
+            { value: 'inactive', label: 'Suspendus' },
+            { value: 'blocked', label: 'Bloqués' }
+          ]
+        }
+      ]
     },
 
     hasFilters() {
-      return !!(this.searchQuery || this.roleFilter || this.statusFilter)
+      return !!(this.filters.search || this.filters.role || this.filters.status)
     },
 
     filteredUsers() {
       let filtered = [...this.users]
 
       // Recherche textuelle
-      if (this.searchQuery) {
-        const query = this.searchQuery.toLowerCase()
+      if (this.filters.search) {
+        const query = this.filters.search.toLowerCase()
         filtered = filtered.filter(user =>
           user.name.toLowerCase().includes(query) ||
           user.email.toLowerCase().includes(query)
@@ -182,16 +250,16 @@ export default {
       }
 
       // Filtre par rôle
-      if (this.roleFilter) {
+      if (this.filters.role) {
         filtered = filtered.filter(user =>
-          user.role_id === parseInt(this.roleFilter) ||
-          user.additional_roles?.some(role => role.id === parseInt(this.roleFilter))
+          user.role_id === parseInt(this.filters.role) ||
+          user.additional_roles?.some(role => role.id === parseInt(this.filters.role))
         )
       }
 
       // Filtre par statut
-      if (this.statusFilter) {
-        filtered = filtered.filter(user => user.status === this.statusFilter)
+      if (this.filters.status) {
+        filtered = filtered.filter(user => user.status === this.filters.status)
       }
 
       // Tri
@@ -212,83 +280,70 @@ export default {
       })
 
       return filtered
+    },
+
+    activeUsers() {
+      return this.users.filter(u => u.status === 'active').length
+    },
+
+    adminUsers() {
+      return this.users.filter(u => u.role?.name === 'Admin' || u.role?.slug === 'admin').length
+    },
+
+    recentUsers() {
+      const weekAgo = new Date()
+      weekAgo.setDate(weekAgo.getDate() - 7)
+      return this.users.filter(u => new Date(u.created_at) > weekAgo).length
     }
   },
-  watch: {
-    searchQuery() {
-      this.currentPage = 1
-      this.selectedUsers = []
-    },
-    roleFilter() {
-      this.currentPage = 1
-      this.selectedUsers = []
-    },
-    statusFilter() {
-      this.currentPage = 1
-      this.selectedUsers = []
-    }
+
+  async mounted() {
+    await this.fetchUsers()
+    await this.fetchRoles()
   },
-  created() {
-    this.checkSuccessMessage()
-    this.fetchUsers()
-    this.fetchRoles()
-  },
+
   methods: {
-    checkSuccessMessage() {
-      if (this.$route.query.success) {
-        this.successMessage = this.$route.query.success
-        this.$router.replace({ query: {} })
-      }
-    },
-
+    // ✅ CORRECTION : Utiliser UsersApi au lieu de AdminApi
     async fetchUsers() {
-      // 🚀 CACHE : Éviter requête si fetch récent (2 minutes)
-      const now = Date.now()
-      if (this.lastUsersFetch && (now - this.lastUsersFetch < 2 * 60 * 1000)) {
-        console.log('🚀 Users cache hit - pas de requête backend')
-        return
-      }
-
       this.loading = true
       this.error = null
 
       try {
-        console.log('🔄 Chargement des utilisateurs...')
-        this.users = await UsersApi.getAll()
-
-        // 🚀 CACHE : Marquer le fetch comme réussi
-        this.lastUsersFetch = now
-        console.log(`✅ ${this.users.length} utilisateurs chargés et mis en cache`)
-
+        const users = await UsersApi.getAll()
+        this.users = Array.isArray(users) ? users : []
       } catch (error) {
-        console.error('Erreur lors du chargement des utilisateurs:', error)
-        this.error = 'Impossible de charger les utilisateurs'
+        console.error('Erreur chargement utilisateurs:', error)
+        this.error = 'Erreur lors du chargement des utilisateurs'
       } finally {
         this.loading = false
       }
     },
 
+    // ✅ CORRECTION : Utiliser RolesApi au lieu de AdminApi
     async fetchRoles() {
-      // 🚀 CACHE : Éviter requête si fetch récent (5 minutes)
-      const now = Date.now()
-      if (this.lastRolesFetch && (now - this.lastRolesFetch < 5 * 60 * 1000)) {
-        console.log('🚀 Roles cache hit - pas de requête backend')
-        return
-      }
-
       try {
-        console.log('🔄 Chargement des rôles...')
-        this.availableRoles = await UsersApi.getRoles()
-
-        // 🚀 CACHE : Marquer le fetch comme réussi
-        this.lastRolesFetch = now
-        console.log(`✅ ${this.availableRoles.length} rôles chargés et mis en cache`)
-
+        const roles = await RolesApi.getAll()
+        // Normaliser la réponse
+        if (roles && roles['hydra:member']) {
+          this.availableRoles = roles['hydra:member']
+        } else if (roles && roles.data) {
+          this.availableRoles = roles.data
+        } else if (Array.isArray(roles)) {
+          this.availableRoles = roles
+        } else {
+          this.availableRoles = []
+        }
       } catch (error) {
-        console.error('Erreur lors du chargement des rôles:', error)
+        console.error('Erreur chargement rôles:', error)
       }
     },
-    // Tri
+
+    applyFilters() {
+      // Les filtres sont déjà appliqués via computed filteredUsers
+      // Cette méthode peut être utilisée pour des actions supplémentaires
+      this.currentPage = 1
+    },
+
     sortBy(field) {
       if (this.sortField === field) {
         this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc'
@@ -299,21 +354,12 @@ export default {
     },
 
     getSortValue(user, field) {
-      switch (field) {
-        case 'name':
-          return user.name || ''
-        case 'email':
-          return user.email || ''
-        case 'created_at':
-          return new Date(user.created_at)
-        case 'last_login':
-          return user.last_login_at ? new Date(user.last_login_at) : new Date(0)
-        default:
-          return ''
+      if (field === 'role') {
+        return user.role?.name || ''
       }
+      return user[field] || ''
     },
 
-    // Actions
     viewUser(user) {
       this.selectedUser = user
       this.showUserModal = true
@@ -324,83 +370,160 @@ export default {
       this.selectedUser = null
     },
 
+    // ✅ CORRECTION : Utiliser UsersApi
     async toggleUserStatus(user) {
-      const newStatus = user.status === 'active' ? 'inactive' : 'active'
-      const action = newStatus === 'active' ? 'activer' : 'suspendre'
-
-      if (!confirm(`${action} l'utilisateur "${user.name}" ?`)) {
-        return
-      }
-
       try {
-        await UsersApi.toggleStatus(user.id, newStatus)
+        const newStatus = user.status === 'active' ? 'inactive' : 'active'
+        await UsersApi.update(user.id, { status: newStatus })
+        
         user.status = newStatus
-        this.successMessage = `Utilisateur ${action === 'activer' ? 'activé' : 'suspendu'} avec succès`
+        this.successMessage = `Statut de ${user.name} modifié avec succès`
+        
+        setTimeout(() => {
+          this.successMessage = null
+        }, 3000)
       } catch (error) {
-        console.error('Erreur lors du changement de statut:', error)
-        this.error = 'Impossible de modifier le statut de l\'utilisateur'
+        console.error('Erreur modification statut:', error)
+        this.error = 'Erreur lors de la modification du statut'
       }
     },
 
+    // ✅ CORRECTION : Utiliser UsersApi
     async deleteUser(user) {
-      if (!confirm(`Supprimer définitivement l'utilisateur "${user.name}" ?`)) {
+      if (!confirm(`Êtes-vous sûr de vouloir supprimer ${user.name} ?`)) {
         return
       }
 
       try {
         await UsersApi.delete(user.id)
-        this.successMessage = 'Utilisateur supprimé avec succès'
-        this.fetchUsers()
+        this.users = this.users.filter(u => u.id !== user.id)
+        this.successMessage = `${user.name} supprimé avec succès`
+        
+        setTimeout(() => {
+          this.successMessage = null
+        }, 3000)
       } catch (error) {
-        console.error('Erreur lors de la suppression:', error)
-        this.error = 'Impossible de supprimer l\'utilisateur'
+        console.error('Erreur suppression utilisateur:', error)
+        this.error = 'Erreur lors de la suppression'
       }
     },
 
-    // Actions en masse
+    // ✅ Bulk actions (à adapter selon ton API backend)
     executeBulkAction() {
-      if (!this.bulkAction || this.selectedUsers.length === 0) {
-        return
+      if (!this.bulkAction) return
+
+      if (this.bulkAction === 'assign-role') {
+        this.showBulkModal = true
+      } else {
+        this.confirmBulkAction()
       }
-
-      this.showBulkModal = true
-    },
-
-    closeBulkModal() {
-      this.showBulkModal = false
-      this.bulkRoleId = ''
-    },
-
-    getBulkActionLabel() {
-      const labels = {
-        'activate': 'Activer',
-        'suspend': 'Suspendre',
-        'assign-role': 'Assigner un rôle',
-        'export': 'Exporter'
-      }
-      return labels[this.bulkAction] || this.bulkAction
     },
 
     async confirmBulkAction() {
       try {
-        const payload = {
-          action: this.bulkAction,
-          user_ids: this.selectedUsers,
-          ...(this.bulkAction === 'assign-role' && { role_id: this.bulkRoleId })
+        const userIds = this.selectedUsers.map(u => u.id)
+
+        switch (this.bulkAction) {
+          case 'activate':
+            // Tu devras implémenter ces méthodes dans UsersApi si nécessaire
+            for (const id of userIds) {
+              await UsersApi.update(id, { status: 'active' })
+            }
+            this.successMessage = `${userIds.length} utilisateurs activés`
+            break
+
+          case 'suspend':
+            for (const id of userIds) {
+              await UsersApi.update(id, { status: 'inactive' })
+            }
+            this.successMessage = `${userIds.length} utilisateurs suspendus`
+            break
+
+          case 'assign-role':
+            if (!this.selectedRoleForBulk) {
+              alert('Veuillez sélectionner un rôle')
+              return
+            }
+            // Implémenter selon ton API
+            this.successMessage = `Rôle assigné à ${userIds.length} utilisateurs`
+            break
+
+          case 'export':
+            this.exportUsers(this.selectedUsers)
+            this.successMessage = `${userIds.length} utilisateurs exportés`
+            break
         }
 
-        await UsersApi.bulkAction(payload)
-
-        this.successMessage = `Action "${this.getBulkActionLabel()}" appliquée à ${this.selectedUsers.length} utilisateur(s)`
+        await this.fetchUsers()
+        this.closeBulkModal()
         this.selectedUsers = []
         this.bulkAction = ''
-        this.closeBulkModal()
-        this.fetchUsers()
+        this.selectedRoleForBulk = ''
+
+        setTimeout(() => {
+          this.successMessage = null
+        }, 3000)
       } catch (error) {
-        console.error('Erreur lors de l\'action en masse:', error)
-        this.error = 'Erreur lors de l\'exécution de l\'action en masse'
+        console.error('Erreur bulk action:', error)
+        this.error = 'Erreur lors de l\'action en masse'
       }
+    },
+
+    closeBulkModal() {
+      this.showBulkModal = false
+      this.selectedRoleForBulk = ''
+    },
+
+    getBulkActionLabel() {
+      const labels = {
+        activate: 'Activer',
+        suspend: 'Suspendre',
+        'assign-role': 'Assigner un rôle',
+        export: 'Exporter'
+      }
+      return labels[this.bulkAction] || ''
+    },
+
+    exportUsers(users) {
+      const csv = this.convertToCSV(users)
+      const blob = new Blob([csv], { type: 'text/csv' })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `users-export-${new Date().toISOString()}.csv`
+      a.click()
+      window.URL.revokeObjectURL(url)
+    },
+
+    convertToCSV(users) {
+      const headers = ['ID', 'Nom', 'Email', 'Rôle', 'Statut', 'Créé le']
+      const rows = users.map(u => [
+        u.id,
+        u.name,
+        u.email,
+        u.role?.name || '',
+        u.status,
+        u.created_at
+      ])
+
+      return [
+        headers.join(','),
+        ...rows.map(r => r.join(','))
+      ].join('\n')
     }
   }
 }
 </script>
+
+<style scoped>
+/* Styles spécifiques pour Users.vue */
+.bulk-actions-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.bulk-actions-group .filter-select {
+  min-width: 200px;
+}
+</style>

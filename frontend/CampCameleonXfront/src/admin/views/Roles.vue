@@ -37,275 +37,388 @@
       <button @click="error = null" class="btn-close">&times;</button>
     </div>
 
-    <!-- Filtres et recherche -->
-    <div class="filters-section">
-      <div class="search-box">
-        <i class="fas fa-search search-icon"></i>
-        <input v-model="searchQuery" type="text" placeholder="Rechercher un rôle..." class="search-input">
-      </div>
-
-      <div class="filter-options">
-        <select v-model="filterType" class="filter-select">
-          <option value="">Tous les rôles</option>
-          <option value="critical">Rôles critiques</option>
-          <option value="deletable">Modifiables</option>
-          <option value="with_users">Avec utilisateurs</option>
-        </select>
-      </div>
-
-      <div class="results-info">
-        {{ filteredRoles.length }} rôle(s) trouvé(s)
-      </div>
-    </div>
+    <!-- ✅ NOUVEAU : AdminFilterBar -->
+    <AdminFilterBar
+      v-model="filters"
+      :default-filters="defaultFilters"
+      :fields="roleFilterFields"
+      search-placeholder="Rechercher un rôle..."
+      reset-label="Réinitialiser"
+      @apply="applyFilters"
+    >
+      <!-- Résultats personnalisés -->
+      <template #results="{ activeCount }">
+        <span class="results-info">
+          <i class="fas fa-shield-alt"></i>
+          {{ filteredRolesCount }} rôle(s)
+          <span v-if="activeCount > 0" class="text-muted">
+            · {{ activeCount }} filtre(s)
+          </span>
+        </span>
+      </template>
+    </AdminFilterBar>
 
     <!-- Loading -->
     <div v-if="loading" class="loading-container">
-      <i class="fas fa-spinner fa-spin"></i>
-      <span>Chargement des rôles...</span>
+      <div class="spinner"></div>
+      <p>Chargement des rôles...</p>
     </div>
 
-    <!-- Grille des rôles -->
-    <div v-else class="roles-grid">
-      <div v-for="role in filteredRoles" :key="role.id" class="role-card" :class="{ 'critical': role.is_critical }">
-        <!-- En-tête de la carte -->
-        <div class="card-header" :style="{ borderTopColor: role.color }">
+    <!-- Liste des rôles -->
+    <div v-else-if="roles.length > 0" class="roles-grid">
+      <div v-for="role in filteredRoles" :key="role.id" class="role-card">
+        <div class="role-header">
           <div class="role-info">
-            <div class="role-icon" :style="{ backgroundColor: role.color }">
-              <i :class="`fas ${role.icon}`"></i>
-            </div>
-            <div class="role-details">
-              <h3 class="role-name">{{ role.name }}</h3>
-              <p class="role-slug">{{ role.slug }}</p>
-            </div>
+            <h3 class="role-name">{{ role.name }}</h3>
+            <span class="role-slug">{{ role.slug }}</span>
           </div>
-
-          <div class="role-badges">
-            <span v-if="role.is_critical" class="badge badge-critical">
-              <i class="fas fa-shield-alt"></i>
-              Critique
-            </span>
-          </div>
-        </div>
-
-        <!-- Description -->
-        <div class="card-content">
-          <p class="role-description">
-            {{ role.description || 'Aucune description' }}
-          </p>
-
-          <!-- Statistiques -->
-          <div class="role-stats">
-            <div class="stat-item">
-              <i class="fas fa-key"></i>
-              <span>{{ role.permissions_count }} permission(s)</span>
-            </div>
-            <div class="stat-item">
-              <i class="fas fa-users"></i>
-              <span>{{ role.total_users_count }} utilisateur(s)</span>
-            </div>
-          </div>
-
-          <!-- Aperçu permissions (3 premières) -->
-          <div v-if="role.permissions && role.permissions.length > 0" class="permissions-preview">
-            <div class="preview-title">Permissions :</div>
-            <div class="permission-tags">
-              <span v-for="permission in role.permissions.slice(0, 3)" :key="permission.id" class="permission-tag">
-                {{ permission.name }}
-              </span>
-              <span v-if="role.permissions.length > 3" class="more-tag">
-                +{{ role.permissions.length - 3 }} autres
-              </span>
-            </div>
-          </div>
-
-          <div v-else class="no-permissions">
-            <i class="fas fa-info-circle"></i>
-            Aucune permission assignée
+          <div class="role-actions">
+            <button @click="editRole(role)" class="btn-icon" title="Modifier">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button 
+              v-if="!role.is_system" 
+              @click="deleteRole(role)" 
+              class="btn-icon text-danger" 
+              title="Supprimer"
+            >
+              <i class="fas fa-trash"></i>
+            </button>
           </div>
         </div>
 
-        <!-- Actions -->
-        <div class="card-actions">
-          <button @click="viewRoleDetails(role)" class="btn btn-outline btn-sm" title="Voir les détails">
-            <i class="fas fa-eye"></i>
-            Détails
-          </button>
+        <p v-if="role.description" class="role-description">
+          {{ role.description }}
+        </p>
 
-          <button @click="editRole(role)" class="btn btn-outline btn-sm" title="Modifier">
-            <i class="fas fa-edit"></i>
-            Modifier
-          </button>
+        <div class="role-stats">
+          <div class="stat">
+            <i class="fas fa-users"></i>
+            <span>{{ role.users_count || 0 }} utilisateurs</span>
+          </div>
+          <div class="stat">
+            <i class="fas fa-key"></i>
+            <span>{{ role.permissions_count || 0 }} permissions</span>
+          </div>
+        </div>
 
-          <button @click="deleteRole(role)" class="btn btn-danger btn-sm" :disabled="!role.can_be_deleted"
-            :title="!role.can_be_deleted ? 'Ce rôle ne peut pas être supprimé' : 'Supprimer'">
-            <i class="fas fa-trash"></i>
-            Supprimer
-          </button>
+        <div v-if="role.is_system" class="system-badge">
+          <i class="fas fa-lock"></i>
+          Rôle système
         </div>
       </div>
     </div>
 
-    <!-- Modales séparées (comme on a créé) -->
-    <RoleCreateModal v-if="showCreateModal" @close="showCreateModal = false" @created="handleRoleCreated" />
+    <!-- Empty state -->
+    <div v-else class="empty-state">
+      <i class="fas fa-shield-alt fa-3x"></i>
+      <h3>Aucun rôle trouvé</h3>
+      <p v-if="hasActiveFilters">
+        Aucun rôle ne correspond à vos critères de recherche.
+      </p>
+      <p v-else>
+        Créez votre premier rôle pour commencer.
+      </p>
+      <button @click="openCreateModal" class="btn btn-primary">
+        <i class="fas fa-plus"></i>
+        Créer un rôle
+      </button>
+    </div>
 
-    <RoleEditModal v-if="showEditModal && selectedRole" :role="selectedRole" @close="showEditModal = false"
-      @updated="handleRoleUpdated" />
-
-    <RoleDetailsModal v-if="showDetailsModal && selectedRole" :role="selectedRole" @close="showDetailsModal = false"
-      @edit="handleEditFromDetails" />
-
-    <RoleDeleteModal v-if="showDeleteModal && selectedRole" :role="selectedRole" @close="showDeleteModal = false"
-      @deleted="handleRoleDeleted" />
+    <!-- Modal création/édition (à implémenter) -->
   </div>
 </template>
 
 <script>
-import { useRolesStore } from '@/shared/stores/roles'
-import { mapState, mapActions } from 'pinia'
-import RoleCreateModal from '@/admin/components/modals/RoleCreateModal.vue'
-import RoleEditModal from '@/admin/components/modals/RoleEditModal.vue'
-import RoleDetailsModal from '@/admin/components/modals/RoleDetailsModal.vue'
-import RoleDeleteModal from '@/admin/components/modals/DeleteRoleModal.vue'
+import AdminFilterBar from '@/admin/components/ui/AdminFilterBar.vue'
+// ✅ CORRECTION : Utiliser RolesApi au lieu d'AdminApi
+import RolesApi from '@/services/RolesApi'
 
 export default {
-  name: 'RolesManagement',
-
+  name: 'Roles',
   components: {
-    RoleCreateModal,
-    RoleEditModal,
-    RoleDetailsModal,
-    RoleDeleteModal
-  },
-
-  // ✅ UTILISE le store qu'on a créé
-  setup() {
-    const rolesStore = useRolesStore()
-    return { rolesStore }
+    AdminFilterBar
   },
 
   data() {
     return {
-      // Filtres (gardés locaux pour la réactivité)
-      searchQuery: '',
-      filterType: '',
+      roles: [],
+      rolesData: null,
+      loading: false,
+      error: null,
+      successMessage: null,
 
-      // Modales (gardés locaux)
-      showCreateModal: false,
-      showEditModal: false,
-      showDetailsModal: false,
-      showDeleteModal: false,
-      selectedRole: null,
+      // ✅ Filtres avec valeurs par défaut
+      defaultFilters: {
+        search: '',
+        type: '',
+        users: ''
+      },
+
+      filters: {
+        search: '',
+        type: '',
+        users: ''
+      }
     }
   },
 
-  // ✅ UTILISE le store au lieu de data locales
   computed: {
-    ...mapState(useRolesStore, {
-      rolesData: 'rolesData',
-      loading: 'loading',
-      error: 'error',
-      successMessage: 'successMessage'
-    }),
+    // ✅ Configuration des champs de filtres
+    roleFilterFields() {
+      return [
+        {
+          key: 'type',
+          type: 'select',
+          placeholder: 'Tous les types',
+          options: [
+            { value: 'system', label: 'Rôles système' },
+            { value: 'custom', label: 'Rôles personnalisés' }
+          ]
+        },
+        {
+          key: 'users',
+          type: 'select',
+          placeholder: 'Tous les rôles',
+          options: [
+            { value: 'with_users', label: 'Avec utilisateurs' },
+            { value: 'without_users', label: 'Sans utilisateurs' }
+          ]
+        }
+      ]
+    },
 
-    roles() {
-      return this.rolesData?.data || []
+    hasActiveFilters() {
+      return !!(this.filters.search || this.filters.type || this.filters.users)
     },
 
     filteredRoles() {
-      let filtered = this.roles
+      let filtered = [...this.roles]
 
-      // Filtre par recherche
-      if (this.searchQuery) {
-        const query = this.searchQuery.toLowerCase()
+      // Recherche textuelle
+      if (this.filters.search) {
+        const query = this.filters.search.toLowerCase()
         filtered = filtered.filter(role =>
           role.name.toLowerCase().includes(query) ||
-          (role.slug?.toLowerCase().includes(query) ?? false) ||
+          role.slug.toLowerCase().includes(query) ||
           role.description?.toLowerCase().includes(query)
         )
       }
 
       // Filtre par type
-      if (this.filterType) {
-        switch (this.filterType) {
-          case 'critical':
-            filtered = filtered.filter(role => role.is_critical)
-            break
-          case 'deletable':
-            filtered = filtered.filter(role => this.isDeletable(role))
-            break
-          case 'with_users':
-            filtered = filtered.filter(role => role.total_users_count > 0)
-            break
-        }
+      if (this.filters.type === 'system') {
+        filtered = filtered.filter(role => role.is_system)
+      } else if (this.filters.type === 'custom') {
+        filtered = filtered.filter(role => !role.is_system)
+      }
+
+      // Filtre par utilisateurs
+      if (this.filters.users === 'with_users') {
+        filtered = filtered.filter(role => (role.users_count || 0) > 0)
+      } else if (this.filters.users === 'without_users') {
+        filtered = filtered.filter(role => (role.users_count || 0) === 0)
       }
 
       return filtered
+    },
+
+    filteredRolesCount() {
+      return this.filteredRoles.length
     }
   },
 
-  // ✅ UTILISE le store au lieu de loadRoles/loadPermissions
   async mounted() {
-    await this.loadAllData({ force: true })
+    await this.fetchRoles()
   },
 
   methods: {
-    // ✅ UTILISE les actions du store
-    ...mapActions(useRolesStore, [
-      'loadAllData',
-      'clearMessages'
-    ]),
+    // ✅ CORRECTION : Utiliser RolesApi au lieu d'AdminApi
+    async fetchRoles() {
+      this.loading = true
+      this.error = null
 
-    isDeletable(role) {
-      const count =
-        role.total_users_count ??
-        role.users_count ??
-        (Array.isArray(role.users) ? role.users.length : 0)
-      return !role.is_critical && Number(count) === 0
+      try {
+        const response = await RolesApi.getAll()
+        
+        // Normaliser la réponse (support API Platform hydra)
+        if (response && response['hydra:member']) {
+          this.rolesData = {
+            data: response['hydra:member'],
+            meta: {
+              total: response['hydra:totalItems'] || 0
+            }
+          }
+          this.roles = response['hydra:member']
+        } else if (response && response.data) {
+          this.rolesData = response
+          this.roles = response.data
+        } else if (Array.isArray(response)) {
+          this.roles = response
+          this.rolesData = { data: response, meta: { total: response.length } }
+        } else {
+          this.roles = []
+          this.rolesData = { data: [], meta: { total: 0 } }
+        }
+      } catch (err) {
+        console.error('Erreur chargement rôles:', err)
+        this.error = 'Erreur lors du chargement des rôles'
+      } finally {
+        this.loading = false
+      }
     },
 
-    // Actions modales (simples)
+    applyFilters() {
+      // Les filtres sont déjà appliqués via computed filteredRoles
+      // Cette méthode peut être utilisée pour des actions supplémentaires
+    },
+
     openCreateModal() {
-      this.showCreateModal = true
-    },
-
-    viewRoleDetails(role) {
-      this.selectedRole = role
-      this.showDetailsModal = true
+      // TODO: Implémenter modal de création
+      alert('Modal de création à implémenter')
     },
 
     editRole(role) {
-      this.selectedRole = role
-      this.showEditModal = true
+      // TODO: Implémenter modal d'édition
+      alert(`Édition du rôle ${role.name} à implémenter`)
     },
 
-    deleteRole(role) {
-      this.selectedRole = role
-      this.showDeleteModal = true
-    },
+    // ✅ CORRECTION : Utiliser RolesApi
+    async deleteRole(role) {
+      if (!confirm(`Êtes-vous sûr de vouloir supprimer le rôle "${role.name}" ?`)) {
+        return
+      }
 
-    // Handlers événements modales
-    handleRoleCreated() {
-      // Le store gère déjà le message et reload
-      this.showCreateModal = false
-    },
+      try {
+        await RolesApi.delete(role.id)
+        this.successMessage = `Rôle "${role.name}" supprimé avec succès`
+        await this.fetchRoles()
 
-    handleRoleUpdated() {
-      // Le store gère déjà le message et reload
-      this.showEditModal = false
-      this.selectedRole = null
-    },
-
-    handleRoleDeleted() {
-      // Le store gère déjà le message et reload  
-      this.showDeleteModal = false
-      this.selectedRole = null
-    },
-
-    handleEditFromDetails(role) {
-      this.showDetailsModal = false
-      this.selectedRole = role
-      this.showEditModal = true
+        setTimeout(() => {
+          this.successMessage = null
+        }, 3000)
+      } catch (err) {
+        console.error('Erreur suppression rôle:', err)
+        this.error = err.response?.data?.message || 'Erreur lors de la suppression'
+      }
     }
   }
 }
 </script>
+
+<style scoped>
+.roles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.role-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s;
+}
+
+.role-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.role-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 1rem;
+}
+
+.role-info {
+  flex: 1;
+}
+
+.role-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #32325d;
+  margin: 0 0 0.25rem 0;
+}
+
+.role-slug {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: #f7fafc;
+  color: #8898aa;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 6px;
+  font-family: 'Monaco', 'Courier New', monospace;
+}
+
+.role-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.role-description {
+  color: #8898aa;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin: 0 0 1rem 0;
+}
+
+.role-stats {
+  display: flex;
+  gap: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #8898aa;
+  font-size: 0.875rem;
+}
+
+.stat i {
+  color: #5e72e4;
+}
+
+.system-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.empty-state i {
+  color: #8898aa;
+  margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+  color: #32325d;
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  color: #8898aa;
+  margin-bottom: 1.5rem;
+}
+</style>

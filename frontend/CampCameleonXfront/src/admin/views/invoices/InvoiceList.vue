@@ -14,6 +14,10 @@
           <i class="fas fa-sync"></i>
           Actualiser
         </button>
+        <button type="button" class="btn btn-primary btn-sm" @click="$router.push({ name: 'InvoiceCreate' })">
+          <i class="fas fa-plus"></i>
+          Nouvelle Facture
+        </button>
       </div>
     </div>
 
@@ -41,6 +45,16 @@
 
       <div class="stat-card">
         <div class="stat-icon" style="background: var(--warning);">
+          <i class="fas fa-clock"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">En attente</div>
+          <div class="stat-value">{{ stats.counts?.pending || 0 }}</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon" style="background: var(--danger);">
           <i class="fas fa-exclamation-circle"></i>
         </div>
         <div class="stat-content">
@@ -48,68 +62,19 @@
           <div class="stat-value">{{ stats.counts?.overdue || 0 }}</div>
         </div>
       </div>
-
-      <div class="stat-card">
-        <div class="stat-icon" style="background: var(--info);">
-          <i class="fas fa-euro-sign"></i>
-        </div>
-        <div class="stat-content">
-          <div class="stat-label">Revenus</div>
-          <div class="stat-value">{{ formatCurrency(stats.revenue?.total || 0) }}</div>
-        </div>
-      </div>
     </div>
 
-    <!-- Filtres -->
-    <div class="filters-card">
-      <div class="filters-row">
-        <div class="search-field">
-          <label for="search">Rechercher</label>
-          <div class="search-box">
-            <i class="fas fa-search"></i>
-            <input id="search" v-model="filters.search" type="text" placeholder="Numéro, client..."
-              @input="onSearchInput" />
-          </div>
-        </div>
-
-        <div class="filter-control">
-          <label for="status">Statut</label>
-          <select id="status" v-model="filters.status" @change="applyFilters">
-            <option value="">Tous les statuts</option>
-            <option value="paid">Payées</option>
-            <option value="pending">En attente</option>
-            <option value="overdue">En retard</option>
-            <option value="canceled">Annulées</option>
-          </select>
-        </div>
-
-        <div class="filter-control">
-          <label for="start-date">Date début</label>
-          <input id="start-date" v-model="filters.start_date" type="date" @change="applyFilters" />
-        </div>
-
-        <div class="filter-control">
-          <label for="end-date">Date fin</label>
-          <input id="end-date" v-model="filters.end_date" type="date" @change="applyFilters" />
-        </div>
-
-        <div class="reset-control">
-          <button type="button" class="btn btn-outline btn-sm" @click="resetFilters" :disabled="!hasActiveFilters">
-            <i class="fas fa-times"></i>
-            Reset
-          </button>
-        </div>
-      </div>
-    </div>
-    <!-- Toolbar -->
-    <div class="list-toolbar">
-      <div class="list-toolbar-left">
-        <span class="results-count">
-          <i class="fas fa-database"></i>
-          {{ pagination.total }} résultat<span v-if="pagination.total > 1">s</span>
-        </span>
-      </div>
-    </div>
+    <!-- ✅ AdminFilterBar remplace le bloc filters-card -->
+    <AdminFilterBar
+      v-model="filters"
+      :default-filters="defaultFilters"
+      :fields="invoiceFilterFields"
+      search-placeholder="Numéro, client, email..."
+      :search-debounce="500"
+      reset-label="Réinitialiser"
+      @apply="applyFilters"
+      @reset="resetFilters"
+    />
 
     <!-- Loading -->
     <div v-if="loading" class="loading-container">
@@ -139,15 +104,15 @@
               <i :class="getSortIcon('invoice_number')"></i>
             </th>
             <th>Client</th>
-            <th class="sortable" @click="changeSort('issue_date')">
-              Dates
-              <i :class="getSortIcon('issue_date')"></i>
+            <th @click="changeSort('created_at')" class="sortable">
+              Date
+              <i :class="getSortIcon('created_at')"></i>
             </th>
-            <th class="sortable" @click="changeSort('status')">
+            <th @click="changeSort('status')" class="sortable">
               Statut
               <i :class="getSortIcon('status')"></i>
             </th>
-            <th class="sortable" @click="changeSort('amount')">
+            <th @click="changeSort('amount')" class="sortable text-right">
               Montant
               <i :class="getSortIcon('amount')"></i>
             </th>
@@ -156,52 +121,41 @@
         </thead>
         <tbody>
           <tr v-for="invoice in invoices" :key="invoice.id">
-            <!-- Facture -->
             <td>
               <strong>{{ invoice.invoice_number }}</strong><br>
-              <small class="text-muted">{{ formatDate(invoice.created_at) }}</small>
-            </td>
-
-            <!-- Client -->
-            <td>
-              <strong>{{ invoice.customer_name }}</strong><br>
-              <small v-if="invoice.customer?.email" class="text-muted">
-                <i class="fas fa-envelope"></i> {{ invoice.customer.email }}
+              <small v-if="invoice.reservation" class="text-muted">
+                <i class="fas fa-calendar"></i> Rés. #{{ invoice.reservation.id }}
               </small>
             </td>
 
-            <!-- Dates -->
             <td>
-              <strong>Émission: {{ formatDate(invoice.issue_date) }}</strong><br>
-              <small class="text-muted" :class="{ 'text-danger': invoice.is_overdue }">
-                <i class="fas fa-calendar"></i> Échéance: {{ formatDate(invoice.due_date) }}
+              <strong>{{ getCustomerName(invoice) }}</strong><br>
+              <small v-if="getCustomerEmail(invoice)" class="text-muted">
+                <i class="fas fa-envelope"></i> {{ getCustomerEmail(invoice) }}
               </small>
             </td>
 
-            <!-- Statut -->
+            <td>
+              <span>{{ formatDate(invoice.created_at) }}</span><br>
+              <small v-if="invoice.due_date" class="text-muted">
+                Échéance: {{ formatDate(invoice.due_date) }}
+              </small>
+            </td>
+
             <td>
               <span :class="['status-badge', getStatusClass(invoice.status)]">
                 {{ getStatusLabel(invoice.status) }}
               </span>
             </td>
 
-            <!-- Montant -->
-            <td>
-              <span class="price-value">{{ formatCurrency(invoice.amount) }}</span>
+            <td class="text-right">
+              <strong class="price-value">{{ formatCurrency(invoice.amount) }}</strong>
             </td>
 
-            <!-- Actions -->
             <td class="actions-col">
               <div class="table-actions">
                 <button type="button" class="btn-icon" title="Voir" @click="viewInvoice(invoice)">
                   <i class="fas fa-eye"></i>
-                </button>
-                <button v-if="invoice.status === 'pending' || invoice.status === 'overdue'" type="button"
-                  class="btn-icon" title="Marquer comme payée" @click="markAsPaid(invoice)">
-                  <i class="fas fa-check"></i>
-                </button>
-                <button type="button" class="btn-icon" title="Envoyer par email" @click="sendEmail(invoice)">
-                  <i class="fas fa-envelope"></i>
                 </button>
                 <button type="button" class="btn-icon" title="Télécharger PDF" @click="downloadPdf(invoice)">
                   <i class="fas fa-download"></i>
@@ -217,20 +171,24 @@
     </div>
 
     <!-- Pagination -->
-    <Pagination v-if="invoices.length > 0 && pagination.lastPage > 1" :pagination="pagination"
-      @page-change="changePage" />
+    <Pagination 
+      v-if="invoices.length > 0 && pagination.lastPage > 1" 
+      :pagination="pagination"
+      @page-change="changePage" 
+    />
   </div>
 </template>
 
 <script>
 import { useInvoiceStore } from '@/shared/stores/invoice'
 import Pagination from '@/admin/views/products/components/Pagination.vue'
-import { debounce } from '@/shared/utils/helpers'
+import AdminFilterBar from '@/admin/components/ui/AdminFilterBar.vue'
 
 export default {
   name: 'InvoicesList',
   components: {
-    Pagination
+    Pagination,
+    AdminFilterBar
   },
 
   data() {
@@ -238,24 +196,55 @@ export default {
       invoiceStore: useInvoiceStore(),
       loading: false,
       error: null,
+      
+      // ✅ Filtres pour AdminFilterBar
+      defaultFilters: {
+        search: '',
+        status: '',
+        start_date: '',
+        end_date: ''
+      },
+      
       filters: {
         search: '',
         status: '',
         start_date: '',
         end_date: ''
       },
+      
       sortBy: 'created_at',
-      sortOrder: 'desc',
-      statusOptions: [
-        { value: 'paid', label: 'Payée' },
-        { value: 'pending', label: 'En attente' },
-        { value: 'overdue', label: 'En retard' },
-        { value: 'canceled', label: 'Annulée' }
-      ]
+      sortOrder: 'desc'
     }
   },
 
   computed: {
+    // ✅ Config AdminFilterBar
+    invoiceFilterFields() {
+      return [
+        {
+          key: 'status',
+          type: 'select',
+          placeholder: 'Tous les statuts',
+          options: [
+            { value: 'paid', label: 'Payées' },
+            { value: 'pending', label: 'En attente' },
+            { value: 'overdue', label: 'En retard' },
+            { value: 'canceled', label: 'Annulées' }
+          ]
+        },
+        {
+          key: 'start_date',
+          type: 'date',
+          placeholder: 'Date début'
+        },
+        {
+          key: 'end_date',
+          type: 'date',
+          placeholder: 'Date fin'
+        }
+      ]
+    },
+
     invoices() {
       return this.invoiceStore.invoices
     },
@@ -271,10 +260,6 @@ export default {
     hasActiveFilters() {
       return this.filters.search || this.filters.status || this.filters.start_date || this.filters.end_date
     }
-  },
-
-  created() {
-    this.onSearchInput = debounce(this.applyFilters, 500)
   },
 
   async mounted() {
@@ -318,12 +303,7 @@ export default {
     },
 
     resetFilters() {
-      this.filters = {
-        search: '',
-        status: '',
-        start_date: '',
-        end_date: ''
-      }
+      this.filters = { ...this.defaultFilters }
       this.invoiceStore.resetFilters()
       this.loadInvoices(1)
     },
@@ -348,103 +328,82 @@ export default {
     },
 
     refresh() {
-      this.loadInvoices(this.pagination.currentPage)
+      this.loadInvoices()
       this.loadStats()
     },
 
-    viewInvoice(invoice) {
-      this.$router.push({ name: 'InvoiceDetail', params: { id: invoice.id } })
-    },
-
-    async markAsPaid(invoice) {
-      if (!confirm(`Marquer la facture ${invoice.invoice_number} comme payée ?`)) return
-
-      try {
-        await this.invoiceStore.markAsPaid(invoice.id, 'card')
-        this.loadInvoices(this.pagination.currentPage)
-      } catch (err) {
-        alert(`Erreur: ${err.message}`)
+    // Helpers
+    getCustomerName(invoice) {
+      if (invoice.customer) {
+        return invoice.customer.name || invoice.customer.email
       }
+      return 'Client inconnu'
     },
 
-    async sendEmail(invoice) {
-      if (!confirm(`Envoyer la facture ${invoice.invoice_number} par email à ${invoice.customer?.email} ?`)) return
-
-      try {
-        await this.invoiceStore.sendEmail(invoice.id)
-        alert('Email envoyé avec succès')
-      } catch (err) {
-        alert(`Erreur: ${err.message}`)
-      }
+    getCustomerEmail(invoice) {
+      return invoice.customer?.email
     },
 
-    async downloadPdf(invoice) {
-      try {
-        await this.invoiceStore.downloadPdf(invoice.id)
-      } catch (err) {
-        alert(`Erreur: ${err.message}`)
-      }
+    formatDate(dateString) {
+      if (!dateString) return '-'
+      return new Date(dateString).toLocaleDateString('fr-FR')
     },
 
-    async deleteInvoice(invoice) {
-      if (!confirm(`Supprimer la facture ${invoice.invoice_number} ?\n\nCette action est irréversible.`)) return
-
-      try {
-        await this.invoiceStore.deleteInvoice(invoice.id)
-        this.loadInvoices(this.pagination.currentPage)
-      } catch (err) {
-        alert(`Erreur: ${err.message}`)
-      }
-    },
-
-    getStatusClass(status) {
-      return {
-        paid: 'status-active',
-        pending: 'status-draft',
-        overdue: 'status-inactive',
-        canceled: 'status-inactive'
-      }[status] || 'status-draft'
+    formatCurrency(amount) {
+      if (!amount) return '0,00 €'
+      return new Intl.NumberFormat('fr-FR', {
+        style: 'currency',
+        currency: 'EUR'
+      }).format(amount)
     },
 
     getStatusLabel(status) {
-      return {
+      const labels = {
         paid: 'Payée',
         pending: 'En attente',
         overdue: 'En retard',
         canceled: 'Annulée'
-      }[status] || status
+      }
+      return labels[status] || status
     },
 
-    formatDate(date) {
-      if (!date) return '-'
-      return new Date(date).toLocaleDateString('fr-FR')
+    getStatusClass(status) {
+      const classes = {
+        paid: 'status-success',
+        pending: 'status-warning',
+        overdue: 'status-danger',
+        canceled: 'status-secondary'
+      }
+      return classes[status] || ''
     },
 
-    formatCurrency(amount) {
-      return new Intl.NumberFormat('fr-FR', {
-        style: 'currency',
-        currency: 'EUR'
-      }).format(amount || 0)
+    // Actions
+    viewInvoice(invoice) {
+      this.$router.push({ name: 'InvoiceDetail', params: { id: invoice.id } })
+    },
+
+    async downloadPdf(invoice) {
+      try {
+        // TODO: Implémenter téléchargement PDF
+        alert(`Téléchargement PDF de la facture ${invoice.invoice_number}`)
+      } catch (error) {
+        console.error('Erreur téléchargement PDF:', error)
+      }
+    },
+
+    async deleteInvoice(invoice) {
+      if (!confirm(`Supprimer la facture ${invoice.invoice_number} ?`)) {
+        return
+      }
+
+      try {
+        await this.invoiceStore.deleteInvoice(invoice.id)
+        await this.loadInvoices()
+      } catch (error) {
+        console.error('Erreur suppression:', error)
+        alert('Erreur lors de la suppression')
+      }
     }
   }
 }
 </script>
-
-<style scoped>
-
-.search-box {
-  display: flex;
-  align-items: center;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-}
-
-.search-box input {
-  width: 100%;
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: 14px;
-  color: #111827;
-}
-</style>
