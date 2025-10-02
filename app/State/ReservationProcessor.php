@@ -62,24 +62,22 @@ class ReservationProcessor implements ProcessorInterface
     private function createReservation(array $context, $currentUser): Reservation
     {
         $payload = $this->getDataFromRequest($context);
+        $payload = $this->normalizeAliases($payload);      // ⟵ AJOUT
+
         $this->validateReservationData($payload);
 
         $customerId = $this->findOrCreateCustomer($payload['customer_data'] ?? []);
-        // normaliser amount côté serveur au passage (voir point 2)
         $payload['amount'] = $this->normalizeAmount($payload['amount'] ?? '0');
 
         $reservationData = $this->prepareReservationData($payload, $customerId, $currentUser);
 
-        // 1) on crée sans invoice_number
         $reservation = Reservation::create($reservationData);
-
-        // 2) on dérive un numéro 100% unique depuis l'ID
-        $invoiceNumber = $this->formatInvoiceNumberFromId($reservation->id);
-        $reservation->invoice_number = $invoiceNumber;
+        $reservation->invoice_number = $this->formatInvoiceNumberFromId($reservation->id);
         $reservation->save();
 
         return $reservation;
     }
+
 
     private function formatInvoiceNumberFromId(int $id): string
     {
@@ -90,6 +88,7 @@ class ReservationProcessor implements ProcessorInterface
     private function updateReservation(int $id, array $context, $currentUser): Reservation
     {
         $payload = $this->getDataFromRequest($context);
+        $payload = $this->normalizeAliases($payload);
         $reservation = Reservation::findOrFail($id);
 
         // === CHECK-IN/CHECK-OUT : traitement direct, pas de prepareReservationData ===
@@ -132,10 +131,14 @@ class ReservationProcessor implements ProcessorInterface
             $payload['customer_id'] = $customerId;
         }
 
-        $cleanPayload = $this->prepareReservationData($payload, $payload['customer_id'] ?? $reservation->customer_id, $currentUser);
-        $reservation->update($cleanPayload);
+        $cleanPayload = $this->prepareReservationData(
+            $payload,
+            $payload['customer_id'] ?? $reservation->customer_id,
+            $currentUser
+        );
 
-        Log::info("✅ Réservation #{$id} mise à jour");
+        $reservation->update($cleanPayload);
+        Log::info("✅ Réservation #{$id} mise à jour avec succès");
         return $reservation;
     }
 
@@ -181,6 +184,29 @@ class ReservationProcessor implements ProcessorInterface
         }
 
         return $customer->id;
+    }
+    private function normalizeAliases(array $payload): array
+    {
+        // new_customer / customer -> customer_data
+        if (!isset($payload['customer_data'])) {
+            if (isset($payload['new_customer']) && is_array($payload['new_customer'])) {
+                $payload['customer_data'] = $payload['new_customer'];
+            } elseif (isset($payload['customer']) && is_array($payload['customer'])) {
+                $payload['customer_data'] = $payload['customer'];
+            }
+        }
+
+        // guests -> number_of_adults (fallback simple si tu n'as pas le split adultes/enfants)
+        if (!isset($payload['number_of_adults']) && isset($payload['guests'])) {
+            $payload['number_of_adults'] = max(1, (int) $payload['guests']);
+        }
+
+        // amount: string attendu par ton validateur
+        if (isset($payload['amount'])) {
+            $payload['amount'] = (string) $this->normalizeAmount($payload['amount']);
+        }
+
+        return $payload;
     }
 
     private function validateReservationData(array $payload): void
