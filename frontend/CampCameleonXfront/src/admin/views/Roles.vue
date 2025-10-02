@@ -59,9 +59,12 @@
     </AdminFilterBar>
 
     <!-- Loading -->
-    <div v-if="loading" class="loading-container">
-      <div class="spinner"></div>
-      <p>Chargement des rôles...</p>
+    <div v-if="loading" class="loading-state">
+      <LoadingState 
+        state="loading" 
+        loading-text="Chargement des rôles..." 
+        :container-class="'py-5'"
+      />
     </div>
 
     <!-- Liste des rôles -->
@@ -131,13 +134,14 @@
 
 <script>
 import AdminFilterBar from '@/admin/components/ui/AdminFilterBar.vue'
-// ✅ CORRECTION : Utiliser RolesApi au lieu d'AdminApi
 import RolesApi from '@/services/RolesApi'
+import LoadingState from '@/admin/components/ui/LoadingState.vue'
 
 export default {
   name: 'Roles',
   components: {
-    AdminFilterBar
+    AdminFilterBar,
+    LoadingState
   },
 
   data() {

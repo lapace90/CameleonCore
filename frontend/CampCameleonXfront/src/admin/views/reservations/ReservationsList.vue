@@ -21,69 +21,24 @@
       </div>
     </div>
 
-    <!-- Filtres -->
-    <div class="filters-card">
-      <div class="filters-row">
-        <div class="search-field">
-          <label for="search">Rechercher</label>
-          <div class="search-box">
-            <i class="fas fa-search"></i>
-            <input id="search" v-model="filters.search" type="text" placeholder="Nom client, email, ID réservation..."
-              @input="onSearchInput" />
-          </div>
-        </div>
-
-        <div class="filter-control">
-          <label for="status">Statut</label>
-          <select id="status" v-model="filters.status" @change="applyFilters">
-            <option value="">Tous les statuts</option>
-            <option v-for="option in statusOptions" :key="option.value" :value="option.value">
-              {{ option.label }}
-            </option>
-          </select>
-        </div>
-
-        <div class="filter-control">
-          <label for="start-date">Date début</label>
-          <input id="start-date" v-model="filters.startDate" type="date" @change="applyFilters" />
-        </div>
-
-        <div class="filter-control">
-          <label for="end-date">Date fin</label>
-          <input id="end-date" v-model="filters.endDate" type="date" @change="applyFilters" />
-        </div>
-
-        <div class="reset-control">
-          <button type="button" class="btn btn-outline btn-sm" @click="resetFilters" :disabled="!hasActiveFilters">
-            <i class="fas fa-times"></i>
-            Reset
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Toolbar -->
-    <div class="list-toolbar">
-      <div class="list-toolbar-left">
-        <span class="results-count">
-          <i class="fas fa-database"></i>
-          {{ pagination.total }} résultat<span v-if="pagination.total > 1">s</span>
+    <!-- AdminFilterBar remplace filters-card -->
+    <AdminFilterBar
+      v-model="filters"
+      :default-filters="defaultFilters"
+      :fields="reservationFilterFields"
+      search-placeholder="Nom client, email, ID réservation..."
+      @apply="applyFilters"
+    >
+      <template #results="{ activeCount }">
+        <span class="results-info">
+          <i class="fas fa-calendar-check"></i>
+          {{ pagination.total }} réservation(s)
+          <span v-if="activeCount > 0" class="text-muted">
+            · {{ activeCount }} filtre(s)
+          </span>
         </span>
-        <span v-if="hasActiveFilters" class="filters-indicator">
-          <i class="fas fa-filter"></i>
-          Filtres actifs
-        </span>
-      </div>
-
-      <div class="list-toolbar-right">
-        <label for="per-page">Résultats par page</label>
-        <select id="per-page" v-model.number="pagination.perPage" @change="changePerPage">
-          <option v-for="option in perPageOptions" :key="option" :value="option">
-            {{ option }}
-          </option>
-        </select>
-      </div>
-    </div>
+      </template>
+    </AdminFilterBar>
 
     <!-- Loading -->
     <div v-if="loading" class="state-card">
@@ -230,6 +185,7 @@
 <script>
 import AdminApi from '@/services/AdminApi'
 import Pagination from '@/admin/views/products/components/Pagination.vue'
+import AdminFilterBar from '@/admin/components/ui/AdminFilterBar.vue'
 import { debounce } from '@/shared/utils/helpers'
 import { permissionMixin } from '@/plugins/permission-directives'
 
@@ -237,7 +193,8 @@ export default {
   name: 'ReservationsList',
   mixins: [permissionMixin],
   components: {
-    Pagination
+    Pagination,
+    AdminFilterBar
   },
 
   data() {
@@ -245,12 +202,21 @@ export default {
       loading: false,
       error: null,
       reservations: [],
+      
+      defaultFilters: {
+        search: '',
+        status: '',
+        startDate: '',
+        endDate: ''
+      },
+      
       filters: {
         search: '',
         status: '',
         startDate: '',
         endDate: ''
       },
+      
       statusOptions: [
         { label: 'Confirmée', value: 'confirmed' },
         { label: 'En attente', value: 'pending' },
@@ -274,6 +240,30 @@ export default {
   },
 
   computed: {
+    reservationFilterFields() {
+      return [
+        {
+          key: 'status',
+          type: 'select',
+          placeholder: 'Tous les statuts',
+          options: this.statusOptions.map(opt => ({
+            value: opt.value,
+            label: opt.label
+          }))
+        },
+        {
+          key: 'startDate',
+          type: 'date',
+          placeholder: 'Date début'
+        },
+        {
+          key: 'endDate',
+          type: 'date',
+          placeholder: 'Date fin'
+        }
+      ]
+    },
+    
     hasActiveFilters() {
       return Boolean(
         this.filters.search ||
@@ -340,66 +330,32 @@ export default {
       }
     },
 
-    updatePagination(meta) {
-      this.pagination.total = Number(meta.total) || 0
-      this.pagination.perPage = Number(meta.perPage) || this.pagination.perPage
-      this.pagination.currentPage = Number(meta.currentPage) || 1
-      this.pagination.lastPage = Number(meta.lastPage) || Math.max(1, Math.ceil(this.pagination.total / this.pagination.perPage))
+    applyFilters() {
+      this.pagination.currentPage = 1
+      this.fetchReservations()
+    },
+
+    onSearchInput() {
+      this.debouncedSearch()
+    },
+
+    resetFilters() {
+      this.filters = { ...this.defaultFilters }
+      this.applyFilters()
     },
 
     refresh() {
       this.fetchReservations()
     },
 
-    onSearchInput() {
-      if (typeof this.debouncedSearch === 'function') {
-        this.debouncedSearch()
-      }
-    },
-
-    async quickCheckIn(reservation) {
-      if (!confirm(`Confirmer l'arrivée de ${reservation.customer_name || 'ce client'} ?`)) return
-
-      try {
-        await AdminApi.doReservationCheckIn(reservation.id)
-        await this.fetchReservations() // Rafraîchir la liste
-        alert('✅ Check-in effectué avec succès!')
-      } catch (error) {
-        console.error('Erreur check-in:', error)
-        const msg = error.response?.data?.message || error.message || 'Erreur lors du check-in'
-        alert(`❌ ${msg}`)
-      }
-    },
-
-    async quickCheckOut(reservation) {
-      if (!confirm(`Confirmer le départ de ${reservation.customer_name || 'ce client'} ?`)) return
-
-      try {
-        await AdminApi.doReservationCheckOut(reservation.id)
-        await this.fetchReservations() // Rafraîchir la liste
-        alert('✅ Check-out effectué avec succès!')
-      } catch (error) {
-        console.error('Erreur check-out:', error)
-        const msg = error.response?.data?.message || error.message || 'Erreur lors du check-out'
-        alert(`❌ ${msg}`)
-      }
-    },
-
-    applyFilters() {
-      this.pagination.currentPage = 1
-      this.fetchReservations()
-    },
-
-    resetFilters() {
-      this.filters.search = ''
-      this.filters.status = ''
-      this.filters.startDate = ''
-      this.filters.endDate = ''
-      this.applyFilters()
+    updatePagination(meta) {
+      this.pagination.currentPage = meta.current_page || meta.currentPage || 1
+      this.pagination.perPage = meta.per_page || meta.perPage || 10
+      this.pagination.total = meta.total || 0
+      this.pagination.lastPage = meta.last_page || meta.lastPage || 1
     },
 
     changePage(page) {
-      if (page === this.pagination.currentPage) return
       this.pagination.currentPage = page
       this.fetchReservations()
     },
@@ -414,165 +370,144 @@ export default {
         this.sort.direction = this.sort.direction === 'asc' ? 'desc' : 'asc'
       } else {
         this.sort.field = field
-        this.sort.direction = 'asc'
+        this.sort.direction = 'desc'
       }
       this.fetchReservations()
     },
 
     getSortIcon(field) {
-      if (this.sort.field !== field) return 'fas fa-sort text-muted'
+      if (this.sort.field !== field) return 'fas fa-sort'
       return this.sort.direction === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'
     },
 
-    // Formatage
-    formatDate(date) {
-      if (!date) return '—'
+    viewReservation(reservation) {
+      this.$router.push({ name: 'ReservationDetail', params: { id: reservation.id } })
+    },
+
+    editReservation(reservation) {
+      this.$router.push({ name: 'ReservationEdit', params: { id: reservation.id } })
+    },
+
+    async deleteReservation(reservation) {
+      if (!confirm(`Supprimer la réservation #${reservation.id} ?`)) return
+
       try {
-        return new Intl.DateTimeFormat('fr-FR', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric'
-        }).format(new Date(date))
+        await AdminApi.deleteReservation(reservation.id)
+        this.fetchReservations()
       } catch (error) {
-        return date
+        alert('Erreur lors de la suppression')
       }
     },
 
+    async quickCheckIn(reservation) {
+      try {
+        await AdminApi.updateReservation(reservation.id, { status: 'checked_in' })
+        this.fetchReservations()
+      } catch (error) {
+        alert('Erreur lors du check-in')
+      }
+    },
+
+    async quickCheckOut(reservation) {
+      try {
+        await AdminApi.updateReservation(reservation.id, { status: 'checked_out' })
+        this.fetchReservations()
+      } catch (error) {
+        alert('Erreur lors du check-out')
+      }
+    },
+
+    formatDate(dateString) {
+      if (!dateString) return ''
+      return new Date(dateString).toLocaleDateString('fr-FR')
+    },
+
     formatDateRange(start, end) {
-      const startFormatted = this.formatDate(start)
-      const endFormatted = this.formatDate(end)
-      return `${startFormatted} → ${endFormatted}`
+      if (!start || !end) return ''
+      const startDate = new Date(start).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })
+      const endDate = new Date(end).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })
+      return `${startDate} → ${endDate}`
     },
 
     formatAmount(amount) {
       if (!amount) return '0,00 €'
-      const value = typeof amount === 'string' ? parseFloat(amount) : amount
-      return new Intl.NumberFormat('fr-FR', {
-        style: 'currency',
-        currency: 'EUR'
-      }).format(value)
+      return `${parseFloat(amount).toFixed(2)} €`
     },
 
-    // Getters pour données
+    getNights(reservation) {
+      if (!reservation.checkin || !reservation.checkout) return 0
+      const start = new Date(reservation.checkin)
+      const end = new Date(reservation.checkout)
+      return Math.ceil((end - start) / (1000 * 60 * 60 * 24))
+    },
+
     getCustomerName(reservation) {
       if (typeof reservation.customer === 'object' && reservation.customer) {
         const c = reservation.customer
         return c.name && c.last_name ? `${c.name} ${c.last_name}` : c.name || c.email
       }
-      return reservation.customer_name || 'Client inconnu'
+      return reservation.customerName || 'Client inconnu'
     },
 
     getCustomerEmail(reservation) {
       if (typeof reservation.customer === 'object' && reservation.customer) {
         return reservation.customer.email
       }
-      return null
+      return reservation.customerEmail || ''
     },
 
     getCustomerPhone(reservation) {
       if (typeof reservation.customer === 'object' && reservation.customer) {
         return reservation.customer.phone
       }
-      return null
-    },
-
-    getNights(reservation) {
-      if (!reservation?.checkin || !reservation?.checkout) return null
-      const start = new Date(reservation.checkin)
-      const end = new Date(reservation.checkout)
-      const diff = Math.round((end - start) / (1000 * 60 * 60 * 24))
-      return diff > 0 ? diff : null
+      return reservation.customerPhone || ''
     },
 
     getGuestsLabel(reservation) {
-      const adults = Number(reservation?.number_of_adults) || 0
-      const children = Number(reservation?.number_of_children) || 0
+      const adults = reservation.number_of_adults || 0
+      const children = reservation.number_of_children || 0
       const total = adults + children
-
-      if (total === 0) return 'Non défini'
-
-      const parts = []
-      if (adults) parts.push(`${adults} ${adults > 1 ? 'adultes' : 'adulte'}`)
-      if (children) parts.push(`${children} ${children > 1 ? 'enfants' : 'enfant'}`)
-
-      return parts.length ? parts.join(', ') : `${total} personne${total > 1 ? 's' : ''}`
+      return total > 0 ? `${total} personne${total > 1 ? 's' : ''}` : ''
     },
 
-    // Labels statuts
     getStatusLabel(status) {
       const labels = {
-        confirmed: 'Confirmée',
-        pending: 'En attente',
-        cancelled: 'Annulée',
-        completed: 'Terminée',
-        draft: 'Brouillon'
+        'confirmed': 'Confirmée',
+        'pending': 'En attente',
+        'cancelled': 'Annulée',
+        'completed': 'Terminée',
+        'draft': 'Brouillon',
+        'checked_in': 'Check-in',
+        'checked_out': 'Check-out'
       }
-      return labels[status] || (status ? status.charAt(0).toUpperCase() + status.slice(1) : '—')
+      return labels[status] || status
     },
 
     getStatusClass(status) {
-      const classes = {
-        confirmed: 'status-confirmed',
-        pending: 'status-pending',
-        cancelled: 'status-cancelled',
-        completed: 'status-completed',
-        draft: 'status-draft'
-      }
-      return classes[status] || 'status-unknown'
+      return `status-${status}`
     },
 
-    getStatusIcon(status) {
-      const icons = {
-        confirmed: 'fas fa-check-circle',
-        pending: 'fas fa-hourglass-half',
-        cancelled: 'fas fa-times-circle',
-        completed: 'fas fa-flag-checkered',
-        draft: 'fas fa-pencil-alt'
-      }
-      return icons[status] || 'fas fa-question-circle'
-    },
-
-    getPaymentStatusLabel(status) {
+    getPaymentStatusLabel(paymentStatus) {
+      if (!paymentStatus) return ''
       const labels = {
-        paid: 'Payée',
-        pending: 'En attente de paiement',
-        failed: 'Paiement échoué',
-        refunded: 'Remboursée'
+        'paid': 'Payé',
+        'pending': 'En attente',
+        'partial': 'Partiel',
+        'refunded': 'Remboursé'
       }
-      return labels[status] || null
+      return labels[paymentStatus] || paymentStatus
     },
 
     getBookingSourceLabel(source) {
       const labels = {
-        website: 'Site web',
-        direct: 'Direct',
-        phone: 'Téléphone',
-        booking: 'Booking.com',
-        airbnb: 'Airbnb'
+        'web': 'Site web',
+        'phone': 'Téléphone',
+        'email': 'Email',
+        'direct': 'Direct',
+        'booking': 'Booking.com',
+        'airbnb': 'Airbnb'
       }
-      return labels[source] || source || 'Non défini'
-    },
-
-    // Actions
-    viewReservation(reservation) {
-      this.$router.push({ name: 'ReservationDetail', params: { id: reservation.id } })
-    },
-
-    editReservation(reservation) {
-      this.$router.push({ name: 'ReservationDetail', params: { id: reservation.id }, query: { mode: 'edit' } })
-    },
-
-    async deleteReservation(reservation) {
-      const confirmed = window.confirm(`Supprimer la réservation #${reservation.id} ?`)
-      if (!confirmed) return
-
-      try {
-        await AdminApi.deleteReservation(reservation.id)
-        await this.fetchReservations()
-      } catch (error) {
-        console.error('Erreur lors de la suppression de la réservation:', error)
-        this.error = error.message || 'Impossible de supprimer la réservation.'
-      }
+      return labels[source] || source || 'Direct'
     }
   }
 }
@@ -586,12 +521,6 @@ export default {
   padding: 24px;
 }
 
-.page-title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
 .page-title i {
   color: #2563eb;
 }
@@ -600,22 +529,6 @@ export default {
   margin: 0;
   color: #6b7280;
   font-size: 15px;
-}
-
-.search-box {
-  display: flex;
-  align-items: center;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-}
-
-.search-box input {
-  width: 100%;
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: 14px;
-  color: #111827;
 }
 
 .state-card {
@@ -640,10 +553,11 @@ export default {
   color: #dc2626;
 }
 
-/* Styles pour les statuts - utilise les classes existantes */
-.status-active {
-  background: #d1fae5;
-  color: #065f46;
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .status-confirmed {
@@ -667,18 +581,18 @@ export default {
 }
 
 .status-draft {
-  background: #fef3c7;
-  color: #92400e;
+  background: #f3f4f6;
+  color: #374151;
 }
 
-@media (max-width: 768px) {
-  .filters-row {
-    grid-template-columns: 1fr;
-  }
-
-  .list-toolbar {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+.status-checked_in {
+  background: #d1fae5;
+  color: #065f46;
 }
+
+.status-checked_out {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
 </style>

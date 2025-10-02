@@ -151,7 +151,6 @@ import UserStats from './components/UserStats.vue'
 import UserTable from './components/UserTable.vue'
 import UserModal from './components/UserModal.vue'
 import AdminFilterBar from '@/admin/components/ui/AdminFilterBar.vue'
-// ✅ CORRECTION : Utiliser les bons services
 import UsersApi from '@/services/UsersApi'
 import RolesApi from '@/services/RolesApi'
 

@@ -11,8 +11,11 @@
 
     <!-- Loading -->
     <div v-if="loading" class="loading-state">
-      <div class="spinner"></div>
-      <p>Chargement...</p>
+      <LoadingState 
+        state="loading" 
+        loading-text="Chargement des données..." 
+        :container-class="'py-5'"
+      />
     </div>
 
     <!-- Contenu principal -->
@@ -275,9 +278,11 @@
 
 <script>
 import axios from 'axios'
+import LoadingState from '@/admin/components/ui/LoadingState.vue'
 
 export default {
   name: 'RoleForm',
+  components: { LoadingState },
   data() {
     return {
       loading: false,

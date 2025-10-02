@@ -1,48 +1,19 @@
 <template>
   <div class="table-container">
-    <!-- Loading -->
-    <div v-if="loading" class="table-placeholder">
-      <i class="fas fa-spinner fa-spin table-icon"></i>
-      <h3>Chargement des utilisateurs...</h3>
-    </div>
-
-    <!-- Erreur -->
-    <div v-else-if="error" class="table-placeholder">
-      <i class="fas fa-exclamation-triangle table-icon"></i>
-      <h3>{{ error }}</h3>
-      <button @click="$emit('retry')" class="btn btn-outline btn-sm">
-        <i class="fas fa-redo"></i>
-        Réessayer
-      </button>
-    </div>
-
-    <!-- Aucun résultat -->
-    <div v-else-if="users.length === 0" class="table-placeholder">
-      <i class="fas fa-users table-icon"></i>
-      <h3>Aucun utilisateur trouvé</h3>
-      <p v-if="hasFilters">
-        Essayez de modifier vos critères de recherche
-      </p>
-      <p v-else>
-        Commencez par créer votre premier utilisateur
-      </p>
-      <router-link v-if="!hasFilters" to="/admin/users/create" class="btn btn-primary btn-sm">
-        <i class="fas fa-plus"></i>
-        Créer un utilisateur
-      </router-link>
-    </div>
+    <!-- LoadingState remplace les 3 états -->
+    <LoadingState v-if="loading || error || users.length === 0" :state="loading ? 'loading' : error ? 'error' : 'empty'"
+      loading-text="Chargement des utilisateurs..." :error-message="error" empty-title="Aucun utilisateur trouvé"
+      :empty-message="hasFilters ? 'Essayez de modifier vos critères de recherche' : 'Commencez par créer votre premier utilisateur'"
+      empty-icon="fas fa-users" :show-action="!hasFilters" action-label="Créer un utilisateur" @retry="$emit('retry')"
+      @action="$router.push('/admin/users/create')" />
 
     <!-- Tableau des utilisateurs -->
     <table v-else class="users-table table">
       <thead>
         <tr>
           <th width="40">
-            <input 
-              type="checkbox" 
-              @change="toggleSelectAll" 
-              :checked="allSelected"
-              :indeterminate.prop="someSelected"
-            />
+            <input type="checkbox" @change="toggleSelectAll" :checked="allSelected"
+              :indeterminate.prop="someSelected" />
           </th>
           <th>
             <button @click="$emit('sort', 'name')" class="sort-button btn btn-sm">
@@ -74,20 +45,12 @@
         </tr>
       </thead>
       <tbody>
-        <tr 
-          v-for="user in paginatedUsers" 
-          :key="user.id" 
-          class="user-row"
-          :class="{ 'selected': selectedUsers.includes(user.id) }"
-        >
+        <tr v-for="user in paginatedUsers" :key="user.id" class="user-row"
+          :class="{ 'selected': selectedUsers.includes(user.id) }">
           <!-- Sélection -->
           <td>
-            <input 
-              type="checkbox" 
-              :value="user.id" 
-              :checked="selectedUsers.includes(user.id)"
-              @change="toggleUser(user.id)"
-            />
+            <input type="checkbox" :value="user.id" :checked="selectedUsers.includes(user.id)"
+              @change="toggleUser(user.id)" />
           </td>
 
           <!-- Utilisateur -->
@@ -117,23 +80,16 @@
           <!-- Rôles -->
           <td class="user-roles">
             <div class="roles-list">
-              <span 
-                v-if="user.role" 
-                class="role-badge role-primary"
-              >
+              <span v-if="user.role" class="role-badge role-primary">
                 {{ user.role.name }}
               </span>
-              
-              <span 
-                v-for="role in user.additional_roles || []" 
-                :key="role.id"
-                class="role-badge role-secondary"
-              >
+
+              <span v-for="role in user.additional_roles || []" :key="role.id" class="role-badge role-secondary">
                 {{ role.name }}
               </span>
-              
-              <span v-if="!user.role && (!user.additional_roles || user.additional_roles.length === 0)" 
-                    class="text-muted">
+
+              <span v-if="!user.role && (!user.additional_roles || user.additional_roles.length === 0)"
+                class="text-muted">
                 Aucun rôle
               </span>
             </div>
@@ -167,35 +123,20 @@
           <!-- Actions -->
           <td class="actions-col">
             <div class="action-buttons">
-              <button 
-                @click="$emit('view-user', user)" 
-                class="btn-icon" 
-                title="Voir les détails"
-              >
+              <button @click="$emit('view-user', user)" class="btn-icon" title="Voir les détails">
                 <i class="fas fa-eye"></i>
               </button>
-              
-              <router-link 
-                :to="`/admin/users/${user.id}/edit`" 
-                class="btn-icon" 
-                title="Modifier"
-              >
+
+              <router-link :to="`/admin/users/${user.id}/edit`" class="btn-icon" title="Modifier">
                 <i class="fas fa-edit"></i>
               </router-link>
-              
-              <button 
-                @click="$emit('toggle-status', user)" 
-                class="btn-icon" 
-                :title="user.status === 'active' ? 'Suspendre' : 'Activer'"
-              >
+
+              <button @click="$emit('toggle-status', user)" class="btn-icon"
+                :title="user.status === 'active' ? 'Suspendre' : 'Activer'">
                 <i :class="user.status === 'active' ? 'fas fa-pause' : 'fas fa-play'"></i>
               </button>
-              
-              <button 
-                @click="$emit('delete-user', user)" 
-                class="btn-icon text-danger" 
-                title="Supprimer"
-              >
+
+              <button @click="$emit('delete-user', user)" class="btn-icon text-danger" title="Supprimer">
                 <i class="fas fa-trash"></i>
               </button>
             </div>
@@ -209,33 +150,22 @@
       <div class="pagination-info">
         Affichage de {{ startItem }} à {{ endItem }} sur {{ totalUsers }} utilisateurs
       </div>
-      
+
       <div class="pagination-controls">
-        <button 
-          @click="$emit('page-change', currentPage - 1)" 
-          :disabled="currentPage === 1" 
-          class="btn btn-outline btn-sm"
-        >
+        <button @click="$emit('page-change', currentPage - 1)" :disabled="currentPage === 1"
+          class="btn btn-outline btn-sm">
           <i class="fas fa-chevron-left"></i>
         </button>
-        
+
         <div class="pagination-pages">
-          <button 
-            v-for="page in visiblePages" 
-            :key="page"
-            @click="$emit('page-change', page)"
-            class="btn btn-sm"
-            :class="page === currentPage ? 'btn-primary' : 'btn-outline'"
-          >
+          <button v-for="page in visiblePages" :key="page" @click="$emit('page-change', page)" class="btn btn-sm"
+            :class="page === currentPage ? 'btn-primary' : 'btn-outline'">
             {{ page }}
           </button>
         </div>
-        
-        <button 
-          @click="$emit('page-change', currentPage + 1)" 
-          :disabled="currentPage === totalPages" 
-          class="btn btn-outline btn-sm"
-        >
+
+        <button @click="$emit('page-change', currentPage + 1)" :disabled="currentPage === totalPages"
+          class="btn btn-outline btn-sm">
           <i class="fas fa-chevron-right"></i>
         </button>
       </div>
@@ -244,8 +174,11 @@
 </template>
 
 <script>
+import LoadingState from '@/admin/components/ui/LoadingState.vue'
+
 export default {
   name: 'UserTable',
+  components: { LoadingState },
   props: {
     users: {
       type: Array,
@@ -301,13 +234,13 @@ export default {
     totalPages() {
       return Math.ceil(this.users.length / this.itemsPerPage)
     },
-    
+
     paginatedUsers() {
       const start = (this.currentPage - 1) * this.itemsPerPage
       const end = start + this.itemsPerPage
       return this.users.slice(start, end)
     },
-    
+
     startItem() {
       return (this.currentPage - 1) * this.itemsPerPage + 1
     },
@@ -315,27 +248,27 @@ export default {
     endItem() {
       return Math.min(this.currentPage * this.itemsPerPage, this.users.length)
     },
-    
+
     visiblePages() {
       const pages = []
       const start = Math.max(1, this.currentPage - 2)
       const end = Math.min(this.totalPages, this.currentPage + 2)
-      
+
       for (let i = start; i <= end; i++) {
         pages.push(i)
       }
-      
+
       return pages
     },
-    
+
     allSelected() {
-      return this.paginatedUsers.length > 0 && 
-             this.selectedUsers.length === this.paginatedUsers.length
+      return this.paginatedUsers.length > 0 &&
+        this.selectedUsers.length === this.paginatedUsers.length
     },
-    
+
     someSelected() {
-      return this.selectedUsers.length > 0 && 
-             this.selectedUsers.length < this.paginatedUsers.length
+      return this.selectedUsers.length > 0 &&
+        this.selectedUsers.length < this.paginatedUsers.length
     }
   },
   methods: {
@@ -350,13 +283,13 @@ export default {
     toggleUser(userId) {
       const selected = [...this.selectedUsers]
       const index = selected.indexOf(userId)
-      
+
       if (index > -1) {
         selected.splice(index, 1)
       } else {
         selected.push(userId)
       }
-      
+
       this.$emit('update:selectedUsers', selected)
     },
 
@@ -364,8 +297,8 @@ export default {
       if (this.sortField !== field) {
         return 'fas fa-sort text-muted'
       }
-      return this.sortDirection === 'asc' 
-        ? 'fas fa-sort-up' 
+      return this.sortDirection === 'asc'
+        ? 'fas fa-sort-up'
         : 'fas fa-sort-down'
     },
 
@@ -374,7 +307,7 @@ export default {
       const date = new Date(dateString)
       return date.toLocaleDateString('fr-FR', {
         day: '2-digit',
-        month: '2-digit', 
+        month: '2-digit',
         year: 'numeric'
       })
     },
@@ -385,7 +318,7 @@ export default {
       const now = new Date()
       const diffMs = now - date
       const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-      
+
       if (diffDays === 0) return 'Aujourd\'hui'
       if (diffDays === 1) return 'Hier'
       if (diffDays < 7) return `Il y a ${diffDays} jours`
@@ -397,7 +330,7 @@ export default {
     getStatusClass(status) {
       const classes = {
         'active': 'status-active',
-        'inactive': 'status-inactive', 
+        'inactive': 'status-inactive',
         'blocked': 'status-blocked'
       }
       return classes[status] || 'status-unknown'

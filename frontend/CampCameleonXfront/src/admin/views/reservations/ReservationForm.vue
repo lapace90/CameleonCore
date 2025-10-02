@@ -1,5 +1,22 @@
 <template>
   <div class="reservation-form-container">
+
+    <!-- Notification de brouillon -->
+    <DraftNotification :show="showDraftNotification" :draft-info="draftInfo" variant="info" title="Brouillon trouvé"
+      @restore="handleRestoreDraft" @discard="handleDiscardDraft" @close="showDraftNotification = false" />
+
+    <!-- Indicateur de sauvegarde automatique -->
+    <transition name="fade">
+      <div v-if="saving" class="auto-save-indicator">
+        <i class="fas fa-spinner fa-spin"></i>
+        Sauvegarde automatique...
+      </div>
+      <div v-else-if="lastSaved" class="auto-save-indicator saved">
+        <i class="fas fa-check-circle"></i>
+        Sauvegardé {{ formatLastSaved }}
+      </div>
+    </transition>
+
     <!-- Message d'erreur -->
     <div v-if="error" class="error-message">
       <div class="alert alert-danger">
@@ -46,7 +63,7 @@
       <!-- Formulaire principal -->
       <form @submit.prevent="submitForm" class="reservation-form">
         <div class="form-content">
-          
+
           <!-- Section Client -->
           <div class="form-section">
             <div class="section-header">
@@ -76,21 +93,11 @@
               <div v-if="customerMode === 'existing'" class="form-group">
                 <label for="customer_search">Rechercher un client</label>
                 <div class="search-customer">
-                  <input
-                    id="customer_search"
-                    type="text"
-                    v-model="customerSearch"
-                    @input="searchCustomers"
-                    placeholder="Tapez un nom, email ou téléphone..."
-                    class="form-control"
-                  />
+                  <input id="customer_search" type="text" v-model="customerSearch" @input="searchCustomers"
+                    placeholder="Tapez un nom, email ou téléphone..." class="form-control" />
                   <div v-if="customerResults.length > 0" class="customer-results">
-                    <div
-                      v-for="customer in customerResults"
-                      :key="customer.id"
-                      @click="selectCustomer(customer)"
-                      class="customer-result-item"
-                    >
+                    <div v-for="customer in customerResults" :key="customer.id" @click="selectCustomer(customer)"
+                      class="customer-result-item">
                       <div class="customer-info">
                         <strong>{{ customer.name }} {{ customer.last_name }}</strong>
                         <span class="customer-meta">{{ customer.email }} • {{ customer.phone }}</span>
@@ -120,60 +127,36 @@
                 <div class="form-row">
                   <div class="form-group">
                     <label for="customer_name">Prénom *</label>
-                    <input
-                      id="customer_name"
-                      type="text"
-                      v-model="form.newCustomer.name"
-                      class="form-control"
-                      :class="{ 'is-invalid': errors['newCustomer.name'] }"
-                    />
+                    <input id="customer_name" type="text" v-model="form.newCustomer.name" class="form-control"
+                      :class="{ 'is-invalid': errors['newCustomer.name'] }" />
                     <div v-if="errors['newCustomer.name']" class="error-text">{{ errors['newCustomer.name'] }}</div>
                   </div>
                   <div class="form-group">
                     <label for="customer_last_name">Nom *</label>
-                    <input
-                      id="customer_last_name"
-                      type="text"
-                      v-model="form.newCustomer.last_name"
-                      class="form-control"
-                      :class="{ 'is-invalid': errors['newCustomer.last_name'] }"
-                    />
-                    <div v-if="errors['newCustomer.last_name']" class="error-text">{{ errors['newCustomer.last_name'] }}</div>
+                    <input id="customer_last_name" type="text" v-model="form.newCustomer.last_name" class="form-control"
+                      :class="{ 'is-invalid': errors['newCustomer.last_name'] }" />
+                    <div v-if="errors['newCustomer.last_name']" class="error-text">{{ errors['newCustomer.last_name'] }}
+                    </div>
                   </div>
                 </div>
                 <div class="form-row">
                   <div class="form-group">
                     <label for="customer_email">Email *</label>
-                    <input
-                      id="customer_email"
-                      type="email"
-                      v-model="form.newCustomer.email"
-                      class="form-control"
-                      :class="{ 'is-invalid': errors['newCustomer.email'] }"
-                    />
+                    <input id="customer_email" type="email" v-model="form.newCustomer.email" class="form-control"
+                      :class="{ 'is-invalid': errors['newCustomer.email'] }" />
                     <div v-if="errors['newCustomer.email']" class="error-text">{{ errors['newCustomer.email'] }}</div>
                   </div>
                   <div class="form-group">
                     <label for="customer_phone">Téléphone *</label>
-                    <input
-                      id="customer_phone"
-                      type="tel"
-                      v-model="form.newCustomer.phone"
-                      class="form-control"
-                      :class="{ 'is-invalid': errors['newCustomer.phone'] }"
-                    />
+                    <input id="customer_phone" type="tel" v-model="form.newCustomer.phone" class="form-control"
+                      :class="{ 'is-invalid': errors['newCustomer.phone'] }" />
                     <div v-if="errors['newCustomer.phone']" class="error-text">{{ errors['newCustomer.phone'] }}</div>
                   </div>
                 </div>
                 <div class="form-group">
                   <label for="customer_address">Adresse</label>
-                  <textarea
-                    id="customer_address"
-                    v-model="form.newCustomer.address"
-                    class="form-control"
-                    rows="2"
-                    placeholder="Adresse complète du client..."
-                  ></textarea>
+                  <textarea id="customer_address" v-model="form.newCustomer.address" class="form-control" rows="2"
+                    placeholder="Adresse complète du client..."></textarea>
                 </div>
               </div>
             </div>
@@ -192,24 +175,15 @@
             <div class="form-group">
               <label for="product_search">Rechercher un produit</label>
               <div class="search-product">
-                <input
-                  id="product_search"
-                  type="text"
-                  v-model="productSearch"
-                  @input="searchProducts"
-                  placeholder="Tapez le nom d'un produit..."
-                  class="form-control"
-                />
+                <input id="product_search" type="text" v-model="productSearch" @input="searchProducts"
+                  placeholder="Tapez le nom d'un produit..." class="form-control" />
                 <div v-if="productResults.length > 0" class="product-results">
-                  <div
-                    v-for="product in productResults"
-                    :key="product.id"
-                    @click="selectProduct(product)"
-                    class="product-result-item"
-                  >
+                  <div v-for="product in productResults" :key="product.id" @click="selectProduct(product)"
+                    class="product-result-item">
                     <div class="product-info">
                       <strong>{{ product.name }}</strong>
-                      <span class="product-meta">{{ product.formatted_price }} • {{ product.category?.name || 'Sans catégorie' }}</span>
+                      <span class="product-meta">{{ product.formatted_price }} • {{ product.category?.name ||
+                        'Sans catégorie' }}</span>
                     </div>
                   </div>
                 </div>
@@ -245,26 +219,14 @@
             <div class="form-row">
               <div class="form-group">
                 <label for="checkin">Date d'arrivée *</label>
-                <input
-                  id="checkin"
-                  type="date"
-                  v-model="form.checkin"
-                  class="form-control"
-                  :class="{ 'is-invalid': errors.checkin }"
-                  :min="minDate"
-                />
+                <input id="checkin" type="date" v-model="form.checkin" class="form-control"
+                  :class="{ 'is-invalid': errors.checkin }" :min="minDate" />
                 <div v-if="errors.checkin" class="error-text">{{ errors.checkin }}</div>
               </div>
               <div class="form-group">
                 <label for="checkout">Date de départ *</label>
-                <input
-                  id="checkout"
-                  type="date"
-                  v-model="form.checkout"
-                  class="form-control"
-                  :class="{ 'is-invalid': errors.checkout }"
-                  :min="form.checkin || minDate"
-                />
+                <input id="checkout" type="date" v-model="form.checkout" class="form-control"
+                  :class="{ 'is-invalid': errors.checkout }" :min="form.checkin || minDate" />
                 <div v-if="errors.checkout" class="error-text">{{ errors.checkout }}</div>
               </div>
             </div>
@@ -272,41 +234,22 @@
             <div class="form-row">
               <div class="form-group">
                 <label for="guests">Nombre d'invités *</label>
-                <input
-                  id="guests"
-                  type="number"
-                  v-model.number="form.guests"
-                  class="form-control"
-                  :class="{ 'is-invalid': errors.guests }"
-                  min="1"
-                  max="20"
-                />
+                <input id="guests" type="number" v-model.number="form.guests" class="form-control"
+                  :class="{ 'is-invalid': errors.guests }" min="1" max="20" />
                 <div v-if="errors.guests" class="error-text">{{ errors.guests }}</div>
               </div>
               <div class="form-group">
                 <label for="amount">Montant (€) *</label>
-                <input
-                  id="amount"
-                  type="number"
-                  v-model.number="form.amount"
-                  class="form-control"
-                  :class="{ 'is-invalid': errors.amount }"
-                  min="0"
-                  step="0.01"
-                />
+                <input id="amount" type="number" v-model.number="form.amount" class="form-control"
+                  :class="{ 'is-invalid': errors.amount }" min="0" step="0.01" />
                 <div v-if="errors.amount" class="error-text">{{ errors.amount }}</div>
               </div>
             </div>
 
             <div class="form-group">
               <label for="special_requests">Demandes spéciales</label>
-              <textarea
-                id="special_requests"
-                v-model="form.special_requests"
-                class="form-control"
-                rows="3"
-                placeholder="Allergies, préférences, demandes particulières..."
-              ></textarea>
+              <textarea id="special_requests" v-model="form.special_requests" class="form-control" rows="3"
+                placeholder="Allergies, préférences, demandes particulières..."></textarea>
             </div>
           </div>
 
@@ -323,12 +266,7 @@
             <div class="form-row">
               <div class="form-group">
                 <label for="status">Statut de la réservation *</label>
-                <select
-                  id="status"
-                  v-model="form.status"
-                  class="form-control"
-                  :class="{ 'is-invalid': errors.status }"
-                >
+                <select id="status" v-model="form.status" class="form-control" :class="{ 'is-invalid': errors.status }">
                   <option value="pending">En attente</option>
                   <option value="confirmed">Confirmée</option>
                   <option value="cancelled">Annulée</option>
@@ -338,11 +276,7 @@
               </div>
               <div class="form-group">
                 <label for="payment_status">Statut du paiement</label>
-                <select
-                  id="payment_status"
-                  v-model="form.payment_status"
-                  class="form-control"
-                >
+                <select id="payment_status" v-model="form.payment_status" class="form-control">
                   <option value="pending">En attente</option>
                   <option value="paid">Payé</option>
                   <option value="partial">Partiellement payé</option>
@@ -354,11 +288,7 @@
             <div class="form-row">
               <div class="form-group">
                 <label for="booking_source">Source de réservation</label>
-                <select
-                  id="booking_source"
-                  v-model="form.booking_source"
-                  class="form-control"
-                >
+                <select id="booking_source" v-model="form.booking_source" class="form-control">
                   <option value="website">Site web</option>
                   <option value="phone">Téléphone</option>
                   <option value="email">Email</option>
@@ -369,13 +299,8 @@
               </div>
               <div class="form-group">
                 <label for="invoice_number">Numéro de facture</label>
-                <input
-                  id="invoice_number"
-                  type="text"
-                  v-model="form.invoice_number"
-                  class="form-control"
-                  placeholder="Ex: INV-2024-001"
-                />
+                <input id="invoice_number" type="text" v-model="form.invoice_number" class="form-control"
+                  placeholder="Ex: INV-2024-001" />
               </div>
             </div>
           </div>
@@ -392,13 +317,8 @@
 
             <div class="form-group">
               <label for="internal_notes">Notes internes</label>
-              <textarea
-                id="internal_notes"
-                v-model="form.internal_notes"
-                class="form-control"
-                rows="3"
-                placeholder="Notes pour l'équipe, instructions particulières..."
-              ></textarea>
+              <textarea id="internal_notes" v-model="form.internal_notes" class="form-control" rows="3"
+                placeholder="Notes pour l'équipe, instructions particulières..."></textarea>
             </div>
           </div>
         </div>
@@ -430,10 +350,12 @@
 <script>
 import AdminApi from '@/services/AdminApi'
 import { debounce } from '@/shared/utils/helpers'
+import DraftNotification from '@/shared/components/ui/DraftNotification.vue'
+import { useFormDraft } from '@/shared/composables/useFormDraft'
 
 export default {
   name: 'ReservationForm',
-  
+  components: { DraftNotification },
   props: {
     action: { type: String, required: true } // 'create' | 'edit'
   },
@@ -444,15 +366,16 @@ export default {
       saving: false,
       error: null,
       reservation: null,
-      
+      showDraftNotification: false, // ⟵ pour afficher la bannière draft
+
       // Mode de sélection client
       customerMode: 'existing', // 'existing' | 'new'
-      
+
       // Recherche clients
       customerSearch: '',
       customerResults: [],
       selectedCustomer: null,
-      
+
       // Recherche produits
       productSearch: '',
       productResults: [],
@@ -484,10 +407,33 @@ export default {
       errors: {}
     }
   },
+  mounted() {
+    // Initialisation du gestionnaire de brouillon
+    // Clé unique selon le mode (création/édition)
+    const key = this.action === 'edit'
+      ? `reservation-form-edit-${this.$route.params.id || 'unknown'}`
+      : 'reservation-form-create'
+
+    // on garde la référence sur l'instance pour l'utiliser partout
+    this._draft = useFormDraft(key, this.form, {
+      ttl: 1000 * 60 * 60 * 24 * 3, // 3 jours
+      autoSave: true,
+      autoSaveDelay: 800
+    })
+
+    // Si un brouillon valide existe, proposer de restaurer
+    if (this._draft.checkDraft()) {
+      this.showDraftNotification = true
+    }
+  },
 
   computed: {
     isEditing() {
       return this.action === 'edit'
+    },
+
+    draftInfo() {
+      return this._draft ? this._draft.getDraftInfo() : null
     },
 
     reservationId() {
@@ -503,8 +449,8 @@ export default {
 
     isFormValid() {
       // Validation du client
-      const hasValidCustomer = this.customerMode === 'existing' 
-        ? this.form.customer_id 
+      const hasValidCustomer = this.customerMode === 'existing'
+        ? this.form.customer_id
         : this.form.newCustomer.name && this.form.newCustomer.last_name && this.form.newCustomer.email && this.form.newCustomer.phone
 
       return hasValidCustomer &&
@@ -524,7 +470,7 @@ export default {
 
   async created() {
     await this.initializeComponent()
-    
+
     // Debounce pour les recherches
     this.debouncedSearchCustomers = debounce(this.performCustomerSearch, 300)
     this.debouncedSearchProducts = debounce(this.performProductSearch, 300)
@@ -549,7 +495,7 @@ export default {
 
     async fetchReservation() {
       try {
-        const response = await AdminApi.get(`/api/reservations/${this.reservationId}`)
+        const response = await AdminApi.get(`/reservations/${this.reservationId}`)
         this.reservation = response.data
         this.populateForm()
       } catch (error) {
@@ -593,9 +539,37 @@ export default {
       }
     },
 
+    handleRestoreDraft() {
+      try {
+        const restored = this._draft.restoreDraft((data) => {
+          // Fusion prudente des champs du brouillon dans le formulaire courant
+          this.form = { ...this.form, ...data }
+        })
+        if (restored) {
+          this.$toast?.success?.('Brouillon restauré')
+        }
+      } catch (e) {
+        console.error('❌ Restauration du brouillon', e)
+        this.$toast?.error?.('Impossible de restaurer le brouillon')
+      } finally {
+        this.showDraftNotification = false
+      }
+    },
+
+    handleDiscardDraft() {
+      try {
+        this._draft.clearDraft()
+        this.$toast?.info?.('Brouillon ignoré')
+      } catch (e) {
+        console.error('❌ Suppression du brouillon', e)
+      } finally {
+        this.showDraftNotification = false
+      }
+    },
+
     async performCustomerSearch() {
       try {
-        const response = await AdminApi.get('/api/customers', {
+        const response = await AdminApi.get('/customers', {
           params: {
             search: this.customerSearch,
             limit: 10
@@ -632,7 +606,7 @@ export default {
 
     async performProductSearch() {
       try {
-        const response = await AdminApi.get('/api/products', {
+        const response = await AdminApi.get('/products', {
           params: {
             search: this.productSearch,
             limit: 10
@@ -730,19 +704,19 @@ export default {
 
       try {
         const payload = this.buildPayload()
-        
+
         let response
         if (this.isEditing) {
-          response = await AdminApi.put(`/api/reservations/${this.reservationId}`, payload)
+          response = await AdminApi.put(`/reservations/${this.reservationId}`, payload)
         } else {
-          response = await AdminApi.post('/api/reservations', payload)
+          response = await AdminApi.post('/reservations', payload)
         }
 
         // Redirection
         const reservationId = response.data.id || this.reservationId
-        this.$router.push({ 
-          name: 'ReservationDetail', 
-          params: { id: reservationId } 
+        this.$router.push({
+          name: 'ReservationDetail',
+          params: { id: reservationId }
         })
 
       } catch (error) {
@@ -992,6 +966,7 @@ export default {
   font-size: 12px;
   color: #6b7280;
 }
+
 /* Actions */
 .loading-state {
   display: flex;
@@ -1012,8 +987,12 @@ export default {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
+  0% {
+    transform: rotate(0deg);
+  }
 
+  100% {
+    transform: rotate(360deg);
+  }
+}
 </style>
