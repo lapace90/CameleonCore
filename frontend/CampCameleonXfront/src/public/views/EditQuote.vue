@@ -1,10 +1,7 @@
 <template>
     <div class="edit-quote-page">
         <!-- Loading state -->
-        <div v-if="isLoading" class="loading-container">
-            <div class="loading-spinner"></div>
-            <h2>⏳ Chargement de votre devis...</h2>
-        </div>
+        <Loading v-if="isLoading" text="Chargement de votre devis..." size="lg" />
 
         <!-- Error state -->
         <div v-else-if="error" class="error-container">
@@ -192,9 +189,11 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import PublicApi from '@/services/PublicApi'
 import { computeQuoteTotal } from '@/shared/composables/useQuotePricing'
+import Loading from '@/shared/components/ui/Loading.vue'
 
 export default {
     name: 'EditQuote',
+    components: { Loading },
 
     setup() {
         const route = useRoute()
@@ -766,16 +765,11 @@ export default {
     margin-top: 30px;
 }
 
-.btn {
-    padding: 12px 30px;
-}
-
 .btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
 }
 
-.loading-container,
 .error-container {
     display: flex;
     flex-direction: column;
@@ -783,26 +777,6 @@ export default {
     justify-content: center;
     min-height: 60vh;
     text-align: center;
-}
-
-.loading-spinner {
-    width: 50px;
-    height: 50px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #c17c4a;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: 20px;
-}
-
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-
-    100% {
-        transform: rotate(360deg);
-    }
 }
 
 .error-box {
@@ -872,6 +846,7 @@ export default {
         text-align: left;
     }
 }
+
 /* doit rester scoped */
 .summary-item.enhanced {
     display: grid;

@@ -1,22 +1,11 @@
 <template>
   <div class="product-detail-container">
     <!-- Loading -->
-    <div v-if="loading" class="loading-state">
-      <div class="spinner"></div>
-      <p>Chargement de la facture...</p>
-    </div>
+    <LoadingState v-if="loading" state="loading" variant="card" loading-text="Chargement de la facture..." />
 
-    <!-- Erreur -->
-    <div v-else-if="error" class="error-state">
-      <div class="error-icon">
-        <i class="fas fa-exclamation-triangle"></i>
-      </div>
-      <h3>{{ error }}</h3>
-      <router-link to="/admin/invoices" class="btn btn-primary btn-sm mt-6">
-        <i class="fas fa-arrow-left"></i>
-        Retour aux factures
-      </router-link>
-    </div>
+    <LoadingState v-else-if="error" state="error" variant="card" error-title="Erreur de chargement"
+      :error-message="error" :show-action="true" action-label="Retour aux factures" action-icon="fas fa-arrow-left"
+      @action="$router.push('/admin/invoices')" />
 
     <!-- Contenu principal -->
     <div v-else-if="invoice">
@@ -30,40 +19,23 @@
         </div>
 
         <div class="header-actions">
-          <button 
-            v-if="canBePaid" 
-            @click="handleMarkAsPaid" 
-            class="btn btn-success btn-sm"
-            :disabled="actionLoading"
-          >
+          <button v-if="canBePaid" @click="handleMarkAsPaid" class="btn btn-success btn-sm" :disabled="actionLoading">
             <i class="fas fa-check-circle"></i>
             Marquer payée
           </button>
-          
-          <button 
-            @click="handleSendEmail" 
-            class="btn btn-primary btn-sm"
-            :disabled="actionLoading || !invoice.customer?.email"
-          >
+
+          <button @click="handleSendEmail" class="btn btn-primary btn-sm"
+            :disabled="actionLoading || !invoice.customer?.email">
             <i class="fas fa-envelope"></i>
             {{ invoice.sent_count > 0 ? 'Renvoyer' : 'Envoyer' }}
           </button>
-          
-          <button 
-            @click="handleDownloadPdf" 
-            class="btn btn-secondary btn-sm"
-            :disabled="actionLoading"
-          >
+
+          <button @click="handleDownloadPdf" class="btn btn-secondary btn-sm" :disabled="actionLoading">
             <i class="fas fa-download"></i>
             Télécharger PDF
           </button>
-          
-          <button 
-            v-if="canBeCanceled"
-            @click="handleCancel" 
-            class="btn btn-danger btn-sm"
-            :disabled="actionLoading"
-          >
+
+          <button v-if="canBeCanceled" @click="handleCancel" class="btn btn-danger btn-sm" :disabled="actionLoading">
             <i class="fas fa-ban"></i>
             Annuler
           </button>
@@ -95,27 +67,27 @@
             <label>Numéro de facture</label>
             <span>{{ invoice.invoice_number }}</span>
           </div>
-          
+
           <div class="info-item">
             <label>Montant</label>
             <span class="amount-text">{{ formatCurrency(invoice.amount) }}</span>
           </div>
-          
+
           <div class="info-item">
             <label>Date d'émission</label>
             <span>{{ formatDate(invoice.issue_date) }}</span>
           </div>
-          
+
           <div class="info-item">
             <label>Date d'échéance</label>
             <span>{{ formatDate(invoice.due_date) }}</span>
           </div>
-          
+
           <div v-if="invoice.payment_date" class="info-item">
             <label>Date de paiement</label>
             <span>{{ formatDate(invoice.payment_date) }}</span>
           </div>
-          
+
           <div v-if="invoice.payment_method" class="info-item">
             <label>Méthode de paiement</label>
             <span>{{ getPaymentMethodLabel(invoice.payment_method) }}</span>
@@ -131,17 +103,17 @@
             <label>Nom</label>
             <span>{{ invoice.customer.name }} {{ invoice.customer.last_name || '' }}</span>
           </div>
-          
+
           <div v-if="invoice.customer.email" class="info-item">
             <label>Email</label>
             <span>{{ invoice.customer.email }}</span>
           </div>
-          
+
           <div v-if="invoice.customer.phone" class="info-item">
             <label>Téléphone</label>
             <span>{{ invoice.customer.phone }}</span>
           </div>
-          
+
           <div v-if="invoice.customer.address" class="info-item full-width">
             <label>Adresse</label>
             <span>{{ invoice.customer.address }}</span>
@@ -157,17 +129,17 @@
             <label>Référence réservation</label>
             <span>{{ invoice.reservation.invoice_number }}</span>
           </div>
-          
+
           <div v-if="invoice.reservation.checkin" class="info-item">
             <label>Check-in</label>
             <span>{{ formatDate(invoice.reservation.checkin) }}</span>
           </div>
-          
+
           <div v-if="invoice.reservation.checkout" class="info-item">
             <label>Check-out</label>
             <span>{{ formatDate(invoice.reservation.checkout) }}</span>
           </div>
-          
+
           <div v-if="invoice.reservation.product" class="info-item">
             <label>Produit</label>
             <span>{{ invoice.reservation.product.name }}</span>
@@ -188,7 +160,7 @@
               <div class="timeline-date">{{ formatDate(invoice.created_at) }}</div>
             </div>
           </div>
-          
+
           <div v-if="invoice.sent_at" class="timeline-item">
             <div class="timeline-icon sent">
               <i class="fas fa-envelope"></i>
@@ -201,7 +173,7 @@
               <div class="timeline-date">{{ formatDate(invoice.sent_at) }}</div>
             </div>
           </div>
-          
+
           <div v-if="invoice.payment_date" class="timeline-item">
             <div class="timeline-icon paid">
               <i class="fas fa-check-circle"></i>
@@ -211,7 +183,7 @@
               <div class="timeline-date">{{ formatDate(invoice.payment_date) }}</div>
             </div>
           </div>
-          
+
           <div v-if="invoice.status === 'canceled'" class="timeline-item">
             <div class="timeline-icon canceled">
               <i class="fas fa-ban"></i>
@@ -239,6 +211,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useInvoiceStore } from '@/shared/stores/invoice'
+import LoadingState from '@/admin/components/ui/LoadingState.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -253,8 +226,8 @@ const actionLoading = ref(false)
 const invoice = computed(() => invoiceStore.currentInvoice)
 
 const canBePaid = computed(() => {
-  return invoice.value && 
-         (invoice.value.status === 'pending' || invoice.value.status === 'overdue')
+  return invoice.value &&
+    (invoice.value.status === 'pending' || invoice.value.status === 'overdue')
 })
 
 const canBeCanceled = computed(() => {
@@ -265,7 +238,7 @@ const canBeCanceled = computed(() => {
 async function loadInvoice() {
   loading.value = true
   error.value = null
-  
+
   try {
     await invoiceStore.fetchInvoiceById(route.params.id, true)
   } catch (err) {
@@ -400,27 +373,6 @@ onMounted(() => {
 .product-detail-container {
   padding: 20px;
   width: 70%;
-}
-
-.loading-state,
-.error-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  text-align: center;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.error-icon {
-  font-size: 48px;
-  color: #f5365c;
-  margin-bottom: 20px;
 }
 
 .header-navigation {
@@ -611,7 +563,8 @@ onMounted(() => {
   border-radius: 6px;
   color: #32325d;
   line-height: 1.6;
-  white-space: pre-wrap;}
+  white-space: pre-wrap;
+}
 
 /* Status badges */
 .status-badge {
@@ -650,7 +603,7 @@ onMounted(() => {
     width: 100%;
     padding: 15px;
   }
-  
+
   .timeline {
     flex-direction: column;
     gap: 20px;

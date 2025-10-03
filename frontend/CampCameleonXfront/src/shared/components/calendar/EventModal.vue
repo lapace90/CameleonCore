@@ -411,7 +411,7 @@ export default {
         bookingSource: 'direct',
         status: 'pending',
         paymentStatus: 'pending',
-        paymentMethod: '',
+        paymentMethod: null,
         amount: 0,
         comment: '',
         // Événements génériques
@@ -753,7 +753,7 @@ export default {
         bookingSource: 'direct',
         status: 'pending',
         paymentStatus: 'pending',
-        paymentMethod: '',
+        paymentMethod: null,
         amount: 0,
         comment: '',
         location: '',

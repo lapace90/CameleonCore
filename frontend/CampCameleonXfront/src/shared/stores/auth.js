@@ -1,3 +1,4 @@
+// src/shared/stores/auth.js - VERSION COMPLÈTE avec méthodes de permissions
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import axios from 'axios'
@@ -48,13 +49,12 @@ export const useAuthStore = defineStore('auth', () => {
   // ACTIONS
   // ===========================
 
-  // 🔧 AMÉLIORATION : Configuration du token plus robuste
+  // Configuration du token
   const setToken = (newToken) => {
     token.value = newToken
     if (newToken) {
       localStorage.setItem('auth-token', newToken)
       axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`
-      // Ne pas changer isAuthenticated ici, le faire après vérification
     } else {
       localStorage.removeItem('auth-token')
       delete axios.defaults.headers.common['Authorization']
@@ -62,12 +62,141 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  // 🔧 INITIALISATION : Configuration du token au démarrage (appelée par main.js)
-  const initializeToken = () => {
-    if (token.value) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token.value}`
+  // Méthode pour définir l'utilisateur
+  const setUser = (userData) => {
+    user.value = userData
+    
+    if (userData) {
+      // Extraire et normaliser les permissions
+      permissions.value = userData.permissions || []
+      
+      // Extraire et normaliser les rôles
+      if (userData.roles) {
+        roles.value = userData.roles
+      } else if (userData.role) {
+        // Si seulement un rôle principal existe
+        roles.value = [userData.role]
+      } else {
+        roles.value = []
+      }
+      
+      isAuthenticated.value = true
+    } else {
+      permissions.value = []
+      roles.value = []
+      isAuthenticated.value = false
     }
   }
+
+  // ===========================
+  // MÉTHODES DE VÉRIFICATION DES PERMISSIONS
+  // ===========================
+
+  /**
+   * Vérifie si l'utilisateur a une permission spécifique
+   * @param {string} permission - L'action de permission à vérifier
+   * @returns {boolean}
+   */
+  const hasPermission = (permission) => {
+    if (!user.value) return false
+    if (isAdmin.value) return true // Les admins ont toutes les permissions
+    return userPermissions.value.includes(permission)
+  }
+
+  /**
+   * Vérifie si l'utilisateur a au moins une des permissions fournies
+   * @param {string[]} permissionList - Liste des permissions
+   * @returns {boolean}
+   */
+  const hasAnyPermission = (permissionList) => {
+    if (!user.value) return false
+    if (isAdmin.value) return true
+    return permissionList.some(permission => hasPermission(permission))
+  }
+
+  /**
+   * Vérifie si l'utilisateur a toutes les permissions fournies
+   * @param {string[]} permissionList - Liste des permissions
+   * @returns {boolean}
+   */
+  const hasAllPermissions = (permissionList) => {
+    if (!user.value) return false
+    if (isAdmin.value) return true
+    return permissionList.every(permission => hasPermission(permission))
+  }
+
+  /**
+   * Vérifie si l'utilisateur a un rôle spécifique
+   * @param {string} role - Le slug du rôle à vérifier
+   * @returns {boolean}
+   */
+  const hasRole = (role) => {
+    if (!user.value) return false
+    return userRoles.value.includes(role)
+  }
+
+  /**
+   * Vérifie si l'utilisateur a au moins un des rôles fournis
+   * @param {string[]} roleList - Liste des rôles
+   * @returns {boolean}
+   */
+  const hasAnyRole = (roleList) => {
+    if (!user.value) return false
+    return roleList.some(role => hasRole(role))
+  }
+
+  /**
+   * Vérifie si l'utilisateur a tous les rôles fournis
+   * @param {string[]} roleList - Liste des rôles
+   * @returns {boolean}
+   */
+  const hasAllRoles = (roleList) => {
+    if (!user.value) return false
+    return roleList.every(role => hasRole(role))
+  }
+
+  // ===========================
+  // VÉRIFICATION DE L'AUTHENTIFICATION
+  // ===========================
+
+  const checkAuth = async () => {
+    if (!token.value) {
+      console.log('❌ Pas de token, pas de vérification')
+      isAuthenticated.value = false
+      initializing.value = false
+      return false
+    }
+
+    loading.value = true
+    console.log('🔍 Vérification du token...')
+
+    try {
+      const response = await axios.get('/api/auth/verify')
+      console.log('🔍 Réponse API verify:', response.data)
+
+      if (response.data.user) {
+        console.log('✅ Token valide, utilisateur:', response.data.user.name)
+        setUser(response.data.user)
+        console.log('🔍 User dans store après verify:', user.value)
+        return true
+      }
+
+      console.warn('⚠️ Pas d\'utilisateur dans la réponse')
+      logout()
+      return false
+    } catch (err) {
+      console.error('❌ Erreur vérification token:', err.response?.status, err.message)
+      logout()
+      return false
+    } finally {
+      loading.value = false
+      initializing.value = false
+    }
+  }
+
+  // ===========================
+  // LOGIN
+  // ===========================
 
   const login = async (credentials) => {
     loading.value = true
@@ -75,221 +204,54 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       const response = await axios.post('/api/auth/login', credentials)
-      const { user: userData, token: userToken } = response.data
+      
+      if (response.data.token && response.data.user) {
+        setToken(response.data.token)
+        setUser(response.data.user)
+        return { success: true, user: response.data.user }
+      }
 
-      setToken(userToken)
-      user.value = userData
-      isAuthenticated.value = true
-
-      // Charger les permissions/rôles si disponibles
-      await loadUserPermissions()
-
-      initializing.value = false
-      return { success: true, user: userData }
+      throw new Error('Réponse invalide du serveur')
     } catch (err) {
-      const message = err.response?.data?.message || 'Erreur de connexion'
-      error.value = message
-      isAuthenticated.value = false
-      throw err
+      error.value = err.response?.data?.message || 'Erreur de connexion'
+      return { success: false, error: error.value }
     } finally {
       loading.value = false
     }
   }
 
-  const logout = async () => {
-    try {
-      if (token.value) {
-        await axios.post('/api/auth/logout')
-      }
-    } catch (err) {
-      console.warn('Erreur lors du logout côté serveur:', err)
-    } finally {
-      // 🔧 NETTOYAGE COMPLET
-      setToken(null)
-      user.value = null
-      permissions.value = []
-      roles.value = []
-      error.value = null
-      initializing.value = false
-      isAuthenticated.value = false
-    }
+  // ===========================
+  // LOGOUT
+  // ===========================
+
+  const logout = () => {
+    console.log('🚪 Déconnexion...')
+    setToken(null)
+    setUser(null)
+    isAuthenticated.value = false
   }
 
-  const lastCheck = ref(null)
-  const CACHE_TIME = 5 * 60 * 1000 // 5 minutes
+  // ===========================
+  // REFRESH TOKEN (optionnel)
+  // ===========================
 
-  // REMPLACER ta méthode checkAuth par celle-ci :
-  const checkAuth = async () => {
-    // Pas de token = pas connecté
-    if (!token.value) {
-      isAuthenticated.value = false
-      initializing.value = false
+  const refreshToken = async () => {
+    try {
+      const response = await axios.post('/api/auth/refresh')
+      if (response.data.token) {
+        setToken(response.data.token)
+        return true
+      }
+      return false
+    } catch (err) {
+      console.error('Erreur refresh token:', err)
       return false
     }
-
-    // 🚀 CACHE : Éviter requête si vérification récente
-    const now = Date.now()
-    if (lastCheck.value && (now - lastCheck.value < CACHE_TIME)) {
-      console.log('🚀 Cache auth hit - pas de vérification backend')
-      return isAuthenticated.value
-    }
-
-    loading.value = true
-
-    try {
-      console.log('🔄 Vérification du token avec le backend...')
-
-      // Vérifier le token avec le backend
-      const response = await axios.get('/api/auth/verify')
-      console.log('🔍 Réponse API verify:', response.data)
-      const userData = response.data.user
-
-      console.log('✅ Token valide, utilisateur:', userData.name)
-
-      // Token valide, restaurer l'état
-      user.value = userData
-      console.log('🔍 User dans store après verify:', user.value)
-      isAuthenticated.value = true
-
-      // Charger permissions/rôles
-      await loadUserPermissions()
-
-      // 🚀 CACHE : Marquer la vérification comme réussie
-      lastCheck.value = now
-
-      return true
-    } catch (err) {
-      console.warn('⚠️ Token invalide ou expiré:', err.response?.status, err.response?.data?.message)
-
-      // 🚀 CACHE : Invalider le cache en cas d'erreur
-      lastCheck.value = null
-
-      // NETTOYAGE en cas de token invalide
-      setToken(null)
-      user.value = null
-      permissions.value = []
-      roles.value = []
-      isAuthenticated.value = false
-
-      return false
-    } finally {
-      loading.value = false
-      initializing.value = false
-    }
-  }
-
-  const loadUserPermissions = async () => {
-    if (!user.value) return
-    // ⚡ Pas d'appel API ici : on se contente des infos incluses dans le payload user
-    permissions.value = Array.isArray(user.value.permissions) ? user.value.permissions : []
-    roles.value = Array.isArray(user.value.roles) ? user.value.roles : []
-  }
-
-  // 🔧 NOUVELLE MÉTHODE : Force refresh de l'état d'authentification
-  const refreshAuth = async () => {
-    if (!token.value) return false
-    return await checkAuth()
   }
 
   // ===========================
-  // PROFILE MANAGEMENT
+  // RETOUR PUBLIC
   // ===========================
-
-  /**
-   * Mettre à jour le profil utilisateur
-   */
-  const updateProfile = async (profileData) => {
-    if (!user.value?.id) {
-      throw new Error('Utilisateur non connecté')
-    }
-
-    loading.value = true
-    error.value = null
-
-    try {
-      // ✅ FIX : Headers explicites avec token forcé
-      const headers = {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      }
-
-      // Force le token dans les headers
-      if (token.value) {
-        headers['Authorization'] = `Bearer ${token.value}`
-      } else {
-        throw new Error('Token d\'authentification manquant')
-      }
-
-      console.log('🔍 Headers envoyés:', headers)
-
-      const response = await axios.patch(`/api/admin/users/${user.value.id}`, profileData, {
-        headers
-      })
-
-      // Reste du code inchangé...
-      const updatedUser = response.data
-      user.value = {
-        ...user.value,
-        name: updatedUser.name,
-        email: updatedUser.email,
-        phone: updatedUser.phone,
-        address: updatedUser.address,
-        city: updatedUser.city,
-        postal_code: updatedUser.postal_code,
-        avatar: updatedUser.avatar,
-        last_login_at: updatedUser.last_login_at,
-        last_login_ip: updatedUser.last_login_ip,
-      }
-
-      return user.value
-    } catch (err) {
-      const errorMessage = err.response?.data?.message ||
-        err.response?.data?.violations?.[0]?.message ||
-        'Erreur lors de la mise à jour du profil'
-      error.value = errorMessage
-      throw new Error(errorMessage)
-    } finally {
-      loading.value = false
-    }
-  }
-
-  /**
-   * Changer le mot de passe
-   */
-  const changePassword = async ({ current, new: newPassword }) => {
-    if (!user.value?.id) {
-      throw new Error('Utilisateur non connecté')
-    }
-
-    loading.value = true
-    error.value = null
-
-    try {
-      // Utiliser l'API Platform pour changer le mot de passe
-      await axios.patch(`/api/admin/users/${user.value.id}`, {
-        current_password: current,
-        password: newPassword,
-        password_confirmation: newPassword
-      })
-
-      return true
-    } catch (err) {
-      const errorMessage = err.response?.data?.message ||
-        err.response?.data?.violations?.[0]?.message ||
-        'Erreur lors du changement de mot de passe'
-      error.value = errorMessage
-      throw new Error(errorMessage)
-    } finally {
-      loading.value = false
-    }
-  }
-
-  // ===========================
-  // INITIALISATION
-  // ===========================
-
-  // Configurer axios avec le token au démarrage
-  initializeToken()
 
   return {
     // State
@@ -315,12 +277,19 @@ export const useAuthStore = defineStore('auth', () => {
     canAccessAdmin,
 
     // Actions
+    setToken,
+    setUser,
+    checkAuth,
     login,
     logout,
-    checkAuth,
-    refreshAuth,
-    loadUserPermissions,
-    updateProfile,
-    changePassword
+    refreshToken,
+
+    // Méthodes de vérification
+    hasPermission,
+    hasAnyPermission,
+    hasAllPermissions,
+    hasRole,
+    hasAnyRole,
+    hasAllRoles
   }
 })

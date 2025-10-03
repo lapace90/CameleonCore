@@ -1,19 +1,19 @@
 // src/services/httpClient.js
 import axios from 'axios'
 
-// Istanza axios centralizzata
+// Instance axios centralisée avec la bonne baseURL
 export const httpClient = axios.create({
-  baseURL: '/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
   headers: {
     'Accept': 'application/json',
     'Content-Type': 'application/json'
   }
 })
 
-// Interceptor per requests (auth token, loading, etc.)
+// Interceptor pour requests (auth token, loading, etc.)
 httpClient.interceptors.request.use(
   (config) => {
-    // Aggiungi token se presente
+    // Ajouter le token si présent
     const token = localStorage.getItem('auth_token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
@@ -25,29 +25,29 @@ httpClient.interceptors.request.use(
   }
 )
 
-// Interceptor per responses (gestione errori centralizzata)
+// Interceptor pour responses (gestione errori centralizzata)
 httpClient.interceptors.response.use(
   (response) => {
     return response
   },
   (error) => {
-    // Gestione errori centralizzata
+    // Gestion centralisée des erreurs
     if (error.response?.status === 401) {
-      // Logout automatico per unauthorized
+      // Logout automatique pour unauthorized
       localStorage.removeItem('auth_token')
       window.location.href = '/login'
     }
     
     if (error.response?.status === 422) {
-      // Errori di validazione - mantieni il formato originale
+      // Erreurs de validation - maintenir le format original
       return Promise.reject(error)
     }
     
-    // Altri errori - normalizza il messaggio
+    // Autres erreurs - normaliser le message
     const message = error.response?.data?.message || 
                    error.response?.data?.error || 
                    error.message || 
-                   'Errore di connessione'
+                   'Erreur de connexion'
     
     return Promise.reject(new Error(message))
   }

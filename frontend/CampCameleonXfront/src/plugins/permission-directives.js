@@ -1,6 +1,8 @@
-// plugins/permission-directives.js - Directives Vue pour la gestion des permissions
+// plugins/permission-directives.js - Directives Vue pour la gestion des permissions et des rôles
+// Compatible avec Pinia
 
 import { nextTick } from 'vue'
+import { useAuthStore } from '@/shared/stores/auth'
 
 /**
  * Directive v-permission
@@ -113,102 +115,82 @@ const guestOnlyDirective = {
 // ===========================
 
 function checkPermission(el, binding, vnode) {
-  const store = getStore(vnode)
-  if (!store) return
-
+  const authStore = useAuthStore()
+  
   const permissions = normalizeValue(binding.value)
   const isAllRequired = binding.modifiers.all
-  const hasPermission = checkUserPermissions(store, permissions, isAllRequired)
+  const hasPermission = checkUserPermissions(authStore, permissions, isAllRequired)
   
   toggleElement(el, hasPermission)
 }
 
 function checkRole(el, binding, vnode) {
-  const store = getStore(vnode)
-  if (!store) return
+  const authStore = useAuthStore()
 
   const roles = normalizeValue(binding.value)
   const isAllRequired = binding.modifiers.all
-  const hasRole = checkUserRoles(store, roles, isAllRequired)
+  const hasRole = checkUserRoles(authStore, roles, isAllRequired)
   
   toggleElement(el, hasRole)
 }
 
 function checkAdminOnly(el, vnode) {
-  const store = getStore(vnode)
-  if (!store) return
-
-  const isAdmin = store.getters['auth/isAdmin']
-  toggleElement(el, isAdmin)
+  const authStore = useAuthStore()
+  toggleElement(el, authStore.isAdmin)
 }
 
 function checkSuperAdminOnly(el, vnode) {
-  const store = getStore(vnode)
-  if (!store) return
-
-  const isSuperAdmin = store.getters['auth/isSuperAdmin']
-  toggleElement(el, isSuperAdmin)
+  const authStore = useAuthStore()
+  toggleElement(el, authStore.isSuperAdmin)
 }
 
 function checkAuthOnly(el, vnode) {
-  const store = getStore(vnode)
-  if (!store) return
-
-  const isAuthenticated = store.getters['auth/isAuthenticated']
-  toggleElement(el, isAuthenticated)
+  const authStore = useAuthStore()
+  toggleElement(el, authStore.isAuthenticated)
 }
 
 function checkGuestOnly(el, vnode) {
-  const store = getStore(vnode)
-  if (!store) return
-
-  const isAuthenticated = store.getters['auth/isAuthenticated']
-  toggleElement(el, !isAuthenticated)
+  const authStore = useAuthStore()
+  toggleElement(el, !authStore.isAuthenticated)
 }
 
 // ===========================
 // FONCTIONS UTILITAIRES
 // ===========================
 
-function getStore(vnode) {
-  // Pour Vue 3 avec Composition API
-  const instance = vnode.ctx || vnode.component?.ctx
-  return instance?.$store || instance?.appContext?.app?.config?.globalProperties?.$store
-}
-
 function normalizeValue(value) {
   if (!value) return []
   return Array.isArray(value) ? value : [value]
 }
 
-function checkUserPermissions(store, permissions, isAllRequired = false) {
+function checkUserPermissions(authStore, permissions, isAllRequired = false) {
   if (!permissions.length) return true
   
   if (isAllRequired) {
     // Toutes les permissions sont requises (AND)
     return permissions.every(permission => 
-      store.getters['auth/hasPermission'](permission)
+      authStore.hasPermission(permission)
     )
   } else {
     // Au moins une permission est requise (OR)
     return permissions.some(permission => 
-      store.getters['auth/hasPermission'](permission)
+      authStore.hasPermission(permission)
     )
   }
 }
 
-function checkUserRoles(store, roles, isAllRequired = false) {
+function checkUserRoles(authStore, roles, isAllRequired = false) {
   if (!roles.length) return true
   
   if (isAllRequired) {
     // Tous les rôles sont requis (AND)
     return roles.every(role => 
-      store.getters['auth/hasRole'](role)
+      authStore.hasRole(role)
     )
   } else {
     // Au moins un rôle est requis (OR)
     return roles.some(role => 
-      store.getters['auth/hasRole'](role)
+      authStore.hasRole(role)
     )
   }
 }
@@ -235,10 +217,10 @@ function toggleElement(el, show) {
  * Composable pour vérifier les permissions dans les composants
  */
 export function usePermissions() {
-  const { store } = getCurrentInstance().appContext.app.config.globalProperties
+  const authStore = useAuthStore()
   
   const hasPermission = (permission) => {
-    return store.getters['auth/hasPermission'](permission)
+    return authStore.hasPermission(permission)
   }
   
   const hasAnyPermission = (permissions) => {
@@ -250,23 +232,23 @@ export function usePermissions() {
   }
   
   const hasRole = (role) => {
-    return store.getters['auth/hasRole'](role)
+    return authStore.hasRole(role)
   }
   
   const hasAnyRole = (roles) => {
-    return store.getters['auth/hasAnyRole'](roles)
+    return roles.some(role => hasRole(role))
   }
   
   const isAdmin = () => {
-    return store.getters['auth/isAdmin']
+    return authStore.isAdmin
   }
   
   const isSuperAdmin = () => {
-    return store.getters['auth/isSuperAdmin']
+    return authStore.isSuperAdmin
   }
   
   const canAccessAdmin = () => {
-    return store.getters['auth/canAccessAdmin']
+    return authStore.canAccessAdmin
   }
   
   return {
@@ -287,29 +269,35 @@ export function usePermissions() {
 export const permissionMixin = {
   computed: {
     $permissions() {
-      return this.$store.getters['auth/userPermissions']
+      const authStore = useAuthStore()
+      return authStore.userPermissions
     },
     
     $roles() {
-      return this.$store.getters['auth/userRoles']
+      const authStore = useAuthStore()
+      return authStore.userRoles
     },
     
     $isAdmin() {
-      return this.$store.getters['auth/isAdmin']
+      const authStore = useAuthStore()
+      return authStore.isAdmin
     },
     
     $isSuperAdmin() {
-      return this.$store.getters['auth/isSuperAdmin']
+      const authStore = useAuthStore()
+      return authStore.isSuperAdmin
     },
     
     $canAccessAdmin() {
-      return this.$store.getters['auth/canAccessAdmin']
+      const authStore = useAuthStore()
+      return authStore.canAccessAdmin
     }
   },
   
   methods: {
     $hasPermission(permission) {
-      return this.$store.getters['auth/hasPermission'](permission)
+      const authStore = useAuthStore()
+      return authStore.hasPermission(permission)
     },
     
     $hasAnyPermission(permissions) {
@@ -321,11 +309,12 @@ export const permissionMixin = {
     },
     
     $hasRole(role) {
-      return this.$store.getters['auth/hasRole'](role)
+      const authStore = useAuthStore()
+      return authStore.hasRole(role)
     },
     
     $hasAnyRole(roles) {
-      return this.$store.getters['auth/hasAnyRole'](roles)
+      return roles.some(role => this.$hasRole(role))
     },
     
     $canManage(resource) {
@@ -353,21 +342,25 @@ export default {
     app.directive('auth-only', authOnlyDirective)
     app.directive('guest-only', guestOnlyDirective)
     
-    // Ajouter les méthodes globales
+    // Ajouter les méthodes globales (compatibles avec Pinia)
     app.config.globalProperties.$hasPermission = function(permission) {
-      return this.$store.getters['auth/hasPermission'](permission)
+      const authStore = useAuthStore()
+      return authStore.hasPermission(permission)
     }
     
     app.config.globalProperties.$hasRole = function(role) {
-      return this.$store.getters['auth/hasRole'](role)
+      const authStore = useAuthStore()
+      return authStore.hasRole(role)
     }
     
     app.config.globalProperties.$isAdmin = function() {
-      return this.$store.getters['auth/isAdmin']
+      const authStore = useAuthStore()
+      return authStore.isAdmin
     }
     
     app.config.globalProperties.$isSuperAdmin = function() {
-      return this.$store.getters['auth/isSuperAdmin']
+      const authStore = useAuthStore()
+      return authStore.isSuperAdmin
     }
     
     // CSS par défaut pour les éléments masqués
@@ -384,7 +377,7 @@ export default {
     `
     document.head.appendChild(style)
     
-    console.info('🔐 Directives de permissions installées')
+    console.info('🔐 Directives de permissions installées (Pinia)')
   }
 }
 

@@ -1,19 +1,10 @@
 <template>
   <div class="reservation-detail content-wrapper">
     <!-- Loading -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-content">
-        <div class="simple-spinner"></div>
-        <p>Chargement...</p>
-      </div>
-    </div>
+    <LoadingState v-if="loading" state="loading" variant="fullscreen" loading-text="Chargement de la réservation..." />
 
-    <!-- Error -->
-    <div v-else-if="error" class="error-message">
-      <h3>Erreur</h3>
-      <p>{{ error }}</p>
-      <button @click="fetchReservation" class="btn btn-primary btn-sm">Réessayer</button>
-    </div>
+    <LoadingState v-else-if="error" state="error" variant="card" error-title="Erreur" :error-message="error"
+      @retry="fetchReservation" />
 
     <!-- Content -->
     <div v-else-if="reservation">
@@ -188,13 +179,15 @@ import AdminApi from '@/services/AdminApi'
 import ReservationInfoCard from './ReservationInfoCard.vue'
 import ReservationTimeline from './ReservationTimeline.vue'
 import { permissionMixin } from '@/plugins/permission-directives'
+import LoadingState from '@/admin/components/ui/LoadingState.vue'
 
 export default {
   name: 'ReservationDetail',
   mixins: [permissionMixin],
   components: {
     ReservationInfoCard,
-    ReservationTimeline
+    ReservationTimeline,
+    LoadingState
   },
 
   data() {
@@ -435,47 +428,12 @@ export default {
 </script>
 
 <style scoped>
-/* Ajouts minimaux aux styles existants */
-.loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.9);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.loading-content {
-  text-align: center;
-  background: white;
+.reservation-detail {
+  margin: 3rem;
   padding: 2rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: #fff;
+  min-height: 100vh;
 }
-
-.simple-spinner {
-  width: 40px;
-  height: 40px;
-  margin: 0 auto 1rem;
-  border-top: 3px solid var(--primary);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
 .comment-box {
   background: #f8f9fa;
   padding: 1rem;
@@ -483,5 +441,10 @@ export default {
   border-left: 4px solid var(--primary);
   white-space: pre-wrap;
   line-height: 1.5;
+}
+.status-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 </style>

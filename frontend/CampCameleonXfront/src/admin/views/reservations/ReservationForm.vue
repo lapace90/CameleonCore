@@ -497,7 +497,7 @@ export default {
         booking_source: 'website',
         special_requests: '',
         internal_notes: '',
-        payment_method: '',
+        payment_method: null,
         has_invoice: false,
       },
 

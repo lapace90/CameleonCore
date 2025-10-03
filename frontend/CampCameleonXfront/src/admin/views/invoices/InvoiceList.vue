@@ -10,21 +10,17 @@
         <p class="page-subtitle">Gestion des factures et paiements</p>
       </div>
       <div class="header-actions">
-        <button type="button" class="btn btn-outline btn-sm" @click="refresh">
+        <button type="button" class="btn btn-primary btn-sm" @click="refresh">
           <i class="fas fa-sync"></i>
           Actualiser
-        </button>
-        <button type="button" class="btn btn-primary btn-sm" @click="$router.push({ name: 'InvoiceCreate' })">
-          <i class="fas fa-plus"></i>
-          Nouvelle Facture
         </button>
       </div>
     </div>
 
     <!-- Stats Cards -->
-    <div class="stats-grid" v-if="stats">
+    <div v-if="stats" class="stats-grid">
       <div class="stat-card">
-        <div class="stat-icon" style="background: var(--primary);">
+        <div class="stat-icon" style="background: var(--primary, #5e72e4);">
           <i class="fas fa-file-invoice-dollar"></i>
         </div>
         <div class="stat-content">
@@ -34,7 +30,7 @@
       </div>
 
       <div class="stat-card">
-        <div class="stat-icon" style="background: var(--success);">
+        <div class="stat-icon" style="background: var(--success, #2dce89);">
           <i class="fas fa-check-circle"></i>
         </div>
         <div class="stat-content">
@@ -44,7 +40,7 @@
       </div>
 
       <div class="stat-card">
-        <div class="stat-icon" style="background: var(--warning);">
+        <div class="stat-icon" style="background: var(--warning, #fb6340);">
           <i class="fas fa-clock"></i>
         </div>
         <div class="stat-content">
@@ -54,7 +50,7 @@
       </div>
 
       <div class="stat-card">
-        <div class="stat-icon" style="background: var(--danger);">
+        <div class="stat-icon" style="background: var(--danger, #f5365c);">
           <i class="fas fa-exclamation-circle"></i>
         </div>
         <div class="stat-content">
@@ -64,118 +60,106 @@
       </div>
     </div>
 
-    <!-- ✅ AdminFilterBar remplace le bloc filters-card -->
-    <AdminFilterBar
-      v-model="filters"
-      :default-filters="defaultFilters"
-      :fields="invoiceFilterFields"
-      search-placeholder="Numéro, client, email..."
-      :search-debounce="500"
-      reset-label="Réinitialiser"
-      @apply="applyFilters"
-      @reset="resetFilters"
-    />
+    <!-- ✅ AdminFilterBar -->
+    <AdminFilterBar v-model="filters" :default-filters="defaultFilters" :fields="filterFields"
+      search-placeholder="Rechercher par numéro, client, email..." search-key="search" :search-debounce="500"
+      reset-label="Réinitialiser" @apply="applyFilters" @reset="resetFilters">
+      <!-- Slot results personnalisé -->
+      <template #results="{ activeCount }">
+        <span class="results-info">
+          <i class="fas fa-file-invoice"></i>
+          {{ pagination.total }} facture(s)
+          <span v-if="activeCount > 0" class="text-muted">
+            · {{ activeCount }} filtre(s) actif(s)
+          </span>
+        </span>
+      </template>
+    </AdminFilterBar>
 
-    <!-- Loading -->
-    <div v-if="loading" class="loading-container">
-      <div class="spinner"></div>
-      <p class="text-muted">Chargement des factures...</p>
+    <!-- ✅ LoadingState pour loading -->
+    <LoadingState v-if="loading" state="loading" variant="card" loading-text="Chargement des factures..." />
+
+    <!-- ✅ LoadingState pour empty state -->
+    <LoadingState v-else-if="invoices.length === 0" state="empty" variant="card" empty-title="Aucune facture"
+      :empty-message="hasActiveFilters
+        ? 'Aucune facture ne correspond à vos critères.'
+        : 'Les factures apparaîtront automatiquement dès qu\'une réservation sera confirmée.'"
+      empty-icon="fas fa-file-invoice" />
+
+    <!-- Liste des factures -->
+    <div v-else class="card">
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th @click="changeSort('invoice_number')" class="sortable">
+                Numéro
+                <i :class="getSortIcon('invoice_number')"></i>
+              </th>
+              <th>Client</th>
+              <th @click="changeSort('created_at')" class="sortable">
+                Date
+                <i :class="getSortIcon('created_at')"></i>
+              </th>
+              <th @click="changeSort('amount')" class="sortable">
+                Montant
+                <i :class="getSortIcon('amount')"></i>
+              </th>
+              <th>Statut</th>
+              <th class="actions-column">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="invoice in invoices" :key="invoice.id">
+              <td>
+                <router-link :to="`/admin/invoices/${invoice.id}`" class="invoice-link">
+                  {{ invoice.invoice_number }}
+                </router-link>
+              </td>
+              <td>
+                <div class="customer-info">
+                  <span class="customer-name">
+                    {{ getCustomerName(invoice.customer) }}
+                  </span>
+                  <span class="customer-email">
+                    {{ invoice.customer?.email || '' }}
+                  </span>
+                </div>
+              </td>
+              <td>{{ formatDate(invoice.created_at) }}</td>
+              <td>{{ formatCurrency(invoice.amount) }}</td>
+              <td>
+                <span :class="['badge', getStatusBadgeClass(invoice.status)]">
+                  {{ getStatusLabel(invoice.status) }}
+                </span>
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <button type="button" class="btn-icon text-primary" title="Voir" @click="viewInvoice(invoice)">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button type="button" class="btn-icon text-success" title="Télécharger PDF"
+                    @click="downloadPdf(invoice)">
+                    <i class="fas fa-download"></i>
+                  </button>
+                  <button v-if="canMarkAsPaid(invoice)" type="button" class="btn-icon text-info" title="Marquer payée"
+                    @click="markAsPaid(invoice)">
+                    <i class="fas fa-check-circle"></i>
+                  </button>
+                  <button type="button" class="btn-icon text-danger" title="Supprimer" @click="deleteInvoice(invoice)">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
-    <!-- Empty State -->
-    <div v-else-if="invoices.length === 0" class="empty-state">
-      <i class="fas fa-file-invoice fa-3x"></i>
-      <h3>Aucune facture</h3>
-      <p v-if="hasActiveFilters">
-        Aucune facture ne correspond à vos critères de recherche.
-      </p>
-      <p v-else>
-        Les factures apparaîtront dès qu'une réservation sera confirmée.
-      </p>
-    </div>
-
-    <!-- Table -->
-    <div v-else class="table-container">
-      <table class="table">
-        <thead>
-          <tr>
-            <th @click="changeSort('invoice_number')" class="sortable">
-              Facture
-              <i :class="getSortIcon('invoice_number')"></i>
-            </th>
-            <th>Client</th>
-            <th @click="changeSort('created_at')" class="sortable">
-              Date
-              <i :class="getSortIcon('created_at')"></i>
-            </th>
-            <th @click="changeSort('status')" class="sortable">
-              Statut
-              <i :class="getSortIcon('status')"></i>
-            </th>
-            <th @click="changeSort('amount')" class="sortable text-right">
-              Montant
-              <i :class="getSortIcon('amount')"></i>
-            </th>
-            <th class="actions-col">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="invoice in invoices" :key="invoice.id">
-            <td>
-              <strong>{{ invoice.invoice_number }}</strong><br>
-              <small v-if="invoice.reservation" class="text-muted">
-                <i class="fas fa-calendar"></i> Rés. #{{ invoice.reservation.id }}
-              </small>
-            </td>
-
-            <td>
-              <strong>{{ getCustomerName(invoice) }}</strong><br>
-              <small v-if="getCustomerEmail(invoice)" class="text-muted">
-                <i class="fas fa-envelope"></i> {{ getCustomerEmail(invoice) }}
-              </small>
-            </td>
-
-            <td>
-              <span>{{ formatDate(invoice.created_at) }}</span><br>
-              <small v-if="invoice.due_date" class="text-muted">
-                Échéance: {{ formatDate(invoice.due_date) }}
-              </small>
-            </td>
-
-            <td>
-              <span :class="['status-badge', getStatusClass(invoice.status)]">
-                {{ getStatusLabel(invoice.status) }}
-              </span>
-            </td>
-
-            <td class="text-right">
-              <strong class="price-value">{{ formatCurrency(invoice.amount) }}</strong>
-            </td>
-
-            <td class="actions-col">
-              <div class="table-actions">
-                <button type="button" class="btn-icon" title="Voir" @click="viewInvoice(invoice)">
-                  <i class="fas fa-eye"></i>
-                </button>
-                <button type="button" class="btn-icon" title="Télécharger PDF" @click="downloadPdf(invoice)">
-                  <i class="fas fa-download"></i>
-                </button>
-                <button type="button" class="btn-icon text-danger" title="Supprimer" @click="deleteInvoice(invoice)">
-                  <i class="fas fa-trash"></i>
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Pagination -->
-    <Pagination 
-      v-if="invoices.length > 0 && pagination.lastPage > 1" 
-      :pagination="pagination"
-      @page-change="changePage" 
-    />
+    <!-- ✅ Pagination -->
+    <Pagination v-if="invoices.length > 0 && pagination.lastPage > 1" :pagination="pagination"
+      @page-change="changePage" />
   </div>
 </template>
 
@@ -183,12 +167,14 @@
 import { useInvoiceStore } from '@/shared/stores/invoice'
 import Pagination from '@/admin/views/products/components/Pagination.vue'
 import AdminFilterBar from '@/admin/components/ui/AdminFilterBar.vue'
+import LoadingState from '@/admin/components/ui/LoadingState.vue'
 
 export default {
   name: 'InvoicesList',
   components: {
     Pagination,
-    AdminFilterBar
+    AdminFilterBar,
+    LoadingState
   },
 
   data() {
@@ -196,30 +182,42 @@ export default {
       invoiceStore: useInvoiceStore(),
       loading: false,
       error: null,
-      
-      // ✅ Filtres pour AdminFilterBar
+
+      // ✅ Filtres par défaut
       defaultFilters: {
         search: '',
         status: '',
         start_date: '',
         end_date: ''
       },
-      
+
+      // ✅ Filtres actuels (liés à AdminFilterBar)
       filters: {
         search: '',
         status: '',
         start_date: '',
         end_date: ''
       },
-      
-      sortBy: 'created_at',
-      sortOrder: 'desc'
+
+      // Tri
+      sort: {
+        field: 'created_at',
+        direction: 'desc'
+      },
+
+      // ✅ Pagination (format attendu par le composant Pagination)
+      pagination: {
+        currentPage: 1,
+        perPage: 15,
+        total: 0,
+        lastPage: 1
+      }
     }
   },
 
   computed: {
-    // ✅ Config AdminFilterBar
-    invoiceFilterFields() {
+    // ✅ Configuration des champs de filtre pour AdminFilterBar
+    filterFields() {
       return [
         {
           key: 'status',
@@ -246,37 +244,52 @@ export default {
     },
 
     invoices() {
-      return this.invoiceStore.invoices
+      return this.invoiceStore.invoices || []
     },
 
     stats() {
       return this.invoiceStore.stats
     },
 
-    pagination() {
-      return this.invoiceStore.pagination
-    },
-
     hasActiveFilters() {
-      return this.filters.search || this.filters.status || this.filters.start_date || this.filters.end_date
+      return this.filters.search ||
+        this.filters.status ||
+        this.filters.start_date ||
+        this.filters.end_date
     }
   },
 
-  async mounted() {
+  async created() {
     await this.loadInvoices()
     await this.loadStats()
   },
 
   methods: {
-    async loadInvoices(page = 1) {
+    async loadInvoices() {
       this.loading = true
       this.error = null
 
       try {
-        await this.invoiceStore.fetchInvoices(page)
-      } catch (err) {
-        this.error = err.message
-        console.error('Erreur chargement factures:', err)
+        const response = await this.invoiceStore.fetchInvoices({
+          ...this.filters,
+          sort_by: this.sort.field,
+          sort_order: this.sort.direction,
+          page: this.pagination.currentPage,
+          per_page: this.pagination.perPage
+        })
+
+        // ✅ Mettre à jour la pagination depuis la réponse
+        if (response?.meta) {
+          this.pagination = {
+            currentPage: response.meta.current_page || 1,
+            perPage: response.meta.per_page || 15,
+            total: response.meta.total || 0,
+            lastPage: response.meta.last_page || 1
+          }
+        }
+      } catch (error) {
+        console.error('Erreur chargement factures:', error)
+        this.error = error.message
       } finally {
         this.loading = false
       }
@@ -285,68 +298,118 @@ export default {
     async loadStats() {
       try {
         await this.invoiceStore.fetchStats()
-      } catch (err) {
-        console.error('Erreur chargement stats:', err)
+      } catch (error) {
+        console.error('Erreur chargement stats:', error)
       }
     },
 
-    applyFilters() {
-      this.invoiceStore.setFilters({
-        search: this.filters.search,
-        status: this.filters.status,
-        start_date: this.filters.start_date,
-        end_date: this.filters.end_date,
-        sort_by: this.sortBy,
-        sort_order: this.sortOrder
-      })
-      this.loadInvoices(1)
+    async applyFilters() {
+      this.pagination.currentPage = 1
+      await this.loadInvoices()
     },
 
-    resetFilters() {
+    async resetFilters() {
       this.filters = { ...this.defaultFilters }
-      this.invoiceStore.resetFilters()
-      this.loadInvoices(1)
+      this.pagination.currentPage = 1
+      await this.loadInvoices()
+    },
+
+    async refresh() {
+      await this.loadInvoices()
+      await this.loadStats()
+    },
+
+    async changePage(page) {
+      this.pagination.currentPage = page
+      await this.loadInvoices()
     },
 
     changeSort(field) {
-      if (this.sortBy === field) {
-        this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc'
+      if (this.sort.field === field) {
+        this.sort.direction = this.sort.direction === 'asc' ? 'desc' : 'asc'
       } else {
-        this.sortBy = field
-        this.sortOrder = 'desc'
+        this.sort.field = field
+        this.sort.direction = 'desc'
       }
       this.applyFilters()
     },
 
     getSortIcon(field) {
-      if (this.sortBy !== field) return 'fas fa-sort'
-      return this.sortOrder === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'
-    },
-
-    changePage(page) {
-      this.loadInvoices(page)
-    },
-
-    refresh() {
-      this.loadInvoices()
-      this.loadStats()
-    },
-
-    // Helpers
-    getCustomerName(invoice) {
-      if (invoice.customer) {
-        return invoice.customer.name || invoice.customer.email
+      if (this.sort.field !== field) {
+        return 'fas fa-sort text-muted'
       }
-      return 'Client inconnu'
+      return this.sort.direction === 'asc'
+        ? 'fas fa-sort-up'
+        : 'fas fa-sort-down'
     },
 
-    getCustomerEmail(invoice) {
-      return invoice.customer?.email
+    // Actions
+    viewInvoice(invoice) {
+      this.$router.push(`/admin/invoices/${invoice.id}`)
     },
 
-    formatDate(dateString) {
-      if (!dateString) return '-'
-      return new Date(dateString).toLocaleDateString('fr-FR')
+    createInvoice() {
+      this.$router.push('/admin/invoices/create')
+    },
+
+    async downloadPdf(invoice) {
+      try {
+        await this.invoiceStore.downloadInvoicePdf(invoice.id)
+      } catch (error) {
+        alert('❌ Erreur lors du téléchargement du PDF')
+      }
+    },
+
+    canMarkAsPaid(invoice) {
+      return invoice.status === 'pending' || invoice.status === 'overdue'
+    },
+
+    async markAsPaid(invoice) {
+      if (!confirm(`Marquer la facture ${invoice.invoice_number} comme payée ?`)) {
+        return
+      }
+
+      try {
+        await this.invoiceStore.markAsPaid(invoice.id)
+        alert('✅ Facture marquée comme payée')
+        await this.loadInvoices()
+      } catch (error) {
+        alert('❌ Erreur lors de la mise à jour')
+      }
+    },
+
+    async deleteInvoice(invoice) {
+      if (!confirm(`Supprimer la facture ${invoice.invoice_number} ?\n\nCette action est irréversible.`)) {
+        return
+      }
+
+      try {
+        await this.invoiceStore.deleteInvoice(invoice.id)
+        alert('✅ Facture supprimée')
+        await this.loadInvoices()
+      } catch (error) {
+        alert('❌ Erreur lors de la suppression')
+      }
+    },
+
+    // Formatage
+    getCustomerName(customer) {
+      if (!customer) return 'N/A'
+
+      if (customer.name && customer.last_name) {
+        return `${customer.name} ${customer.last_name}`
+      }
+
+      return customer.name || customer.email || 'N/A'
+    },
+
+    formatDate(date) {
+      if (!date) return 'N/A'
+      return new Date(date).toLocaleDateString('fr-FR', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      })
     },
 
     formatCurrency(amount) {
@@ -367,43 +430,22 @@ export default {
       return labels[status] || status
     },
 
-    getStatusClass(status) {
+    getStatusBadgeClass(status) {
       const classes = {
-        paid: 'status-success',
-        pending: 'status-warning',
-        overdue: 'status-danger',
-        canceled: 'status-secondary'
+        paid: 'badge-success',
+        pending: 'badge-warning',
+        overdue: 'badge-danger',
+        canceled: 'badge-secondary'
       }
-      return classes[status] || ''
-    },
-
-    // Actions
-    viewInvoice(invoice) {
-      this.$router.push({ name: 'InvoiceDetail', params: { id: invoice.id } })
-    },
-
-    async downloadPdf(invoice) {
-      try {
-        // TODO: Implémenter téléchargement PDF
-        alert(`Téléchargement PDF de la facture ${invoice.invoice_number}`)
-      } catch (error) {
-        console.error('Erreur téléchargement PDF:', error)
-      }
-    },
-
-    async deleteInvoice(invoice) {
-      if (!confirm(`Supprimer la facture ${invoice.invoice_number} ?`)) {
-        return
-      }
-
-      try {
-        await this.invoiceStore.deleteInvoice(invoice.id)
-        await this.loadInvoices()
-      } catch (error) {
-        console.error('Erreur suppression:', error)
-        alert('Erreur lors de la suppression')
-      }
+      return classes[status] || 'badge-secondary'
     }
   }
 }
 </script>
+
+<style scoped>
+.invoices-page {
+  margin: 2rem;
+  padding: 1rem;
+}
+</style>
