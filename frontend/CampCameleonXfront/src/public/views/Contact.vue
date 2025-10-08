@@ -85,7 +85,8 @@
                 <label class="checkbox-label">
                   <input type="checkbox" v-model="form.privacy" :class="{ 'error': errors.privacy }" required>
                   <span class="checkmark"></span>
-                  J'accepte la politique de confidentialité *
+                  J'accepte la <router-link to="/privacy" class="privacy-link" target="_blank">politique de
+                    confidentialité</router-link> *
                 </label>
                 <span v-if="errors.privacy" class="error-message">{{ errors.privacy }}</span>
               </div>
@@ -181,15 +182,15 @@
               <div class="social-links">
                 <a href="#" class="social-link facebook">
                   <i class="fab fa-facebook-f"></i>
-  
+
                 </a>
                 <a href="#" class="social-link instagram">
                   <i class="fab fa-instagram"></i>
-  
+
                 </a>
                 <a href="#" class="social-link youtube">
                   <i class="fab fa-youtube"></i>
-  
+
                 </a>
               </div>
             </div>
@@ -335,4 +336,16 @@ export default {
   }
 }
 </script>
+<style scoped lang="scss">
+@import '@/assets/styles/variables';
 
+.privacy-link {
+  color: $terracotta;
+  text-decoration: underline;
+  font-weight: 500;
+
+  &:hover {
+    color: darken($terracotta, 10%);
+  }
+}
+</style>

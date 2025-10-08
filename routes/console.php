@@ -18,20 +18,21 @@ Schedule::command('invoices:update-overdue')
     ->dailyAt('01:00')
     ->timezone('Africa/Casablanca')
     ->onSuccess(function () {
-        \Illuminate\Support\Facades\Log::info('✅ CRON invoices:update-overdue exécuté avec succès');
+        Log::info('✅ CRON invoices:update-overdue exécuté avec succès');
     })
     ->onFailure(function () {
-        \Illuminate\Support\Facades\Log::error('❌ CRON invoices:update-overdue a échoué');
+        Log::error('❌ CRON invoices:update-overdue a échoué');
     });
 
 /**
- * Alternative : Exécuter toutes les heures (pour un suivi plus réactif)
+ * 🆕 Nettoyer les données périmées tous les jours à 2h du matin
  */
-// Schedule::command('invoices:update-overdue')
-//     ->hourly()
-//     ->timezone('Africa/Casablanca');
-
-/**
- * Note: Pour activer le scheduler, ajoutez cette ligne dans votre crontab serveur :
- * * * * * * cd /path-to-your-project && php artisan schedule:run >> /dev/null 2>&1
- */
+Schedule::command('cleanup:expired-data')
+    ->dailyAt('02:00')
+    ->timezone('Africa/Casablanca')
+    ->onSuccess(function () {
+        Log::info('✅ CRON cleanup:expired-data exécuté avec succès');
+    })
+    ->onFailure(function () {
+        Log::error('❌ CRON cleanup:expired-data a échoué');
+    });

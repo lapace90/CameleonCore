@@ -298,54 +298,99 @@
 }
 
 // ========================================
-// INDICATEURS CARROUSEL
+// INDICATEURS CARROUSEL - VERSION HYBRIDE
 // ========================================
 .carousel-dots {
     display: flex;
     justify-content: center;
-    gap: 0.75rem;
-    padding: 1.5rem 0;
-    background: rgba($coffee, 0.5);
-    backdrop-filter: blur(10px);
+    gap: 1rem;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
 
+    // 🖥️ STYLE DESKTOP (par défaut) - Ancienne version
     .dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background: rgba(white, 0.3);
-        border: none;
+        position: relative;
+        padding: 0.5rem 1rem;
+        background: rgba($coffee, 0.6);
+        border: 1px solid rgba($sand, 0.3);
+        border-radius: $border-radius-lg;
+        color: rgba(white, 0.7);
         cursor: pointer;
         transition: all 0.3s ease;
-        padding: 0;
-        position: relative;
-        overflow: visible;
-
-        &:hover {
-            background: rgba(white, 0.6);
-            transform: scale(1.2);
-        }
+        backdrop-filter: blur(10px);
+        font-size: $font-size-sm;
 
         &.active {
-            background: $sand;
-            width: 30px;
-            border-radius: 5px;
+            background: rgba($terracotta, 0.8);
+            border-color: $terracotta;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        &:hover:not(.active) {
+            background: rgba($sand, 0.3);
+            color: white;
         }
 
         .dot-label {
-            position: absolute;
-            bottom: -25px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 0.75rem;
-            white-space: nowrap;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            color: rgba(white, 0.7);
+            font-family: $font-family-primary;
+            font-weight: $font-weight-medium;
         }
+    }
 
-        &:hover .dot-label,
-        &.active .dot-label {
-            opacity: 1;
+    // 📱 STYLE MOBILE - Nouvelle version
+    @media (max-width: 768px) {
+        gap: 0.75rem;
+        padding: 1.5rem 0;
+        background: rgba($coffee, 0.5);
+        backdrop-filter: blur(10px);
+        margin-top: 0;
+        margin-bottom: 0;
+
+        .dot {
+            // Reset du style desktop
+            padding: 0;
+            background: rgba(white, 0.3);
+            border: none;
+            border-radius: 50%;
+            color: transparent;
+            font-size: 0;
+            backdrop-filter: none;
+            
+            // Nouvelle taille mobile
+            width: 10px;
+            height: 10px;
+            overflow: visible;
+
+            &:hover {
+                background: rgba(white, 0.6);
+                transform: scale(1.2);
+            }
+
+            &.active {
+                background: $sand;
+                width: 30px;
+                border-radius: 5px;
+                transform: translateY(0);
+            }
+
+            .dot-label {
+                position: absolute;
+                bottom: -25px;
+                left: 50%;
+                transform: translateX(-50%);
+                font-size: 0.75rem;
+                white-space: nowrap;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+                color: rgba(white, 0.7);
+                font-weight: normal;
+            }
+
+            &:hover .dot-label,
+            &.active .dot-label {
+                opacity: 1;
+            }
         }
     }
 }

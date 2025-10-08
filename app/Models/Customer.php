@@ -18,17 +18,42 @@ use ApiPlatform\Metadata\Get;
 class Customer extends Model
 {
     use HasFactory;
-   
+
     protected $fillable = [
-        'name', 'last_name', 'email', 'phone', 'address', 
-        'city', 'state', 'postal_code', 'country',
-        'email_verified_at'
+        'name',
+        'last_name',
+        'email',
+        'phone',
+        'address',
+        'city',
+        'state',
+        'postal_code',
+        'country',
+        'email_verified_at',
+        'limited_token',
+        'token_expires_at',
+
+        // ✅ AJOUT RGPD
+        'gdpr_consent',
+        'gdpr_consent_at',
+        'gdpr_consent_ip',
+        'newsletter_consent',
+        'newsletter_consent_at',
+    ];
+
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'token_expires_at' => 'datetime',
+        'gdpr_consent' => 'boolean',
+        'gdpr_consent_at' => 'datetime',
+        'newsletter_consent' => 'boolean',
+        'newsletter_consent_at' => 'datetime',
     ];
 
     protected $hidden = ['limited_token'];
-    
+
     // ✅ MÉTHODES VALIDATION EMAIL
-    public function generateLimitedToken(): string 
+    public function generateLimitedToken(): string
     {
         $token = Str::random(64);
         $this->update([
@@ -37,18 +62,18 @@ class Customer extends Model
         ]);
         return $token;
     }
-    
-    public function validateToken(string $token): bool 
+
+    public function validateToken(string $token): bool
     {
         if ($this->limited_token !== $token) return false;
         if (Carbon::now()->isAfter($this->token_expires_at)) return false;
-        
+
         $this->update([
             'email_verified_at' => Carbon::now(),
             'limited_token' => null,  // Token à usage unique
             'token_expires_at' => null
         ]);
-        
+
         return true;
     }
 
@@ -60,7 +85,7 @@ class Customer extends Model
     public function scopeSearch($query, $search)
     {
         return $query->where('name', 'like', '%' . $search . '%')
-            ->orWhere('last_name', 'like', '%'. $search . '%')
+            ->orWhere('last_name', 'like', '%' . $search . '%')
             ->orWhere('email', 'like', '%' . $search . '%')
             ->orWhere('phone', 'like', '%' . $search . '%')
             ->orWhere('address', 'like', '%' . $search . '%')
@@ -91,5 +116,4 @@ class Customer extends Model
             'postal_code.max' => 'The postal code may not be greater than 20 characters'
         ];
     }
-
 }

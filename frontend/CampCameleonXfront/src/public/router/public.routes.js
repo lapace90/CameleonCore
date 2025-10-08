@@ -5,7 +5,6 @@ export default [
     path: '/',
     component: () => import('../PublicApp.vue'),
     children: [
-      // Page d'accueil en enfant par défaut
       {
         path: 'home',
         name: 'Home',
@@ -25,6 +24,21 @@ export default [
         path: 'contact',
         name: 'Contact',
         component: () => import('../views/Contact.vue'),
+      },
+      {
+        path: 'privacy',
+        name: 'Privacy',
+        component: () => import('../views/Privacy.vue'),
+      },
+      {
+        path: 'mentions',
+        name: 'Mentions',
+        component: () => import('../views/Mentions.vue'),
+      },
+      {
+        path: 'cgu',
+        name: 'CGU',
+        component: () => import('../views/CGU.vue'),
       },
       {
         path: 'testimonials',

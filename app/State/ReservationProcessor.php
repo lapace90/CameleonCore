@@ -163,6 +163,10 @@ class ReservationProcessor implements ProcessorInterface
             throw new \InvalidArgumentException('Email client requis');
         }
 
+        // Récupérer l'IP pour traçabilité RGPD
+        $request = app(\Illuminate\Http\Request::class);
+        $ipAddress = $request->ip();
+
         $customer = Customer::firstOrNew(['email' => $email]);
 
         $customer->fill([
@@ -173,18 +177,29 @@ class ReservationProcessor implements ProcessorInterface
             'city' => $customerData['city'] ?? $customer->city ?? null,
             'postal_code' => $customerData['postal_code'] ?? $customer->postal_code ?? null,
             'country' => $customerData['country'] ?? $customer->country ?? null,
+
+            // ✅ AJOUT RGPD : Consentements (implicites lors d'une réservation)
+            'gdpr_consent' => true, // Accepté via validation du formulaire
+            'gdpr_consent_at' => now(),
+            'gdpr_consent_ip' => $ipAddress,
+
+            // Newsletter uniquement si explicitement demandé
+            'newsletter_consent' => $customerData['newsletter_consent'] ?? false,
+            'newsletter_consent_at' => ($customerData['newsletter_consent'] ?? false) ? now() : null,
         ]);
 
         if (!$customer->exists || $customer->isDirty()) {
             $customer->save();
-            Log::info($customer->wasRecentlyCreated ? '✅ Nouveau customer créé' : '✅ Customer mis à jour', [
+            Log::info($customer->wasRecentlyCreated ? '✅ Nouveau customer créé avec consentements RGPD' : '✅ Customer mis à jour', [
                 'id' => $customer->id,
-                'email' => $customer->email
+                'email' => $customer->email,
+                'gdpr_consent' => true
             ]);
         }
 
         return $customer->id;
     }
+
     private function normalizeAliases(array $payload): array
     {
         // new_customer / customer -> customer_data

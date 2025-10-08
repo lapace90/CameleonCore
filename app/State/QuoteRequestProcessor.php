@@ -371,28 +371,31 @@ class QuoteRequestProcessor implements ProcessorInterface
         throw new \InvalidArgumentException('Données de requête introuvables');
     }
 
-    private function findOrCreateCustomer(array $payload): int
+    private function findOrCreateCustomer(array $contactData): int
     {
-        $email = $payload['email'] ?? null;
+        $email = $contactData['email'];
 
-        if (!$email) {
-            throw new \InvalidArgumentException('Adresse email du client manquante');
-        }
+        // Récupérer l'IP
+        $request = app(\Illuminate\Http\Request::class);
+        $ipAddress = $request->ip();
 
         $customer = Customer::firstOrNew(['email' => $email]);
 
         $customer->fill([
-            'name' => $payload['name'] ?? $customer->name ?? 'Client',
-            'last_name' => $payload['last_name'] ?? $customer->last_name ?? ($payload['name'] ?? 'Client'),
+            'name' => $contactData['name'] ?? $customer->name ?? '',
+            'last_name' => $contactData['last_name'] ?? $customer->last_name ?? '',
+            'phone' => $contactData['phone'] ?? $customer->phone ?? null,
+
+            // ✅ AJOUT RGPD
+            'gdpr_consent' => true, // Implicite lors du devis
+            'gdpr_consent_at' => now(),
+            'gdpr_consent_ip' => $ipAddress,
+
+            'newsletter_consent' => $contactData['newsletter'] ?? false,
+            'newsletter_consent_at' => ($contactData['newsletter'] ?? false) ? now() : null,
         ]);
 
-        if (array_key_exists('phone', $payload) && $payload['phone'] !== null) {
-            $customer->phone = $payload['phone'];
-        }
-
-        if (!$customer->exists || $customer->isDirty()) {
-            $customer->save();
-        }
+        $customer->save();
 
         return $customer->id;
     }
@@ -404,7 +407,7 @@ class QuoteRequestProcessor implements ProcessorInterface
     /**
      * Récupérer un devis pour édition par le client
      */
-    private function getQuoteForEdit(int $id, string $editToken): QuoteRequest
+    public function getQuoteForEdit(int $id, string $editToken): QuoteRequest
     {
         $quoteRequest = QuoteRequest::findOrFail($id);
 

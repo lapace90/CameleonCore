@@ -10,25 +10,25 @@
             <span class="brand-text">CampCameleonX</span>
           </div>
           <p class="footer-description">
-            Votre partenaire de confiance pour des expériences de camping inoubliables. 
+            Votre partenaire de confiance pour des expériences de camping inoubliables.
             Découvrez la nature autrement avec nos services personnalisés.
           </p>
           <div class="footer-social">
-            <a href="#" class="social-link" aria-label="Facebook">
+            <a href="https://facebook.com" target="_blank" rel="noopener" class="social-link" aria-label="Facebook">
               <i class="fab fa-facebook-f"></i>
             </a>
-            <a href="#" class="social-link" aria-label="Instagram">
+            <a href="https://instagram.com" target="_blank" rel="noopener" class="social-link" aria-label="Instagram">
               <i class="fab fa-instagram"></i>
             </a>
-            <a href="#" class="social-link" aria-label="Twitter">
+            <a href="https://twitter.com" target="_blank" rel="noopener" class="social-link" aria-label="Twitter">
               <i class="fab fa-twitter"></i>
             </a>
-            <a href="#" class="social-link" aria-label="YouTube">
+            <a href="https://youtube.com" target="_blank" rel="noopener" class="social-link" aria-label="YouTube">
               <i class="fab fa-youtube"></i>
             </a>
           </div>
         </div>
-        
+
         <!-- Quick Links -->
         <div class="footer-section">
           <h4 class="footer-title">Navigation</h4>
@@ -37,20 +37,21 @@
             <li><router-link to="/about" class="footer-link">À propos</router-link></li>
             <li><router-link to="/services" class="footer-link">Services</router-link></li>
             <li><router-link to="/contact" class="footer-link">Contact</router-link></li>
+            <li><router-link to="/privacy" class="footer-link">Confidentialité</router-link></li>
           </ul>
         </div>
-        
+
         <!-- Services -->
         <div class="footer-section">
           <h4 class="footer-title">Services</h4>
           <ul class="footer-links">
-            <li><a href="#" class="footer-link">Réservation en ligne</a></li>
-            <li><a href="#" class="footer-link">Équipements camping</a></li>
-            <li><a href="#" class="footer-link">Activités nature</a></li>
-            <li><a href="#" class="footer-link">Guide et conseils</a></li>
+            <li><router-link to="/services" class="footer-link">Réservation en ligne</router-link></li>
+            <li><router-link to="/services" class="footer-link">Équipements camping</router-link></li>
+            <li><router-link to="/services" class="footer-link">Activités nature</router-link></li>
+            <li><router-link to="/about" class="footer-link">Guide et conseils</router-link></li>
           </ul>
         </div>
-        
+
         <!-- Contact Info -->
         <div class="footer-section">
           <h4 class="footer-title">Contact</h4>
@@ -58,33 +59,32 @@
             <div class="contact-item">
               <i class="fas fa-map-marker-alt"></i>
               <div>
-                <p>123 Rue de la Nature</p>
-                <p>75000 Paris, France</p>
+                <p>Désert de Merzouga</p>
+                <p>Erg Chebbi, Maroc</p>
               </div>
             </div>
             <div class="contact-item">
               <i class="fas fa-phone"></i>
               <div>
-                <p>+33 1 23 45 67 89</p>
+                <p>+212 6 12 34 56 78</p>
               </div>
             </div>
             <div class="contact-item">
               <i class="fas fa-envelope"></i>
               <div>
-                <p>contact@campcameleonx.com</p>
+                <p>contact@campcameleonx.ma</p>
               </div>
             </div>
             <div class="contact-item">
               <i class="fas fa-clock"></i>
               <div>
-                <p>Lun - Ven: 9h - 18h</p>
-                <p>Sam: 9h - 16h</p>
+                <p>Lun - Dim: 24h/24</p>
               </div>
             </div>
           </div>
         </div>
       </div>
-      
+
       <!-- Newsletter Signup -->
       <div class="footer-newsletter">
         <div class="newsletter-content">
@@ -94,13 +94,7 @@
           </div>
           <form class="newsletter-form" @submit.prevent="subscribeNewsletter">
             <div class="input-group">
-              <input 
-                type="email" 
-                v-model="email" 
-                placeholder="Votre adresse email"
-                required
-                class="newsletter-input"
-              >
+              <input type="email" v-model="email" placeholder="Votre adresse email" required class="newsletter-input">
               <button type="submit" class="newsletter-btn">
                 <i class="fas fa-paper-plane"></i>
                 S'abonner
@@ -109,7 +103,7 @@
           </form>
         </div>
       </div>
-      
+
       <!-- Footer Bottom -->
       <div class="footer-bottom">
         <div class="footer-bottom-content">
@@ -117,10 +111,10 @@
             <p>&copy; {{ currentYear }} CampCameleonX. Tous droits réservés.</p>
           </div>
           <div class="footer-legal">
-            <a href="#" class="legal-link">Mentions légales</a>
-            <a href="#" class="legal-link">Politique de confidentialité</a>
-            <a href="#" class="legal-link">CGU</a>
-            <a href="#" class="legal-link">Cookies</a>
+            <router-link to="/mentions" class="legal-link">Mentions légales</router-link>
+            <router-link to="/privacy" class="legal-link">Politique de confidentialité</router-link>
+            <router-link to="/cgu" class="legal-link">CGU</router-link>
+            <router-link to="/privacy#cookies" class="legal-link">Cookies</router-link>
           </div>
         </div>
       </div>
@@ -138,18 +132,18 @@ export default {
   },
   computed: {
     currentYear() {
-      return new Date().getFullYear();
+      return new Date().getFullYear()
     }
   },
   methods: {
     subscribeNewsletter() {
       if (this.email) {
         // Logique d'inscription newsletter
-        console.log('Newsletter subscription:', this.email);
-        
+        console.log('Newsletter subscription:', this.email)
+
         // Simulation d'une inscription réussie
-        alert('Merci pour votre inscription !');
-        this.email = '';
+        alert('Merci pour votre inscription !')
+        this.email = ''
       }
     }
   }
