@@ -67,7 +67,7 @@
                                             <div>
                                                 <label>Départ</label>
                                                 <span>{{ formatDate(displayEndInclusive(selectedDates.endExclusive))
-                                                    }}</span>
+                                                }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -94,7 +94,7 @@
                                         <div class="guests-display">
                                             <span class="guests-number">{{ selectedDates.guests }}</span>
                                             <span class="guests-text">personne{{ selectedDates.guests > 1 ? 's' : ''
-                                                }}</span>
+                                            }}</span>
                                         </div>
 
                                         <button type="button" @click="increaseGuests"
@@ -316,7 +316,7 @@
                                 </div>
                                 <div class="summary-item">
                                     <span>{{ selectedDates.guests }} personne{{ selectedDates.guests > 1 ? 's' : ''
-                                        }}</span>
+                                    }}</span>
                                 </div>
                             </div>
 
@@ -403,6 +403,9 @@
             </div>
         </div>
     </transition>
+    <!-- Modal de validation email -->
+    <EmailValidationModal :show="showEmailValidation" :quote-reference="validationQuote.reference"
+        :email="validationQuote.email" @close="showEmailValidation = false" />
 </template>
 
 <script>
@@ -413,10 +416,11 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import frLocale from '@fullcalendar/core/locales/fr'
 import { computeQuoteTotal } from '@/shared/composables/useQuotePricing'
+import EmailValidationModal from '@/public/components/EmailValidationModal.vue'
 
 export default {
     name: 'QuoteModal',
-    components: { FullCalendar },
+    components: { FullCalendar, EmailValidationModal },
 
     props: { show: { type: Boolean, default: false } },
 
@@ -425,6 +429,10 @@ export default {
             currentStep: 1,
             loading: false,
             isSubmitting: false,
+
+            // Pour modal validation email
+            showEmailValidation: false,
+            validationQuote: { reference: '', email: '' },
 
             // Quantités ajustées au récap
             qtyOverrides: { activity: {}, menu: {} },
@@ -551,14 +559,24 @@ export default {
                 locale: 'fr',
                 initialView: 'dayGridMonth',
                 firstDay: 1,
-                height: 380,  // ← Réduire la hauteur
-                contentHeight: 280,  // ← Plus compact
-                aspectRatio: 1.6,  // ← Ratio plus compact
+                height: 380,
+                contentHeight: 280,
+                aspectRatio: 1.6,
                 handleWindowResize: true,
                 dayHeaderFormat: { weekday: 'short' },
-                titleFormat: { year: 'numeric', month: 'short' },  // ← Format court
+                titleFormat: { year: 'numeric', month: 'short' },
+
+                // ✅ CORRECTION : Configuration de sélection améliorée
                 selectable: true,
                 selectMirror: true,
+                selectOverlap: true,           // ✅ Permet la sélection sans conflit
+                unselectAuto: false,           // ✅ CRITIQUE : Garde la sélection visible
+                unselectCancel: '.booking-info', // ✅ Ne pas désélectionner si on clique sur la zone d'infos
+
+                // ✅ CORRECTION : Amélioration pour mobile/tactile
+                selectLongPressDelay: 250,     // ✅ Réduit le délai pour le touch
+                selectMinDistance: 5,          // ✅ Distance minimale pour commencer la sélection
+
                 fixedWeekCount: false,
                 validRange: { start: this.minDate },
                 headerToolbar: {
@@ -567,16 +585,40 @@ export default {
                     right: 'today'
                 },
                 select: this.fcOnSelect,
-                // ← Styles pour réduire les marges
+
+                // ✅ CORRECTION : Maintenir la sélection visuelle quand on change de mois
+                datesSet: () => {
+                    this.$nextTick(() => {
+                        this.markSelectedDatesInCalendar()
+                    })
+                },
+
                 eventDisplay: 'block',
                 dayMaxEvents: 2
             }
         }
     },
 
+    // 4️⃣ Dans QuoteModal.vue, ajoutez ce watcher dans la section watch: {}
+
     watch: {
-        show(val) { if (val) this.initializeModal() },
-        // clamp des overrides si le nb d’invités baisse
+        show(val) {
+            if (val) this.initializeModal()
+        },
+
+        // ✅ NOUVEAU : Maintenir la sélection visuelle quand on change de mois
+        'selectedDates.start'() {
+            this.$nextTick(() => {
+                this.markSelectedDatesInCalendar()
+            })
+        },
+        'selectedDates.endExclusive'() {
+            this.$nextTick(() => {
+                this.markSelectedDatesInCalendar()
+            })
+        },
+
+        // clamp des overrides si le nb d'invités baisse
         'selectedDates.guests'(g) {
             const max = Math.max(1, Number(g || 1))
             for (const t of ['activity', 'menu']) {
@@ -733,14 +775,31 @@ export default {
         },
 
         showEmailValidationRequired(quote) {
+            console.log('🔍 Quote reçu:', quote)
+
             this.closeModal()
-            alert(`📧 Validation email requise
 
-Votre devis ${quote.quote_reference} a été créé !
+            // ✅ L'API retourne { success: true, quote_request: {...} }
+            const quoteData = quote.quote_request || quote
 
-1) Vérifiez votre boîte (${quote.email || this.contactInfo.email})
-2) Cliquez sur le lien de validation
-3) Reprenez le paiement ici`)
+            // ✅ Extraire la référence et l'email
+            const reference = quoteData.quote_reference ||
+                quoteData.reference ||
+                'REF-INCONNU'
+
+            const email = this.contactInfo.email ||
+                quoteData.email ||
+                quoteData.customer?.email ||
+                'votre email'
+
+            console.log('✅ Données extraites:', { reference, email })
+
+            this.validationQuote = {
+                reference: reference,
+                email: email
+            }
+
+            this.showEmailValidation = true
         },
 
         async createStripeSession(quoteId) {
@@ -1037,7 +1096,73 @@ $terracotta: #c17c4a;
     }
 }
 
+/* Dates pendant la sélection (avec selectMirror) */
+:deep(.fc-highlight) {
+    background-color: rgba(193, 124, 74, 0.2) !important;
+    /* Utilise la couleur terracotta avec transparence */
+}
 
+/* Dates sélectionnées après validation */
+:deep(.fc-day.fc-day-selected) {
+    background-color: rgba(193, 124, 74, 0.15) !important;
+    position: relative;
+}
+
+/* Bordure pour les dates sélectionnées */
+:deep(.fc-day.fc-day-selected::after) {
+    content: '';
+    position: absolute;
+    inset: 2px;
+    border: 2px solid #c17c4a;
+    border-radius: 4px;
+    pointer-events: none;
+}
+
+/* Numéro du jour pour les dates sélectionnées */
+:deep(.fc-day-selected .fc-daygrid-day-number) {
+    color: #c17c4a;
+    font-weight: 700;
+    background-color: rgba(193, 124, 74, 0.1);
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+/* Amélioration du feedback tactile sur mobile */
+:deep(.fc-day:active) {
+    background-color: rgba(193, 124, 74, 0.1) !important;
+}
+
+/* Jour aujourd'hui avec sélection */
+:deep(.fc-day-today.fc-day-selected) {
+    background-color: rgba(193, 124, 74, 0.25) !important;
+}
+
+/* Animation au survol (desktop uniquement) */
+@media (hover: hover) {
+    :deep(.fc-day:hover) {
+        background-color: rgba(193, 124, 74, 0.08);
+        cursor: pointer;
+    }
+}
+
+/* ===== AMÉLIORATION DE LA ZONE DE SÉLECTION ===== */
+
+/* Empêcher la désélection quand on clique sur certains éléments */
+.calendar-section {
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* Améliorer la zone cliquable sur mobile */
+:deep(.fc-daygrid-day-frame) {
+    min-height: 40px;
+    /* Plus facile à toucher sur mobile */
+}
+
+/* Touch feedback pour iOS */
+:deep(.fc-day) {
+    -webkit-tap-highlight-color: rgba(193, 124, 74, 0.2);
+}
 
 /* ===== RÉCAP SUMMARY ===== */
 .step-title {

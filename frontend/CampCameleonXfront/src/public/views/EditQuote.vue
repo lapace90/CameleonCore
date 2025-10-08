@@ -168,13 +168,13 @@
 
                 <!-- Action buttons -->
                 <div class="form-actions">
-                    <button @click="saveChanges" :disabled="isSubmitting || !hasChanges" class="btn btn-primary">
+                    <button @click="saveChanges" :disabled="isSubmitting || !hasChanges" class="btn btn-primary btn-sm">
                         <i v-if="isSubmitting" class="fas fa-spinner fa-spin"></i>
                         <i v-else class="fas fa-save"></i>
                         {{ isSubmitting ? 'Sauvegarde...' : 'Sauvegarder les modifications' }}
                     </button>
 
-                    <button @click="cancelEdit" class="btn btn-secondary">
+                    <button @click="cancelEdit" class="btn btn-secondary btn-sm">
                         <i class="fas fa-times"></i>
                         Annuler
                     </button>
@@ -581,9 +581,12 @@ export default {
 
 
 <style scoped>
+.main-content {
+    background-color: #0066cc;
+}
 .edit-quote-page {
     min-height: 100vh;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    background: linear-gradient(135deg, #778eb0 0%, #c3cfe2 100%);
     padding: 20px;
 }
 
