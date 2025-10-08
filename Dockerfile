@@ -32,7 +32,6 @@ RUN pecl install xdebug \
 # Configuration Xdebug pour les tests
 RUN echo "xdebug.mode=coverage" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
-
 # Copie les fichiers du projet
 WORKDIR /app
 COPY . .

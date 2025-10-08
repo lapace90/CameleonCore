@@ -252,7 +252,7 @@ export default {
       { id: 2, title: 'Guide Privé', description: 'Guide berbère dédié pour découvrir les secrets du désert et la culture locale.', icon: 'fas fa-user-tie', color: '#D6B190', price: '40€/demi-journée' },
       { id: 3, title: 'Soirée Musicale', description: 'Concert privé de musique traditionnelle autour du feu avec musiciens locaux.', icon: 'fas fa-music', color: '#656C97', price: '60€/soirée' },
       { id: 4, title: 'Atelier Artisanat', description: 'Initiation à la poterie, tapis berbère ou cuisine traditionnelle du désert.', icon: 'fas fa-palette', color: '#41241C', price: '20€/personne' },
-      { id: 5, title: 'Observation Étoiles', description: 'Soirée astronomie avec télescope et guide pour découvrir le ciel du Sahara.', icon: 'fas fa-telescope', color: '#2d8f63', price: '15€/personne' },
+      { id: 5, title: 'Observation Étoiles', description: 'Soirée astronomie avec télescope et guide pour découvrir le ciel du Sahara.', icon: 'fas fa-star', color: '#2d8f63', price: '15€/personne' },
       { id: 6, title: 'Massage Détente', description: "Massage relaxant aux huiles d'argan dans un cadre exceptionnel.", icon: 'fas fa-spa', color: '#8b6f47', price: '45€/séance' }
     ])
 

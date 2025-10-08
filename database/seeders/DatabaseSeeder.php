@@ -49,7 +49,7 @@ class DatabaseSeeder extends Seeder
     private function seedAdditionalData()
     {
         $this->command->info('👥 Création d\'utilisateurs admin...');
-        $superAdminRole = Role::where('slug', 'super-admin')->first();
+        $ownerRole = Role::where('slug', 'owner')->first();
 
         // ✅ MISE À JOUR : Créer un utilisateur admin pour tester avec les nouveaux champs
         \App\Models\User::create([
@@ -58,7 +58,7 @@ class DatabaseSeeder extends Seeder
             'password' => 'password',
             'email_verified_at' => now(),
             'remember_token' => Str::random(10),
-            'role_id' => $superAdminRole?->id,
+            'role_id' => $ownerRole?->id,
             'phone' => '+212 5 24 44 55 66',
             'address' => 'Route de Ouarzazate, Km 15',
             'city' => 'Marrakech',

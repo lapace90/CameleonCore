@@ -7,7 +7,7 @@
         Une cuisine authentique préparée avec amour au cœur du Sahara
       </p>
     </div>
-    
+
     <div class="menu-container">
       <!-- Grille des menus -->
       <div class="menus-grid">
@@ -75,34 +75,36 @@
           </div>
         </div>
       </div>
-  </div>
+      </div>
+      <div class="menu-container">
       <!-- Section informations complémentaires -->
       <div class="menus-info">
         <div class="info-cards">
           <div class="info-card">
-            <div class="info-icon">
-              <i class="fas fa-fire"></i>
-            </div>
-            <h4>Cuisine au feu de bois</h4>
-            <p>Préparation traditionnelle qui rehausse les saveurs</p>
+          <div class="info-icon">
+            <i class="fas fa-fire"></i>
           </div>
-          <div class="info-card">
-            <div class="info-icon">
-              <i class="fas fa-leaf"></i>
-            </div>
-            <h4>Ingrédients locaux</h4>
-            <p>Produits frais sourced directement des oasis environnantes</p>
+          <h4>Cuisine au feu de bois</h4>
+          <p>Préparation traditionnelle qui rehausse les saveurs</p>
+        </div>
+        <div class="info-card">
+          <div class="info-icon">
+            <i class="fas fa-leaf"></i>
           </div>
-          <div class="info-card">
-            <div class="info-icon">
-              <i class="fas fa-users"></i>
-            </div>
-            <h4>Service personnalisé</h4>
-            <p>Adaptation possible selon vos préférences alimentaires</p>
+          <h4>Ingrédients locaux</h4>
+          <p>Produits frais sourced directement des oasis environnantes</p>
+        </div>
+        <div class="info-card">
+          <div class="info-icon">
+            <i class="fas fa-users"></i>
           </div>
+          <h4>Service personnalisé</h4>
+          <p>Adaptation possible selon vos préférences alimentaires</p>
         </div>
       </div>
-  
+    </div>
+  </div>
+    
   </section>
   <!-- MODALE DÉTAIL MENU -->
   <Teleport to="body">
@@ -278,4 +280,3 @@ function selectMenu(id) {
 
 onMounted(loadMenusList)
 </script>
-
