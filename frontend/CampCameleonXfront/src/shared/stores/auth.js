@@ -1,4 +1,4 @@
-// src/shared/stores/auth.js - VERSION COMPLÈTE avec méthodes de permissions
+// src/shared/stores/auth.js - VERSION COMPLÈTE avec register
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import axios from 'axios'
@@ -14,8 +14,8 @@ export const useAuthStore = defineStore('auth', () => {
   const loading = ref(false)
   const error = ref(null)
 
-  const initializing = ref(!!token.value) // True seulement si un token existe
-  const isAuthenticated = ref(false) // False par défaut, sera mis à true après vérification
+  const initializing = ref(!!token.value)
+  const isAuthenticated = ref(false)
 
   // ===========================
   // GETTERS
@@ -55,6 +55,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (newToken) {
       localStorage.setItem('auth-token', newToken)
       axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`
+      isAuthenticated.value = true
     } else {
       localStorage.removeItem('auth-token')
       delete axios.defaults.headers.common['Authorization']
@@ -69,17 +70,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (userData) {
       // Extraire et normaliser les permissions
       permissions.value = userData.permissions || []
-      
-      // Extraire et normaliser les rôles
-      if (userData.roles) {
-        roles.value = userData.roles
-      } else if (userData.role) {
-        // Si seulement un rôle principal existe
-        roles.value = [userData.role]
-      } else {
-        roles.value = []
-      }
-      
+      roles.value = userData.roles || []
       isAuthenticated.value = true
     } else {
       permissions.value = []
@@ -89,74 +80,41 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   // ===========================
-  // MÉTHODES DE VÉRIFICATION DES PERMISSIONS
+  // VÉRIFICATION PERMISSIONS
   // ===========================
 
-  /**
-   * Vérifie si l'utilisateur a une permission spécifique
-   * @param {string} permission - L'action de permission à vérifier
-   * @returns {boolean}
-   */
   const hasPermission = (permission) => {
     if (!user.value) return false
-    if (isAdmin.value) return true // Les admins ont toutes les permissions
     return userPermissions.value.includes(permission)
   }
 
-  /**
-   * Vérifie si l'utilisateur a au moins une des permissions fournies
-   * @param {string[]} permissionList - Liste des permissions
-   * @returns {boolean}
-   */
   const hasAnyPermission = (permissionList) => {
     if (!user.value) return false
-    if (isAdmin.value) return true
-    return permissionList.some(permission => hasPermission(permission))
+    return permissionList.some(perm => hasPermission(perm))
   }
 
-  /**
-   * Vérifie si l'utilisateur a toutes les permissions fournies
-   * @param {string[]} permissionList - Liste des permissions
-   * @returns {boolean}
-   */
   const hasAllPermissions = (permissionList) => {
     if (!user.value) return false
-    if (isAdmin.value) return true
-    return permissionList.every(permission => hasPermission(permission))
+    return permissionList.every(perm => hasPermission(perm))
   }
 
-  /**
-   * Vérifie si l'utilisateur a un rôle spécifique
-   * @param {string} role - Le slug du rôle à vérifier
-   * @returns {boolean}
-   */
   const hasRole = (role) => {
     if (!user.value) return false
     return userRoles.value.includes(role)
   }
 
-  /**
-   * Vérifie si l'utilisateur a au moins un des rôles fournis
-   * @param {string[]} roleList - Liste des rôles
-   * @returns {boolean}
-   */
   const hasAnyRole = (roleList) => {
     if (!user.value) return false
     return roleList.some(role => hasRole(role))
   }
 
-  /**
-   * Vérifie si l'utilisateur a tous les rôles fournis
-   * @param {string[]} roleList - Liste des rôles
-   * @returns {boolean}
-   */
   const hasAllRoles = (roleList) => {
     if (!user.value) return false
     return roleList.every(role => hasRole(role))
   }
 
   // ===========================
-  // VÉRIFICATION DE L'AUTHENTIFICATION
+  // VÉRIFICATION AUTH
   // ===========================
 
   const checkAuth = async () => {
@@ -177,7 +135,6 @@ export const useAuthStore = defineStore('auth', () => {
       if (response.data.user) {
         console.log('✅ Token valide, utilisateur:', response.data.user.name)
         setUser(response.data.user)
-        console.log('🔍 User dans store après verify:', user.value)
         return true
       }
 
@@ -191,6 +148,47 @@ export const useAuthStore = defineStore('auth', () => {
     } finally {
       loading.value = false
       initializing.value = false
+    }
+  }
+
+  // ===========================
+  // 🆕 INSCRIPTION (REGISTER)
+  // ===========================
+
+  const register = async (userData) => {
+    loading.value = true
+    error.value = null
+
+    try {
+      console.log('📝 Tentative d\'inscription...', userData.email)
+      
+      const response = await axios.post('/api/auth/register', userData)
+      
+      if (response.data.token && response.data.user) {
+        console.log('✅ Inscription réussie:', response.data.user.name)
+        
+        setToken(response.data.token)
+        setUser(response.data.user)
+        
+        return { success: true, user: response.data.user }
+      }
+
+      throw new Error('Réponse invalide du serveur')
+    } catch (err) {
+      console.error('❌ Erreur inscription:', err)
+      
+      // Gestion des erreurs de validation
+      if (err.response?.status === 422) {
+        const validationErrors = err.response.data?.errors || {}
+        const firstError = Object.values(validationErrors)[0]?.[0]
+        error.value = firstError || 'Données invalides'
+      } else {
+        error.value = err.response?.data?.message || 'Erreur lors de l\'inscription'
+      }
+      
+      return { success: false, error: error.value }
+    } finally {
+      loading.value = false
     }
   }
 
@@ -280,6 +278,7 @@ export const useAuthStore = defineStore('auth', () => {
     setToken,
     setUser,
     checkAuth,
+    register,  // 🆕 AJOUTÉ
     login,
     logout,
     refreshToken,

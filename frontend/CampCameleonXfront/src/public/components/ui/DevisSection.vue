@@ -66,7 +66,7 @@
             </div>
         </div>
     </section>
-    <QuoteModal :show="showQuote" @close="showQuote = false" @booking-submitted="onBooking" />
+    <QuoteModal :show="showQuote" @close="showQuote = false" @quote-saved="onBooking" />
 </template>
 
 <script>

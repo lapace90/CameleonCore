@@ -421,6 +421,7 @@ import EmailValidationModal from '@/public/components/EmailValidationModal.vue'
 export default {
     name: 'QuoteModal',
     components: { FullCalendar, EmailValidationModal },
+    emits: ['close', 'quote-saved'],
 
     props: { show: { type: Boolean, default: false } },
 
@@ -566,14 +567,14 @@ export default {
                 dayHeaderFormat: { weekday: 'short' },
                 titleFormat: { year: 'numeric', month: 'short' },
 
-                // ✅ CORRECTION : Configuration de sélection améliorée
+                // Configuration de sélection améliorée
                 selectable: true,
                 selectMirror: true,
-                selectOverlap: true,           // ✅ Permet la sélection sans conflit
-                unselectAuto: false,           // ✅ CRITIQUE : Garde la sélection visible
-                unselectCancel: '.booking-info', // ✅ Ne pas désélectionner si on clique sur la zone d'infos
+                selectOverlap: true,           // Permet la sélection sans conflit
+                unselectAuto: false,           // Garde la sélection visible
+                unselectCancel: '.booking-info', // Ne pas désélectionner si on clique sur la zone d'infos
 
-                // ✅ CORRECTION : Amélioration pour mobile/tactile
+                // Amélioration pour mobile/tactile
                 selectLongPressDelay: 250,     // ✅ Réduit le délai pour le touch
                 selectMinDistance: 5,          // ✅ Distance minimale pour commencer la sélection
 
@@ -586,13 +587,6 @@ export default {
                 },
                 select: this.fcOnSelect,
 
-                // ✅ CORRECTION : Maintenir la sélection visuelle quand on change de mois
-                datesSet: () => {
-                    this.$nextTick(() => {
-                        this.markSelectedDatesInCalendar()
-                    })
-                },
-
                 eventDisplay: 'block',
                 dayMaxEvents: 2
             }
@@ -604,18 +598,6 @@ export default {
     watch: {
         show(val) {
             if (val) this.initializeModal()
-        },
-
-        // ✅ NOUVEAU : Maintenir la sélection visuelle quand on change de mois
-        'selectedDates.start'() {
-            this.$nextTick(() => {
-                this.markSelectedDatesInCalendar()
-            })
-        },
-        'selectedDates.endExclusive'() {
-            this.$nextTick(() => {
-                this.markSelectedDatesInCalendar()
-            })
         },
 
         // clamp des overrides si le nb d'invités baisse
@@ -783,9 +765,11 @@ export default {
             const quoteData = quote.quote_request || quote
 
             // ✅ Extraire la référence et l'email
-            const reference = quoteData.quote_reference ||
-                quoteData.reference ||
-                'REF-INCONNU'
+            const reference = quoteData.quote_reference
+                || quoteData.quoteReference
+                || quoteData.emailData?.reference
+                || quoteData.reference
+                || 'REF-INCONNU'
 
             const email = this.contactInfo.email ||
                 quoteData.email ||

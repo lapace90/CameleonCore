@@ -12,9 +12,13 @@ Route::prefix('stripe')->group(function () {
     Route::post('/create-payment-session', [StripeController::class, 'createPaymentSession']);
 });
 
-// 🔐 Auth - ça marche
+// 🔐 Auth
 Route::prefix('auth')->group(function () {
+    // Routes publiques (sans auth)
     Route::post('login', [AuthController::class, 'login']);
+    Route::post('register', [AuthController::class, 'register']); // 🆕 AJOUTÉ
+
+    // Routes protégées (avec auth)
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('logout', [AuthController::class, 'logout']);
         Route::get('verify', [AuthController::class, 'verify']);
@@ -32,38 +36,39 @@ Route::prefix('admin/settings')->middleware(['auth:sanctum'])->group(function ()
 });
 
 // 📊 Stats
-Route::get('admin/stats/dashboard', function() {
+Route::get('admin/stats/dashboard', function () {
     return response()->json([
         'users_count' => \App\Models\User::count(),
         'products_count' => \App\Models\Product::count(),
     ]);
 })->middleware(['auth:sanctum']);
 
-Route::get('/quote-requests/{id}/edit/{token}', function($id, $token) {
+Route::get('/quote-requests/{id}/edit/{token}', function ($id, $token) {
     $processor = new \App\State\QuoteRequestProcessor(new \App\Services\EmailValidationService());
-    
+
     try {
         $quote = \App\Models\QuoteRequest::findOrFail($id);
-        
+
         if (!$quote->validation_token || !hash_equals($quote->validation_token, $token)) {
             return response()->json(['error' => 'Token invalide'], 400);
         }
-        
+
         return response()->json($quote);
     } catch (\Exception $e) {
         return response()->json(['error' => 'Devis non trouvé'], 404);
     }
 });
-Route::patch('/quote-requests/{id}/edit/{token}', function($id, $token) {
+
+Route::patch('/quote-requests/{id}/edit/{token}', function ($id, $token) {
     $processor = new \App\State\QuoteRequestProcessor(new \App\Services\EmailValidationService());
-    
+
     try {
         $quoteRequest = $processor->updateQuoteForEdit(
             (int) $id,
             $token,
             ['request' => request()]
         );
-        
+
         return response()->json($quoteRequest);
     } catch (\InvalidArgumentException $e) {
         return response()->json(['error' => $e->getMessage()], 400);
