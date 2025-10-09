@@ -182,15 +182,12 @@
               <div class="social-links">
                 <a href="#" class="social-link facebook">
                   <i class="fab fa-facebook-f"></i>
-
                 </a>
                 <a href="#" class="social-link instagram">
                   <i class="fab fa-instagram"></i>
-
                 </a>
                 <a href="#" class="social-link youtube">
                   <i class="fab fa-youtube"></i>
-
                 </a>
               </div>
             </div>
@@ -229,6 +226,8 @@
 </template>
 
 <script>
+import axios from 'axios'
+
 export default {
   name: 'PublicContact',
   data() {
@@ -261,9 +260,9 @@ export default {
       }
 
       if (!this.form.email.trim()) {
-        this.errors.email = 'L\'email est requis';
+        this.errors.email = "L'email est requis";
       } else if (!this.isValidEmail(this.form.email)) {
-        this.errors.email = 'Format d\'email invalide';
+        this.errors.email = "Format d'email invalide";
       }
 
       if (!this.form.subject) {
@@ -296,10 +295,9 @@ export default {
       this.submitting = true;
 
       try {
-        // Simulation d'envoi du formulaire
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        const response = await axios.post('/api/contact', this.form);
 
-        console.log('Formulaire soumis:', this.form);
+        console.log('✅ Message envoyé:', response.data);
 
         // Afficher le message de succès
         this.showSuccess = true;
@@ -313,8 +311,18 @@ export default {
         }, 5000);
 
       } catch (error) {
-        console.error('Erreur lors de l\'envoi:', error);
-        alert('Une erreur est survenue. Veuillez réessayer.');
+        console.error('❌ Erreur lors de l\'envoi:', error);
+        
+        // Gestion des erreurs de validation du backend
+        if (error.response?.status === 422) {
+          const serverErrors = error.response.data?.errors || {};
+          Object.keys(serverErrors).forEach(key => {
+            this.errors[key] = serverErrors[key][0]; // Premier message d'erreur
+          });
+        } else {
+          // Erreur générique
+          alert(error.response?.data?.message || 'Une erreur est survenue. Veuillez réessayer.');
+        }
       } finally {
         this.submitting = false;
       }
@@ -336,6 +344,7 @@ export default {
   }
 }
 </script>
+
 <style scoped lang="scss">
 @import '@/assets/styles/variables';
 

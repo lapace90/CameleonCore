@@ -26,6 +26,9 @@ Route::prefix('auth')->group(function () {
     });
 });
 
+// 📧 Contact (route publique)
+Route::post('contact', [\App\Http\Controllers\Api\ContactController::class, 'sendContactMessage']);
+
 // ⚙️ SETTINGS - JUSTE auth:sanctum (SANS role:super-admin qui plante)
 Route::prefix('admin/settings')->middleware(['auth:sanctum'])->group(function () {
     Route::get('/', [SettingsController::class, 'index']);

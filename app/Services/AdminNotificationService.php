@@ -52,8 +52,8 @@ class AdminNotificationService
         foreach ($admins as $admin) {
             try {
                 // Vérifier si le template email existe
-                if (view()->exists('emails.admin.new-reservation')) {
-                    Mail::send('emails.admin.new-reservation', [
+                if (view()->exists('email.admin.new-reservation')) {
+                    Mail::send('email.admin.new-reservation', [
                         'reservation' => $reservation,
                         'customer' => $reservation->customer,
                         'admin' => $admin
