@@ -1,4 +1,4 @@
-<!-- src/public/views/Testimonials.vue -->
+<!-- frontend/CampCameleonXfront/src/public/views/Testimonials.vue -->
 <template>
   <div class="testimonials-page">
     <!-- Hero Section -->
@@ -41,18 +41,26 @@
       </div>
     </section>
 
+    <!-- Loading -->
+    <div v-if="loading" class="testimonials-grid-section">
+      <div class="container" style="text-align: center; padding: 5rem 0; color: white;">
+        <div class="spinner" style="margin: 0 auto 1rem;"></div>
+        <p>Chargement des témoignages...</p>
+      </div>
+    </div>
+
     <!-- Témoignages -->
-    <section class="testimonials-grid-section">
+    <section v-else class="testimonials-grid-section">
       <div class="container">
         <div class="testimonials-grid">
           <TestimonialCard
             v-for="testimonial in filteredTestimonials"
             :key="testimonial.id"
-            :client-name="testimonial.clientName"
+            :client-name="testimonial.client_name"
             :location="testimonial.location"
-            :testimonial-text="testimonial.text"
+            :testimonial-text="testimonial.testimonial_text"
             :rating="testimonial.rating"
-            :photos="testimonial.photos"
+            :photos="testimonial.photos || []"
             :class="testimonial.featured ? 'featured' : ''"
             :max-text-length="200"
           />
@@ -71,13 +79,23 @@
     <!-- Section laisser un avis -->
     <section class="leave-review-section">
       <div class="container">
-        <div class="review-cta">
+        <div class="review-cta" v-if="!showReviewForm">
           <h2>Partagez votre expérience</h2>
-          <p>Vous avez séjourné chez nous ? Racontez-nous votre aventure !</p>
-          <button class="cta-btn">
-            <i class="fas fa-pen"></i>
+          <p>Vous avez séjourné chez nous ? Laissez-nous votre avis !</p>
+          <button @click="showReviewForm = true" class="cta-btn">
+            <i class="fas fa-edit"></i>
             Laisser un avis
           </button>
+        </div>
+
+        <div v-else class="review-form-wrapper">
+          <button @click="showReviewForm = false" class="close-form-btn">
+            <i class="fas fa-times"></i>
+          </button>
+          <ReviewForm 
+            @review-submitted="handleReviewSubmitted"
+            @close="showReviewForm = false"
+          />
         </div>
       </div>
     </section>
@@ -86,151 +104,89 @@
 
 <script>
 import TestimonialCard from '@/public/components/ui/Testimonial.vue'
+import ReviewForm from '@/public/components/ui/ReviewForm.vue'
+import ReviewsApi from '@/services/ReviewsApi'
 
 export default {
   name: 'TestimonialsPage',
   components: {
-    TestimonialCard
+    TestimonialCard,
+    ReviewForm
   },
+
   data() {
     return {
+      testimonials: [],
+      loading: false,
+      showReviewForm: false,
       currentFilter: 'all',
       displayCount: 6,
       filters: [
-        { value: 'all', label: 'Tous les avis' },
-        { value: '5', label: '5 étoiles' },
-        { value: '4', label: '4 étoiles' },
-        { value: 'recent', label: 'Les plus récents' },
-        { value: 'families', label: 'Familles' },
-        { value: 'couples', label: 'Couples' }
-      ],
-      testimonials: [
-        {
-          id: 1,
-          clientName: 'Sophie et Max',
-          location: 'Paris, France',
-          text: 'Un séjour magique au cœur du désert ! Chaque détail était parfait, des tentes confortables aux dîners sous un ciel étoilé incroyable. Nous avons adoré les balades à dos de chameau et l\'accueil chaleureux de toute l\'équipe. L\'expérience authentique berbère nous a transportés dans un autre monde. Les guides connaissent parfaitement la région et nous ont fait découvrir des endroits secrets du Sahara. Merci pour cette expérience inoubliable !',
-          rating: 5,
-          category: 'couples',
-          featured: true,
-          photos: [
-            {
-              url: 'https://images.unsplash.com/photo-1518837695005-2083093ee35b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-              alt: 'Coucher de soleil dans le désert'
-            },
-            {
-              url: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-              alt: 'Caravane de chameaux'
-            }
-          ]
-        },
-        {
-          id: 2,
-          clientName: 'Mariam et sa famille',
-          location: 'Casablanca, Maroc',
-          text: 'Le Camp Caméléon est bien plus qu\'un simple camp: c\'est une véritable immersion dans la beauté et la sérénité du désert marocain. Les activités étaient variées et adaptées à toute la famille, et la nourriture locale était délicieuse. Nos enfants ont adoré les ateliers de poterie berbère et les histoires contées autour du feu. Un grand merci pour ces moments précieux !',
-          rating: 5,
-          category: 'families',
-          photos: [
-            {
-              url: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-              alt: 'Famille dans le désert'
-            }
-          ]
-        },
-        {
-          id: 3,
-          clientName: 'Jean-Luc Martin',
-          location: 'Lyon, France',
-          text: 'Une expérience extraordinaire ! Le personnel est aux petits soins, la nourriture excellente et les activités variées. J\'ai particulièrement apprécié la randonnée au lever du soleil sur les dunes. Les tentes sont spacieuses et très confortables.',
-          rating: 5,
-          category: 'couples',
-          photos: [
-            {
-              url: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-              alt: 'Lever de soleil sur les dunes'
-            }
-          ]
-        },
-        {
-          id: 4,
-          clientName: 'Emma Thompson',
-          location: 'London, UK',
-          text: 'Absolutely magical experience! The hospitality was incredible and the desert adventures unforgettable. The traditional berber music evening was the highlight of our trip.',
-          rating: 4,
-          category: 'couples',
-          photos: [
-            {
-              url: 'https://images.unsplash.com/photo-1558618047-3c8f60f35df1?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-              alt: 'Musique berbère traditionnelle'
-            }
-          ]
-        },
-        {
-          id: 5,
-          clientName: 'La famille Dubois',
-          location: 'Toulouse, France',
-          text: 'Vacances de rêve en famille ! Nos trois enfants ont été émerveillés par cette expérience unique. Les activités sont parfaitement adaptées aux enfants et les guides très patients.',
-          rating: 5,
-          category: 'families',
-          photos: [
-            {
-              url: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-              alt: 'Enfants jouant dans le sable'
-            },
-            {
-              url: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-              alt: 'Tente familiale'
-            }
-          ]
-        },
-        {
-          id: 6,
-          clientName: 'Ahmed et Fatou',
-          location: 'Rabat, Maroc',
-          text: 'Retour aux sources magnifique ! En tant que Marocains, nous avons redécouvert notre propre culture sous un angle différent. L\'authenticité du lieu et des traditions nous a touchés.',
-          rating: 5,
-          category: 'couples',
-          photos: [
-            {
-              url: 'https://images.unsplash.com/photo-1569493139819-0bf9ed4b1a96?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-              alt: 'Artisanat traditionnel'
-            }
-          ]
-        }
+        { label: 'Tous', value: 'all' },
+        { label: 'En couple', value: 'couples' },
+        { label: 'En famille', value: 'families' },
+        { label: 'Solo', value: 'solo' },
+        { label: 'Groupes', value: 'groups' }
       ]
     }
   },
+
   computed: {
     filteredTestimonials() {
-      let filtered = [...this.testimonials];
+      let filtered = [...this.testimonials]
       
-      if (this.currentFilter === '5') {
-        filtered = filtered.filter(t => t.rating === 5);
-      } else if (this.currentFilter === '4') {
-        filtered = filtered.filter(t => t.rating === 4);
-      } else if (this.currentFilter === 'families') {
-        filtered = filtered.filter(t => t.category === 'families');
-      } else if (this.currentFilter === 'couples') {
-        filtered = filtered.filter(t => t.category === 'couples');
-      } else if (this.currentFilter === 'recent') {
-        // Les plus récents en premier (par id décroissant)
-        filtered.sort((a, b) => b.id - a.id);
+      if (this.currentFilter !== 'all') {
+        filtered = filtered.filter(t => t.category === this.currentFilter)
       }
       
-      return filtered.slice(0, this.displayCount);
+      return filtered.slice(0, this.displayCount)
     },
+
     hasMoreTestimonials() {
-      return this.displayCount < this.testimonials.length;
+      const totalFiltered = this.currentFilter === 'all' 
+        ? this.testimonials.length 
+        : this.testimonials.filter(t => t.category === this.currentFilter).length
+      
+      return this.displayCount < totalFiltered
     },
+
     averageRating() {
-      const sum = this.testimonials.reduce((acc, t) => acc + t.rating, 0);
-      return sum / this.testimonials.length;
+      if (this.testimonials.length === 0) return 0
+      const sum = this.testimonials.reduce((acc, t) => acc + (t.rating || 5), 0)
+      return sum / this.testimonials.length
     }
   },
+
+  mounted() {
+    this.fetchTestimonials()
+  },
+
   methods: {
+    async fetchTestimonials() {
+      this.loading = true
+      try {
+        const response = await ReviewsApi.getPublished()
+        
+        console.log('📥 Réponse API testimonials:', response)
+        
+        this.testimonials = Array.isArray(response) ? response : []
+        
+        console.log('✅ Témoignages chargés:', this.testimonials.length)
+      } catch (error) {
+        console.error('❌ Erreur lors du chargement des témoignages:', error)
+        this.testimonials = []
+      } finally {
+        this.loading = false
+      }
+    },
+
+    handleReviewSubmitted() {
+      this.fetchTestimonials()
+      console.log('✅ Merci pour votre avis ! Il sera publié après validation.')
+    },
+
     loadMore() {
-      this.displayCount += 3;
+      this.displayCount += 3
     }
   }
 }
@@ -240,7 +196,7 @@ export default {
 @import '@/assets/styles/variables';
 
 .testimonials-page {
-  margin-top: -120px; //
+  margin-top: -120px;
 }
 
 /* Hero Section */
@@ -363,6 +319,20 @@ export default {
   }
 }
 
+/* Spinner simple */
+.spinner {
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 /* Bouton charger plus */
 .load-more-section {
   text-align: center;
@@ -433,6 +403,40 @@ export default {
       transform: translateY(-3px);
       box-shadow: $shadow-strong;
     }
+  }
+}
+
+.review-form-wrapper {
+  position: relative;
+  max-width: 700px;
+  margin: 0 auto;
+  background: rgba(white, 0.4);
+  padding: 2rem;
+  border-radius: $border-radius-lg;
+  box-shadow: $shadow-strong;
+}
+
+.close-form-btn {
+  position: absolute;
+  top: -3rem;
+  right: 0;
+  background: rgba(white, 0.2);
+  border: 2px solid white;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: white;
+    color: $terracotta;
+    transform: rotate(90deg);
   }
 }
 

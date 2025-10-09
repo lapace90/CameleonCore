@@ -17,20 +17,31 @@ class ReviewProvider implements ProviderInterface
      */
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
     {
-        $currentUser = $context['user'] ?? null;
+        /** @var \App\Models\User|null $currentUser */
+        $currentUser = auth('sanctum')->user();
         $isAdmin = $currentUser && $currentUser->isAdmin();
+
+        Log::info('📖 ReviewProvider - Début', [
+            'is_authenticated' => $currentUser !== null,
+            'is_admin' => $isAdmin,
+            'user_id' => $currentUser?->id
+        ]);
 
         // 🔍 RÉCUPÉRATION D'UN SEUL AVIS
         if (isset($uriVariables['id'])) {
             $reviewId = (int) $uriVariables['id'];
-            
+
             if ($isAdmin) {
-                // Admin peut voir tous les avis
-                return Review::find($reviewId);
+                $review = Review::find($reviewId);
             } else {
-                // Public ne voit que les avis publiés
-                return Review::published()->find($reviewId);
+                $review = Review::published()->find($reviewId);
             }
+
+            if (!$review) {
+                return null;
+            }
+
+            return $this->normalizeReview($review);
         }
 
         // 📋 RÉCUPÉRATION DE LA COLLECTION
@@ -38,12 +49,14 @@ class ReviewProvider implements ProviderInterface
 
         // Filtrage par statut
         if (!$isAdmin) {
+            // PUBLIC : Seulement les avis publiés
             $query->published();
         }
+        // ADMIN : Tous les avis (pas de filtre ici)
 
         // Filtres depuis la requête
         $request = $context['request'] ?? null;
-        
+
         if ($request) {
             if ($category = $request->query->get('category')) {
                 $query->byCategory($category);
@@ -65,27 +78,52 @@ class ReviewProvider implements ProviderInterface
         // Tri : les plus récents en premier
         $query->orderBy('created_at', 'desc');
 
-        Log::info('📖 ReviewProvider - Liste des avis', [
+        $total = $query->count();
+
+        Log::info('📖 ReviewProvider - Résultat', [
             'is_admin' => $isAdmin,
-            'total' => $query->count(),
+            'total' => $total,
         ]);
 
-        // ✅ Retourner les données sous forme de tableau pour API Platform
+        // ✅ Retourner les données normalisées
         return $query->get()->map(function ($review) {
-            return [
-                'id' => $review->id,
-                'client_name' => $review->client_name,
-                'location' => $review->location,
-                'email' => $review->email,
-                'testimonial_text' => $review->testimonial_text,
-                'rating' => $review->rating,
-                'category' => $review->category,
-                'featured' => $review->featured,
-                'is_published' => $review->is_published,
-                'photos' => $review->photos,
-                'status' => $review->status,
-                'created_at' => $review->created_at?->toISOString(),
-            ];
+            return $this->normalizeReview($review);
         })->toArray();
+    }
+
+    /**
+     * Normaliser un avis pour l'API
+     * IMPORTANT : S'assure que photos est toujours un ARRAY, jamais un STRING
+     */
+    private function normalizeReview(Review $review): array
+    {
+        // Récupérer les photos et s'assurer que c'est un array
+        $photos = $review->photos;
+
+        // Si c'est une string JSON, la décoder
+        if (is_string($photos)) {
+            $decoded = json_decode($photos, true);
+            $photos = is_array($decoded) ? $decoded : [];
+        }
+
+        // Si c'est null, mettre un array vide
+        if (!is_array($photos)) {
+            $photos = [];
+        }
+
+        return [
+            'id' => $review->id,
+            'client_name' => $review->client_name,
+            'location' => $review->location,
+            'email' => $review->email,
+            'testimonial_text' => $review->testimonial_text,
+            'rating' => $review->rating,
+            'category' => $review->category,
+            'featured' => $review->featured,
+            'is_published' => $review->is_published,
+            'photos' => $photos, // ✅ Toujours un ARRAY
+            'status' => $review->status,
+            'created_at' => $review->created_at?->toISOString(),
+        ];
     }
 }

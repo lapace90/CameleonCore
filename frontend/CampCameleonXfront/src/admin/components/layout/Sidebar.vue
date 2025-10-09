@@ -106,6 +106,14 @@
             <span>Utilisateurs</span>
           </router-link>
         </li>
+
+        <!-- Reviews -->
+        <li class="nav-item">
+          <router-link to="/admin/reviews" class="nav-link">
+            <i class="fas fa-star"></i>
+            <span>Avis Clients</span>
+          </router-link>
+        </li>
         
         <!-- Analytics -->
         <li class="nav-item">

@@ -40,6 +40,14 @@ export default [
       { path: 'invoices', name: 'InvoiceList', component: () => import('@/admin/views/invoices/InvoiceList.vue'), meta: { requiresAuth: true } },
       { path: 'invoices/:id', name: 'InvoiceDetail', component: () => import('@/admin/views/invoices/InvoiceDetail.vue'), props: true, meta: { requiresAuth: true } },
 
+      // Avis clients
+      {
+        path: 'reviews',
+        name: 'AdminReviews',
+        component: () => import('@/admin/views/Reviews.vue'),
+        meta: { requiresAuth: true, title: 'Gestion des Avis' }
+      },
+      
       // Catégories
       { path: 'categories', name: 'AdminCategories', component: () => import('../views/Categories.vue') },
 
