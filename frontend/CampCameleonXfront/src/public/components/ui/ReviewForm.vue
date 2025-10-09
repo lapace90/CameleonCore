@@ -233,6 +233,10 @@ export default {
     gap: 0.5rem;
     margin-bottom: 0.5rem;
     justify-content: center;
+    background-color: #f9f9f9;
+    padding: 0.1rem;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
 }
 
 .star-button {

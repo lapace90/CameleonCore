@@ -118,12 +118,12 @@
               </td>
               <td>
                 <div class="customer-info">
-                  <span class="customer-name">
-                    {{ getCustomerName(invoice.customer) }}
-                  </span>
-                  <span class="customer-email">
+                  <div class="customer-name">
+                    <b>{{ getCustomerName(invoice.customer) }}</b>
+                  </div>
+                  <div class="customer-email">
                     {{ invoice.customer?.email || '' }}
-                  </span>
+                  </div>
                 </div>
               </td>
               <td>{{ formatDate(invoice.created_at) }}</td>
@@ -447,5 +447,51 @@ export default {
 .invoices-page {
   margin: 2rem;
   padding: 1rem;
+}
+
+.data-table {
+  text-align: center !important;
+}
+
+.card,
+.table-responsive {
+  width: 100%;
+}
+
+/* étale la table et évite l’auto-shrink */
+.data-table {
+  width: 100%;
+  table-layout: fixed;
+  /* répartit l'espace sur toutes les colonnes */
+  text-align: left;
+}
+
+th {
+  padding: .7rem;
+  background-color: rgb(245, 230, 210);
+}
+
+.data-table th,
+.data-table td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.data-table tbody td {
+  padding: 15px;
+  border-bottom: 1px solid #e9ecef;
+  font-size: 14px;
+  vertical-align: middle;
+}
+
+.data-table tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
 }
 </style>

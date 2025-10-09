@@ -28,13 +28,8 @@
     <section class="filters-section">
       <div class="container">
         <div class="filters">
-          <button 
-            v-for="filter in filters" 
-            :key="filter.value"
-            @click="currentFilter = filter.value"
-            :class="{ 'active': currentFilter === filter.value }"
-            class="filter-btn"
-          >
+          <button v-for="filter in filters" :key="filter.value" @click="currentFilter = filter.value"
+            :class="{ 'active': currentFilter === filter.value }" class="filter-btn">
             {{ filter.label }}
           </button>
         </div>
@@ -53,17 +48,10 @@
     <section v-else class="testimonials-grid-section">
       <div class="container">
         <div class="testimonials-grid">
-          <TestimonialCard
-            v-for="testimonial in filteredTestimonials"
-            :key="testimonial.id"
-            :client-name="testimonial.client_name"
-            :location="testimonial.location"
-            :testimonial-text="testimonial.testimonial_text"
-            :rating="testimonial.rating"
-            :photos="testimonial.photos || []"
-            :class="testimonial.featured ? 'featured' : ''"
-            :max-text-length="200"
-          />
+          <TestimonialCard v-for="testimonial in filteredTestimonials" :key="testimonial.id"
+            :client-name="testimonial.client_name" :location="testimonial.location"
+            :testimonial-text="testimonial.testimonial_text" :rating="testimonial.rating"
+            :photos="testimonial.photos || []" :class="testimonial.featured ? 'featured' : ''" :max-text-length="200" />
         </div>
 
         <!-- Bouton charger plus -->
@@ -92,10 +80,7 @@
           <button @click="showReviewForm = false" class="close-form-btn">
             <i class="fas fa-times"></i>
           </button>
-          <ReviewForm 
-            @review-submitted="handleReviewSubmitted"
-            @close="showReviewForm = false"
-          />
+          <ReviewForm @review-submitted="handleReviewSubmitted" @close="showReviewForm = false" />
         </div>
       </div>
     </section>
@@ -134,19 +119,19 @@ export default {
   computed: {
     filteredTestimonials() {
       let filtered = [...this.testimonials]
-      
+
       if (this.currentFilter !== 'all') {
         filtered = filtered.filter(t => t.category === this.currentFilter)
       }
-      
+
       return filtered.slice(0, this.displayCount)
     },
 
     hasMoreTestimonials() {
-      const totalFiltered = this.currentFilter === 'all' 
-        ? this.testimonials.length 
+      const totalFiltered = this.currentFilter === 'all'
+        ? this.testimonials.length
         : this.testimonials.filter(t => t.category === this.currentFilter).length
-      
+
       return this.displayCount < totalFiltered
     },
 
@@ -165,12 +150,15 @@ export default {
     async fetchTestimonials() {
       this.loading = true
       try {
-        const response = await ReviewsApi.getPublished()
-        
+        // ✅ Force le mode public même si admin connecté
+        const response = await ReviewsApi.getPublished({
+          public_only: true  // Paramètre pour forcer le filtre
+        })
+
         console.log('📥 Réponse API testimonials:', response)
-        
+
         this.testimonials = Array.isArray(response) ? response : []
-        
+
         console.log('✅ Témoignages chargés:', this.testimonials.length)
       } catch (error) {
         console.error('❌ Erreur lors du chargement des témoignages:', error)
@@ -245,7 +233,7 @@ export default {
 
     .stat {
       text-align: center;
-      
+
       .number {
         display: block;
         font-size: $font-size-4xl;
@@ -330,7 +318,9 @@ export default {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Bouton charger plus */
@@ -447,7 +437,7 @@ export default {
 
     .stats-summary {
       gap: 2rem;
-      
+
       .stat .number {
         font-size: $font-size-3xl;
       }

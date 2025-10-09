@@ -92,10 +92,10 @@
 
             <!-- Bouton voir tous les avis -->
             <div class="view-all-testimonials">
-              <router-link to="/testimonials" class="btn btn-primary">
+              <router-link to="/testimonials" class="btn btn-secondary btn-sm">
                 <i class="fas fa-comments"></i>
                 Voir tous les avis
-                <span class="testimonials-count">(15+ témoignages)</span>
+                <span class="testimonials-count "></span>
               </router-link>
             </div>
           </div>

@@ -47,16 +47,22 @@ class ReviewProvider implements ProviderInterface
         // 📋 RÉCUPÉRATION DE LA COLLECTION
         $query = Review::query();
 
+        // ✅ DÉPLACER ICI : Récupérer la requête AVANT le filtrage
+        $request = $context['request'] ?? null;
+        
+        // ✅ Vérifier si on force le mode public
+        $forcePublicMode = $request && $request->query->get('public_only') === 'true';
+
         // Filtrage par statut
-        if (!$isAdmin) {
-            // PUBLIC : Seulement les avis publiés
+        if (!$isAdmin || $forcePublicMode) {
+            // PUBLIC ou mode public forcé : Seulement les avis publiés
             $query->published();
+            Log::info('📖 Mode PUBLIC', ['force_public' => $forcePublicMode]);
+        } else {
+            Log::info('📖 Mode ADMIN - tous les avis');
         }
-        // ADMIN : Tous les avis (pas de filtre ici)
 
         // Filtres depuis la requête
-        $request = $context['request'] ?? null;
-
         if ($request) {
             if ($category = $request->query->get('category')) {
                 $query->byCategory($category);
@@ -70,7 +76,7 @@ class ReviewProvider implements ProviderInterface
                 $query->featured();
             }
 
-            if ($isAdmin && $status = $request->query->get('status')) {
+            if ($isAdmin && !$forcePublicMode && $status = $request->query->get('status')) {
                 $query->where('status', $status);
             }
         }
@@ -82,6 +88,7 @@ class ReviewProvider implements ProviderInterface
 
         Log::info('📖 ReviewProvider - Résultat', [
             'is_admin' => $isAdmin,
+            'force_public' => $forcePublicMode,
             'total' => $total,
         ]);
 

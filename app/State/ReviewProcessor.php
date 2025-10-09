@@ -119,6 +119,8 @@ class ReviewProcessor implements ProcessorInterface
 
         Log::info('🔄 ReviewProcessor - Mise à jour avis', [
             'review_id' => $reviewId,
+            'payload_reçu' => $payload, // ✅ AJOUTÉ
+            'is_published_avant' => $review->is_published, // ✅ AJOUTÉ
         ]);
 
         // Validation
@@ -139,6 +141,7 @@ class ReviewProcessor implements ProcessorInterface
         Log::info('✅ Avis mis à jour', [
             'review_id' => $review->id,
             'status' => $review->status,
+            'is_published_après' => $review->is_published, // ✅ AJOUTÉ
         ]);
 
         return $review->fresh();
@@ -171,7 +174,7 @@ class ReviewProcessor implements ProcessorInterface
     private function getDataFromRequest(array $context): array
     {
         $request = $context['request'] ?? null;
-        
+
         if (!$request) {
             throw new \Exception('Requête non disponible');
         }
