@@ -72,10 +72,10 @@ class AdminApi {
                 `${this.baseURL}/admin/notifications/${notificationId}/mark-read`, // ✅ CORRECTION: /read → /mark-read
                 {}, // Pas de body nécessaire pour un PATCH simple
                 {
-                    timeout: 30000, // ✅ Timeout réduit pour les actions rapides
                     headers: {
-                        'Content-Type': 'application/json'
-                    }
+                        'Content-Type': 'application/merge-patch+json',
+                        'Accept': 'application/json',
+                    },
                 }
             )
 

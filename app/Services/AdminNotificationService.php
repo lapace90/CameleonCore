@@ -253,4 +253,60 @@ Voir: " . config('app.url') . "/admin/reservations/{$reservation->id}
             'alert_id' => $alert['id']
         ]);
     }
+
+    /**
+     * Notifier les admins d'un nouvel avis en attente
+     */
+    public function notifyNewReview(\App\Models\Review $review): void
+    {
+        Log::info('🔔 Notification nouvel avis', [
+            'review_id' => $review->id,
+            'client' => $review->client_name,
+            'rating' => $review->rating
+        ]);
+
+        $notification = [
+            'id' => uniqid('review_'),
+            'type' => 'new_review',
+            'title' => 'Nouvel avis client',
+            'message' => sprintf(
+                '%s a laissé un avis %s⭐ - En attente de validation',
+                $review->client_name,
+                $review->rating
+            ),
+            'data' => [
+                'review_id' => $review->id,
+                'client_name' => $review->client_name,
+                'rating' => $review->rating,
+                'category' => $review->category,
+                'location' => $review->location,
+                'status' => $review->status,
+            ],
+            'created_at' => now()->toISOString(),
+            'read' => false,
+            'priority' => 'normal',
+            'actions' => [
+                [
+                    'label' => 'Voir l\'avis',
+                    'url' => '/admin/reviews',
+                    'type' => 'primary'
+                ]
+            ]
+        ];
+
+        // Stocker dans le cache
+        $cacheKey = 'admin_notifications';
+        $notifications = Cache::get($cacheKey, []);
+        array_unshift($notifications, $notification);
+
+        // Garder seulement les 50 dernières
+        $notifications = array_slice($notifications, 0, 50);
+
+        Cache::put($cacheKey, $notifications, now()->addDays(7));
+
+        Log::info('✅ Notification avis créée', [
+            'notification_id' => $notification['id'],
+            'review_id' => $review->id
+        ]);
+    }
 }

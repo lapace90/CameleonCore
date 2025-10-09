@@ -1,9 +1,8 @@
-// frontend/CampCameleonXfront/src/services/ReviewsApi.js
 import axios from 'axios'
 
 class ReviewsApi {
   /**
-   * ✅ Récupérer toutes les reviews publiées (PUBLIC)
+   *  Récupérer toutes les reviews publiées (PUBLIC)
    */
   static async getPublished(params = {}) {
     try {
@@ -16,7 +15,7 @@ class ReviewsApi {
   }
 
   /**
-   * ✅ Récupérer une review par ID (PUBLIC si publiée, ADMIN sinon)
+   *  Récupérer une review par ID (PUBLIC si publiée, ADMIN sinon)
    */
   static async getById(id) {
     try {
@@ -29,7 +28,7 @@ class ReviewsApi {
   }
 
   /**
-   * ✅ Créer une nouvelle review (PUBLIC)
+   *  Créer une nouvelle review (PUBLIC)
    */
   static async create(reviewData) {
     try {

@@ -12,7 +12,8 @@ use App\Models\{
     Menu, 
     Activity, 
     Room,
-    Reservation  // 🆕 AJOUT
+    Reservation,
+    Review 
 };
 
 // Observers
@@ -23,7 +24,8 @@ use App\Observers\{
     MenuObserver,
     ActivityObserver,
     RoomObserver,
-    ReservationObserver  // 🆕 AJOUT
+    ReservationObserver,
+    ReviewObserver
 };
 
 class AppServiceProvider extends ServiceProvider
@@ -48,6 +50,7 @@ class AppServiceProvider extends ServiceProvider
         Menu::observe(MenuObserver::class);
         Activity::observe(ActivityObserver::class);
         Room::observe(RoomObserver::class);
+        Review::observe(ReviewObserver::class);
 
         // 🆕 Observer pour la création automatique des factures
         Reservation::observe(ReservationObserver::class);

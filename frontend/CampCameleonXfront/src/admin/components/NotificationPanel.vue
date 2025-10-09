@@ -50,12 +50,19 @@
             
             <!-- Métadonnées -->
             <div class="notification-meta">
-              <span class="time">{{ formatTime(notification.created_at) }}</span>
+              <!-- ✅ CORRECTION: utiliser createdAt au lieu de created_at -->
+              <span class="time">{{ formatTime(notification.createdAt || notification.created_at) }}</span>
               <span v-if="notification.data?.customer_name" class="customer">
                 {{ notification.data.customer_name }}
               </span>
+              <span v-if="notification.data?.client_name" class="customer">
+                {{ notification.data.client_name }}
+              </span>
               <span v-if="notification.data?.amount" class="amount">
                 {{ formatMoney(notification.data.amount) }}
+              </span>
+              <span v-if="notification.data?.rating" class="rating">
+                {{ notification.data.rating }}⭐
               </span>
             </div>
 
@@ -79,7 +86,7 @@
       </div>
     </div>
 
-    <!-- Footer - ✅ CORRECTION: Supprimer le lien vers route inexistante -->
+    <!-- Footer -->
     <div v-if="notifications.length > 5" class="panel-footer">
       <button @click="loadMoreNotifications" class="btn btn-sm btn-primary">
         Voir plus de notifications
@@ -94,7 +101,6 @@ import AdminApi from '@/services/AdminApi'
 export default {
   name: 'NotificationPanel',
   
-  // ✅ AJOUT: Émissions d'événements
   emits: ['notification-count-changed', 'notification-clicked', 'action-clicked'],
   
   props: {
@@ -113,7 +119,7 @@ export default {
       notifications: [],
       isLoading: true,
       refreshInterval: null,
-      currentLimit: this.limit // Pour gérer "Voir plus"
+      currentLimit: this.limit
     }
   },
 
@@ -124,20 +130,19 @@ export default {
   },
 
   watch: {
-    // ✅ AJOUT: Surveiller les changements de count et émettre
     unreadCount(newCount) {
       this.$emit('notification-count-changed', newCount)
     }
   },
 
   async mounted() {
+    console.log('🔔 NotificationPanel mounted')
     await this.loadNotifications()
     
     if (this.autoRefresh) {
-      // ✅ CORRECTION: Réduire la fréquence pour éviter les problèmes de performance
       this.refreshInterval = setInterval(() => {
         this.loadNotifications(false)
-      }, 60 * 1000) // ✅ 60 secondes au lieu de 30
+      }, 60 * 1000)
     }
   },
 
@@ -148,9 +153,6 @@ export default {
   },
 
   methods: {
-    /**
-     * ✅ CORRECTION: Charger les notifications avec gestion d'erreur améliorée
-     */
     async loadNotifications(showLoader = true) {
       try {
         if (showLoader) this.isLoading = true
@@ -162,54 +164,36 @@ export default {
 
       } catch (error) {
         console.error('❌ Erreur chargement notifications:', error)
-        
-        // ✅ AJOUT: Afficher un toast d'erreur si disponible
-        if (this.$toast) {
-          this.$toast.error('Impossible de charger les notifications')
-        }
-        
-        // ✅ En cas d'erreur, conserver les notifications existantes
-        if (this.notifications.length === 0) {
-          this.notifications = []
-        }
+        this.notifications = []
       } finally {
         if (showLoader) this.isLoading = false
       }
     },
 
-    /**
-     * ✅ CORRECTION: Gérer le clic sur une notification avec émission d'événement
-     */
     async handleNotificationClick(notification) {
+      console.log('🖱️ Clic sur notification:', notification.id)
+      
       if (!notification.read) {
         await this.markAsRead(notification.id)
       }
 
-      // ✅ ÉMISSION: Informer le parent qu'une notification a été cliquée
       this.$emit('notification-clicked', notification)
 
-      // Redirection vers l'action principale si définie
       if (notification.actions && notification.actions[0]) {
         this.$router.push(notification.actions[0].url)
       }
     },
 
-    /**
-     * ✅ NOUVEAU: Gérer le clic sur une action spécifique
-     */
     handleActionClick(action, notification) {
       this.$emit('action-clicked', { action, notification })
     },
 
-    /**
-     * ✅ CORRECTION: Marquer une notification comme lue avec gestion d'erreur
-     */
     async markAsRead(notificationId) {
       try {
-        // Marquer côté serveur
+        console.log(`📝 Marquage notification ${notificationId}...`)
+        
         await AdminApi.markNotificationAsRead(notificationId)
         
-        // Marquer côté client
         const notification = this.notifications.find(n => n.id === notificationId)
         if (notification) {
           notification.read = true
@@ -218,17 +202,10 @@ export default {
         console.log(`✅ Notification ${notificationId} marquée comme lue`)
 
       } catch (error) {
-        console.error('❌ Erreur marquage notification:', error)
-        
-        if (this.$toast) {
-          this.$toast.error('Impossible de marquer la notification comme lue')
-        }
+        console.error(`❌ Erreur marquage notification ${notificationId}:`, error)
       }
     },
 
-    /**
-     * ✅ CORRECTION: Marquer toutes comme lues avec optimisation
-     */
     async markAllAsRead() {
       try {
         const unreadIds = this.notifications
@@ -239,47 +216,36 @@ export default {
 
         console.log(`📝 Marquage de ${unreadIds.length} notifications...`)
 
-        // ✅ Utiliser la nouvelle méthode batch de AdminApi
         const successCount = await AdminApi.markAllNotificationsAsRead(unreadIds)
         
-        // Marquer côté client seulement celles qui ont réussi
         this.notifications.forEach(n => {
           if (unreadIds.includes(n.id)) {
             n.read = true
           }
         })
 
-        if (this.$toast) {
-          this.$toast.success(`${successCount} notifications marquées comme lues`)
-        }
+        console.log(`✅ ${successCount} notifications marquées`)
 
       } catch (error) {
-        console.error('❌ Erreur marquage toutes notifications:', error)
-        
-        if (this.$toast) {
-          this.$toast.error('Erreur lors du marquage des notifications')
-        }
+        console.error('❌ Erreur marquage batch:', error)
       }
     },
 
-    /**
-     * ✅ NOUVEAU: Charger plus de notifications
-     */
     async loadMoreNotifications() {
       this.currentLimit += 10
       await this.loadNotifications(true)
     },
 
     // ===========================
-    // MÉTHODES UTILITAIRES
+    // UTILITAIRES
     // ===========================
 
-    /**
-     * Obtenir l'icône selon le type de notification
-     */
     getNotificationIcon(type) {
       const icons = {
+        'new_reservation': 'fas fa-calendar-plus',
         'reservation': 'fas fa-calendar-plus',
+        'new_review': 'fas fa-star', // ✅ AJOUT
+        'review': 'fas fa-star', // ✅ AJOUT
         'payment': 'fas fa-credit-card',
         'user': 'fas fa-user-plus',
         'system': 'fas fa-cog',
@@ -292,12 +258,12 @@ export default {
       return icons[type] || icons.default
     },
 
-    /**
-     * Obtenir la couleur selon le type
-     */
     getNotificationColor(type) {
       const colors = {
+        'new_reservation': '#28a745',
         'reservation': '#28a745',
+        'new_review': '#ffc107', // ✅ AJOUT
+        'review': '#ffc107', // ✅ AJOUT
         'payment': '#17a2b8', 
         'user': '#6f42c1',
         'system': '#6c757d',
@@ -310,9 +276,6 @@ export default {
       return colors[type] || colors.default
     },
 
-    /**
-     * ✅ CORRECTION: Formater le temps de façon relative
-     */
     formatTime(dateString) {
       if (!dateString) return 'Maintenant'
       
@@ -332,14 +295,10 @@ export default {
         
         return date.toLocaleDateString('fr-FR')
       } catch (error) {
-        console.warn('❌ Erreur formatage date:', error)
         return 'Date invalide'
       }
     },
 
-    /**
-     * Formater les montants
-     */
     formatMoney(amount) {
       if (!amount) return ''
       
@@ -357,10 +316,6 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-// ===========================
-// CONTENEUR PRINCIPAL
-// ===========================
-
 .notification-panel {
   background: white;
   border-radius: 12px;
@@ -388,13 +343,12 @@ export default {
   padding: 0.2rem 0.4rem;
   border-radius: 50%;
   margin-left: 0.5rem;
+}
+
+.badge-danger {
   background: #dc3545;
   color: white;
 }
-
-// ===========================
-// LISTE DES NOTIFICATIONS
-// ===========================
 
 .notifications-list {
   max-height: 400px;
@@ -498,10 +452,6 @@ export default {
   flex-shrink: 0;
 }
 
-// ===========================
-// ÉTATS SPÉCIAUX
-// ===========================
-
 .loading-state,
 .empty-state {
   padding: 2rem;
@@ -528,10 +478,6 @@ export default {
   color: #28a745;
 }
 
-// ===========================
-// FOOTER
-// ===========================
-
 .panel-footer {
   padding: 0.75rem 1rem;
   border-top: 1px solid #e9ecef;
@@ -553,10 +499,6 @@ export default {
   }
 }
 
-// ===========================
-// BOUTONS
-// ===========================
-
 .btn {
   &.btn-sm {
     padding: 0.25rem 0.5rem;
@@ -577,29 +519,6 @@ export default {
       opacity: 0.5;
       cursor: not-allowed;
     }
-  }
-}
-
-// ===========================
-// RESPONSIVE
-// ===========================
-
-@media (max-width: 480px) {
-  .notification-panel {
-    margin: 0 10px;
-  }
-  
-  .notification-actions {
-    flex-direction: column;
-    
-    .btn {
-      text-align: center;
-    }
-  }
-  
-  .notification-meta {
-    flex-direction: column;
-    gap: 0.25rem;
   }
 }
 </style>

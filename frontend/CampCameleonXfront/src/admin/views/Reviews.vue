@@ -8,11 +8,14 @@
           <i class="fas fa-comments"></i>
           Gestion des Avis
         </h1>
-        <p class="page-subtitle">{{ reviews.length }} avis • {{ pendingCount }} en attente</p>
+        <p class="page-subtitle">
+          {{ reviews.length }} avis • {{ pendingCount }} en attente
+          <i v-if="isRefreshing" class="fas fa-sync fa-spin" style="margin-left: 8px; font-size: 0.9rem; color: #6c757d;"></i>
+        </p>
       </div>
       <div class="header-actions">
-        <button type="button" class="btn btn-outline btn-sm" @click="fetchReviews">
-          <i class="fas fa-sync"></i>
+        <button type="button" class="btn btn-outline btn-sm" @click="manualRefresh" :disabled="isRefreshing">
+          <i class="fas fa-sync" :class="{ 'fa-spin': isRefreshing }"></i>
           Actualiser
         </button>
       </div>
@@ -59,7 +62,7 @@
       <button @click="error = null" class="btn-close">&times;</button>
     </div>
 
-    <!-- Loading - UTILISE LoadingState -->
+    <!-- Loading initial -->
     <LoadingState
       v-if="loading"
       state="loading"
@@ -67,7 +70,7 @@
       loading-text="Chargement des avis..."
     />
 
-    <!-- Empty state - UTILISE LoadingState -->
+    <!-- Empty state -->
     <LoadingState
       v-else-if="filteredReviews.length === 0"
       state="empty"
@@ -181,11 +184,13 @@ export default {
     return {
       reviews: [],
       loading: false,
+      isRefreshing: false, // ✅ NOUVEAU: flag séparé pour refresh en arrière-plan
       currentFilter: 'all',
       searchQuery: '',
       successMessage: null,
       error: null,
-      refreshInterval: null
+      refreshInterval: null,
+      lastPendingCount: 0 // ✅ NOUVEAU: pour détecter nouveaux avis
     }
   },
 
@@ -232,28 +237,41 @@ export default {
   },
 
   mounted() {
-    this.fetchReviews()
-    
-    // Auto-refresh toutes les 30 secondes pour voir les nouveaux avis
-    this.refreshInterval = setInterval(() => {
-      if (!this.loading) {
-        this.fetchReviews()
-      }
-    }, 30000)
+    this.fetchReviews(true) // Premier chargement SEULEMENT
+    // ❌ PAS D'AUTO-REFRESH - On teste d'abord sans
   },
 
   beforeUnmount() {
-    if (this.refreshInterval) {
-      clearInterval(this.refreshInterval)
-    }
+    // Rien à nettoyer
   },
 
   methods: {
-    async fetchReviews() {
-      this.loading = true
+    /**
+     * ✅ MODIFIÉ: Fetch avec gestion du loading selon le contexte
+     */
+    async fetchReviews(showLoader = false) {
+      // Si c'est un refresh silencieux
+      if (!showLoader) {
+        this.isRefreshing = true
+      } else {
+        this.loading = true
+      }
+
       try {
         const response = await ReviewsApi.getAllAdmin()
-        this.reviews = Array.isArray(response) ? response : []
+        const newReviews = Array.isArray(response) ? response : []
+        
+        // ✅ Détecter les nouveaux avis en attente
+        const newPendingCount = newReviews.filter(r => r.status === 'pending').length
+        
+        if (!showLoader && newPendingCount > this.lastPendingCount) {
+          const diff = newPendingCount - this.lastPendingCount
+          this.showNewReviewNotification(diff)
+        }
+        
+        this.reviews = newReviews
+        this.lastPendingCount = newPendingCount
+        
         console.log('✅ Avis chargés:', this.reviews.length)
       } catch (error) {
         console.error('❌ Erreur lors du chargement des avis:', error)
@@ -261,14 +279,52 @@ export default {
         this.reviews = []
       } finally {
         this.loading = false
+        this.isRefreshing = false
       }
+    },
+
+    /**
+     * ✅ NOUVEAU: Refresh manuel déclenché par le bouton
+     */
+    async manualRefresh() {
+      this.successMessage = null
+      this.error = null
+      await this.fetchReviews(false) // Refresh sans loader complet
+      this.successMessage = 'Liste actualisée'
+      setTimeout(() => { this.successMessage = null }, 3000)
+    },
+
+    /**
+     * ✅ NOUVEAU: Afficher notification pour nouveaux avis
+     */
+    showNewReviewNotification(count) {
+      const message = count === 1 
+        ? '1 nouvel avis en attente de validation' 
+        : `${count} nouveaux avis en attente de validation`
+      
+      // Notification visuelle
+      this.successMessage = `🔔 ${message}`
+      setTimeout(() => { this.successMessage = null }, 5000)
+      
+      // Son de notification (optionnel)
+      if (typeof Audio !== 'undefined') {
+        try {
+          const audio = new Audio('/notification.mp3')
+          audio.volume = 0.3
+          audio.play().catch(() => {}) // Ignore si bloqué par navigateur
+        } catch (e) {
+          // Ignore les erreurs audio
+        }
+      }
+      
+      console.log(`🔔 ${message}`)
     },
 
     async approveReview(id) {
       try {
         await ReviewsApi.publish(id)
         this.successMessage = 'Avis approuvé et publié avec succès'
-        await this.fetchReviews()
+        await this.fetchReviews(false)
       } catch (error) {
         console.error('❌ Erreur:', error)
         this.error = 'Erreur lors de l\'approbation de l\'avis'
@@ -283,7 +339,7 @@ export default {
       try {
         await ReviewsApi.reject(id)
         this.successMessage = 'Avis rejeté'
-        await this.fetchReviews()
+        await this.fetchReviews(false)
       } catch (error) {
         console.error('❌ Erreur:', error)
         this.error = 'Erreur lors du rejet de l\'avis'
@@ -294,7 +350,7 @@ export default {
       try {
         await ReviewsApi.update(id, { is_published: false })
         this.successMessage = 'Avis dépublié'
-        await this.fetchReviews()
+        await this.fetchReviews(false)
       } catch (error) {
         console.error('❌ Erreur:', error)
         this.error = 'Erreur lors de la dépublication de l\'avis'
@@ -305,7 +361,7 @@ export default {
       try {
         await ReviewsApi.toggleFeatured(id, featured)
         this.successMessage = featured ? 'Avis mis en vedette' : 'Vedette retirée'
-        await this.fetchReviews()
+        await this.fetchReviews(false)
       } catch (error) {
         console.error('❌ Erreur:', error)
         this.error = 'Erreur lors de la mise à jour'
@@ -320,7 +376,7 @@ export default {
       try {
         await ReviewsApi.delete(id)
         this.successMessage = 'Avis supprimé définitivement'
-        await this.fetchReviews()
+        await this.fetchReviews(false)
       } catch (error) {
         console.error('❌ Erreur:', error)
         this.error = 'Erreur lors de la suppression de l\'avis'

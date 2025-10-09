@@ -20,6 +20,8 @@ use App\State\AdminNotificationProcessor;
         new Patch(
             uriTemplate: '/admin/notifications/{id}/mark-read',
             processor: AdminNotificationProcessor::class,
+            requirements: ['id' => '[^/]+' ],   // accepte id non numérique
+            read: false, // Important pour les opérations de type "mark-read"
             security: "is_granted('ROLE_ADMIN')",
             description: 'Marquer une notification comme lue'
         ),
