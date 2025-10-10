@@ -113,6 +113,13 @@ class Reservation extends Model
         return $this->belongsTo(Product::class);
     }
 
+    public function products()
+    {
+        return $this->belongsToMany(Product::class, 'product_reservation')
+            ->withPivot('quantity')
+            ->withTimestamps();
+    }
+
     // ✅ RELATION PARENT/ENFANT POUR RÉSERVATIONS LIÉES
     public function parentReservation()
     {

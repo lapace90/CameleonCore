@@ -37,7 +37,7 @@
       <button @click="error = null" class="btn-close">&times;</button>
     </div>
 
-    <!-- ✅ NOUVEAU : AdminFilterBar -->
+    <!--  AdminFilterBar -->
     <AdminFilterBar
       v-model="filters"
       :default-filters="defaultFilters"

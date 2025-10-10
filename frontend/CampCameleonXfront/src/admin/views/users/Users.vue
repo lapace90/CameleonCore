@@ -42,7 +42,7 @@
       :recent-users="recentUsers" 
     />
 
-    <!-- ✅ NOUVEAU : AdminFilterBar au lieu de UserFilters -->
+    <!--  AdminFilterBar au lieu de UserFilters -->
     <AdminFilterBar
       v-model="filters"
       :default-filters="defaultFilters"

@@ -1,6 +1,9 @@
 <template>
-  <div class="settings-page">
+  <div class="settings-page content-wrapper">
     <div class="page-header">
+      
+      <h2><i class="fas fa-cog page-icon"></i> Paramètres Administrateur</h2>
+      <p>Gérez les paramètres globaux de l'application, les notifications et la sécurité.</p>
     </div>
     
     <div class="settings-grid">

@@ -7,10 +7,15 @@
         <span class="brand-subtitle">Admin Dashboard</span>
       </div>
     </router-link>
-    
+
     <!-- Navigation -->
     <nav class="sidebar-nav">
       <ul class="nav-list">
+        <!-- Divider -->
+        <li class="nav-divider">
+          <hr>
+          <span>Gestion</span>
+        </li>
         <!-- Agenda -->
         <li class="nav-item">
           <router-link to="/admin/agenda" class="nav-link">
@@ -18,7 +23,7 @@
             <span>Agenda</span>
           </router-link>
         </li>
-        
+
         <!-- Réservations -->
         <li class="nav-item">
           <router-link to="/admin/reservations" class="nav-link">
@@ -26,7 +31,7 @@
             <span>Réservations</span>
           </router-link>
         </li>
-        
+
         <!-- 💰 NOUVEAU : Facturation -->
         <li class="nav-item">
           <router-link to="/admin/invoices" class="nav-link">
@@ -34,13 +39,13 @@
             <span>Facturation</span>
           </router-link>
         </li>
-        
+
         <!-- Divider -->
         <li class="nav-divider">
           <hr>
           <span>Services</span>
         </li>
-        
+
         <!-- Restauration avec sous-menu -->
         <li class="nav-item">
           <a @click="toggleSubmenu('restauration')" class="nav-link" style="cursor: pointer;">
@@ -68,7 +73,7 @@
             </li>
           </ul>
         </li>
-        
+
         <!-- Activités -->
         <li class="nav-item">
           <router-link to="/admin/products/activity" class="nav-link">
@@ -76,7 +81,7 @@
             <span>Activités</span>
           </router-link>
         </li>
-        
+
         <!-- Chambres -->
         <li class="nav-item">
           <router-link to="/admin/products/room" class="nav-link">
@@ -84,7 +89,7 @@
             <span>Chambres</span>
           </router-link>
         </li>
-        
+
         <!-- Catégories -->
         <li class="nav-item">
           <router-link to="/admin/categories" class="nav-link">
@@ -92,13 +97,13 @@
             <span>Catégories</span>
           </router-link>
         </li>
-        
+
         <!-- Divider -->
         <li class="nav-divider">
           <hr>
           <span>Administration</span>
         </li>
-        
+
         <!-- Users -->
         <li class="nav-item">
           <router-link to="/admin/users" class="nav-link">
@@ -114,7 +119,7 @@
             <span>Avis Clients</span>
           </router-link>
         </li>
-        
+
         <!-- Analytics -->
         <li class="nav-item">
           <router-link to="/admin/analytics" class="nav-link">
@@ -122,13 +127,7 @@
             <span>Analytics</span>
           </router-link>
         </li>
-        
-        <!-- Divider -->
-        <li class="nav-divider">
-          <hr>
-          <span>Gestion</span>
-        </li>
-        
+
         <!-- Settings -->
         <li class="nav-item">
           <router-link to="/admin/settings" class="nav-link">
@@ -136,7 +135,7 @@
             <span>Paramètres</span>
           </router-link>
         </li>
-        
+
         <!-- Back to site -->
         <li class="nav-item">
           <router-link to="/home" class="nav-link nav-link-external">
@@ -146,15 +145,15 @@
         </li>
       </ul>
     </nav>
-    
+
     <!-- User profile in sidebar -->
     <div class="sidebar-user">
       <div class="user-avatar">
-        <!-- <img src="https://via.placeholder.com/40" alt="User"> -->
+        <!-- <img src="" alt="User"> -->
       </div>
       <div class="user-info">
-        <span class="user-name">Admin User</span>
-        <span class="user-role">Administrateur</span>
+        <span class="user-name"></span>
+        <span class="user-role"></span>
       </div>
     </div>
   </aside>

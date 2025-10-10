@@ -41,7 +41,7 @@
                 </button>
             </nav>
             
-            <!-- ✅ NOUVEAU : Menu Mobile -->
+            <!--  Menu Mobile -->
             <div class="mobile-menu" :class="{ 'active': isMobileMenuOpen }" @click="closeMobileMenu">
                 <div class="mobile-menu-content" @click.stop>
                     <div class="mobile-menu-header">

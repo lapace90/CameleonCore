@@ -1,6 +1,8 @@
 <template>
-  <div class="analytics-page">
+  <div class="analytics-page content-wrapper">
     <div class="page-header">
+      <h2><i class="fas fa-chart-bar page-icon"></i> Analytics</h2>
+      <p>Visualisez les statistiques clés et les tendances de votre site.</p>
       <div class="date-range">
         <label for="date-select">Trier par: </label>
         <select class="date-select filter-select">

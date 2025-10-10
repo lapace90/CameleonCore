@@ -267,7 +267,7 @@ export default {
 
     editReservation() {
       this.$router.push({
-        name: 'ReservationDetail',
+        name: 'ReservationEdit',
         params: { id: this.reservation.id },
         query: { mode: 'edit' }
       })

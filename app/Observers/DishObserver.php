@@ -24,7 +24,7 @@ class DishObserver
         // 1. Mettre à jour les tags du plat
         $this->updateDishTags($dish);
         
-        // 2. ✅ NOUVEAU : Propager aux menus qui contiennent ce plat
+        // 2.  Propager aux menus qui contiennent ce plat
         $this->propagateToMenus($dish);
     }
 
@@ -69,7 +69,7 @@ class DishObserver
     }
 
     /**
-     * ✅ NOUVEAU : Propager les changements aux menus qui contiennent ce plat
+     *  Propager les changements aux menus qui contiennent ce plat
      */
     private function propagateToMenus(Dish $dish): void
     {

@@ -175,7 +175,7 @@
                 proceedToPayment(quoteId);
             });
 
-            // ✅ NOUVEAU : Bouton édition
+            //  Bouton édition
             editButton.addEventListener('click', function(event) {
                 event.preventDefault();
 

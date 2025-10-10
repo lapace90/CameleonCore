@@ -52,7 +52,7 @@ export default {
       type: Object, 
       default: () => ({ total: 0, active: 0, draft: 0, revenue: 0 })
     },
-    // ✅ NOUVEAU : Products pour calculer la vraie moyenne
+    //  Products pour calculer la vraie moyenne
     products: {
       type: Array,
       default: () => []

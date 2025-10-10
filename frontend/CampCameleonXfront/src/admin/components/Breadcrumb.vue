@@ -120,7 +120,16 @@ export default {
           'AdminAnalytics': 'Analytics',
           'AdminSettings': 'Paramètres',
           'FullAgenda': 'Agenda',
-          'AdminReservations': 'Réservations'
+          'AdminReservations': 'Réservations',
+          'ReservationDetail': 'Détails Réservation',
+          'ReservationEdit': 'Modification Réservation',
+          'Invoices': 'Factures',
+          'InvoiceDetail': 'Détails Facture',
+          'AdminReviews': 'Avis Clients',
+          'AdminNotifications': 'Notifications',
+          'AdminSupport': 'Support',
+          'AdminProfile': 'Mon Profil'
+
         }
 
         if (routeNames[route.name]) {
