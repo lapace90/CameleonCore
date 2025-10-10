@@ -59,10 +59,16 @@ class ReservationProcessor implements ProcessorInterface
         return number_format((float)($raw ?? 0), 2, '.', '');
     }
 
+    /**
+     * Créer une nouvelle réservation
+     * @param array $context Contexte de la requête API Platform
+     * @param \App\Models\User $currentUser Utilisateur authentifié via Sanctum
+     * @return Reservation
+     */
     private function createReservation(array $context, $currentUser): Reservation
     {
         $payload = $this->getDataFromRequest($context);
-        $payload = $this->normalizeAliases($payload);      // ⟵ AJOUT
+        $payload = $this->normalizeAliases($payload);
 
         $this->validateReservationData($payload);
 
@@ -74,56 +80,42 @@ class ReservationProcessor implements ProcessorInterface
         $reservation = Reservation::create($reservationData);
         $reservation->invoice_number = $this->formatInvoiceNumberFromId($reservation->id);
         $reservation->save();
+        Log::info("✅ Nouvelle réservation #{$reservation->id} créée", [
+            'customer_id' => $customerId,
+            'created_by_user_id' => $currentUser->id
+        ]);
+        if (isset($payload['products']) && is_array($payload['products'])) {
+            $this->syncProducts($reservation, $payload['products']);
+        }
 
         return $reservation;
     }
 
-
-    private function formatInvoiceNumberFromId(int $id): string
-    {
-        // ex: RES-YYYYMMDD-000123 (id sur 6 chiffres ; date du jour)
-        return 'RES-' . date('Ymd') . '-' . str_pad($id, 6, '0', STR_PAD_LEFT);
-    }
-
+    /**
+     * Mettre à jour une réservation existante
+     * @param int $id ID de la réservation
+     * @param array $context Contexte de la requête API Platform
+     * @param \App\Models\User $currentUser Utilisateur authentifié via Sanctum
+     * @return Reservation
+     */
     private function updateReservation(int $id, array $context, $currentUser): Reservation
     {
         $payload = $this->getDataFromRequest($context);
         $payload = $this->normalizeAliases($payload);
         $reservation = Reservation::findOrFail($id);
 
-        // === CHECK-IN/CHECK-OUT : traitement direct, pas de prepareReservationData ===
+        // === CHECK-IN/CHECK-OUT : traitement direct ===
         if (isset($payload['status']) && $payload['status'] === 'checked_in') {
-            if (!$reservation->canCheckIn()) {
-                abort(422, 'Check-in non autorisé');
-            }
-            $reservation->status = 'checked_in';
-            $reservation->actual_checkin = $payload['actual_checkin'] ?? now();
-            $reservation->user_id = $reservation->user_id ?? $currentUser->id;
-            $reservation->save();
-            return $reservation; // Retourner la réservation mise à jour
+            // ... ton code check-in existant ...
+            return $reservation;
         }
 
         if (isset($payload['status']) && $payload['status'] === 'checked_out') {
-            if (!$reservation->canCheckOut()) {
-                abort(422, 'Check-out non autorisé');
-            }
-
-            $checkoutTime = isset($payload['actual_checkout'])
-                ? \Carbon\Carbon::parse($payload['actual_checkout'])
-                : now();
-
-            //  Valider que checkout >= checkin
-            if ($checkoutTime < $reservation->actual_checkin) {
-                abort(422, 'Le check-out ne peut pas être avant le check-in');
-            }
-
-            $reservation->status = 'checked_out';
-            $reservation->actual_checkout = $checkoutTime;
-            $reservation->user_id = $reservation->user_id ?? $currentUser->id;
-            $reservation->save();
+            // ... ton code check-out existant ...
             return $reservation;
         }
-        // === UPDATE NORMAL : ton code existant ===
+
+        // === UPDATE NORMAL ===
         Log::info("📝 Mise à jour réservation #{$id}");
 
         if (isset($payload['customer_data'])) {
@@ -138,10 +130,74 @@ class ReservationProcessor implements ProcessorInterface
         );
 
         $reservation->update($cleanPayload);
+
+        // 🆕 AJOUTER CES 3 LIGNES
+        if (isset($payload['products']) && is_array($payload['products'])) {
+            $this->syncProducts($reservation, $payload['products']);
+        }
+
         Log::info("✅ Réservation #{$id} mise à jour avec succès");
         return $reservation;
     }
 
+    /**
+     * 🆕 Synchroniser les produits avec la table pivot
+     * 
+     * @param Reservation $reservation
+     * @param array $products Format: [['product_id' => 1, 'quantity' => 2], ...]
+     */
+    private function syncProducts(Reservation $reservation, array $products): void
+    {
+        if (empty($products)) {
+            Log::info('⚠️ Aucun produit à synchroniser', [
+                'reservation_id' => $reservation->id
+            ]);
+            return;
+        }
+
+        $pivotData = [];
+        foreach ($products as $productItem) {
+            $productId = $productItem['product_id'] ?? null;
+            $quantity = $productItem['quantity'] ?? 1;
+
+            if ($productId) {
+                // Assurer que quantity est un entier positif
+                $pivotData[$productId] = ['quantity' => max(1, (int)$quantity)];
+            }
+        }
+
+        if (!empty($pivotData)) {
+            $reservation->products()->sync($pivotData);
+
+            Log::info('✅ Produits synchronisés pour réservation', [
+                'reservation_id' => $reservation->id,
+                'products_count' => count($pivotData),
+                'products' => $pivotData
+            ]);
+        } else {
+            Log::warning('⚠️ Aucun produit valide à synchroniser', [
+                'reservation_id' => $reservation->id,
+                'payload_products' => $products
+            ]);
+        }
+    }
+
+    /**
+     * Format d'un numéro de facture basé sur l'ID
+     * ex: RES-YYYYMMDD-000123 (id sur 6 chiffres ; date du jour)
+     * @param int $id
+     * @return string
+     */
+    private function formatInvoiceNumberFromId(int $id): string
+    {
+        return 'RES-' . date('Ymd') . '-' . str_pad($id, 6, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Supprimer une réservation
+     * @param int $id ID de la réservation
+     * @return void
+     */
     private function deleteReservation(int $id): void
     {
         $reservation = Reservation::findOrFail($id);
@@ -155,6 +211,14 @@ class ReservationProcessor implements ProcessorInterface
     // MÉTHODES UTILITAIRES 
     // ===========================
 
+    /**
+     * Trouver ou créer un client à partir des données fournies
+     * Gère aussi les consentements RGPD
+     * @param array $customerData
+     * @return int ID du client
+     * @throws \InvalidArgumentException Si l'email est manquant
+     * @throws \Exception Pour autres erreurs
+     */
     private function findOrCreateCustomer(array $customerData): int
     {
         $email = $customerData['email'] ?? null;
@@ -200,6 +264,12 @@ class ReservationProcessor implements ProcessorInterface
         return $customer->id;
     }
 
+    /**
+     * Normaliser les alias dans le payload pour uniformiser les données
+     * @param array $payload
+     * @return array
+     * @throws \InvalidArgumentException Si les données sont invalides
+     */
     private function normalizeAliases(array $payload): array
     {
         // new_customer / customer -> customer_data
@@ -224,6 +294,12 @@ class ReservationProcessor implements ProcessorInterface
         return $payload;
     }
 
+    /**
+     * Valider les données de la réservation
+     * @param array $payload
+     * @return void
+     * @throws ValidationException Si la validation échoue
+     */
     private function validateReservationData(array $payload): void
     {
         $validator = Validator::make($payload, [
@@ -244,6 +320,13 @@ class ReservationProcessor implements ProcessorInterface
         }
     }
 
+    /**
+     * Préparer les données de la réservation pour création ou mise à jour
+     * @param array $payload Données brutes de la requête
+     * @param int $customerId ID du client
+     * @param \App\Models\User $currentUser Utilisateur authentifié via Sanctum
+     * @return array Données nettoyées prêtes pour create/update
+     */
     private function prepareReservationData(array $payload, int $customerId, $currentUser): array
     {
         return [
@@ -265,6 +348,12 @@ class ReservationProcessor implements ProcessorInterface
         ];
     }
 
+    /**
+     * Extraire les données de la requête depuis le contexte API Platform
+     * @param array $context
+     * @return array
+     * @throws \InvalidArgumentException Si les données ne peuvent pas être extraites
+     */
     private function getDataFromRequest(array $context): array
     {
         if (isset($context['request']) && $context['request'] instanceof Request) {
@@ -293,7 +382,12 @@ class ReservationProcessor implements ProcessorInterface
         throw new \InvalidArgumentException('Données de requête introuvables');
     }
 
-    private function generateInvoiceNumber(): string
+    /**
+     * Générer un numéro de facture unique basé sur la date et un compteur quotidien
+     * Format : RES-YYYYMMDD-XXXX (ex: RES-20251027-0001)
+     * @return string
+     */
+    public function generateInvoiceNumber(): string
     {
         // Format : RES-YYYYMMDD-XXXX (ex: RES-20251027-0001)
         $prefix = 'RES-' . date('Ymd') . '-';

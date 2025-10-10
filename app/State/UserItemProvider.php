@@ -32,7 +32,7 @@ class UserItemProvider implements ProviderInterface
             throw new NotFoundHttpException('ID utilisateur invalide');
         }
 
-        // ✅ FIX : Récupérer avec TOUTES les relations ET permissions (colonnes qui existent)
+        //  Récupérer avec TOUTES les relations ET permissions (colonnes qui existent)
         $user = User::with([
             'role:id,name,slug,description',           // Rôle principal 
             'role.permissions:id,name,action,category',  // ← PERMISSIONS du rôle principal (pas de description)

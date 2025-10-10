@@ -1,7 +1,7 @@
 <template>
   <div class="reservation-detail content-wrapper">
     <!-- Loading -->
-    <LoadingState v-if="loading" state="loading" variant="fullscreen" loading-text="Chargement de la réservation..." />
+    <LoadingState v-if="loading" state="loading" variant="card" loading-text="Chargement de la réservation..." />
 
     <LoadingState v-else-if="error" state="error" variant="card" error-title="Erreur" :error-message="error"
       @retry="fetchReservation" />
@@ -98,13 +98,36 @@
           </div>
         </ReservationInfoCard>
 
-        <!-- Logement -->
-        <ReservationInfoCard title="Services" icon="fas fa-bed">
+        <!-- Produits & Services -->
+        <ReservationInfoCard title="Produits & Services" icon="fas fa-shopping-cart">
+          <!-- Produit principal (hébergement) -->
           <div class="info-item">
-            <label>Nom:</label>
+            <label>Hébergement principal:</label>
             <span>{{ getProductName() }}</span>
           </div>
-          <div class="info-item">
+
+          <!-- NOUVEAU : Liste complète des produits -->
+          <div v-if="reservation.products && reservation.products.length > 0" class="products-list">
+            <label class="products-label">Tous les produits :</label>
+            <div class="product-items">
+              <div v-for="product in reservation.products" :key="product.id" class="product-item">
+                <span class="product-icon">
+                  <i :class="getProductIcon(product.productable_type)"></i>
+                </span>
+                <span class="product-name">{{ product.name }}</span>
+                <span class="product-quantity">x{{ product.quantity }}</span>
+                <span class="product-price">{{ formatCurrency(product.price * product.quantity) }}</span>
+              </div>
+            </div>
+
+            <!-- Total produits -->
+            <div class="products-total">
+              <strong>Total produits : {{ reservation.products.length }}</strong>
+            </div>
+          </div>
+
+          <!-- Si pas de produits multiples, juste le type du produit principal -->
+          <div v-else class="info-item">
             <label>Type:</label>
             <span>{{ getProductTypeLabel() }}</span>
           </div>
@@ -260,6 +283,25 @@ export default {
       }
     },
 
+    getProductIcon(productableType) {
+      if (!productableType) return 'fas fa-box'
+
+      if (productableType.includes('Room')) return 'fas fa-bed'
+      if (productableType.includes('Activity')) return 'fas fa-hiking'
+      if (productableType.includes('Menu')) return 'fas fa-utensils'
+
+      return 'fas fa-box'
+    },
+
+    getProductTypeName(productableType) {
+      if (!productableType) return 'Produit'
+
+      if (productableType.includes('Room')) return 'Hébergement'
+      if (productableType.includes('Activity')) return 'Activité'
+      if (productableType.includes('Menu')) return 'Menu'
+
+      return 'Produit'
+    },
     // Navigation
     goBack() {
       this.$router.go(-1)
@@ -434,6 +476,7 @@ export default {
   background: #fff;
   min-height: 100vh;
 }
+
 .comment-box {
   background: #f8f9fa;
   padding: 1rem;
@@ -442,9 +485,80 @@ export default {
   white-space: pre-wrap;
   line-height: 1.5;
 }
+
 .status-row {
   display: flex;
   gap: 1rem;
   margin-bottom: 1.5rem;
+}
+/* Styles pour la liste des produits */
+.products-list {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.products-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: #374151;
+}
+
+.product-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.product-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  background: #f9fafb;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.product-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: white;
+  border-radius: 4px;
+  color: #6b7280;
+}
+
+.product-name {
+  flex: 1;
+  font-weight: 500;
+  color: #111827;
+}
+
+.product-quantity {
+  padding: 0.25rem 0.5rem;
+  background: #3b82f6;
+  color: white;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.product-price {
+  font-weight: 600;
+  color: #059669;
+  min-width: 80px;
+  text-align: right;
+}
+
+.products-total {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed #e5e7eb;
+  text-align: right;
+  color: #111827;
 }
 </style>

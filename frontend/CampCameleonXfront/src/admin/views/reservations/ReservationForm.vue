@@ -353,7 +353,7 @@
                 <option value="card">Carte bancaire</option>
                 <option value="transfer">Virement</option>
                 <option value="check">Chèque</option>
-                <option value="online">Paiement en ligne</option>
+                <option value="stripe_card">Paiement en ligne</option>
               </select>
             </div>
 
@@ -664,46 +664,78 @@ export default {
     populateForm() {
       if (!this.reservation) return
 
-      this.form.checkin = this.reservation.checkin
-      this.form.checkout = this.reservation.checkout
-      this.form.guests = this.reservation.guests || 2
-      this.form.amount = this.reservation.amount
+      // Dates
+      this.form.checkin = this.formatDateForInput(this.reservation.checkin)
+      this.form.checkout = this.formatDateForInput(this.reservation.checkout)
+
+      // Invités
+      this.form.guests = this.reservation.number_of_adults || this.reservation.guests || 2
+      this.form.children = this.reservation.number_of_children || 0
+
+      // Status et paiement
       this.form.status = this.reservation.status
       this.form.payment_status = this.reservation.payment_status
+      this.form.payment_method = this.reservation.payment_method || null
       this.form.booking_source = this.reservation.booking_source
-      this.form.special_requests = this.reservation.special_requests || ''
+      this.form.special_requests = this.reservation.special_requests || this.reservation.comment || ''
       this.form.internal_notes = this.reservation.internal_notes || ''
       this.form.invoice_number = this.reservation.invoice_number || ''
 
+      // Client
       if (this.reservation.customer) {
         this.selectedCustomer = this.reservation.customer
         this.form.customer_id = this.reservation.customer_id
         this.customerMode = 'existing'
       }
 
+      // Charger les produits AVANT de définir le montant
       if (this.reservation.products && Array.isArray(this.reservation.products)) {
+        console.log('📦 Produits reçus:', this.reservation.products)
+
         this.reservation.products.forEach(product => {
           const type = product.productable_type
           const id = product.id
+          const quantity = product.quantity || product.pivot?.quantity || 1
+
+          console.log(`   - ${product.name} (type: ${type}, qty: ${quantity})`)
 
           if (type === 'App\\Models\\Room') {
             if (!this.selectedAccommodations.includes(id)) {
               this.selectedAccommodations.push(id)
-              this.accommodationQuantities[id] = (this.accommodationQuantities[id] || 0) + 1
             }
+            this.accommodationQuantities[id] = quantity
+
           } else if (type === 'App\\Models\\Activity') {
             if (!this.selectedActivities.includes(id)) {
               this.selectedActivities.push(id)
             }
-            this.activityQuantities[id] = (this.activityQuantities[id] || 0) + (product.pivot?.quantity || 1)
+            this.activityQuantities[id] = quantity
+
           } else if (type === 'App\\Models\\Menu') {
             if (!this.selectedMenus.includes(id)) {
               this.selectedMenus.push(id)
             }
-            this.menuQuantities[id] = (this.menuQuantities[id] || 0) + (product.pivot?.quantity || 1)
+            this.menuQuantities[id] = quantity
           }
         })
       }
+
+      //  Définir le montant APRÈS avoir chargé tous les produits
+      // Utiliser $nextTick pour s'assurer que Vue a fini de mettre à jour le DOM
+      this.$nextTick(() => {
+        // Le montant de la réservation a priorité sur le calcul automatique
+        this.form.amount = this.reservation.amount
+
+        console.log('✅ Formulaire complètement populé:', {
+          dates: { checkin: this.form.checkin, checkout: this.form.checkout },
+          amount: this.form.amount,
+          payment_method: this.form.payment_method, 
+          guests: this.form.guests,
+          accommodations: this.selectedAccommodations.length,
+          activities: this.selectedActivities.length,
+          menus: this.selectedMenus.length
+        })
+      })
     },
 
     handleRestoreDraft() {
@@ -984,8 +1016,6 @@ export default {
           payload.products.push({ product_id: id, quantity: qty })
         })
 
-        
-        // === Patch: align payload with backend expectations ===
         // map customer -> customer_data (keep amount as-is)
         if (!payload.customer_id) {
           const c = this.form?.newCustomer || payload.new_customer || {};
@@ -1014,7 +1044,7 @@ export default {
           payload.product_id = Number(primary.product_id);
         }
         // === End patch ===
-console.log('📤 Envoi des données:', payload)
+        console.log('📤 Envoi des données:', payload)
 
         let response
         if (this.isEditing) {
@@ -1041,6 +1071,35 @@ console.log('📤 Envoi des données:', payload)
         this.$toast?.error?.(this.error)
       } finally {
         this.saving = false
+      }
+    },
+    /**
+ * Formate une date ISO pour un input type="date"
+ * Entrée: "2025-01-15T10:00:00.000000Z" ou "2025-01-15"
+ * Sortie: "2025-01-15"
+ */
+    formatDateForInput(dateString) {
+      if (!dateString) return ''
+
+      // Si c'est déjà au bon format (YYYY-MM-DD), retourner tel quel
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+        return dateString
+      }
+
+      // Sinon, extraire la date d'un ISO complet
+      try {
+        const date = new Date(dateString)
+        if (isNaN(date.getTime())) return ''
+
+        // Format YYYY-MM-DD
+        const year = date.getFullYear()
+        const month = String(date.getMonth() + 1).padStart(2, '0')
+        const day = String(date.getDate()).padStart(2, '0')
+
+        return `${year}-${month}-${day}`
+      } catch (e) {
+        console.error('❌ Erreur formatage date:', dateString, e)
+        return ''
       }
     },
 

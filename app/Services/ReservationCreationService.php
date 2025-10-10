@@ -19,14 +19,12 @@ class ReservationCreationService
         Log::info('🏨 Création réservation depuis devis', [
             'quote_id' => $quote->id,
             'quote_reference' => $quote->quote_reference,
-            'payment_amount' => $paymentData['amount'] ?? $quote->total_amount,
             'selected_products' => $quote->selected_product_ids
         ]);
 
         return DB::transaction(function () use ($quote, $paymentData) {
-            // 1. Trouver le produit principal (hébergement Room)
             $mainProduct = $this->findMainProduct($quote->selected_product_ids);
-            
+
             if (!$mainProduct) {
                 Log::warning('⚠️ Aucun hébergement trouvé, création avec premier produit disponible');
                 $mainProduct = $this->findAnyProduct($quote->selected_product_ids);
@@ -36,10 +34,13 @@ class ReservationCreationService
                 throw new \Exception("Aucun produit trouvé dans les produits sélectionnés");
             }
 
-            // 2. Créer la réservation principale
+            // Créer la réservation principale
             $reservation = $this->createMainReservation($quote, $mainProduct, $paymentData);
 
-            // 3. Marquer le devis comme converti
+            // 🆕 SYNCHRONISER TOUS LES PRODUITS DANS LA PIVOT
+            $this->syncProductsFromQuote($reservation, $quote);
+
+            // Marquer le devis comme converti
             $quote->update([
                 'converted_to_reservation_at' => now(),
                 'main_reservation_id' => $reservation->id,
@@ -47,16 +48,41 @@ class ReservationCreationService
                 'payment_intent_id' => $paymentData['stripe_payment_intent'] ?? null
             ]);
 
-            Log::info('✅ Réservation créée avec succès', [
+            Log::info('✅ Réservation créée avec tous les produits synchronisés', [
                 'reservation_id' => $reservation->id,
-                'quote_reference' => $quote->quote_reference,
-                'customer' => $quote->customer->name ?? 'N/A',
-                'main_product' => $mainProduct->name ?? 'N/A',
-                'product_type' => class_basename($mainProduct->productable_type ?? 'Unknown')
+                'products_count' => $reservation->products()->count()
             ]);
 
             return $reservation;
         });
+    }
+
+    /**
+     * 🆕 Synchroniser les produits du devis vers la table pivot
+     */
+    private function syncProductsFromQuote(Reservation $reservation, QuoteRequest $quote): void
+    {
+        if (empty($quote->selected_product_ids)) {
+            Log::warning('⚠️ Aucun produit à synchroniser');
+            return;
+        }
+
+        // Utiliser la même logique que QuoteRequest pour compter les quantités
+        $quantities = array_count_values($quote->selected_product_ids);
+
+        // Préparer les données pour sync()
+        $pivotData = [];
+        foreach ($quantities as $productId => $quantity) {
+            $pivotData[$productId] = ['quantity' => $quantity];
+        }
+
+        // Synchroniser avec la table pivot
+        $reservation->products()->sync($pivotData);
+
+        Log::info('✅ Produits synchronisés vers product_reservation', [
+            'reservation_id' => $reservation->id,
+            'products' => $pivotData
+        ]);
     }
 
     /**
@@ -75,7 +101,7 @@ class ReservationCreationService
             'booking_source' => 'website',
             'payment_status' => 'paid',
             'number_of_adults' => $quote->guests ?? 2,
-            'number_of_children' => 0, // Par défaut, à améliorer si vous avez cette info
+            'number_of_children' => 0, // Par défaut, à venir du devis
             'comment' => $quote->message,
             'status' => 'confirmed',
             'invoice_number' => $this->generateInvoiceNumber(),
@@ -138,7 +164,7 @@ class ReservationCreationService
     {
         $year = date('Y');
         $month = date('m');
-        
+
         // Format: INV-YYYY-MM-XXXX
         $lastInvoice = Reservation::where('invoice_number', 'like', "INV-{$year}-{$month}-%")
             ->orderBy('id', 'desc')
@@ -188,7 +214,7 @@ class ReservationCreationService
     public function analyzeQuoteProducts(QuoteRequest $quote): array
     {
         $details = $this->getQuoteProductsDetails($quote);
-        
+
         $analysis = [
             'total_products' => count($details),
             'rooms' => array_filter($details, fn($p) => $p['is_room']),
