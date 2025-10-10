@@ -181,8 +181,8 @@ const stats = ref([
     { number: '24/7', label: 'Assistance' },
 ])
 
-/* ========== DATA CHARGÉE DE L'API (activités réelles) ========== */
 const API = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
+
 function getJson(data) {
     return data?.['hydra:member'] || data?.member || data || []
 }

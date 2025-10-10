@@ -172,7 +172,6 @@ const baseMenus = ref([])  // liste de base (sans plats)
 const fullById = ref({})   // détails { [id]: produit complet }
 
 function getJson(data) {
-  // API Platform (Hydra) ou tableau simple
   if (!data) return []
   return data['hydra:member'] || data.member || data
 }
