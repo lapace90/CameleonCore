@@ -56,10 +56,11 @@
             </div> -->
 
             <!-- Options et allergènes -->
-            <div class="menu-options">
+            <div class="menu-options" v-if="menu.tags && menu.tags.length > 0">
               <div class="dietary-options">
-                <span v-for="option in menu.dietary" :key="option" class="dietary-tag">
-                  {{ option }}
+                <span v-for="tag in menu.tags" :key="tag.id" class="dietary-tag">
+                  <i v-if="tag.icon" :class="tag.icon"></i>
+                  {{ getDisplayName(tag.name) }}
                 </span>
               </div>
             </div>
@@ -75,36 +76,36 @@
           </div>
         </div>
       </div>
-      </div>
-      <div class="menu-container">
+    </div>
+    <div class="menu-container">
       <!-- Section informations complémentaires -->
       <div class="menus-info">
         <div class="info-cards">
           <div class="info-card">
-          <div class="info-icon">
-            <i class="fas fa-fire"></i>
+            <div class="info-icon">
+              <i class="fas fa-fire"></i>
+            </div>
+            <h4>Cuisine au feu de bois</h4>
+            <p>Préparation traditionnelle qui rehausse les saveurs</p>
           </div>
-          <h4>Cuisine au feu de bois</h4>
-          <p>Préparation traditionnelle qui rehausse les saveurs</p>
-        </div>
-        <div class="info-card">
-          <div class="info-icon">
-            <i class="fas fa-leaf"></i>
+          <div class="info-card">
+            <div class="info-icon">
+              <i class="fas fa-leaf"></i>
+            </div>
+            <h4>Ingrédients locaux</h4>
+            <p>Produits frais sourced directement des oasis environnantes</p>
           </div>
-          <h4>Ingrédients locaux</h4>
-          <p>Produits frais sourced directement des oasis environnantes</p>
-        </div>
-        <div class="info-card">
-          <div class="info-icon">
-            <i class="fas fa-users"></i>
+          <div class="info-card">
+            <div class="info-icon">
+              <i class="fas fa-users"></i>
+            </div>
+            <h4>Service personnalisé</h4>
+            <p>Adaptation possible selon vos préférences alimentaires</p>
           </div>
-          <h4>Service personnalisé</h4>
-          <p>Adaptation possible selon vos préférences alimentaires</p>
         </div>
       </div>
     </div>
-  </div>
-    
+
   </section>
   <!-- MODALE DÉTAIL MENU -->
   <Teleport to="body">
@@ -162,7 +163,7 @@
 import { onMounted, ref, computed } from 'vue'
 import CouscousImg from '@/assets/images/site/couscous.jpg'
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:8000/api' // si tu n'as pas de proxy, mets 'http://localhost:8000/api'
+const API = import.meta.env.VITE_API_URL || 'http://localhost:8000/api' // Ajuster selon l'environnement
 
 const selectedMenu = ref(null)
 const loadingList = ref(true)
@@ -180,6 +181,18 @@ async function fetchJson(url) {
   const res = await fetch(url, { headers: { Accept: 'application/json' } })
   if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
   return await res.json()
+}
+
+function getDisplayName(tagName) {
+  const names = {
+    'vegetarian': 'Végé',
+    'vegan': 'Végan',
+    'spicy': 'Épicé',
+    'gluten_free': 'Sans gluten',
+    'lactose_free': 'Sans lactose',
+    'nut_free': 'Sans fruits à coque'
+  }
+  return names[tagName] || tagName
 }
 
 function dishNames(p) {
@@ -216,23 +229,39 @@ async function loadMenuDetail(id) {
 }
 
 const menus = computed(() => {
-  // map la liste → cartes UI, en injectant les noms si on a le détail
   return (baseMenus.value || []).map(p => {
     const full = fullById.value[p.id] || p
+
+    // Récupérer les tags spécifiques et globaux
+    let allTags = []
+
+    // Tags globaux
+    if (p.globalTags && p.globalTags.length > 0) {
+      allTags = [...allTags, ...p.globalTags]
+    }
+
+    // Tags spécifiques
+    if (p.specificTags && p.specificTags.length > 0) {
+      allTags = [...allTags, ...p.specificTags]
+    }
+
     return {
       id: p.id,
       title: p.name,
       description: p.description,
       price: p.price,
+      formatted_price: p.formatted_price || `${p.price}`,
       image: p.image || '/images/placeholder-product.svg',
       rating: full?.statistics?.average_rating ?? 5,
       reviews: full?.statistics?.reviews ?? 0,
       popular: false,
       featured: false,
-      items: dishNames(full) // ← “Inclus dans ce menu :”
+      items: dishNames(full),
+      tags: allTags // Les tags récupérés de l'API
     }
   })
 })
+
 
 // fallback local si l’API ne renvoie rien (inchangé)
 const localMenus = [

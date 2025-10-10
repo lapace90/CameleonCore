@@ -385,3 +385,31 @@ watch(activities, (arr) => {
     if (props.displayMode === 'carousel' && arr.length > 1) startAutoplay()
 })
 </script>
+
+<style scoped>
+.activity-card-detailed .card-content .activity-meta .meta-item {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .875rem;
+  color: #ffffffb3;
+  background: #41241c99;
+  padding: .5rem 1rem;
+  border-radius: .75rem;
+}
+
+.activity-card-detailed {
+  background: #fffc;
+  padding: 1.6rem;
+  border-radius: 1rem;
+  text-align: center;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(206,94,26,.1);
+  transition: all .25s ease;
+}
+
+.activity-card-detailed .card-content .activity-meta .meta-item i {
+  color: #d6b190;
+}
+</style>

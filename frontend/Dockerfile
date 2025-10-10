@@ -18,11 +18,13 @@ COPY CampCameleonXfront/ ./
 RUN npm run build
 
 # production stage
-# Use nginx to serve the application
 FROM nginx:alpine-slim
 
-# Copy the built files from the build stage
+# Copy built assets from build stage
 COPY --from=build-stage /app/dist /usr/share/nginx/html
+
+# Configuration nginx pour Vue Router
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy the nginx configuration file
 EXPOSE 5173
