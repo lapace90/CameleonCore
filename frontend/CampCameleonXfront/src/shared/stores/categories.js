@@ -1,4 +1,3 @@
-// src/shared/stores/categories.js - SIMPLE
 import { defineStore } from 'pinia'
 import CategoriesApi from '@/services/CategoriesApi'
 

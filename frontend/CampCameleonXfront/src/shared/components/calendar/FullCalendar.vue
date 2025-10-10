@@ -324,8 +324,8 @@ export default {
             number_of_children: eventData.numberOfChildren || 0,
 
             // Produits sélectionnés
-            selected_product_ids: eventData.selected_product_ids || [],
-            product_id: eventData.selected_product_ids?.[0], // Premier produit comme principal
+            product_ids: eventData.product_ids || [],
+            product_id: eventData.product_ids?.[0],// Premier produit comme principal
 
             // Métadonnées admin
             booking_source: eventData.bookingSource || 'admin',

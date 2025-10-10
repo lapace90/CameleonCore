@@ -8,6 +8,7 @@ use App\Models\Invoice;
 use App\Models\Reservation;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
+use App\Services\InvoiceService;
 use Carbon\Carbon;
 
 class InvoiceProvider implements ProviderInterface
@@ -102,14 +103,23 @@ class InvoiceProvider implements ProviderInterface
         Log::info("📋 Récupération facture #{$id} avec relations");
 
         $invoice = Invoice::with([
-            'customer' => function($query) {
+            'customer' => function ($query) {
                 $query->select('id', 'name', 'last_name', 'email', 'phone', 'address', 'created_at');
             },
-            'reservation' => function($query) {
-                $query->select('id', 'checkin', 'checkout', 'invoice_number', 'amount', 
-                              'number_of_adults', 'number_of_children', 'product_id', 'product_type');
+            'reservation' => function ($query) {
+                $query->select(
+                    'id',
+                    'checkin',
+                    'checkout',
+                    'invoice_number',
+                    'amount',
+                    'number_of_adults',
+                    'number_of_children',
+                    'product_id',
+                    'product_type'
+                );
             },
-            'reservation.product' => function($query) {
+            'reservation.product' => function ($query) {
                 $query->select('id', 'name', 'description', 'price');
             }
         ])->find($id);
@@ -194,45 +204,20 @@ class InvoiceProvider implements ProviderInterface
     // ===========================
     // MÉTHODE: GÉNÉRATION PDF
     // ===========================
-    private function generatePdf(int $id): array
+    private function generatePdf(int $id)
     {
         Log::info("📄 Génération PDF facture #{$id}");
 
         $invoice = Invoice::with(['customer', 'reservation.product'])->findOrFail($id);
 
-        // TODO: Implémenter la génération PDF réelle (avec DomPDF ou similaire)
-        // Pour l'instant, on retourne les données pour le frontend
-        
-        $pdfData = [
-            'invoice_number' => $invoice->invoice_number,
-            'issue_date' => $invoice->formatted_issue_date,
-            'due_date' => $invoice->formatted_due_date,
-            'customer' => [
-                'name' => $invoice->customer_name,
-                'email' => $invoice->customer->email,
-                'phone' => $invoice->customer->phone ?? 'N/A',
-                'address' => $invoice->customer->address ?? 'N/A',
-            ],
-            'items' => [
-                [
-                    'description' => $invoice->reservation?->product?->name ?? 'Séjour',
-                    'quantity' => 1,
-                    'unit_price' => $invoice->amount,
-                    'total' => $invoice->amount,
-                ]
-            ],
-            'subtotal' => $invoice->amount,
-            'total' => $invoice->amount,
-            'status' => $invoice->status_label,
-            'notes' => $invoice->notes ?? '',
-        ];
+        // Utiliser le service pour générer le vrai PDF
+        $invoiceService = app(InvoiceService::class);
+        $pdf = $invoiceService->generatePdf($invoice);
 
-        Log::info("✅ Données PDF préparées pour facture #{$id}");
-
-        return [
-            'pdf_data' => $pdfData,
-            'download_url' => "/admin/invoices/{$id}/download", // Future route
-        ];
+        // Retourner la réponse PDF
+        return response($pdf->output())
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'attachment; filename="facture-' . $invoice->invoice_number . '.pdf"');
     }
 
     // ===========================
@@ -249,11 +234,11 @@ class InvoiceProvider implements ProviderInterface
 
         if ($invoice->reservation) {
             $reservationData = $invoice->reservation->toArray();
-            
+
             if ($invoice->reservation->product) {
                 $reservationData['product'] = $invoice->reservation->product->toArray();
             }
-            
+
             $data['reservation'] = $reservationData;
         }
 
@@ -309,11 +294,11 @@ class InvoiceProvider implements ProviderInterface
         if ($search = $request->get('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('invoice_number', 'ILIKE', "%{$search}%")
-                  ->orWhereHas('customer', function ($customerQuery) use ($search) {
-                      $customerQuery->where('name', 'ILIKE', "%{$search}%")
-                                   ->orWhere('last_name', 'ILIKE', "%{$search}%")
-                                   ->orWhere('email', 'ILIKE', "%{$search}%");
-                  });
+                    ->orWhereHas('customer', function ($customerQuery) use ($search) {
+                        $customerQuery->where('name', 'ILIKE', "%{$search}%")
+                            ->orWhere('last_name', 'ILIKE', "%{$search}%")
+                            ->orWhere('email', 'ILIKE', "%{$search}%");
+                    });
             });
         }
     }
@@ -324,13 +309,13 @@ class InvoiceProvider implements ProviderInterface
     private function calculatePaymentRate(): float
     {
         $total = Invoice::count();
-        
+
         if ($total === 0) {
             return 0;
         }
 
         $paid = Invoice::paid()->count();
-        
+
         return round(($paid / $total) * 100, 2);
     }
 
@@ -416,8 +401,8 @@ class InvoiceProvider implements ProviderInterface
             ->map(function ($item) {
                 return [
                     'customer_id' => $item->customer_id,
-                    'customer_name' => $item->customer ? 
-                        trim($item->customer->name . ' ' . ($item->customer->last_name ?? '')) : 
+                    'customer_name' => $item->customer ?
+                        trim($item->customer->name . ' ' . ($item->customer->last_name ?? '')) :
                         'Client inconnu',
                     'total_revenue' => number_format($item->total_revenue, 2, ',', ' ') . ' €',
                     'invoice_count' => $item->invoice_count,

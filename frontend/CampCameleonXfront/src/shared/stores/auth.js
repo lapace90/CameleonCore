@@ -1,4 +1,3 @@
-// src/shared/stores/auth.js - VERSION COMPLÈTE avec register
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import axios from 'axios'
@@ -278,7 +277,7 @@ export const useAuthStore = defineStore('auth', () => {
     setToken,
     setUser,
     checkAuth,
-    register,  // 🆕 AJOUTÉ
+    register,  
     login,
     logout,
     refreshToken,

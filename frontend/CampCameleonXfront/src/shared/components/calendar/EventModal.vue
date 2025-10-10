@@ -863,7 +863,7 @@ export default {
           comment: formData.comment,
 
           // Produits sélectionnés - format liste simple pour QuoteRequestProcessor
-          selected_product_ids: selectedProducts,
+          product_ids: selectedProducts,
 
           // Métadonnées réservation
           bookingSource: formData.bookingSource,

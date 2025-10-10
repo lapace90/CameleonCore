@@ -1,4 +1,3 @@
-// src/shared/stores/invoiceStore.js
 import { defineStore } from 'pinia'
 import InvoiceApi from '@/services/InvoiceApi'
 

@@ -16,7 +16,7 @@ Route::prefix('stripe')->group(function () {
 Route::prefix('auth')->group(function () {
     // Routes publiques (sans auth)
     Route::post('login', [AuthController::class, 'login']);
-    Route::post('register', [AuthController::class, 'register']); // 🆕 AJOUTÉ
+    Route::post('register', [AuthController::class, 'register']); 
 
     // Routes protégées (avec auth)
     Route::middleware('auth:sanctum')->group(function () {

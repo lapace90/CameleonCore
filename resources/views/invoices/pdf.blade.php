@@ -11,7 +11,7 @@
             box-sizing: border-box;
         }
         body {
-            font-family: 'DejaVu Sans', Arial, sans-serif;
+            font-family: Arial, Helvetica, sans-serif;
             font-size: 12px;
             color: #333;
             line-height: 1.6;

@@ -120,7 +120,7 @@
                 </div>
                 <div class="detail-row">
                     <span>Produits :</span>
-                    <span>{{ count($quote->selected_product_ids) }} sélection(s)</span>
+                    <span>{{ $quote->items()->count() }} sélection(s)</span>
                 </div>
                 <div class="detail-row">
                     <span>Montant payé :</span>

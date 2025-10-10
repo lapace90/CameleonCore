@@ -1,4 +1,3 @@
-// frontend/CampCameleonXfront/src/shared/stores/users.js - VERSION AMÉLIORÉE
 import { defineStore } from 'pinia'
 import UsersApi from '@/services/UsersApi'
 
@@ -8,7 +7,7 @@ export const useUsersStore = defineStore('users', {
   state: () => ({
     // 🗄️ Données
     users: [],
-    availableRoles: [],    // 🔧 CORRECTION : Focus sur cette propriété
+    availableRoles: [],  
     availablePermissions: [], // Pour plus tard si besoin
     currentUser: null,
 
@@ -20,7 +19,7 @@ export const useUsersStore = defineStore('users', {
     // ⏰ Cache et promesses
     lastFetch: {
       users: null,
-      roles: null,        // 🔧 CORRECTION : Cache spécifique pour roles
+      roles: null,        
       permissions: null
     },
     _inflightRequests: new Map() // Éviter les requêtes en doublon
@@ -62,7 +61,7 @@ export const useUsersStore = defineStore('users', {
     },
 
     // ===============================
-    // 🔧 AMÉLIORATION : Chargement des rôles avec gestion d'erreurs
+    // Chargement des rôles avec gestion d'erreurs
     // ===============================
     async fetchRoles(forceRefresh = false) {
       const now = Date.now()
@@ -101,7 +100,7 @@ export const useUsersStore = defineStore('users', {
 
     async _fetchRolesFromApi() {
       try {
-        // 🔧 CORRECTION : Appeler l'API corrigée
+        // Appeler l'API corrigée
         const roles = await UsersApi.getRoles()
 
         // 🔧 Validation et normalisation

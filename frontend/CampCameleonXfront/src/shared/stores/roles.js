@@ -1,4 +1,3 @@
-// frontend/CampCameleonXfront/src/shared/stores/roles.js
 import { defineStore } from 'pinia'
 import RolesApi from '@/services/RolesApi'
 

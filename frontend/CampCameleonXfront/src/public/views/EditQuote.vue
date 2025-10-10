@@ -247,8 +247,9 @@ export default {
                 return productWithQty.quantity
             }
 
-            // Fallback : compter dans selected_product_ids
-            return (quote.value?.selected_product_ids || []).filter(id => id === productId).length
+            // Fallback 
+            const item = quote.value?.items?.find(item => item.product_id === productId)
+            return item ? item.quantity : 0
         }
 
         // Ajouter cette méthode pour synchroniser selectedItems avec les overrides
@@ -383,7 +384,9 @@ export default {
 
         const hasChanges = computed(() => {
             if (!quote.value) return false
-            const originalIds = quote.value.selected_product_ids || []
+            const originalIds = (quote.value.items || []).flatMap(item =>
+                Array(item.quantity).fill(item.product_id)
+            )
             const currentIds = Object.values(formData.selectedItems).flat()
 
             return (
@@ -451,7 +454,7 @@ export default {
 
         // Charge les produits manquants (hors page) via /products/:id
         const ensureProductsForSelectedIds = async () => {
-            if (!quote.value?.selected_product_ids?.length) return
+            if (!quote.value?.items?.length) return
 
             const present = new Set([
                 ...activities.value.map((p) => p.id),
@@ -459,7 +462,9 @@ export default {
                 ...rooms.value.map((p) => p.id)
             ])
 
-            const missing = quote.value.selected_product_ids.filter((id) => !present.has(id))
+            const productIds = quote.value.items.map(item => item.product_id)
+            const missing = productIds.filter((id) => !present.has(id))
+
             if (!missing.length) return
 
             const results = await Promise.allSettled(missing.map((id) => api.getProduct(id)))
@@ -475,21 +480,29 @@ export default {
         }
 
         // --- SELECTIONS
+        // Remplacer toute la méthode par :
         const populateSelectedItems = () => {
-            if (!quote.value?.selected_product_ids) return
+            if (!quote.value?.items?.length) return
 
-            // reset pour éviter doublons au retry
+            // reset pour éviter doublons
             formData.selectedItems.activity = []
             formData.selectedItems.menu = []
             formData.selectedItems.room = []
 
-            for (const productId of quote.value.selected_product_ids) {
-                if (activities.value.some((a) => a.id === productId)) {
-                    formData.selectedItems.activity.push(productId)
-                } else if (menus.value.some((m) => m.id === productId)) {
-                    formData.selectedItems.menu.push(productId)
-                } else if (rooms.value.some((r) => r.id === productId)) {
-                    formData.selectedItems.room.push(productId)
+            // Reconstruire les sélections avec quantités
+            for (const item of quote.value.items) {
+                const productId = item.product_id
+                const quantity = item.quantity
+
+                // Ajouter le productId autant de fois que sa quantité
+                for (let i = 0; i < quantity; i++) {
+                    if (activities.value.some((a) => a.id === productId)) {
+                        formData.selectedItems.activity.push(productId)
+                    } else if (menus.value.some((m) => m.id === productId)) {
+                        formData.selectedItems.menu.push(productId)
+                    } else if (rooms.value.some((r) => r.id === productId)) {
+                        formData.selectedItems.room.push(productId)
+                    }
                 }
             }
         }
@@ -584,6 +597,7 @@ export default {
 .main-content {
     background-color: #0066cc;
 }
+
 .edit-quote-page {
     min-height: 100vh;
     background: linear-gradient(135deg, #778eb0 0%, #c3cfe2 100%);

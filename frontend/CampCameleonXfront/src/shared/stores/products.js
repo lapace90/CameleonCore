@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
 import ProductsApi from '@/services/ProductsApi'
 
+// Normalisation minimale des produits
 function normalize(p = {}) {
-  // Aligne sur ce que tes formulaires attendent (même logique que dans ProductsApi)
   const out = { ...p }
   out.typeConfig        = out.typeConfig ?? out.type_config ?? null
   out.productableDetail = out.productableDetail ?? out.productable_detail ?? out.productable_data ?? null
@@ -10,6 +10,15 @@ function normalize(p = {}) {
   return out
 }
 
+/**
+ * Store "produits" avec gestion de la pagination et des filtres.
+ * Les produits peuvent être de différents types (activités, menus, etc.)
+ * et avoir des structures différentes selon leur type.
+ * Le store gère un tableau normalisé et un index rapide par ID.
+ * Il fournit aussi des getters pour filtrer par type.
+ * Le store gère aussi l'état de chargement, les erreurs, et la pagination.
+ * Il mémorise aussi les derniers paramètres de filtre utilisés.
+ */
 export const useProductsStore = defineStore('products', {
   state: () => ({
     items: [],            // tableau normalisé
@@ -49,7 +58,7 @@ export const useProductsStore = defineStore('products', {
 
       try {
         const res = await ProductsApi.getProducts(params)
-        // certaines implémentations renvoient { data:[], totalItems,... }
+       
         const raw = res?.data ?? []
         const list = raw.map(normalize)
 

@@ -23,7 +23,7 @@ class ReservationCreationService
         ]);
 
         return DB::transaction(function () use ($quote, $paymentData) {
-            // ✅ CHANGÉ : passer $quote au lieu de $quote->selected_product_ids
+            // Trouver le produit principal (hébergement) dans les produits sélectionnés
             $mainProduct = $this->findMainProduct($quote);
 
             if (!$mainProduct) {
@@ -172,25 +172,24 @@ class ReservationCreationService
      */
     public function getQuoteProductsDetails(QuoteRequest $quote): array
     {
-        if (empty($quote->selected_product_ids)) {
+        if ($quote->items->isEmpty()) {
             return [];
         }
 
-        return Product::whereIn('id', $quote->selected_product_ids)
-            ->get()
-            ->map(function ($product) {
-                return [
-                    'id' => $product->id,
-                    'name' => $product->name,
-                    'type' => class_basename($product->productable_type ?? 'Unknown'),
-                    'full_type' => $product->productable_type,
-                    'price' => $product->price,
-                    'is_room' => $product->productable_type === 'App\\Models\\Room',
-                    'is_activity' => $product->productable_type === 'App\\Models\\Activity',
-                    'is_menu' => $product->productable_type === 'App\\Models\\Menu',
-                ];
-            })
-            ->toArray();
+        return $quote->items->map(function ($item) {
+            $product = $item->product;
+            return [
+                'id' => $product->id,
+                'name' => $product->name,
+                'type' => class_basename($product->productable_type ?? 'Unknown'),
+                'full_type' => $product->productable_type,
+                'price' => $product->price,
+                'quantity' => $item->quantity, // ✅ AJOUT de la quantité
+                'is_room' => $product->productable_type === 'App\\Models\\Room',
+                'is_activity' => $product->productable_type === 'App\\Models\\Activity',
+                'is_menu' => $product->productable_type === 'App\\Models\\Menu',
+            ];
+        })->toArray();
     }
 
     /**
