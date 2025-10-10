@@ -196,96 +196,62 @@ class PublicApi {
     return response.data
   }
 
-  // =============================
-  // SAUVEGARDE DEVIS - VERSION SIMPLIFIÉE
-  // =============================
   async saveQuote(payload) {
     try {
       const url = `${this.baseURL}/quote-requests`
+
       console.log('🔍 DEBUG PublicApi - Payload reçu:', payload)
 
-      // -- Normalisation éventuelle des items
-      const rawItems = Array.isArray(payload.items) ? payload.items : null
-      const items = rawItems
-        ? rawItems
+      // ✅ CONVERSION product_ids → items avec quantités
+      let items = []
+
+      if (payload.items && Array.isArray(payload.items)) {
+        // Déjà au bon format
+        items = payload.items
           .map(it => ({
             product_id: Number(it.product_id),
-            quantity: Math.max(0, Number(it.quantity) || 0)
+            quantity: Math.max(1, Number(it.quantity) || 1)
           }))
           .filter(it => it.product_id && it.quantity > 0)
-        : null
-
-      // -- Construction finale des product_ids
-      let productIds = []
-      if (items && items.length) {
-        // Items → duplication en product_ids
-        for (const it of items) {
-          for (let i = 0; i < it.quantity; i++) {
-            productIds.push(it.product_id)
-          }
+      }
+      else if (payload.product_ids && Array.isArray(payload.product_ids)) {
+        // ✅ CONVERSION : Compter les occurrences
+        const productCounts = {}
+        for (const id of payload.product_ids) {
+          productCounts[id] = (productCounts[id] || 0) + 1
         }
-        console.log('✅ Product IDs (depuis items):', productIds)
-      } else if (payload.product_ids && Array.isArray(payload.product_ids)) {
-        // Chemin actuel
-        productIds = payload.product_ids
-        console.log('✅ Product IDs (payload direct):', productIds)
-      } else {
-        // Fallback legacy
-        if (payload.activities && Array.isArray(payload.activities)) productIds.push(...payload.activities)
-        if (payload.menus && Array.isArray(payload.menus)) productIds.push(...payload.menus)
-        if (payload.room) productIds.push(payload.room)
-        console.log('✅ Product IDs (fallback legacy):', productIds)
+
+        items = Object.entries(productCounts).map(([productId, quantity]) => ({
+          product_id: Number(productId),
+          quantity: quantity
+        }))
+
+        console.log('🔄 Conversion product_ids → items:', items)
       }
 
-      // -- Validation
-      if (!productIds.length) {
-        console.error('❌ Aucun product_id trouvé:', payload)
-        throw new Error('Aucun produit sélectionné. Veuillez sélectionner au moins un hébergement.')
+      if (!items.length) {
+        throw new Error('Aucun produit sélectionné.')
       }
 
-      // -- Corps de requête
-      const requestData = {
-        email: payload.email || payload.contact?.email,
-        contact: {
-          name: payload.contact?.name || payload.name,
-          last_name: payload.contact?.last_name || payload.last_name,
-          phone: payload.contact?.phone || payload.phone,
-          message: payload.contact?.message || payload.message || ''
-        },
-        product_ids: productIds,
-        dates: {
-          checkin: payload.dates?.checkin || payload.dates?.start,
-          endExclusive: payload.dates?.endExclusive || payload.dates?.checkout,
-          guests: payload.dates?.guests || 2
-        },
-        total_price: payload.total_price || payload.amount || 0,
-        source: 'website'
+      // ✅ Payload API moderne
+      const apiPayload = {
+        email: payload.email,
+        contact: payload.contact || {},
+        dates: payload.dates || {},
+        items: items,  // ← Format moderne
+        total_price: payload.total_price || payload.total_amount || 0
       }
 
-      // -- N’ENVOYER "items" que si explicitement demandé
-      if (payload.include_line_items === true && items && items.length) {
-        requestData.items = items
-      }
+      console.log('📤 Envoi vers API:', apiPayload)
 
-      console.log('💾 Envoi demande devis:', {
-        endpoint: url,
-        email: requestData.email,
-        product_ids_count: requestData.product_ids.length,
-        has_items: !!requestData.items,
-        total_price: requestData.total_price,
-        dates: requestData.dates
+      const response = await axios.post(url, apiPayload, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
       })
 
-      const response = await axios.post(url, requestData, {
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
-      })
-
-      console.log('✅ Devis créé:', {
-        id: response.data.id,
-        reference: response.data.quote_reference,
-        status: response.data.status,
-        products_count: response.data.selected_product_ids?.length || 0
-      })
+      console.log('✅ Devis créé:', response.data)
 
       return {
         success: true,
@@ -293,6 +259,7 @@ class PublicApi {
         message: 'Devis sauvegardé ! Un email de confirmation vous a été envoyé.',
         next_step: 'validation_email'
       }
+
     } catch (error) {
       console.error('❌ Erreur sauvegarde devis:', error)
       if (error.response?.status === 422) {
@@ -306,8 +273,6 @@ class PublicApi {
       throw new Error('Erreur lors de la sauvegarde. Veuillez réessayer.')
     }
   }
-
-
   // =============================
   // NOUVELLE MÉTHODE : Validation devis via email
   // =============================

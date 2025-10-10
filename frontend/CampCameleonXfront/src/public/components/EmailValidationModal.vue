@@ -1,7 +1,7 @@
 <template>
   <transition name="modal-fade">
     <div v-if="show" class="modal-overlay" @click="closeModal">
-      <div class="validation-modal" @click.stop>
+      <div class="modal-container" @click.stop>
         <!-- Icône et titre -->
         <div class="modal-icon">
           <i class="fas fa-envelope-circle-check"></i>
@@ -11,7 +11,7 @@
         
         <div class="modal-content">
           <p class="success-message">
-            Votre devis <strong>{{ quoteReference }}</strong> a été créé !
+            Votre devis <strong> {{ quoteReference }} </strong> a été créé !
           </p>
           
           <div class="steps">
@@ -82,16 +82,6 @@ export default {
 </script>
 
 <style scoped>
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  padding: 1rem;
-}
 
 .validation-modal {
   background: white;
@@ -155,6 +145,7 @@ export default {
 
 .success-message strong {
   color: #c17c4a;
+  padding-inline: 0.5rem;
   font-weight: 600;
 }
 

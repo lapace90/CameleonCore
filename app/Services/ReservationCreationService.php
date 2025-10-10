@@ -19,25 +19,27 @@ class ReservationCreationService
         Log::info('🏨 Création réservation depuis devis', [
             'quote_id' => $quote->id,
             'quote_reference' => $quote->quote_reference,
-            'selected_products' => $quote->selected_product_ids
+            'payment_amount' => $paymentData['amount'] ?? $quote->total_amount,
         ]);
 
         return DB::transaction(function () use ($quote, $paymentData) {
-            $mainProduct = $this->findMainProduct($quote->selected_product_ids);
+            // ✅ CHANGÉ : passer $quote au lieu de $quote->selected_product_ids
+            $mainProduct = $this->findMainProduct($quote);
 
             if (!$mainProduct) {
-                Log::warning('⚠️ Aucun hébergement trouvé, création avec premier produit disponible');
-                $mainProduct = $this->findAnyProduct($quote->selected_product_ids);
+                Log::warning('⚠️ Aucun hébergement trouvé');
+                // Prendre le premier produit des items
+                $mainProduct = $quote->items->first()?->product;
             }
 
             if (!$mainProduct) {
-                throw new \Exception("Aucun produit trouvé dans les produits sélectionnés");
+                throw new \Exception("Aucun produit trouvé dans le devis");
             }
 
             // Créer la réservation principale
             $reservation = $this->createMainReservation($quote, $mainProduct, $paymentData);
 
-            // 🆕 SYNCHRONISER TOUS LES PRODUITS DANS LA PIVOT
+            // Synchroniser TOUS les produits
             $this->syncProductsFromQuote($reservation, $quote);
 
             // Marquer le devis comme converti
@@ -48,7 +50,7 @@ class ReservationCreationService
                 'payment_intent_id' => $paymentData['stripe_payment_intent'] ?? null
             ]);
 
-            Log::info('✅ Réservation créée avec tous les produits synchronisés', [
+            Log::info('✅ Réservation créée avec succès', [
                 'reservation_id' => $reservation->id,
                 'products_count' => $reservation->products()->count()
             ]);
@@ -62,29 +64,34 @@ class ReservationCreationService
      */
     private function syncProductsFromQuote(Reservation $reservation, QuoteRequest $quote): void
     {
-        if (empty($quote->selected_product_ids)) {
-            Log::warning('⚠️ Aucun produit à synchroniser');
+        // Charger les items si pas déjà chargés
+        if (!$quote->relationLoaded('items')) {
+            $quote->load('items');
+        }
+
+        if ($quote->items->isEmpty()) {
+            Log::warning('⚠️ Aucun produit à synchroniser', [
+                'quote_id' => $quote->id,
+                'quote_reference' => $quote->quote_reference
+            ]);
             return;
         }
 
-        // Utiliser la même logique que QuoteRequest pour compter les quantités
-        $quantities = array_count_values($quote->selected_product_ids);
-
-        // Préparer les données pour sync()
+        // Utiliser directement les items avec leurs quantités
         $pivotData = [];
-        foreach ($quantities as $productId => $quantity) {
-            $pivotData[$productId] = ['quantity' => $quantity];
+        foreach ($quote->items as $item) {
+            $pivotData[$item->product_id] = ['quantity' => $item->quantity];
         }
 
-        // Synchroniser avec la table pivot
         $reservation->products()->sync($pivotData);
 
         Log::info('✅ Produits synchronisés vers product_reservation', [
             'reservation_id' => $reservation->id,
+            'quote_id' => $quote->id,
+            'products_count' => count($pivotData),
             'products' => $pivotData
         ]);
     }
-
     /**
      * Créer la réservation principale
      */
@@ -115,43 +122,21 @@ class ReservationCreationService
     /**
      * Trouver le produit principal (hébergement) dans les produits sélectionnés
      */
-    private function findMainProduct(array $productIds): ?Product
+    private function findMainProduct(QuoteRequest $quote): ?Product
     {
-        if (empty($productIds)) {
-            return null;
-        }
-
-        // ✅ CORRECTION : Utiliser productable_type au lieu de product_type
-        // Chercher le premier produit de type Room (hébergement)
-        $product = Product::whereIn('id', $productIds)
-            ->where('productable_type', 'App\\Models\\Room')
+        // Chercher le premier Room dans les items
+        $roomItem = $quote->items()
+            ->whereHas('product', function ($q) {
+                $q->where('productable_type', 'App\\Models\\Room');
+            })
             ->first();
 
-        // Log pour debug
+        $product = $roomItem?->product;
+
         Log::info('🔍 Recherche produit principal', [
-            'product_ids' => $productIds,
+            'quote_id' => $quote->id,
             'room_found' => $product ? $product->id : null,
             'room_name' => $product ? $product->name : null
-        ]);
-
-        return $product;
-    }
-
-    /**
-     * Trouver n'importe quel produit si pas d'hébergement
-     */
-    private function findAnyProduct(array $productIds): ?Product
-    {
-        if (empty($productIds)) {
-            return null;
-        }
-
-        $product = Product::whereIn('id', $productIds)->first();
-
-        Log::info('🔍 Produit de fallback trouvé', [
-            'product_id' => $product ? $product->id : null,
-            'product_name' => $product ? $product->name : null,
-            'product_type' => $product ? class_basename($product->productable_type) : null
         ]);
 
         return $product;

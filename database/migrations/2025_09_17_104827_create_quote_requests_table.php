@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('quote_requests', function (Blueprint $table) {
             $table->id();
 
-            $table->json('selected_product_ids'); // [1,2,5,8]
             $table->foreignId('customer_id')->constrained(); // ✅ Validation gérée par Customer
 
             $table->date('checkin_date')->nullable();

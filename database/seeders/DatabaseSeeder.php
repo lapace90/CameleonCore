@@ -31,6 +31,10 @@ class DatabaseSeeder extends Seeder
             // 3. Optionnel : créer des utilisateurs et autres données
             $this->seedAdditionalData();
 
+            // 4. Créer des réservations de test
+            $this->call(ReservationTestSeeder::class);
+
+            // 5. Créer les rôles et permissions
             $this->call(RolesPermissionsSeeder::class);
 
             DB::commit();
@@ -51,7 +55,7 @@ class DatabaseSeeder extends Seeder
         $this->command->info('👥 Création d\'utilisateurs admin...');
         $ownerRole = Role::where('slug', 'owner')->first();
 
-        // ✅ MISE À JOUR : Créer un utilisateur admin pour tester avec les nouveaux champs
+        // Créer un utilisateur admin pour tester avec les nouveaux champs
         \App\Models\User::create([
             'name' => 'Pietro Pacciani',
             'email' => 'admin@campcanteloup.fr',

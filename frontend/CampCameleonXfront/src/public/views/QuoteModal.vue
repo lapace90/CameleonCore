@@ -731,30 +731,44 @@ export default {
         },
 
         // --- Actions finales ---
-        async createReservationAndPay() {
-            if (!this.canSubmit || this.isSubmitting) return
-            this.isSubmitting = 'booking'
-            try {
-                if (!this.selectedItems.room) throw new Error('Veuillez sélectionner un hébergement avant de procéder au paiement.')
-                const quoteResponse = await this.saveQuote()
-                if (!quoteResponse.success) throw new Error(quoteResponse.message || 'Impossible de créer le devis')
-                const quote = quoteResponse.quote_request
+async createReservationAndPay() {
+    if (!this.canSubmit || this.isSubmitting) return
+    this.isSubmitting = 'booking'
+    try {
+        if (!this.selectedItems.room) {
+            throw new Error('Veuillez sélectionner un hébergement avant de procéder au paiement.')
+        }
 
-                if (quote.status === 'draft') {
-                    this.showEmailValidationRequired(quote)
-                    return
-                }
+        // ✅ UTILISER LA MÊME LOGIQUE QUE saveQuote()
+        const quoteResponse = await this.saveQuote()
+        
+        if (!quoteResponse.success) {
+            throw new Error(quoteResponse.message || 'Impossible de créer le devis')
+        }
+        
+        const quote = quoteResponse.quote_request
 
-                const paymentResponse = await this.createStripeSession(quote.id)
-                if (!paymentResponse.success) throw new Error(paymentResponse.error || 'Impossible de créer la session de paiement')
-                window.location.href = paymentResponse.checkout_url
-            } catch (e) {
-                console.error('❌ Erreur paiement:', e)
-                alert('❌ ' + (e.message || 'Erreur inconnue'))
-            } finally {
-                this.isSubmitting = false
-            }
-        },
+        // ✅ VÉRIFIER next_step
+        if (quoteResponse.next_step === 'validation_email') {
+            this.showEmailValidationRequired(quote)
+            return
+        }
+
+        // Si next_step === 'payment', créer session Stripe
+        const paymentResponse = await this.createStripeSession(quote.id)
+        if (!paymentResponse.success) {
+            throw new Error(paymentResponse.error || 'Impossible de créer la session de paiement')
+        }
+        
+        window.location.href = paymentResponse.checkout_url
+        
+    } catch (e) {
+        console.error('❌ Erreur paiement:', e)
+        alert('❌ ' + (e.message || 'Erreur inconnue'))
+    } finally {
+        this.isSubmitting = false
+    }
+},
 
         showEmailValidationRequired(quote) {
             console.log('🔍 Quote reçu:', quote)
