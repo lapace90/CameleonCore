@@ -83,6 +83,7 @@
     @media (max-width: 768px) {
       grid-template-columns: 1fr;
       gap: 2rem;
+    
     }
   }
 
@@ -95,6 +96,7 @@
     border: 2px solid transparent;
     display: flex; // ✅ FLEX pour aligner les boutons
     flex-direction: column; // ✅ Colonne pour pousser le bouton en bas
+    margin: 2rem;
 
     &:hover {
       transform: translateY(-8px);
@@ -401,6 +403,7 @@
 
     @media (max-width: 768px) {
       grid-template-columns: 1fr;
+      padding: 2rem;
     }
   }
 

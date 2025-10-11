@@ -6,7 +6,7 @@
                 <router-link to="/" class="navbar-brand">
                     <div class="brand-icon">🦎</div>
                 </router-link>
-                
+
                 <!-- Navigation centrée (desktop) -->
                 <ul class="navbar-nav">
                     <li class="nav-item">
@@ -21,8 +21,11 @@
                     <li class="nav-item">
                         <router-link to="/contact" class="nav-link">CONTACTS</router-link>
                     </li>
+                    <li><a @click="goToDevis" style="cursor: pointer;" class="nav-link">
+                            Réserver
+                        </a></li>
                 </ul>
-                
+
                 <!-- Icône profil à droite (desktop) -->
                 <div class="navbar-actions">
                     <!-- <button class="profile-btn">
@@ -32,7 +35,7 @@
                         <i class="fas fa-cog"></i>
                     </router-link>
                 </div>
-                
+
                 <!-- Mobile Menu Button -->
                 <button class="mobile-menu-btn" @click="toggleMobileMenu" :class="{ 'active': isMobileMenuOpen }">
                     <span></span>
@@ -40,7 +43,7 @@
                     <span></span>
                 </button>
             </nav>
-            
+
             <!--  Menu Mobile -->
             <div class="mobile-menu" :class="{ 'active': isMobileMenuOpen }" @click="closeMobileMenu">
                 <div class="mobile-menu-content" @click.stop>
@@ -50,7 +53,7 @@
                             <span>CampCameleonX</span>
                         </div>
                     </div>
-                    
+
                     <ul class="mobile-nav">
                         <li class="mobile-nav-item">
                             <router-link to="/" class="mobile-nav-link" @click="closeMobileMenu">
@@ -64,12 +67,12 @@
                                 <span>À PROPOS</span>
                             </router-link>
                         </li>
-                        <!-- <li class="mobile-nav-item">
-                            <router-link to="/reservations" class="mobile-nav-link" @click="closeMobileMenu">
+                 
+                        <li><a @click="goToDevis" style="cursor: pointer;" class="mobile-nav-link">
                                 <i class="fas fa-calendar-alt"></i>
-                                <span>RÉSERVATIONS</span>
-                            </router-link>
-                        </li> -->
+                                <span>RÉSERVER</span>
+                            </a></li>
+
                         <li class="mobile-nav-item">
                             <router-link to="/services" class="mobile-nav-link" @click="closeMobileMenu">
                                 <i class="fas fa-concierge-bell"></i>
@@ -83,7 +86,7 @@
                             </router-link>
                         </li>
                     </ul>
-                    
+
                     <!-- Actions mobiles -->
                     <div class="mobile-actions">
                         <router-link to="/admin" class="mobile-action-btn" @click="closeMobileMenu">
@@ -95,7 +98,7 @@
                             <span>Mon Profil</span>
                         </button> -->
                     </div>
-                    
+
                     <!-- Contact mobile -->
                     <div class="mobile-contact">
                         <div class="contact-item">
@@ -130,6 +133,25 @@ export default {
                 document.body.style.overflow = 'hidden';
             } else {
                 document.body.style.overflow = '';
+            }
+        },
+        goToDevis() {
+            if (this.$route.path === '/') {
+                // Déjà sur la homepage, juste scroll
+                const element = document.getElementById('devis-section');
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth' });
+                }
+            } else {
+                // Aller à la homepage puis scroll
+                this.$router.push('/').then(() => {
+                    setTimeout(() => {
+                        const element = document.getElementById('devis-section');
+                        if (element) {
+                            element.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    }, 300);
+                });
             }
         },
         closeMobileMenu() {

@@ -67,7 +67,7 @@
                                             <div>
                                                 <label>Départ</label>
                                                 <span>{{ formatDate(displayEndInclusive(selectedDates.endExclusive))
-                                                    }}</span>
+                                                }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -94,7 +94,7 @@
                                         <div class="guests-display">
                                             <span class="guests-number">{{ selectedDates.guests }}</span>
                                             <span class="guests-text">personne{{ selectedDates.guests > 1 ? 's' : ''
-                                                }}</span>
+                                            }}</span>
                                         </div>
 
                                         <button type="button" @click="increaseGuests"
@@ -316,7 +316,7 @@
                                 </div>
                                 <div class="summary-item">
                                     <span>{{ selectedDates.guests }} personne{{ selectedDates.guests > 1 ? 's' : ''
-                                        }}</span>
+                                    }}</span>
                                 </div>
                             </div>
 
@@ -575,8 +575,9 @@ export default {
                 unselectCancel: '.booking-info', // Ne pas désélectionner si on clique sur la zone d'infos
 
                 // Amélioration pour mobile/tactile
-                selectLongPressDelay: 250,     // ✅ Réduit le délai pour le touch
-                selectMinDistance: 5,          // ✅ Distance minimale pour commencer la sélection
+                selectLongPressDelay: 50,     // Très court
+                selectMinDistance: 0,         // Pas de distance minimale
+                longPressDelay: 50,          // Ajout global
 
                 fixedWeekCount: false,
                 validRange: { start: this.minDate },
