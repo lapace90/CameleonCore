@@ -353,10 +353,14 @@ export default {
     },
 
     async downloadPdf(invoice) {
+      // Débugger pour vérifier la structure de l'objet invoice
+      console.log('Invoice object:', invoice)
+      console.log('Invoice ID:', invoice.id)
+
       try {
-        await this.invoiceStore.downloadInvoicePdf(invoice.id)
-      } catch (error) {
-        alert('❌ Erreur lors du téléchargement du PDF')
+        await this.invoiceStore.downloadPdf(invoice.id)
+      } catch (err) {
+        alert(`Erreur: ${err.message}`)
       }
     },
 
