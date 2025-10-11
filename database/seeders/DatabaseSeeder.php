@@ -37,6 +37,9 @@ class DatabaseSeeder extends Seeder
             // 5. Créer les rôles et permissions
             $this->call(RolesPermissionsSeeder::class);
 
+            // 6. Créer des avis de test
+            $this->call(ReviewSeeder::class);
+
             DB::commit();
 
             $this->command->info('✅ Seeding terminé avec succès !');

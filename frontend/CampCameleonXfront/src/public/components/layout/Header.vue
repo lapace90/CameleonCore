@@ -25,9 +25,9 @@
                 
                 <!-- Icône profil à droite (desktop) -->
                 <div class="navbar-actions">
-                    <button class="profile-btn">
+                    <!-- <button class="profile-btn">
                         <i class="fas fa-user nav-link"></i>
-                    </button>
+                    </button> -->
                     <router-link to="/admin" class="nav-link">
                         <i class="fas fa-cog"></i>
                     </router-link>
@@ -90,10 +90,10 @@
                             <i class="fas fa-cog"></i>
                             <span>Administration</span>
                         </router-link>
-                        <button class="mobile-action-btn profile-mobile" @click="closeMobileMenu">
+                        <!-- <button class="mobile-action-btn profile-mobile" @click="closeMobileMenu">
                             <i class="fas fa-user"></i>
                             <span>Mon Profil</span>
-                        </button>
+                        </button> -->
                     </div>
                     
                     <!-- Contact mobile -->

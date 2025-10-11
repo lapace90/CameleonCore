@@ -45,7 +45,9 @@
         <div class="footer-section">
           <h4 class="footer-title">Services</h4>
           <ul class="footer-links">
-            <li><router-link to="/services" class="footer-link">Réservation en ligne</router-link></li>
+            <li><a @click="goToDevis" style="cursor: pointer;" class="footer-link">
+                Réservation en ligne
+              </a></li>
             <li><router-link to="/services" class="footer-link">Équipements camping</router-link></li>
             <li><router-link to="/services" class="footer-link">Activités nature</router-link></li>
             <li><router-link to="/about" class="footer-link">Guide et conseils</router-link></li>
@@ -144,6 +146,25 @@ export default {
         // Simulation d'une inscription réussie
         alert('Merci pour votre inscription !')
         this.email = ''
+      }
+    },
+    goToDevis() {
+      if (this.$route.path === '/') {
+        // Déjà sur la homepage, juste scroll
+        const element = document.getElementById('devis-section');
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      } else {
+        // Aller à la homepage puis scroll
+        this.$router.push('/').then(() => {
+          setTimeout(() => {
+            const element = document.getElementById('devis-section');
+            if (element) {
+              element.scrollIntoView({ behavior: 'smooth' });
+            }
+          }, 300);
+        });
       }
     }
   }

@@ -357,4 +357,41 @@ export default {
     color: darken($terracotta, 10%);
   }
 }
+// Map Section - Ajustements Mobile
+.map-section {
+  @media (max-width: 768px) {
+    padding: 2rem 0; // Réduire le padding vertical
+  }
+}
+
+.map-container {
+  @media (max-width: 768px) {
+    padding: 1.5rem 1rem; // Ajouter du padding horizontal
+  }
+}
+
+.map-placeholder {
+  @media (max-width: 768px) {
+    padding: 2rem 1rem; // Réduire le padding interne
+    
+    h3 {
+      font-size: 1.5rem; // Réduire la taille du titre
+    }
+    
+    .map-directions {
+      h4 {
+        font-size: 1.1rem; // Réduire la taille du sous-titre
+      }
+      
+      ul {
+        
+        li {
+          margin-bottom: 0.5rem; // Espacement entre les éléments
+          font-size: 0.9rem; // Réduire la taille du texte
+        }
+      }
+    }
+  }
+}
 </style>
+

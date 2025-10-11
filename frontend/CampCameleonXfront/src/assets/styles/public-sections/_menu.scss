@@ -329,12 +329,22 @@
   .info-cards {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
-    margin: 2rem;
+    gap: 1rem;
+    margin: 1rem;
+
+    @media (max-width: 768px) {
+      gap: 0.5rem !important;
+      margin: 0;
+      width: 90%;
+
+      // p {
+      //   display: none;
+      // }
+    }
 
     .info-card {
       background: rgba(white, 0.8);
-      padding: 2rem;
+      padding: 1rem;
       border-radius: $border-radius-xl;
       text-align: center;
       backdrop-filter: blur(10px);
@@ -386,11 +396,17 @@
         p {
           font-size: 0.8rem;
         }
+
       }
     }
   }
 }
-
+@media (max-width: 768px) {
+  .menu-container {
+    width: 80%;
+    padding: 0; // Retirer tout padding qui pourrait réduire la largeur
+  }
+}
 // ========================================
 // ANIMATIONS
 // ========================================

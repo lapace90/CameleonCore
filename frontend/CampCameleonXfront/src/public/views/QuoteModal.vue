@@ -67,7 +67,7 @@
                                             <div>
                                                 <label>Départ</label>
                                                 <span>{{ formatDate(displayEndInclusive(selectedDates.endExclusive))
-                                                }}</span>
+                                                    }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -94,7 +94,7 @@
                                         <div class="guests-display">
                                             <span class="guests-number">{{ selectedDates.guests }}</span>
                                             <span class="guests-text">personne{{ selectedDates.guests > 1 ? 's' : ''
-                                            }}</span>
+                                                }}</span>
                                         </div>
 
                                         <button type="button" @click="increaseGuests"
@@ -316,7 +316,7 @@
                                 </div>
                                 <div class="summary-item">
                                     <span>{{ selectedDates.guests }} personne{{ selectedDates.guests > 1 ? 's' : ''
-                                    }}</span>
+                                        }}</span>
                                 </div>
                             </div>
 
@@ -731,44 +731,44 @@ export default {
         },
 
         // --- Actions finales ---
-async createReservationAndPay() {
-    if (!this.canSubmit || this.isSubmitting) return
-    this.isSubmitting = 'booking'
-    try {
-        if (!this.selectedItems.room) {
-            throw new Error('Veuillez sélectionner un hébergement avant de procéder au paiement.')
-        }
+        async createReservationAndPay() {
+            if (!this.canSubmit || this.isSubmitting) return
+            this.isSubmitting = 'booking'
+            try {
+                if (!this.selectedItems.room) {
+                    throw new Error('Veuillez sélectionner un hébergement avant de procéder au paiement.')
+                }
 
-        // ✅ UTILISER LA MÊME LOGIQUE QUE saveQuote()
-        const quoteResponse = await this.saveQuote()
-        
-        if (!quoteResponse.success) {
-            throw new Error(quoteResponse.message || 'Impossible de créer le devis')
-        }
-        
-        const quote = quoteResponse.quote_request
+                // ✅ UTILISER LA MÊME LOGIQUE QUE saveQuote()
+                const quoteResponse = await this.saveQuote()
 
-        // ✅ VÉRIFIER next_step
-        if (quoteResponse.next_step === 'validation_email') {
-            this.showEmailValidationRequired(quote)
-            return
-        }
+                if (!quoteResponse.success) {
+                    throw new Error(quoteResponse.message || 'Impossible de créer le devis')
+                }
 
-        // Si next_step === 'payment', créer session Stripe
-        const paymentResponse = await this.createStripeSession(quote.id)
-        if (!paymentResponse.success) {
-            throw new Error(paymentResponse.error || 'Impossible de créer la session de paiement')
-        }
-        
-        window.location.href = paymentResponse.checkout_url
-        
-    } catch (e) {
-        console.error('❌ Erreur paiement:', e)
-        alert('❌ ' + (e.message || 'Erreur inconnue'))
-    } finally {
-        this.isSubmitting = false
-    }
-},
+                const quote = quoteResponse.quote_request
+
+                // ✅ VÉRIFIER next_step
+                if (quoteResponse.next_step === 'validation_email') {
+                    this.showEmailValidationRequired(quote)
+                    return
+                }
+
+                // Si next_step === 'payment', créer session Stripe
+                const paymentResponse = await this.createStripeSession(quote.id)
+                if (!paymentResponse.success) {
+                    throw new Error(paymentResponse.error || 'Impossible de créer la session de paiement')
+                }
+
+                window.location.href = paymentResponse.checkout_url
+
+            } catch (e) {
+                console.error('❌ Erreur paiement:', e)
+                alert('❌ ' + (e.message || 'Erreur inconnue'))
+            } finally {
+                this.isSubmitting = false
+            }
+        },
 
         showEmailValidationRequired(quote) {
             console.log('🔍 Quote reçu:', quote)
@@ -1173,7 +1173,7 @@ $terracotta: #c17c4a;
 
 // Et pour l'étape 1 spécifiquement :
 .step-dates .step-title {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
 }
 
 /* Responsive pour mobile */
@@ -1190,6 +1190,15 @@ $terracotta: #c17c4a;
 
     .item-total {
         text-align: left;
+    }
+
+    .fc-toolbar-chunk>h2 {
+        font-size: 1rem;
+        margin: 0;
+    }
+
+    ::v-deep h2.fc-toolbar-title {
+        font-size: 1rem !important;
     }
 }
 

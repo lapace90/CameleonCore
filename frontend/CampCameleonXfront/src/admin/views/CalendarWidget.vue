@@ -73,6 +73,7 @@ import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import frLocale from '@fullcalendar/core/locales/fr'
+import AdminApi from '@/services/AdminApi'
 
 export default {
   name: 'CalendarWidget',
@@ -108,26 +109,24 @@ export default {
       events: [],
 
       // Configuration FullCalendar pour widget
-      // Dans votre CalendarWidget.vue, remplacez la section calendarOptions par :
-
       calendarOptions: {
         plugins: [dayGridPlugin, interactionPlugin],
         locale: frLocale,
         initialView: 'dayGridWeek', // ✅ Vue semaine
         headerToolbar: false,
 
-        // ✅ CORRECTION : Hauteur fixe pour éviter les variations
+        // Hauteur fixe pour éviter les variations
         height: 277, // Hauteur fixe en pixels
         // OU utiliser :
         //aspectRatio: 2.1, // Ratio largeur/hauteur fixe
 
-        // ✅ CORRECTION : Empêcher les lignes variables
+        // Empêcher les lignes variables
         fixedWeekCount: false,
         dayMaxEvents: false, // Pas de limite d'événements par jour
         moreLinkClick: 'popover',
 
         // Apparence
-        showNonCurrentDates: true, // ✅ Dates visibles
+        showNonCurrentDates: true,
         weekNumbers: false,
 
         // Interactions
@@ -139,7 +138,7 @@ export default {
         // Events
         events: this.getWidgetEvents(),
 
-        // ✅ CORRECTION : Rendu des événements en points colorés
+        // Rendu des événements en points colorés
         eventContent: this.renderEventDot,
 
         // ✅ Style pour que les événements soient des points
@@ -153,6 +152,11 @@ export default {
         }
       }
     }
+  },
+
+  mounted() {
+    // Charger les événements après montage
+    this.loadEvents()
   },
 
   computed: {
@@ -177,40 +181,39 @@ export default {
   },
 
   methods: {
-    getWidgetEvents() {
-      // Événements de demo - remplacez par votre API
-      this.events = [
-        {
-          id: '1',
-          title: 'Réunion équipe',
-          start: '2025-07-22T10:00:00',
-          backgroundColor: '#3b82f6',
-          type: 'meeting'
-        },
-        {
-          id: '2',
-          title: 'Formation',
-          start: '2025-07-23T14:00:00',
-          backgroundColor: '#8b5cf6',
-          type: 'formation'
-        },
-        {
-          id: '3',
-          title: 'Maintenance',
-          start: '2025-07-24T09:00:00',
-          backgroundColor: '#ef4444',
-          type: 'maintenance'
-        },
-        {
-          id: '4',
-          title: 'Événement spécial',
-          start: '2025-07-25T18:00:00',
-          backgroundColor: '#f59e0b',
-          type: 'event'
-        }
-      ]
+    async getWidgetEvents() {
+      try {
+        // Obtenir les dates de début et fin pour la vue actuelle
+        const start = new Date()
+        const end = new Date()
 
-      return this.events
+        // Afficher les événements des 7 prochains jours
+        start.setDate(start.getDate() - 7)
+        end.setDate(end.getDate() + 14)
+
+        // Formater les dates pour l'API
+        const startStr = start.toISOString().split('T')[0]
+        const endStr = end.toISOString().split('T')[0]
+
+        // Appeler l'API
+        const events = await AdminApi.getCalendarEvents(startStr, endStr)
+
+        // Stocker pour les événements à venir
+        this.events = events
+
+        return events
+      } catch (error) {
+        console.error('❌ Erreur chargement événements widget:', error)
+        return []
+      }
+    },
+
+    async loadEvents() {
+      const events = await this.getWidgetEvents()
+      if (this.calendarApi) {
+        this.calendarApi.removeAllEvents()
+        this.calendarApi.addEventSource(events)
+      }
     },
 
     // Navigation
@@ -254,9 +257,9 @@ export default {
       this.currentDate = dateInfo.view.currentStart
     },
 
-handleQuickAdd() {
+    handleQuickAdd() {
       const newEvent = {
-        id: null, 
+        id: null,
         title: '',
         start: new Date().toISOString(),
         end: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
