@@ -3,71 +3,55 @@
   <div class="testimonial-card">
     <!-- Photos Polaroid avec zoom -->
     <div class="polaroid-photos">
-      <div 
-        v-for="(photo, index) in photos" 
-        :key="index"
-        class="polaroid"
-        :class="{ 'polaroid-rotated': index % 2 === 1 }"
-        :style="{ '--rotation': getRotation(index) }"
-        @click="openImageModal(photo)"
-      >
+      <div v-for="(photo, index) in photos" :key="index" class="polaroid"
+        :class="{ 'polaroid-rotated': index % 2 === 1 }" :style="{ '--rotation': getRotation(index) }"
+        @click="openImageModal(photo)">
         <img :src="photo.url" :alt="photo.alt || 'Souvenir du désert'" />
         <div class="zoom-hint">
           <i class="fas fa-search-plus"></i>
         </div>
       </div>
     </div>
-    
+
     <!-- Contenu du témoignage -->
     <div class="testimonial-content">
       <h4 class="client-name">{{ clientName }}</h4>
       <p class="client-location" v-if="location">{{ location }}</p>
-      
+
       <!-- Texte avec système lire plus/moins -->
       <div class="testimonial-text-container">
-        <p 
-          class="testimonial-text"
-          :class="{ 'expanded': isTextExpanded }"
-          @click="toggleText"
-        >
+        <p class="testimonial-text" :class="{ 'expanded': isTextExpanded }" @click="toggleText">
           {{ displayText }}
         </p>
-        
-        <button 
-          v-if="needsExpansion"
-          @click="toggleText"
-          class="read-more-btn"
-        >
+
+        <button v-if="needsExpansion" @click="toggleText" class="read-more-btn">
           {{ isTextExpanded ? 'Lire moins' : 'Lire plus' }}
           <i :class="isTextExpanded ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"></i>
         </button>
       </div>
-      
+
       <!-- Note étoiles -->
       <div class="rating">
-        <span 
-          v-for="star in 5" 
-          :key="star"
-          class="star"
-          :class="{ 'filled': star <= rating }"
-        >
+        <span v-for="star in 5" :key="star" class="star" :class="{ 'filled': star <= rating }">
           ⭐
         </span>
       </div>
     </div>
 
     <!-- Modal pour zoom d'image -->
-    <Transition name="modal">
-      <div v-if="showImageModal" class="image-modal" @click="closeImageModal">
-        <div class="modal-content" @click.stop>
-          <button class="testimonial-close-btn" @click="closeImageModal">
-            <i class="fas fa-times"></i>
-          </button>
-          <img :src="selectedImage?.url" :alt="selectedImage?.alt" class="zoomed-image" />
-          <p class="image-caption" v-if="selectedImage?.alt">{{ selectedImage.alt }}</p>
+    <Teleport to="body">
+      <Transition name="modal">
+        <div v-if="showImageModal" class="image-modal" @click="closeImageModal">
+          <div class="modal-content" @click.stop>
+            <button class="testimonial-close-btn" @click="closeImageModal">
+              <i class="fas fa-times"></i>
+            </button>
+            <img :src="selectedImage?.url" :alt="selectedImage?.alt" class="zoomed-image" />
+            <p class="image-caption" v-if="selectedImage?.alt">{{ selectedImage.alt }}</p>
+          </div>
         </div>
-      </div>
-    </Transition>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -175,12 +159,10 @@ export default {
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(white, 0.1),
-      transparent
-    );
+    background: linear-gradient(90deg,
+        transparent,
+        rgba(white, 0.1),
+        transparent);
     transition: left 0.5s ease;
   }
 
@@ -350,6 +332,7 @@ export default {
     }
 
     @media (max-width: 768px) {
+
       &::before,
       &::after {
         display: none;
@@ -412,6 +395,7 @@ export default {
   from {
     filter: brightness(1) grayscale(0%);
   }
+
   to {
     filter: brightness(1.2) grayscale(0%);
   }
@@ -420,34 +404,32 @@ export default {
 // Variantes de styles - SANS CHANGEMENT DE TAILLE DE TEXTE
 .testimonial-card.compact {
   padding: 2rem; // Seul le padding change
-  
+
   .polaroid {
     width: 75px; // Plus petit pour compact
     height: 95px;
-    
+
     img {
       width: 59px;
       height: 59px;
       margin: 0 auto; // Centré
     }
   }
-  
+
   // SUPPRIMÉ : les overrides de taille de texte pour uniformité
 }
 
 .testimonial-card.featured {
   border: 2px solid rgba($terracotta, 0.4);
   position: relative;
-  
+
   &::before {
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba($terracotta, 0.2),
-      transparent
-    );
+    background: linear-gradient(90deg,
+        transparent,
+        rgba($terracotta, 0.2),
+        transparent);
   }
-  
+
   &::after {
     content: '✦';
     position: absolute;
@@ -465,28 +447,28 @@ export default {
     width: 70px !important; // Taille mobile fixe
     height: 85px !important;
     padding: 6px 6px 20px 6px !important;
-    
+
     img {
       width: 58px !important;
       height: 58px !important;
       margin: 0 auto !important; // Centré sur mobile aussi
     }
-    
+
     &.polaroid-rotated {
       margin-top: 10px !important;
     }
-    
+
     .zoom-hint {
       width: 20px !important;
       height: 20px !important;
       font-size: 0.65rem !important;
     }
   }
-  
+
   .testimonial-card.compact .polaroid {
     width: 60px !important;
     height: 75px !important;
-    
+
     img {
       width: 48px !important;
       height: 48px !important;
@@ -496,12 +478,21 @@ export default {
 }
 
 @keyframes starTwinkle {
-  0%, 100% { opacity: 0.6; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.2); }
+
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
 }
 
 // ========================================
-// MODAL D'IMAGE ZOOM
+// MODAL D'IMAGE ZOOM - CORRIGÉ
 // ========================================
 .image-modal {
   position: fixed;
@@ -509,30 +500,30 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba($coffee, 0.95);
   backdrop-filter: blur(10px);
-  z-index: 2000;
+  z-index: 9999; // Z-index très élevé
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 2rem;
+  cursor: pointer; // Pour fermer en cliquant sur le fond
 
   .modal-content {
     position: relative;
-    max-width: 90vw;
+    width: auto; // Auto au lieu de max-width
+    height: auto;
+    max-width: min(90vw, 1200px); // Limite raisonnable
     max-height: 90vh;
-    background: white;
-    border-radius: $border-radius-xl;
-    overflow: hidden;
-    box-shadow: $shadow-strong;
+    background: transparent; // Transparent au lieu de blanc
+    cursor: default; // Empêche la fermeture en cliquant sur l'image
     
     .testimonial-close-btn {
       position: absolute;
-      top: 1rem;
-      right: 1rem;
-      background: rgba($coffee, 0.8);
+      top: -50px; // Au-dessus de l'image
+      right: 0;
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid white;
       color: white;
-      border: none;
       width: 40px;
       height: 40px;
       border-radius: 50%;
@@ -544,36 +535,72 @@ export default {
       justify-content: center;
 
       &:hover {
-        background: $coffee;
+        background: rgba(255, 255, 255, 0.3);
         transform: scale(1.1);
       }
     }
 
     .zoomed-image {
-      width: 100%;
+      width: auto;
       height: auto;
-      max-height: 80vh;
+      max-width: 100%;
+      max-height: calc(90vh - 4rem); // Espace pour le bouton fermer
       object-fit: contain;
       display: block;
+      border-radius: $border-radius-lg;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
     }
 
     .image-caption {
-      padding: 1rem 2rem;
-      background: $bg-secondary;
-      color: $text-primary;
+      position: absolute;
+      bottom: -40px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 0.5rem 1rem;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
       text-align: center;
       font-style: italic;
       margin: 0;
+      border-radius: $border-radius-sm;
+      white-space: nowrap;
+      font-size: $font-size-sm;
     }
   }
 }
 
+// Pour mobile, ajuster le bouton fermer
+@media (max-width: 768px) {
+  .image-modal {
+    padding: 1rem;
+    
+    .modal-content {
+      .testimonial-close-btn {
+        top: 10px;
+        right: 10px;
+        position: fixed; // Fixed sur mobile
+        background: rgba(0, 0, 0, 0.8);
+      }
+      
+      .image-caption {
+        position: relative;
+        bottom: auto;
+        left: auto;
+        transform: none;
+        margin-top: 1rem;
+        white-space: normal;
+      }
+    }
+  }
+}
 // Transitions pour la modal
-.modal-enter-active, .modal-leave-active {
+.modal-enter-active,
+.modal-leave-active {
   transition: all 0.3s ease;
 }
 
-.modal-enter-from, .modal-leave-to {
+.modal-enter-from,
+.modal-leave-to {
   opacity: 0;
 }
 

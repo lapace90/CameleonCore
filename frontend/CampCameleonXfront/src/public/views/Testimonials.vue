@@ -433,7 +433,7 @@ export default {
 /* Responsive */
 @media (max-width: 768px) {
   .testimonials-hero {
-    padding: 6rem 0 3rem;
+    padding: 8.1rem 0 3rem;
 
     .stats-summary {
       gap: 2rem;

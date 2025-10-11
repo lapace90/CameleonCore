@@ -7,6 +7,20 @@
         <p class="calendar-subtitle">Gestion des réservations et événements</p>
       </div>
       <div class="header-actions">
+        <!-- AJOUT : Boutons de navigation -->
+        <div class="calendar-navigation">
+          <button @click="navigatePrev" class="nav-btn" title="Période précédente">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+
+          <button @click="navigateToday" class="today-btn">
+            Aujourd'hui
+          </button>
+
+          <button @click="navigateNext" class="nav-btn" title="Période suivante">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
         <div class="view-switcher">
           <button v-for="view in availableViews" :key="view.value" @click="changeView(view.value)" class="view-btn"
             :class="{ active: currentView === view.value }">
@@ -22,32 +36,45 @@
     </div>
 
     <!-- Stats rapides -->
+    <!-- Dans le template de FullCalendar.vue -->
     <div class="calendar-stats" v-if="showStats">
       <div class="stat-card">
         <div class="stat-icon reservations">
-          <i class="fas fa-calendar-check"></i>
+          <i class="fas fa-calendar-alt"></i>
         </div>
         <div class="stat-content">
-          <span class="stat-number">{{ stats.reservations }}</span>
-          <span class="stat-label">Réservations ce mois</span>
+          <span class="stat-number">{{ stats.totalReservations }}</span>
+          <span class="stat-label">Réservations totales</span>
         </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-icon events">
-          <i class="fas fa-star"></i>
-        </div>
-        <div class="stat-content">
-          <span class="stat-number">{{ stats.events }}</span>
-          <span class="stat-label">Événements prévus</span>
-        </div>
-      </div>
+
       <div class="stat-card">
         <div class="stat-icon occupancy">
-          <i class="fas fa-chart-line"></i>
+          <i class="fas fa-users"></i>
         </div>
         <div class="stat-content">
-          <span class="stat-number">{{ stats.occupancy }}%</span>
-          <span class="stat-label">Taux d'occupation</span>
+          <span class="stat-number">{{ stats.currentGuests }}</span>
+          <span class="stat-label">Clients présents</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon info">
+          <i class="fas fa-sign-in-alt"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-number">{{ stats.checkinsToday }}</span>
+          <span class="stat-label">Arrivées aujourd'hui</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon warning">
+          <i class="fas fa-sign-out-alt"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-number">{{ stats.checkoutsToday }}</span>
+          <span class="stat-label">Départs aujourd'hui</span>
         </div>
       </div>
     </div>
@@ -126,9 +153,10 @@ export default {
       ],
 
       stats: {
-        reservations: 0,
-        events: 0,
-        occupancy: 0
+        totalReservations: 0,
+        currentGuests: 0,
+        checkinsToday: 0,
+        checkoutsToday: 0
       },
 
       calendarOptions: {
@@ -168,6 +196,28 @@ export default {
   },
 
   methods: {
+    // Navigation du calendrier
+    navigatePrev() {
+      const calendar = this.$refs.calendar
+      if (calendar && calendar.calendar) {
+        calendar.calendar.prev()
+      }
+    },
+
+    navigateNext() {
+      const calendar = this.$refs.calendar
+      if (calendar && calendar.calendar) {
+        calendar.calendar.next()
+      }
+    },
+
+    navigateToday() {
+      const calendar = this.$refs.calendar
+      if (calendar && calendar.calendar) {
+        calendar.calendar.today()
+      }
+    },
+
     // =============================
     // CHARGEMENT ÉVÉNEMENTS UNIFIÉ
     // =============================
@@ -179,13 +229,12 @@ export default {
         const startDate = info.start.toISOString().split('T')[0]
         const endDate = info.end.toISOString().split('T')[0]
 
-        console.log('📡 Chargement événements unifiés:', { startDate, endDate })
-
         const events = await AdminApi.getCalendarEvents(startDate, endDate)
 
-        console.log('✅ Événements reçus du backend:', events)
-        successCallback(events)
+        // Calculer les stats depuis les événements
+        this.updateStatsFromEvents(events)
 
+        successCallback(events)
       } catch (error) {
         console.error('❌ Erreur chargement événements:', error)
         failureCallback(error)
@@ -194,20 +243,38 @@ export default {
       }
     },
 
+    updateStatsFromEvents(events) {
+      const reservations = events.filter(e => e.type === 'reservation')
+      const otherEvents = events.filter(e => e.type !== 'reservation')
+
+      this.stats = {
+        reservations: reservations.length,
+        events: otherEvents.length,
+        occupancy: Math.round((reservations.length / 30) * 100) // Exemple: sur 30 chambres
+      }
+    },
+
     async loadInitialStats() {
       try {
         const stats = await AdminApi.getDashboardStats()
 
+        console.log('📊 Stats reçues:', stats)
+
         this.stats = {
-          reservations: stats.reservations_today || 0,
-          events: stats.total_events || 0,
-          occupancy: stats.occupancy_rate || 0
+          totalReservations: stats.reservations.total || 0,
+          currentGuests: stats.occupancy.current_guests || 0,
+          checkinsToday: stats.occupancy.checkins_today || 0,
+          checkoutsToday: stats.occupancy.checkouts_today || 0
         }
-
-        console.log('📊 Stats calendrier chargées:', this.stats)
-
       } catch (error) {
-        console.warn('⚠️ Impossible de charger les stats:', error)
+        console.error('❌ Erreur chargement stats:', error)
+        // Valeurs par défaut
+        this.stats = {
+          totalReservations: 0,
+          currentGuests: 0,
+          checkinsToday: 0,
+          checkoutsToday: 0
+        }
       }
     },
 
@@ -517,6 +584,48 @@ export default {
 
 
 <style scoped>
+
+/* Navigation du calendrier */
+.calendar-navigation {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-right: 1rem;
+}
+
+.nav-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.today-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.today-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
 .calendar-container {
   background: white;
   border-radius: 12px;
