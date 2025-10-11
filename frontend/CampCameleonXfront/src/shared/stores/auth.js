@@ -12,6 +12,8 @@ export const useAuthStore = defineStore('auth', () => {
   const roles = ref([])
   const loading = ref(false)
   const error = ref(null)
+  const lastCheck = ref(null)
+  const CACHE_TIME = 5 * 60 * 1000 // 5 minutes
 
   const initializing = ref(!!token.value)
   const isAuthenticated = ref(false)
@@ -47,6 +49,12 @@ export const useAuthStore = defineStore('auth', () => {
   // ===========================
   // ACTIONS
   // ===========================
+  // 2. AJOUTER LA MÉTHODE initializeToken :
+  const initializeToken = () => {
+    if (token.value) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token.value}`
+    }
+  }
 
   // Configuration du token
   const setToken = (newToken) => {
@@ -65,7 +73,7 @@ export const useAuthStore = defineStore('auth', () => {
   // Méthode pour définir l'utilisateur
   const setUser = (userData) => {
     user.value = userData
-    
+
     if (userData) {
       // Extraire et normaliser les permissions
       permissions.value = userData.permissions || []
@@ -118,31 +126,45 @@ export const useAuthStore = defineStore('auth', () => {
 
   const checkAuth = async () => {
     if (!token.value) {
-      console.log('❌ Pas de token, pas de vérification')
       isAuthenticated.value = false
       initializing.value = false
       return false
     }
 
+    // 🚀 CACHE : Éviter requête si vérification récente
+    const now = Date.now()
+    if (lastCheck.value && (now - lastCheck.value < CACHE_TIME)) {
+      console.log('🚀 Cache auth hit - pas de vérification backend')
+      return isAuthenticated.value
+    }
+
     loading.value = true
-    console.log('🔍 Vérification du token...')
 
     try {
+      console.log('🔄 Vérification du token avec le backend...')
       const response = await axios.get('/api/auth/verify')
       console.log('🔍 Réponse API verify:', response.data)
+      const userData = response.data.user
 
-      if (response.data.user) {
-        console.log('✅ Token valide, utilisateur:', response.data.user.name)
-        setUser(response.data.user)
-        return true
-      }
+      console.log('✅ Token valide, utilisateur:', userData.name)
 
-      console.warn('⚠️ Pas d\'utilisateur dans la réponse')
-      logout()
-      return false
+      user.value = userData
+      isAuthenticated.value = true
+
+      await loadUserPermissions()
+
+      lastCheck.value = now
+      return true
     } catch (err) {
-      console.error('❌ Erreur vérification token:', err.response?.status, err.message)
-      logout()
+      console.warn('⚠️ Token invalide ou expiré:', err.response?.status)
+
+      lastCheck.value = null
+      setToken(null)
+      user.value = null
+      permissions.value = []
+      roles.value = []
+      isAuthenticated.value = false
+
       return false
     } finally {
       loading.value = false
@@ -160,22 +182,22 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       console.log('📝 Tentative d\'inscription...', userData.email)
-      
+
       const response = await axios.post('/api/auth/register', userData)
-      
+
       if (response.data.token && response.data.user) {
         console.log('✅ Inscription réussie:', response.data.user.name)
-        
+
         setToken(response.data.token)
         setUser(response.data.user)
-        
+
         return { success: true, user: response.data.user }
       }
 
       throw new Error('Réponse invalide du serveur')
     } catch (err) {
       console.error('❌ Erreur inscription:', err)
-      
+
       // Gestion des erreurs de validation
       if (err.response?.status === 422) {
         const validationErrors = err.response.data?.errors || {}
@@ -184,7 +206,7 @@ export const useAuthStore = defineStore('auth', () => {
       } else {
         error.value = err.response?.data?.message || 'Erreur lors de l\'inscription'
       }
-      
+
       return { success: false, error: error.value }
     } finally {
       loading.value = false
@@ -201,7 +223,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       const response = await axios.post('/api/auth/login', credentials)
-      
+
       if (response.data.token && response.data.user) {
         setToken(response.data.token)
         setUser(response.data.user)
@@ -245,6 +267,104 @@ export const useAuthStore = defineStore('auth', () => {
       return false
     }
   }
+  const loadUserPermissions = async () => {
+    if (!user.value) return
+    permissions.value = Array.isArray(user.value.permissions) ? user.value.permissions : []
+    roles.value = Array.isArray(user.value.roles) ? user.value.roles : []
+  }
+
+  // 5. AJOUTER refreshAuth :
+  const refreshAuth = async () => {
+    if (!token.value) return false
+    return await checkAuth()
+  }
+
+  // 6. AJOUTER updateProfile :
+  const updateProfile = async (profileData) => {
+    if (!user.value?.id) {
+      throw new Error('Utilisateur non connecté')
+    }
+
+    loading.value = true
+    error.value = null
+
+    try {
+      const headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+
+      if (token.value) {
+        headers['Authorization'] = `Bearer ${token.value}`
+      } else {
+        throw new Error('Token d\'authentification manquant')
+      }
+
+      console.log('🔍 Headers envoyés:', headers)
+
+      const response = await axios.patch(`/api/admin/users/${user.value.id}`, profileData, {
+        headers
+      })
+
+      const updatedUser = response.data
+
+      // Mettre à jour l'utilisateur dans le store
+      user.value = {
+        ...user.value,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        phone: updatedUser.phone,
+        address: updatedUser.address,
+        city: updatedUser.city,
+        postal_code: updatedUser.postal_code || updatedUser.postalCode, // Gérer les deux formats
+        avatar: updatedUser.avatar,
+        last_login_at: updatedUser.last_login_at,
+        last_login_ip: updatedUser.last_login_ip,
+      }
+
+      return user.value
+    } catch (err) {
+      const errorMessage = err.response?.data?.message ||
+        err.response?.data?.violations?.[0]?.message ||
+        'Erreur lors de la mise à jour du profil'
+      error.value = errorMessage
+      throw new Error(errorMessage)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // 7. AJOUTER changePassword :
+  const changePassword = async ({ current, new: newPassword }) => {
+    if (!user.value?.id) {
+      throw new Error('Utilisateur non connecté')
+    }
+
+    loading.value = true
+    error.value = null
+
+    try {
+      await axios.patch(`/api/admin/users/${user.value.id}`, {
+        current_password: current,
+        password: newPassword,
+        password_confirmation: newPassword
+      })
+
+      return true
+    } catch (err) {
+      const errorMessage = err.response?.data?.message ||
+        err.response?.data?.violations?.[0]?.message ||
+        'Erreur lors du changement de mot de passe'
+      error.value = errorMessage
+      throw new Error(errorMessage)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // 8. APPELER initializeToken() à la fin du store (avant le return) :
+  initializeToken()
+
 
   // ===========================
   // RETOUR PUBLIC
@@ -277,7 +397,7 @@ export const useAuthStore = defineStore('auth', () => {
     setToken,
     setUser,
     checkAuth,
-    register,  
+    register,
     login,
     logout,
     refreshToken,
@@ -288,6 +408,11 @@ export const useAuthStore = defineStore('auth', () => {
     hasAllPermissions,
     hasRole,
     hasAnyRole,
-    hasAllRoles
+    hasAllRoles,
+    initializeToken,
+    loadUserPermissions,
+    refreshAuth,
+    updateProfile,
+    changePassword,
   }
 })
