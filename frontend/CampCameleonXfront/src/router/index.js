@@ -34,18 +34,32 @@ const routes = [
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes
+  routes,
+  scrollBehavior(to, from, savedPosition) {
+    // Si on utilise le bouton retour du navigateur
+    if (savedPosition) {
+      return savedPosition
+    }
+    // Si on navigue vers une ancre
+    else if (to.hash) {
+      return {
+        el: to.hash,  // Pour Vue 3, utiliser 'el' au lieu de 'selector'
+        behavior: 'smooth'
+      }
+    }
+    // Sinon, toujours en haut
+    else {
+      return { top: 0, left: 0 }  // Pour Vue 3, utiliser 'top' et 'left'
+    }
+  }
 })
 
 // 🔧 ROUTER GUARD SIMPLIFIÉ : SANS ATTENTE BLOQUANTE
 router.beforeEach(async (to, from, next) => {
   console.log(`🧭 Navigation: ${from.path} → ${to.path}`)
-  
+
   const authStore = useAuthStore()
-  
-  // 🚀 SUPPRIMÉ : La partie qui bloque pendant 5 secondes
-  // Plus d'attente de authStore.isInitializing !
-  
+
   // 🔧 ROUTES INVITÉ : Rediriger si déjà connecté
   if (to.meta.requiresGuest && authStore.isAuthenticated) {
     console.log('🔒 Déjà connecté, redirection vers dashboard')
@@ -57,13 +71,13 @@ router.beforeEach(async (to, from, next) => {
   if (to.matched.some(record => record.meta.requiresAuth)) {
     if (!authStore.isAuthenticated) {
       console.log('🚫 Non connecté, redirection vers login')
-      next({ 
-        name: 'AdminLogin', 
-        query: { redirect: to.fullPath } 
+      next({
+        name: 'AdminLogin',
+        query: { redirect: to.fullPath }
       })
       return
     }
-    
+
     // 🔧 VÉRIFICATION DES PERMISSIONS (optionnel)
     if (to.meta.requiresAdmin && !authStore.canAccessAdmin) {
       console.log('🚫 Accès admin refusé')
@@ -75,14 +89,14 @@ router.beforeEach(async (to, from, next) => {
   next()
 })
 
-// 🔧 AJOUT : Guard après navigation pour gérer les erreurs
+// Guard après navigation pour gérer les erreurs
 router.afterEach((to, from, failure) => {
   if (failure) {
     console.error('Erreur de navigation:', failure)
   }
 })
 
-// 🔧 AJOUT : Gestion des erreurs de résolution de route
+// Gestion des erreurs de résolution de route
 router.onError((error) => {
   console.error('Erreur du router:', error)
 })

@@ -13,10 +13,11 @@
       </div>
     </section>
 
-    <MenusSection :items="menus" @menu-selected="handleMenuSelection" />
+    <MenusSection @menu-selected="handleMenuSelection" />
+<ActivitiesSection displayMode="detailed" sectionTitle="Nos activités détaillées"
+  sectionSubtitle="Choisissez votre aventure" :showStats="false" />
 
-    <ActivitiesSection :items="activities" displayMode="detailed" sectionTitle="Nos activités détaillées"
-      sectionSubtitle="Choisissez votre aventure" :showStats="false" />
+
 
     <!-- Section Hébergement -->
     <section class="accommodation-section">

@@ -802,6 +802,10 @@ export default {
   .calendar-wrapper {
     padding: 1rem;
   }
+  .fc .fc-toolbar-title #fc-dom-1 {
+    padding: 1rem;
+    font-size: 0.5rem !important;
+  }
 
   :deep(.fc-toolbar) {
     flex-direction: column;

@@ -211,6 +211,7 @@ export default {
   }
 
   h1 {
+    margin-top: 2rem;
     font-size: clamp($font-size-4xl, 5vw, $font-size-5xl);
     margin-bottom: 1.5rem;
     font-family: $font-family-display;
