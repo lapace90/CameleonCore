@@ -28,9 +28,6 @@
 
                 <!-- Icône profil à droite (desktop) -->
                 <div class="navbar-actions">
-                    <!-- <button class="profile-btn">
-                        <i class="fas fa-user nav-link"></i>
-                    </button> -->
                     <router-link to="/admin" class="nav-link">
                         <i class="fas fa-cog"></i>
                     </router-link>
@@ -67,11 +64,6 @@
                                 <span>À PROPOS</span>
                             </router-link>
                         </li>
-                 
-                        <li><a @click="goToDevis" style="cursor: pointer;" class="mobile-nav-link">
-                                <i class="fas fa-calendar-alt"></i>
-                                <span>RÉSERVER</span>
-                            </a></li>
 
                         <li class="mobile-nav-item">
                             <router-link to="/services" class="mobile-nav-link" @click="closeMobileMenu">
@@ -83,8 +75,14 @@
                             <router-link to="/contact" class="mobile-nav-link" @click="closeMobileMenu">
                                 <i class="fas fa-envelope"></i>
                                 <span>CONTACTS</span>
+
                             </router-link>
                         </li>
+                        <li class="mobile-nav-item"><a @click="goToDevis" style="cursor: pointer;"
+                                class="mobile-nav-link">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>RÉSERVER</span>
+                            </a></li>
                     </ul>
 
                     <!-- Actions mobiles -->
