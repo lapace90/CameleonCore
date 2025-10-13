@@ -1,5 +1,4 @@
 <?php
-// app/State/RoleCollectionProvider.php - VERSION COMPLÈTE OPTIMISÉE
 
 namespace App\State;
 
@@ -14,7 +13,7 @@ class RoleCollectionProvider implements ProviderInterface
     {
         $request = $context['request'] ?? request();
         
-        // 🚀 OPTIMISATION : Mode light pour les formulaires
+        // Mode light pour les formulaires
         $mode = $request->get('mode', 'full'); // full | light
         
         if ($mode === 'light') {
@@ -57,16 +56,16 @@ class RoleCollectionProvider implements ProviderInterface
     }
     
     /**
-     * 🐌 MODE FULL : Pour interface de gestion complète (Roles.vue)
+     * MODE FULL : Pour interface de gestion complète (Roles.vue)
      * Toutes les données enrichies - Plus lent mais complet
      */
     private function provideFullMode(): array
     {
-        // 🧠 LOGIQUE MÉTIER : Récupération avec relations et compteurs (comme avant)
+        // LOGIQUE MÉTIER : Récupération avec relations et compteurs 
         $roles = Role::with(['permissions', 'primaryUsers', 'users'])
             ->select([
                 'roles.*',
-                // ✅ Calculs pré-faits côté serveur
+                // Calculs pré-faits côté serveur
                 DB::raw('(SELECT COUNT(*) FROM permission_role WHERE role_id = roles.id) as permissions_count'),
                 DB::raw('(SELECT COUNT(*) FROM users WHERE role_id = roles.id) as primary_users_count'),
                 DB::raw('(SELECT COUNT(*) FROM role_user WHERE role_id = roles.id) as additional_users_count'),
@@ -83,7 +82,7 @@ class RoleCollectionProvider implements ProviderInterface
             ->orderBy('name')
             ->get();
 
-        // 🧠 ENRICHISSEMENT pour l'UI (comme avant)
+        // 🧠 ENRICHISSEMENT pour l'UI 
         $enrichedRoles = $roles->map(function ($role) {
             return [
                 'id' => $role->id,
@@ -97,13 +96,13 @@ class RoleCollectionProvider implements ProviderInterface
                 'is_critical' => method_exists($role, 'isCritical') ? $role->isCritical() : false,
                 'can_be_deleted' => method_exists($role, 'canBeDeleted') ? $role->canBeDeleted() : true,
                 
-                // 📊 Compteurs pré-calculés
+                // Compteurs pré-calculés
                 'permissions_count' => (int) $role->permissions_count,
                 'primary_users_count' => (int) $role->primary_users_count,
                 'additional_users_count' => (int) $role->additional_users_count,
                 'total_users_count' => (int) $role->total_users_count,
                 
-                // 🔗 Relations complètes pour les modales
+                // Relations complètes pour les modales
                 'permissions' => $role->permissions->map(function ($permission) {
                     return [
                         'id' => $permission->id,

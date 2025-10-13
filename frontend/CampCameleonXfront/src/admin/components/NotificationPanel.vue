@@ -50,7 +50,7 @@
             
             <!-- Métadonnées -->
             <div class="notification-meta">
-              <!-- ✅ CORRECTION: utiliser createdAt au lieu de created_at -->
+              <!--  utiliser createdAt au lieu de created_at -->
               <span class="time">{{ formatTime(notification.createdAt || notification.created_at) }}</span>
               <span v-if="notification.data?.customer_name" class="customer">
                 {{ notification.data.customer_name }}
@@ -244,8 +244,8 @@ export default {
       const icons = {
         'new_reservation': 'fas fa-calendar-plus',
         'reservation': 'fas fa-calendar-plus',
-        'new_review': 'fas fa-star', // ✅ AJOUT
-        'review': 'fas fa-star', // ✅ AJOUT
+        'new_review': 'fas fa-star', 
+        'review': 'fas fa-star', 
         'payment': 'fas fa-credit-card',
         'user': 'fas fa-user-plus',
         'system': 'fas fa-cog',
@@ -262,8 +262,8 @@ export default {
       const colors = {
         'new_reservation': '#28a745',
         'reservation': '#28a745',
-        'new_review': '#ffc107', // ✅ AJOUT
-        'review': '#ffc107', // ✅ AJOUT
+        'new_review': '#ffc107', 
+        'review': '#ffc107', 
         'payment': '#17a2b8', 
         'user': '#6f42c1',
         'system': '#6c757d',

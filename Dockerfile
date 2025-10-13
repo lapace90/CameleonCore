@@ -25,7 +25,7 @@ RUN apt-get update && apt-get install -y libpq-dev && \
 # Active les extensions PHP
 RUN docker-php-ext-enable pdo_pgsql
 
-# ✅ Ajouter Xdebug ICI (après les extensions de base)
+# Ajouter Xdebug (après les extensions de base)
 RUN pecl install xdebug \
     && docker-php-ext-enable xdebug
 

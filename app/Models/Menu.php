@@ -30,13 +30,13 @@ class Menu extends Model
         return $this->belongsToMany(Dish::class);
     }
 
-    // ✅ AJOUT : Tags spécifiques pour les menus
+    //  Tags spécifiques pour les menus
     public function specificTags()
     {
         return $this->morphToMany(Tag::class, 'taggable')->where('is_global', false);
     }
 
-    // ✅ AJOUT : Méthode pour calculer les tags (utilisée par l'observer)
+    //  Méthode pour calculer les tags (utilisée par l'observer)
     public function calculateSpecificTags()
     {
         $tags = [];
@@ -110,7 +110,7 @@ class Menu extends Model
         return array_unique($tags);
     }
 
-    // ✅ AJOUT : Méthode manuelle pour forcer la mise à jour des tags
+    //  Méthode manuelle pour forcer la mise à jour des tags
     public function updateTags()
     {
         $tags = $this->calculateSpecificTags();

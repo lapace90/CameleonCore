@@ -302,7 +302,7 @@ export default {
   },
 
   methods: {
-    // ✅ CORRECTION : Utiliser UsersApi au lieu de AdminApi
+    //  Utiliser UsersApi au lieu de AdminApi
     async fetchUsers() {
       this.loading = true
       this.error = null
@@ -318,7 +318,7 @@ export default {
       }
     },
 
-    // ✅ CORRECTION : Utiliser RolesApi au lieu de AdminApi
+    //  Utiliser RolesApi au lieu de AdminApi
     async fetchRoles() {
       try {
         const roles = await RolesApi.getAll()
@@ -369,7 +369,7 @@ export default {
       this.selectedUser = null
     },
 
-    // ✅ CORRECTION : Utiliser UsersApi
+    //  Utiliser UsersApi
     async toggleUserStatus(user) {
       try {
         const newStatus = user.status === 'active' ? 'inactive' : 'active'
@@ -387,7 +387,7 @@ export default {
       }
     },
 
-    // ✅ CORRECTION : Utiliser UsersApi
+    //  Utiliser UsersApi
     async deleteUser(user) {
       if (!confirm(`Êtes-vous sûr de vouloir supprimer ${user.name} ?`)) {
         return

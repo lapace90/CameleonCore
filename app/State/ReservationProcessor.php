@@ -264,7 +264,7 @@ class ReservationProcessor implements ProcessorInterface
             'postal_code' => $customerData['postal_code'] ?? $customer->postal_code ?? null,
             'country' => $customerData['country'] ?? $customer->country ?? null,
 
-            // ✅ AJOUT RGPD : Consentements (implicites lors d'une réservation)
+            // RGPD : Consentements (implicites lors d'une réservation)
             'gdpr_consent' => true, // Accepté via validation du formulaire
             'gdpr_consent_at' => now(),
             'gdpr_consent_ip' => $ipAddress,
@@ -353,7 +353,7 @@ class ReservationProcessor implements ProcessorInterface
     {
         return [
             'customer_id' => $customerId,
-            'date' => $payload['checkin'], // ✅ Date de référence de la réservation = date de checkin
+            'date' => $payload['checkin'], // Date de référence de la réservation = date de checkin
             'checkin' => $payload['checkin'],
             'checkout' => $payload['checkout'],
             'amount' => $payload['amount'],

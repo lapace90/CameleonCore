@@ -25,7 +25,7 @@ class ReservationProvider implements ProviderInterface
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 
-            // ✅ TRANSFORMATION MANUELLE POUR ÉVITER LES IRIs
+            // TRANSFORMATION MANUELLE POUR ÉVITER LES IRIs
             $reservations->getCollection()->transform(function ($reservation) {
                 return $this->transformReservation($reservation);
             });
@@ -48,7 +48,7 @@ class ReservationProvider implements ProviderInterface
                 'product' => function($query) {
                     $query->select('id', 'name', 'description', 'price', 'productable_type', 'productable_id');
                 },
-                // ✅ AJOUTER : Charger tous les produits liés via la table pivot
+                // Charger tous les produits liés via la table pivot
                 'products' => function($query) {
                     $query->select('products.id', 'name', 'price', 'productable_type', 'productable_id');
                 }

@@ -47,10 +47,10 @@ class ReviewProvider implements ProviderInterface
         // 📋 RÉCUPÉRATION DE LA COLLECTION
         $query = Review::query();
 
-        // ✅ DÉPLACER ICI : Récupérer la requête AVANT le filtrage
+        // Récupérer la requête AVANT le filtrage
         $request = $context['request'] ?? null;
         
-        // ✅ Vérifier si on force le mode public
+        // Vérifier si on force le mode public
         $forcePublicMode = $request && $request->query->get('public_only') === 'true';
 
         // Filtrage par statut
@@ -92,7 +92,7 @@ class ReviewProvider implements ProviderInterface
             'total' => $total,
         ]);
 
-        // ✅ Retourner les données normalisées
+        // Retourner les données normalisées
         return $query->get()->map(function ($review) {
             return $this->normalizeReview($review);
         })->toArray();
@@ -128,7 +128,7 @@ class ReviewProvider implements ProviderInterface
             'category' => $review->category,
             'featured' => $review->featured,
             'is_published' => $review->is_published,
-            'photos' => $photos, // ✅ Toujours un ARRAY
+            'photos' => $photos,
             'status' => $review->status,
             'created_at' => $review->created_at?->toISOString(),
         ];

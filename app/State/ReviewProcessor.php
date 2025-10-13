@@ -21,7 +21,6 @@ class ReviewProcessor implements ProcessorInterface
         $currentUser = auth('sanctum')->user();
         $isAdmin = $currentUser && $currentUser->isAdmin();
 
-        // ✅ PATTERN CORRECT comme les autres Processors
         try {
             switch (true) {
                 case $operation instanceof Post:
@@ -48,7 +47,7 @@ class ReviewProcessor implements ProcessorInterface
     }
 
     /**
-     * ✅ CRÉER un avis (public ou admin)
+     * CRÉER un avis (public ou admin)
      */
     private function createReview($data, array $context): Review
     {
@@ -119,8 +118,8 @@ class ReviewProcessor implements ProcessorInterface
 
         Log::info('🔄 ReviewProcessor - Mise à jour avis', [
             'review_id' => $reviewId,
-            'payload_reçu' => $payload, // ✅ AJOUTÉ
-            'is_published_avant' => $review->is_published, // ✅ AJOUTÉ
+            'payload_reçu' => $payload, 
+            'is_published_avant' => $review->is_published, 
         ]);
 
         // Validation
@@ -141,7 +140,7 @@ class ReviewProcessor implements ProcessorInterface
         Log::info('✅ Avis mis à jour', [
             'review_id' => $review->id,
             'status' => $review->status,
-            'is_published_après' => $review->is_published, // ✅ AJOUTÉ
+            'is_published_après' => $review->is_published, 
         ]);
 
         return $review->fresh();

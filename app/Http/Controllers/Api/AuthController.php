@@ -137,7 +137,7 @@ class AuthController extends Controller
     }
 
     /**
-     * ✅ VÉRIFICATION TOKEN
+     * VÉRIFICATION TOKEN
      */
     public function verify(Request $request)
     {

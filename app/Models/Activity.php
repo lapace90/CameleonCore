@@ -35,14 +35,14 @@ class Activity extends Model
         return $this->morphOne(Product::class, 'productable');
     }
 
-    // ✅ Relation avec les tags spécifiques (cohérente avec Dish/Menu)
+    // Relation avec les tags spécifiques (cohérente avec Dish/Menu)
     public function specificTags()
     {
         return $this->morphToMany(Tag::class, 'taggable')
             ->where('is_global', false);
     }
 
-    // ✅ Méthode standardisée (même nom que Dish/Menu)
+    // Méthode standardisée (même nom que Dish/Menu)
     public function calculateSpecificTags()
     {
         $tags = [];
@@ -110,7 +110,7 @@ class Activity extends Model
         return array_unique($tags);
     }
 
-    // ✅ Méthode manuelle pour forcer la mise à jour des tags
+    // Méthode manuelle pour forcer la mise à jour des tags
     public function updateTags()
     {
         $tags = $this->calculateSpecificTags();

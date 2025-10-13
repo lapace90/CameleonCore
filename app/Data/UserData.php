@@ -25,7 +25,7 @@ class UserData extends Data
         public array $permissions = [],
         public bool $password_reset_required = false,
 
-        // ✅ NOUVEAUX CHAMPS PROFIL
+        //  CHAMPS PROFIL
         public ?string $phone = null,
         public ?string $address = null,
         public ?string $city = null,
@@ -50,9 +50,7 @@ class UserData extends Data
             'additional_roles.*' => 'exists:roles,id',
             'permissions' => 'array',
             'permissions.*' => 'exists:permissions,id',
-            'password_reset_required' => 'boolean',
-            
-            // ✅ RÈGLES POUR LES NOUVEAUX CHAMPS
+            'password_reset_required' => 'boolean',            
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:255',
             'city' => 'nullable|string|max:100',
@@ -121,7 +119,7 @@ class UserData extends Data
             permissions: $data['permissions'] ?? [],
             password_reset_required: (bool) ($data['password_reset_required'] ?? $data['passwordResetRequired'] ?? false),
 
-            // ✅ NOUVEAUX CHAMPS PROFIL avec support camelCase/snake_case
+            //  CHAMPS PROFIL avec support camelCase/snake_case
             phone: $stringOrNull($data['phone'] ?? null),
             address: $stringOrNull($data['address'] ?? null),
             city: $stringOrNull($data['city'] ?? null),
@@ -152,7 +150,7 @@ class UserData extends Data
             $data['role_id'] = $this->role_id;
         }
 
-        // ✅ NOUVEAUX CHAMPS PROFIL - Ajouter seulement s'ils ne sont pas null
+        //  CHAMPS PROFIL - Ajouter seulement s'ils ne sont pas null
         if ($this->phone !== null) {
             $data['phone'] = $this->phone;
         }

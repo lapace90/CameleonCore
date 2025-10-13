@@ -130,7 +130,7 @@ class RolesPermissionsSeeder extends Seeder
                 [
                     'name' => $permissionData['name'],
                     'action' => $permissionData['action'],
-                    'category' => $permissionData['category'] // ✅ Catégorie explicite
+                    'category' => $permissionData['category']
                 ]
             );
         }

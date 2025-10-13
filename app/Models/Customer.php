@@ -33,7 +33,7 @@ class Customer extends Model
         'limited_token',
         'token_expires_at',
 
-        // ✅ AJOUT RGPD
+        // RGPD
         'gdpr_consent',
         'gdpr_consent_at',
         'gdpr_consent_ip',
@@ -52,7 +52,7 @@ class Customer extends Model
 
     protected $hidden = ['limited_token'];
 
-    // ✅ MÉTHODES VALIDATION EMAIL
+    // MÉTHODES VALIDATION EMAIL
     public function generateLimitedToken(): string
     {
         $token = Str::random(64);

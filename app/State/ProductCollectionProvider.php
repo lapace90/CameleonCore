@@ -16,14 +16,12 @@ class ProductCollectionProvider implements ProviderInterface
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): iterable
     {
-        Log::info("1");
         $query = Product::with([
             'category',
             'productable',
             'globalTags'
         ]);
 
-        Log::info("2");
         // Appliquer les filtres
         $this->applyFilters($query);
         
@@ -34,14 +32,11 @@ class ProductCollectionProvider implements ProviderInterface
         $paginator = $query->paginate($perPage, ['*'], 'page', $page);
         
         // Charger conditionnellement les tags spécifiques pour les modèles qui les supportent
-        Log::info("3");
         $collection = $paginator->getCollection();
-        Log::info("4");
 
         $types = $collection->pluck('productable_type')->unique();
         $morphMap = [];
 
-        Log::info("5");
         foreach ($types as $type) {
             if (class_exists($type) && method_exists($type, 'specificTags')) {
                 $morphMap[$type] = ['specificTags' => function ($query) {
@@ -49,18 +44,15 @@ class ProductCollectionProvider implements ProviderInterface
                 }];
             }
         }
-        Log::info("6");
 
         if (!empty($morphMap)) {
             $collection->loadMorph('productable', $morphMap);
         }
 
-        Log::info("7");
         // Transformer les données pour le frontend
         $collection->transform(function ($product) {
             return $this->transformProduct($product);
         });
-        Log::info("8");
 
         return $paginator;
     }
@@ -131,7 +123,7 @@ class ProductCollectionProvider implements ProviderInterface
             'created_at' => $product->created_at,
             'updated_at' => $product->updated_at,
 
-            // ✅ AJOUT : Tags globaux
+            //  Tags globaux
             'globalTags' => $product->globalTags->map(fn($tag) => [
                 'id' => $tag->id,
                 'name' => $tag->name,
@@ -141,7 +133,7 @@ class ProductCollectionProvider implements ProviderInterface
                 'color' => '#6b7280' // Couleur par défaut
             ]),
 
-            // ✅ AJOUT : Tags spécifiques via productable
+            //  Tags spécifiques via productable
             'specificTags' => $this->getSpecificTags($product)
         ];
 
@@ -154,7 +146,7 @@ class ProductCollectionProvider implements ProviderInterface
         return $data;
     }
 
-    // ✅ AJOUT : Nouvelle méthode pour récupérer les tags spécifiques
+    //  Nouvelle méthode pour récupérer les tags spécifiques
     private function getSpecificTags($product): array
     {
         if (!$product->productable || !method_exists($product->productable, 'specificTags')) {

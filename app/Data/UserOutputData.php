@@ -17,7 +17,7 @@ class UserOutputData extends Data
         public string $email,
         public string $status,
         
-        // ✅ NOUVEAUX CHAMPS PROFIL
+        //  CHAMPS PROFIL
         public ?string $phone,
         public ?string $address,
         public ?string $city,
@@ -109,7 +109,7 @@ class UserOutputData extends Data
             email: $user->email,
             status: $user->status ?? 'active',
             
-            // ✅ NOUVEAUX CHAMPS PROFIL
+            //  CHAMPS PROFIL
             phone: $user->phone,
             address: $user->address,
             city: $user->city,
@@ -165,7 +165,7 @@ class UserOutputData extends Data
             email: $user->email,
             status: $user->status ?? 'active',
             
-            // ✅ NOUVEAUX CHAMPS PROFIL
+            //  CHAMPS PROFIL
             phone: $user->phone,
             address: $user->address,
             city: $user->city,

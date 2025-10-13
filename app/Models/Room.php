@@ -15,7 +15,7 @@ use ApiPlatform\Metadata\Get;
     operations: [
         new GetCollection(uriTemplate: '/rooms'),
         new Get(uriTemplate: '/rooms/{id}')
-        // ✅ PAS de POST/PATCH/DELETE - Read-only
+        // Read-only
     ]
 )]
 class Room extends Model
@@ -41,13 +41,13 @@ class Room extends Model
         return $this->morphMany(Option::class, 'productable');
     }
 
-    // ✅ AJOUT : Relation avec les tags spécifiques
+    //  Relation avec les tags spécifiques
     public function specificTags()
     {
         return $this->morphToMany(Tag::class, 'taggable')->where('is_global', false);
     }
 
-    // ✅ AJOUT : Calcul automatique des tags spécifiques
+    //  Calcul automatique des tags spécifiques
     public function calculateSpecificTags()
     {
         $tags = [];
@@ -112,7 +112,7 @@ class Room extends Model
         return array_unique($tags);
     }
 
-    // ✅ AJOUT : Méthode manuelle pour forcer la mise à jour des tags
+    //  Méthode manuelle pour forcer la mise à jour des tags
     public function updateTags()
     {
         $tags = $this->calculateSpecificTags();

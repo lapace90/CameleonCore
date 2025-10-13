@@ -24,8 +24,8 @@ class CustomerFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->firstName,           // ✅ CORRIGÉ: firstName au lieu de firtName
-            'last_name' => $this->faker->lastName,       // ✅ Correct
+            'name' => $this->faker->firstName,           
+            'last_name' => $this->faker->lastName,     
             'email' => $this->faker->unique()->safeEmail(),
             'phone' => $this->faker->optional()->phoneNumber(),
             'address' => $this->faker->optional()->streetAddress(),

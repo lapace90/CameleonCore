@@ -23,10 +23,10 @@ class ProductItemProvider implements ProviderInterface
             return null;
         }
         
-        // ✅ CHARGER les relations pivot correctement
+        // CHARGER les relations pivot correctement
         $this->loadRelations($product);
         
-        // ✅ RETOURNER ProductOutputData au lieu du modèle brut
+        // RETOURNER ProductOutputData au lieu du modèle brut
         return ProductOutputData::fromProduct($product);
     }
     
@@ -35,21 +35,21 @@ class ProductItemProvider implements ProviderInterface
         try {
             switch ($product->productable_type) {
                 case 'App\\Models\\Menu':
-                    // ✅ CORRECT : Charger les plats du menu (table pivot dish_menu)
+                    //  Charger les plats du menu (table pivot dish_menu)
                     $product->productable->load(['dishes' => function($query) {
                         $query->with('product'); // Charger le Product de chaque Dish
                     }]);
                     break;
                     
                 case 'App\\Models\\Dish':
-                    // ✅ CORRECT : Charger les ingrédients du plat (table pivot dish_ingredient)
+                    //  Charger les ingrédients du plat (table pivot dish_ingredient)
                     $product->productable->load(['ingredients' => function($query) {
                         $query->with('product'); // Charger le Product de chaque Ingredient
                     }]);
                     break;
                     
                 case 'App\\Models\\Ingredient':
-                    // ✅ CORRECT : Charger les plats qui utilisent cet ingrédient
+                    //  Charger les plats qui utilisent cet ingrédient
                     $product->productable->load(['dishes' => function($query) {
                         $query->with('product');
                     }]);

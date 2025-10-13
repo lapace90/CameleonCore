@@ -17,7 +17,7 @@ class ProductRelationsSeeder extends Seeder
         // 1. Associer les ingrédients aux plats existants (table pivot dish_ingredient)
         $this->createDishIngredientRelations();
 
-        // 2. ✅ AJOUT : Associer les plats aux menus (table pivot dish_menu)
+        // 2. Associer les plats aux menus (table pivot dish_menu)
         $this->createMenuDishRelations();
 
         $this->command->info('✅ Relations créées avec succès !');
@@ -65,7 +65,24 @@ class ProductRelationsSeeder extends Seeder
         }
     }
 
-    // ✅ MÉTHODE MANQUANTE À AJOUTER
+    /**
+     * Creates relationships between menus and dishes in the database.
+     * 
+     * This method performs the following:
+     * 1. Retrieves all menu and dish products from the database
+     * 2. For each menu product:
+     *    - Finds its corresponding Menu model
+     *    - Randomly selects 2-4 dishes
+     *    - Creates associations in the dish_menu pivot table
+     * 
+     * The method includes logging:
+     * - Warning if no menus or dishes are found
+     * - Info about the total number of menus and dishes being processed
+     * - Info about each menu's dish associations
+     * 
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException If related models cannot be found
+     * @return void
+     */
     private function createMenuDishRelations()
     {
         // Récupérer tous les menus et plats

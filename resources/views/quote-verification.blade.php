@@ -21,7 +21,7 @@
     </div>
     
     <div class="content">
-        {{-- ✅ CORRECTION : Utiliser $customer_name au lieu de $quote->customer --}}
+        {{--  Utiliser $customer_name au lieu de $quote->customer --}}
         <h2>Bonjour {{ $customer_name }} !</h2>
         
         <p>Merci pour votre demande de devis <strong>{{ $reference }}</strong>.</p>
@@ -37,7 +37,7 @@
         <div class="quote-summary">
             <h3>📋 Récapitulatif de votre sélection :</h3>
             <ul>
-                {{-- ✅ CORRECTION : Gestion sécurisée des dates nulles --}}
+                {{--  Gestion sécurisée des dates nulles --}}
                 <li><strong>Séjour :</strong> 
                     @if($quote->checkin_date && $quote->checkout_date)
                         Du {{ $quote->checkin_date->format('d/m/Y') }} au {{ $quote->checkout_date->format('d/m/Y') }}
