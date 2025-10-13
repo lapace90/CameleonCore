@@ -1,4 +1,3 @@
-// src/services/CategoriesApi.js - VERSIONE SEMPLIFICATA
 import httpClient from './httpClient'
 
 class CategoriesApi {

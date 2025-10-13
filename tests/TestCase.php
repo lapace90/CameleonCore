@@ -1,5 +1,4 @@
 <?php
-// tests/TestCase.php - Version corrigée
 
 namespace Tests;
 
@@ -38,9 +37,6 @@ abstract class TestCase extends BaseTestCase
             'Accept' => 'application/json',
             'Content-Type' => 'application/json'
         ]);
-
-        // ENLEVER withoutExceptionHandling() par défaut
-        // On l'activera manuellement quand on veut debug
     }
 
     /**

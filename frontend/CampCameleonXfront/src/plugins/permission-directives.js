@@ -1,6 +1,3 @@
-// plugins/permission-directives.js - Directives Vue pour la gestion des permissions et des rôles
-// Compatible avec Pinia
-
 import { nextTick } from 'vue'
 import { useAuthStore } from '@/shared/stores/auth'
 
@@ -332,6 +329,32 @@ export const permissionMixin = {
 // PLUGIN D'INSTALLATION
 // ===========================
 
+/**
+ * Plugin for Vue.js that adds permission-based directives and global methods
+ * @module permission-directives
+ * 
+ * @exports {Object} default - Vue plugin object
+ * @property {Function} install - Plugin installation function
+ * 
+ * @param {Object} app - Vue application instance
+ * @param {Object} [options={}] - Plugin options (currently unused)
+ * 
+ * Registers the following custom directives:
+ * - v-permission: Check for specific permissions
+ * - v-role: Check for specific roles
+ * - v-admin-only: Restrict access to admins
+ * - v-super-admin-only: Restrict access to super admins
+ * - v-auth-only: Restrict access to authenticated users
+ * - v-guest-only: Restrict access to guests
+ * 
+ * Adds the following global methods:
+ * - $hasPermission(permission): Check if user has specific permission
+ * - $hasRole(role): Check if user has specific role
+ * - $isAdmin(): Check if user is admin
+ * - $isSuperAdmin(): Check if user is super admin
+ * 
+ * Also adds CSS styles for hidden elements with .permission-hidden class
+ */
 export default {
   install(app, options = {}) {
     // Enregistrer les directives

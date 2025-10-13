@@ -98,20 +98,42 @@ class ReservationProcessor implements ProcessorInterface
      * @param \App\Models\User $currentUser Utilisateur authentifié via Sanctum
      * @return Reservation
      */
-    private function updateReservation(int $id, array $context, $currentUser): Reservation
+     private function updateReservation(int $id, array $context, $currentUser): Reservation
     {
         $payload = $this->getDataFromRequest($context);
         $payload = $this->normalizeAliases($payload);
         $reservation = Reservation::findOrFail($id);
 
-        // === CHECK-IN/CHECK-OUT : traitement direct ===
+        // === CHECK-IN/CHECK-OUT : traitement direct, pas de prepareReservationData ===
         if (isset($payload['status']) && $payload['status'] === 'checked_in') {
-            // ... ton code check-in existant ...
-            return $reservation;
+            if (!$reservation->canCheckIn()) {
+                abort(422, 'Check-in non autorisé');
+            }
+            $reservation->status = 'checked_in';
+            $reservation->actual_checkin = $payload['actual_checkin'] ?? now();
+            $reservation->user_id = $reservation->user_id ?? $currentUser->id;
+            $reservation->save();
+            return $reservation; // Retourner la réservation mise à jour
         }
 
         if (isset($payload['status']) && $payload['status'] === 'checked_out') {
-            // ... ton code check-out existant ...
+            if (!$reservation->canCheckOut()) {
+                abort(422, 'Check-out non autorisé');
+            }
+
+            $checkoutTime = isset($payload['actual_checkout'])
+                ? \Carbon\Carbon::parse($payload['actual_checkout'])
+                : now();
+
+            //  Valider que checkout >= checkin
+            if ($checkoutTime < $reservation->actual_checkin) {
+                abort(422, 'Le check-out ne peut pas être avant le check-in');
+            }
+
+            $reservation->status = 'checked_out';
+            $reservation->actual_checkout = $checkoutTime;
+            $reservation->user_id = $reservation->user_id ?? $currentUser->id;
+            $reservation->save();
             return $reservation;
         }
 

@@ -73,15 +73,15 @@ class ReservationFlowTest extends TestCase
         $reservation = Reservation::create([
             'customer_id' => $customer->id,
             'product_id' => $productId,
-            'product_type' => $productType,        // ✅ REQUIS selon votre erreur
+            'product_type' => $productType,       
             'date' => Carbon::now()->addDays(5),
             'checkin' => Carbon::now()->addDays(5),
             'checkout' => Carbon::now()->addDays(8),
             'amount' => 360.00,
             'status' => 'confirmed',
             'number_of_adults' => 2,
-            'number_of_children' => 0,             // ✅ REQUIS selon erreurs précédentes
-            'booking_source' => 'admin',           // ✅ REQUIS selon erreurs précédentes
+            'number_of_children' => 0,             
+            'booking_source' => 'admin',           
             'payment_status' => 'pending'
         ]);
 
