@@ -12,9 +12,6 @@
                     <li class="nav-item">
                         <router-link to="/about" class="nav-link">À PROPOS</router-link>
                     </li>
-                    <!-- <li class="nav-item">
-                        <router-link to="/reservations" class="nav-link">RÉSERVATIONS</router-link>
-                    </li> -->
                     <li class="nav-item">
                         <router-link to="/services" class="nav-link">SERVICES</router-link>
                     </li>
@@ -26,12 +23,12 @@
                         </a></li>
                 </ul>
 
-                <!-- Icône profil à droite (desktop) -->
-                <div class="navbar-actions">
+                <!-- Icône admin à droite (desktop) -->
+                <!-- <div class="navbar-actions">
                     <router-link to="/admin" class="nav-link">
                         <i class="fas fa-cog"></i>
                     </router-link>
-                </div>
+                </div> -->
 
                 <!-- Mobile Menu Button -->
                 <button class="mobile-menu-btn" @click="toggleMobileMenu" :class="{ 'active': isMobileMenuOpen }">
@@ -87,7 +84,7 @@
 
                     <!-- Actions mobiles -->
                     <div class="mobile-actions">
-                        <router-link to="/admin" class="mobile-action-btn" @click="closeMobileMenu">
+                        <router-link to="/admin" class="mobile-action-btn" @click="closeMobileMenu" >
                             <i class="fas fa-cog"></i>
                             <span>Administration</span>
                         </router-link>

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->datetime('start_date');
             $table->datetime('end_date')->nullable();
-            $table->enum('type', ['maintenance', 'animation', 'formation', 'other'])->default('other');
+            $table->enum('type', ['maintenance', 'animation', 'other'])->default('other');
             $table->string('location')->nullable();
             $table->integer('capacity')->nullable();
             $table->string('animator')->nullable();
