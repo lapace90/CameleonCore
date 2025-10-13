@@ -130,7 +130,7 @@ class PermissionsApiTest extends TestCase
 
         $this->assertNotNull($foundPermission);
 
-        // ▶️ Comparer au count réel en base (robuste aux seeds)
+        // Comparer au count réel en base
         $permissionModel = Permission::where('action', 'users-read')->first();
         $expectedRolesCount = $permissionModel ? $permissionModel->roles()->count() : 0;
         $this->assertEquals($expectedRolesCount, $foundPermission['roles_count']);

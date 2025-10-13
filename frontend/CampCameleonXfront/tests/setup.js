@@ -47,10 +47,12 @@ vi.mock('@fullcalendar/vue3', () => ({
 vi.mock('@/services/AdminApi', () => ({
   default: {
     getCalendarEvents: vi.fn(() => Promise.resolve({ data: [] })),
+    // 👉 shape attendu par FullCalendar.vue :
+    // stats.reservations.total
+    // stats.occupancy.current_guests / checkins_today / checkouts_today
     getDashboardStats: vi.fn(() => Promise.resolve({
-      reservations_today: 0,
-      total_events: 0,
-      occupancy: 0
+      reservations: { total: 0 },
+      occupancy: { current_guests: 0, checkins_today: 0, checkouts_today: 0 }
     })),
     createReservation: vi.fn(() => Promise.resolve({ success: true })),
     updateReservation: vi.fn(() => Promise.resolve({ success: true }))

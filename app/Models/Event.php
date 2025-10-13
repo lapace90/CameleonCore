@@ -13,12 +13,26 @@ use ApiPlatform\Metadata\Delete;
 
 #[ApiResource(
     operations: [
-        // 🟢 CRUD admin pour événements génériques
-        new GetCollection(uriTemplate: '/admin/events', middleware: ['auth:sanctum'], security: "is_granted('ROLE_ADMIN')"),
-        new Get(uriTemplate: '/admin/events/{id}',  middleware: ['auth:sanctum'], security: "is_granted('ROLE_ADMIN')"),
-        new Post(uriTemplate: '/admin/events', middleware: ['auth:sanctum'], security: "is_granted('ROLE_ADMIN')"),
-        new Put(uriTemplate: '/admin/events/{id}', middleware: ['auth:sanctum'], security: "is_granted('ROLE_ADMIN')"),
-        new Delete(uriTemplate: '/admin/events/{id}', middleware: ['auth:sanctum'], security: "is_granted('ROLE_ADMIN')"),
+        new GetCollection(
+            uriTemplate: '/admin/events',
+             middleware: ['auth:sanctum'],
+              security: "is_granted('ROLE_ADMIN')"),
+        new Get(
+            uriTemplate: '/admin/events/{id}',
+              middleware: ['auth:sanctum'],
+               security: "is_granted('ROLE_ADMIN')"),
+        new Post(
+            uriTemplate: '/admin/events',
+             middleware: ['auth:sanctum'],
+              security: "is_granted('ROLE_ADMIN')"),
+        new Put(
+            uriTemplate: '/admin/events/{id}',
+             middleware: ['auth:sanctum'],
+              security: "is_granted('ROLE_ADMIN')"),
+        new Delete(
+            uriTemplate: '/admin/events/{id}',
+             middleware: ['auth:sanctum'],
+              security: "is_granted('ROLE_ADMIN')"),
     ]
 )]
 class Event extends Model

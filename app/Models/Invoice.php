@@ -16,15 +16,60 @@ use Carbon\Carbon;
 
 #[ApiResource(
     operations: [
-        new GetCollection(uriTemplate: '/admin/invoices', provider: InvoiceProvider::class, security: "is_granted('ROLE_ADMIN')"),
-        new Get(uriTemplate: '/admin/invoices/{id}', provider: InvoiceProvider::class, security: "is_granted('ROLE_ADMIN')"),
-        new Post(uriTemplate: '/admin/invoices', processor: InvoiceProcessor::class, security: "is_granted('ROLE_ADMIN')"),
-        new Put(uriTemplate: '/admin/invoices/{id}', processor: InvoiceProcessor::class, security: "is_granted('ROLE_ADMIN')"),
-        new Delete(uriTemplate: '/admin/invoices/{id}', processor: InvoiceProcessor::class, security: "is_granted('ROLE_ADMIN')"),
-        new Post(uriTemplate: '/admin/invoices/{id}/mark-paid', processor: InvoiceProcessor::class, security: "is_granted('ROLE_ADMIN')"),
-        new Post(uriTemplate: '/admin/invoices/{id}/send-email', processor: InvoiceProcessor::class, security: "is_granted('ROLE_ADMIN')"),
-        new Get(uriTemplate: '/admin/invoices/{id}/pdf', provider: InvoiceProvider::class, security: "is_granted('ROLE_ADMIN')"),
-        new GetCollection(uriTemplate: '/admin/invoices/stats', provider: InvoiceProvider::class, security: "is_granted('ROLE_ADMIN')"),
+        new GetCollection(
+            uriTemplate: '/admin/invoices',
+            provider: InvoiceProvider::class,
+            middleware: ['auth:sanctum'],
+            security: "is_granted('ROLE_ADMIN')"
+        ),
+        new Get(
+            uriTemplate: '/admin/invoices/{id}',
+            provider: InvoiceProvider::class,
+            middleware: ['auth:sanctum'],
+            security: "is_granted('ROLE_ADMIN')"
+        ),
+        new Post(
+            uriTemplate: '/admin/invoices',
+            processor: InvoiceProcessor::class,
+            middleware: ['auth:sanctum'],
+            security: "is_granted('ROLE_ADMIN')"
+        ),
+        new Put(
+            uriTemplate: '/admin/invoices/{id}',
+            processor: InvoiceProcessor::class,
+            middleware: ['auth:sanctum'],
+            security: "is_granted('ROLE_ADMIN')"
+        ),
+        new Delete(
+            uriTemplate: '/admin/invoices/{id}',
+            processor: InvoiceProcessor::class,
+             middleware: ['auth:sanctum'],
+            security: "is_granted('ROLE_ADMIN')"
+        ),
+        new Post(
+            uriTemplate: '/admin/invoices/{id}/mark-paid',
+            processor: InvoiceProcessor::class,
+             middleware: ['auth:sanctum'],
+            security: "is_granted('ROLE_ADMIN')"
+        ),
+        new Post(
+            uriTemplate: '/admin/invoices/{id}/send-email',
+            processor: InvoiceProcessor::class,
+             middleware: ['auth:sanctum'],
+            security: "is_granted('ROLE_ADMIN')"
+        ),
+        new Get(
+            uriTemplate: '/admin/invoices/{id}/pdf',
+            provider: InvoiceProvider::class,
+             middleware: ['auth:sanctum'],
+            security: "is_granted('ROLE_ADMIN')"
+        ),
+        new GetCollection(
+            uriTemplate: '/admin/invoices/stats',
+            provider: InvoiceProvider::class,
+             middleware: ['auth:sanctum'],
+            security: "is_granted('ROLE_ADMIN')"
+        ),
     ]
 )]
 class Invoice extends Model

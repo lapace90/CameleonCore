@@ -56,7 +56,7 @@ describe('FullCalendar.vue - Tests Essentiels', () => {
     await wrapper.vm.$nextTick()
     
     expect(adminApiMock.getDashboardStats).toHaveBeenCalled()
-    expect(wrapper.vm.stats.reservations).toBe(0)
+    expect(wrapper.vm.stats.totalReservations).toBe(0)
   })
 
   it('should handle event creation', async () => {

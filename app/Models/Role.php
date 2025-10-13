@@ -19,7 +19,6 @@ use App\State\RoleProcessor;
 
 #[ApiResource(
     operations: [
-        // ✅ Routes standard API Platform avec providers/processors
         new Get(),
         new GetCollection(
             middleware: ['auth:sanctum'],
