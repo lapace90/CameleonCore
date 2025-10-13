@@ -875,11 +875,19 @@ export default {
 
       // Événements génériques
       return {
-        ...formData,
-        start_date: formData.start ? new Date(formData.start).toISOString() : null,
-        end_date: formData.end ? new Date(formData.end).toISOString() : null,
-        background_color: formData.backgroundColor,
-        type: formData.type || 'autre'
+        title: (formData.title || '').trim(),
+        description: (formData.description || '').trim(),
+        notes: (formData.notes || '').trim() || null,
+        start: formData.start || null, // FullCalendar.vue fera toISO
+        end: formData.end || null,     // FullCalendar.vue fera toISO
+        type: formData.type || 'autre',
+        location: formData.location || '',
+        capacity: Number.isFinite(+formData.capacity) ? Number(formData.capacity) : null,
+        responsible: formData.responsible || null,     // sera remappé -> animator
+        technician: formData.technician || null,
+        priority: formData.priority || 'medium',
+        status: formData.status || 'active',
+        backgroundColor: formData.backgroundColor || '#999999', // sera remappé -> background_color
       }
     }
   }

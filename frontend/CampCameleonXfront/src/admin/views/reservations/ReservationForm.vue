@@ -720,7 +720,7 @@ export default {
         })
       }
 
-      //  Définir le montant APRÈS avoir chargé tous les produits
+      // Définir le montant APRÈS avoir chargé tous les produits
       // Utiliser $nextTick pour s'assurer que Vue a fini de mettre à jour le DOM
       this.$nextTick(() => {
         // Le montant de la réservation a priorité sur le calcul automatique
@@ -729,7 +729,7 @@ export default {
         console.log('✅ Formulaire complètement populé:', {
           dates: { checkin: this.form.checkin, checkout: this.form.checkout },
           amount: this.form.amount,
-          payment_method: this.form.payment_method, 
+          payment_method: this.form.payment_method,
           guests: this.form.guests,
           accommodations: this.selectedAccommodations.length,
           activities: this.selectedActivities.length,
@@ -967,6 +967,7 @@ export default {
     },
 
     // Soumission
+    // Soumission
     async submitForm() {
       if (!this.validateForm()) {
         this.$toast?.error?.('Veuillez corriger les erreurs du formulaire')
@@ -977,73 +978,83 @@ export default {
       this.error = null
 
       try {
+        // 1) Construire une map { product_id: quantity } depuis les 3 sélections
+        const itemsMap = new Map()
+
+        const addItem = (id, qty = 1) => {
+          const pid = Number(id)
+          const q = Math.max(1, Number(qty || 1))
+          if (!Number.isFinite(pid) || pid <= 0) return
+          itemsMap.set(pid, (itemsMap.get(pid) || 0) + q)
+        }
+
+        // Hébergements (accommodations) — souvent l’item principal
+        this.selectedAccommodations?.forEach(id => {
+          const qty = this.accommodationQuantities?.[id] ?? 1
+          addItem(id, qty)
+        })
+
+        // Activités
+        this.selectedActivities?.forEach(id => {
+          const qty = this.activityQuantities?.[id] ?? 1
+          addItem(id, qty)
+        })
+
+        // Menus
+        this.selectedMenus?.forEach(id => {
+          const qty = this.menuQuantities?.[id] ?? 1
+          addItem(id, qty)
+        })
+
+        // 2) Transformer en tableau items
+        const items = Array.from(itemsMap.entries()).map(([product_id, quantity]) => ({
+          product_id,
+          quantity
+        }))
+
+        // 3) Déterminer le product_id racine si manquant
+        let rootProductId = Number(this.form?.room_product_id || 0)
+        if (!rootProductId) {
+          const firstAccommodation = this.selectedAccommodations?.[0]
+          if (firstAccommodation) rootProductId = Number(firstAccommodation)
+          else if (items.length) rootProductId = Number(items[0].product_id)
+        }
+
+        // 4) Construire le payload — sans 'products'
         const payload = {
           checkin: this.form.checkin,
           checkout: this.form.checkout,
-          guests: Number(this.form.guests || 1),
-          amount: this.amountStr,               // <-- string "1140.00"
+          amount: String(this.amountStr ?? '0'),    // string (le BE cast)
           status: this.form.status,
           payment_status: this.form.payment_status,
           booking_source: this.form.booking_source || 'website',
           special_requests: this.form.special_requests || '',
           internal_notes: this.form.internal_notes || '',
           invoice_number: this.form.invoice_number ?? null,
-          products: this.productsPayload,       // <-- [{ product_id, quantity }]
+          items,                                    // ✅ pivot only
+          product_id: rootProductId || undefined,   // NOT NULL en DB
+          number_of_adults: Number(this.form?.guests ?? 1),
+          number_of_children: Number(this.form?.children ?? 0),
+          comment: ((this.form?.special_requests || '') + ' ' + (this.form?.internal_notes || '')).trim() || null,
         }
 
+        // 5) Client existant vs nouveau client
         if (this.customerMode === 'existing' && this.selectedCustomer) {
           payload.customer_id = this.selectedCustomer.id
         } else {
-          payload.new_customer = { ...this.form.newCustomer }
-        }
-
-        payload.products = []
-
-        this.selectedAccommodations.forEach(id => {
-          const qty = this.accommodationQuantities[id] || 1
-          for (let i = 0; i < qty; i++) {
-            payload.products.push({ product_id: id, quantity: qty })
+          const c = this.form?.newCustomer || {}
+          payload.customer_data = {
+            name: (c.name || '').trim(),
+            last_name: (c.last_name || '').trim(),
+            email: (c.email || '').trim(),
+            phone: (c.phone || '').trim(),
+            address: (c.address || '').trim(),
           }
-        })
-
-        this.selectedActivities.forEach(id => {
-          const qty = this.activityQuantities[id] || 1
-          payload.products.push({ product_id: id, quantity: qty })
-        })
-
-        this.selectedMenus.forEach(id => {
-          const qty = this.menuQuantities[id] || 1
-          payload.products.push({ product_id: id, quantity: qty })
-        })
-
-        // map customer -> customer_data (keep amount as-is)
-        if (!payload.customer_id) {
-          const c = this.form?.newCustomer || payload.new_customer || {};
-          const normalize = (x) => ({
-            name: (x?.name || '').trim(),
-            last_name: (x?.last_name || '').trim(),
-            email: (x?.email || '').trim(),
-            phone: (x?.phone || '').trim(),
-            address: (x?.address || '').trim(),
-          });
-          payload.customer_data = normalize(c);
         }
-        delete payload.new_customer;
 
-        // guests -> number_of_adults / children
-        payload.number_of_adults = Number(this.form?.guests ?? 1);
-        payload.number_of_children = Number(this.form?.children ?? 0);
-        delete payload.guests;
+        // 6) Nettoyage — ne jamais envoyer 'products'
+        // (aucun payload.products ici)
 
-        // comment preferred by backend; keep original fields for UI
-        payload.comment = ((this.form?.special_requests || '') + ' ' + (this.form?.internal_notes || '')).trim() || null;
-
-        // ensure root product_id (NOT NULL on DB)
-        if (!payload.product_id && Array.isArray(payload.products) && payload.products.length > 0) {
-          const primary = payload.products.find(p => Number(p?.quantity ?? 0) > 0) || payload.products[0];
-          payload.product_id = Number(primary.product_id);
-        }
-        // === End patch ===
         console.log('📤 Envoi des données:', payload)
 
         let response
@@ -1057,10 +1068,7 @@ export default {
         }
 
         if (response.data?.id) {
-          this.$router.push({
-            name: 'ReservationDetail',
-            params: { id: response.data.id }
-          })
+          this.$router.push({ name: 'ReservationDetail', params: { id: response.data.id } })
         } else {
           this.$router.push({ name: 'AdminReservations' })
         }
@@ -1072,7 +1080,8 @@ export default {
       } finally {
         this.saving = false
       }
-    },
+    }
+    ,
     /**
  * Formate une date ISO pour un input type="date"
  * Entrée: "2025-01-15T10:00:00.000000Z" ou "2025-01-15"

@@ -1,5 +1,5 @@
 <template>
-  <div class="calendar-container">
+  <div class="calendar-container content-wrapper">
     <!-- Header du calendrier -->
     <div class="calendar-header">
       <div class="header-left">
@@ -413,23 +413,47 @@ export default {
           }
 
         } else {
-          // Événements génériques (maintenance, activité, autre)
+          // Événements génériques (maintenance, animation, autre)
+          const toISO = (s) => (s ? new Date(s).toISOString() : null);
+
+          // juste au-dessus de la construction du payload
+          const mapEventType = (t) => {
+            const key = String(t || '').toLowerCase().trim();
+            return ({
+              'activite': 'animation',
+              'activité': 'animation',
+              'activity': 'animation',
+              'maintenance': 'maintenance',
+              'reservation': 'reservation',
+              'réservation': 'reservation',
+              'event': 'event',
+              'evenement': 'event',
+              'évènement': 'event',
+              'autre': 'event',
+              'other': 'event',
+            }[key]) || 'event';
+          };
+
           const eventPayload = {
-            title: eventData.title,
-            start_date: eventData.start,
-            end_date: eventData.end,
-            type: eventData.type,
-            location: eventData.location,
-            responsible: eventData.responsible,
-            priority: eventData.priority,
-            background_color: eventData.backgroundColor,
-            notes: eventData.notes
-          }
+            title: (eventData.title || '').trim(),
+            description: (eventData.description || '').trim(),
+            notes: (eventData.notes || '').trim() || null,
+            start_date: toISO(eventData.start || eventData.start_date?.slice(0, 16)),
+            end_date: toISO(eventData.end || eventData.end_date?.slice(0, 16)),
+            type: mapEventType(eventData.type),
+            location: eventData.location || '',
+            capacity: Number.isFinite(+eventData.capacity) ? Number(eventData.capacity) : null,
+            animator: eventData.responsible || eventData.animator || null,
+            technician: eventData.technician || null,
+            priority: eventData.priority || 'medium',
+            status: (eventData.status && eventData.status !== 'pending') ? eventData.status : 'active',
+            background_color: eventData.backgroundColor || eventData.background_color || '#28a745',
+          };
 
           if (this.isEditing && eventData.id) {
-            await AdminApi.updateEvent(eventData.id, eventPayload)
+            await AdminApi.updateEvent(eventData.id, eventPayload);
           } else {
-            await AdminApi.createEvent(eventPayload)
+            await AdminApi.createEvent(eventPayload);
           }
         }
 
@@ -584,7 +608,6 @@ export default {
 
 
 <style scoped>
-
 /* Navigation du calendrier */
 .calendar-navigation {
   display: flex;
@@ -802,6 +825,7 @@ export default {
   .calendar-wrapper {
     padding: 1rem;
   }
+
   .fc .fc-toolbar-title #fc-dom-1 {
     padding: 1rem;
     font-size: 0.5rem !important;
