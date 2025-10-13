@@ -24,7 +24,7 @@ class ProductProcessor implements ProcessorInterface
         return DB::transaction(function () use ($data, $operation, $uriVariables, $context) {
             try {
                 // 1) Récupérer le payload depuis la request
-                 $payload = $this->getDataFromGlobalRequest();
+                $payload = $this->getDataFromGlobalRequest();
 
                 Log::info('ProductProcessor - Payload reçu', [
                     'payload' => $payload,
@@ -158,8 +158,7 @@ class ProductProcessor implements ProcessorInterface
         $normalized['description'] = $payload['description'] ?? null;
         $normalized['price'] = isset($payload['price']) ? (float) $payload['price'] : null;
         $normalized['status'] = isset($payload['status']) ? (bool) $payload['status'] : null;
-        $normalized['is_draft'] = isset($payload['is_draft']) ? (bool) $payload['is_draft'] : 
-                                 (isset($payload['isDraft']) ? (bool) $payload['isDraft'] : null);
+        $normalized['is_draft'] = isset($payload['is_draft']) ? (bool) $payload['is_draft'] : (isset($payload['isDraft']) ? (bool) $payload['isDraft'] : null);
 
         // CATÉGORIES
         $normalized['category_id'] = $this->extractCategoryId($payload);
@@ -268,8 +267,8 @@ class ProductProcessor implements ProcessorInterface
 
         $product->update(array_filter($updates, fn($value) => $value !== null));
 
-        // Mettre à jour le productable en utilisant VOTRE logique ProductableData
-        if ($product->productable) {
+        // Mettre à jour le productable uniquement si des données ont été fournies
+        if ($product->productable && $data->productable !== null) {
             $this->updateProductable($product->productable, $data->productable, $data->productableType);
         }
 
@@ -344,18 +343,11 @@ class ProductProcessor implements ProcessorInterface
 
         return [
             'course' => $data['course'] ?? null,
-            'is_vegetarian' => $data['is_vegetarian'] ?? null,
-            'is_vegan' => $data['is_vegan'] ?? null,
-            'is_spicy' => $data['is_spicy'] ?? null,
-            'is_gluten_free' => $data['is_gluten_free'] ?? null,
-            'is_lactose_free' => $data['is_lactose_free'] ?? null,
-            'is_nut_free' => $data['is_nut_free'] ?? null,
         ];
     }
 
     private function handleRelations(Product $product, mixed $productable, ProductData $data): void
     {
-        // GARDER votre logique de relations !
 
         // Relations des plats (Dish -> Ingredients)
         if ($productable instanceof Dish && isset($data->relations['ingredients'])) {

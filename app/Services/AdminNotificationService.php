@@ -155,7 +155,7 @@ Voir: " . config('app.url') . "/admin/reservations/{$reservation->id}
         // Invalider le cache des événements du calendrier
         Cache::forget('calendar_events');
         
-        // ✅ CORRECTION : Pas de tags avec le driver file
+        //  Pas de tags avec le driver file
         // Cache::tags(['calendar'])->flush(); // Ne marche qu'avec Redis/Memcached
         
         // Alternative : supprimer les clés spécifiques

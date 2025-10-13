@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 class ProductTransformer
 {
     /**
-     * ✅ CORRECTION : Transformer pour l'affichage détaillé avec gestion d'erreur
+     *  Transformer pour l'affichage détaillé avec gestion d'erreur
      */
     public static function transformForDisplay(Product $product): array
     {
@@ -21,10 +21,10 @@ class ProductTransformer
                 'options'
             ]);
 
-            // ✅ CORRECTION : S'assurer que typeConfig est toujours présent
+            //  S'assurer que typeConfig est toujours présent
             $typeConfig = self::getTypeConfig($product->productable_type);
             
-            // ✅ CORRECTION : S'assurer que productableDetail est toujours présent
+            //  S'assurer que productableDetail est toujours présent
             $productableDetail = [];
             if ($product->productable) {
                 try {
@@ -49,13 +49,13 @@ class ProductTransformer
                 'productable_type' => $product->productable_type,
                 'productableType' => $product->productable_type, // Alias pour compatibilité frontend
                 
-                // ✅ CORRECTION : Toujours inclure typeConfig
+                //  Toujours inclure typeConfig
                 'typeConfig' => $typeConfig,
                 
-                // ✅ CORRECTION : Toujours inclure productableDetail (même si vide)
+                //  Toujours inclure productableDetail (même si vide)
                 'productableDetail' => $productableDetail,
                 
-                // ✅ CORRECTION : Alias pour compatibilité avec l'ancien code
+                //  Alias pour compatibilité avec l'ancien code
                 'productableData' => $productableDetail,
                 
                 'category' => $product->category ? [
@@ -77,13 +77,13 @@ class ProductTransformer
                     'formatted_price' => number_format((float) $option->price, 2, ',', ' ') . ' €'
                 ])->toArray(),
                 
-                // ✅ CORRECTION : Relations avec gestion d'erreur
+                //  Relations avec gestion d'erreur
                 'relations' => self::getRelations($product),
                 
-                // ✅ CORRECTION : Champs de détail avec gestion d'erreur
+                //  Champs de détail avec gestion d'erreur
                 'detail_fields' => self::getDetailFields($product),
                 
-                // ✅ CORRECTION : Statistiques avec gestion d'erreur pour les réservations
+                //  Statistiques avec gestion d'erreur pour les réservations
                 'statistics' => self::getStatistics($product),
                 
                 'created_at' => $product->created_at?->toISOString(),
@@ -107,7 +107,7 @@ class ProductTransformer
     }
 
     /**
-     * ✅ CORRECTION : Récupération des relations avec gestion d'erreur
+     *  Récupération des relations avec gestion d'erreur
      */
     private static function getRelations(Product $product): array
     {
@@ -150,12 +150,12 @@ class ProductTransformer
     }
 
     /**
-     * ✅ CORRECTION : Récupération des statistiques avec gestion d'erreur pour les réservations
+     *  Récupération des statistiques avec gestion d'erreur pour les réservations
      */
     private static function getStatistics(Product $product): array
     {
         try {
-            // ✅ CORRECTION : Éviter l'erreur SQL "created_at" ambiguë
+            //  Éviter l'erreur SQL "created_at" ambiguë
             $reservationsCount = $product->reservations()
                 ->select('reservations.id') // Spécifier explicitement la colonne
                 ->count();
@@ -179,7 +179,7 @@ class ProductTransformer
     }
 
     /**
-     * ✅ CORRECTION : Configuration des types robuste
+     *  Configuration des types robuste
      */
     public static function getTypeConfig(?string $type): array
     {
@@ -237,7 +237,7 @@ class ProductTransformer
     }
 
     /**
-     * ✅ CORRECTION : Champs de détail avec gestion d'erreur
+     *  Champs de détail avec gestion d'erreur
      */
     private static function getDetailFields(Product $product): array
     {

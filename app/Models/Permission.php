@@ -17,15 +17,15 @@ use App\State\PermissionProcessor;
 
 #[ApiResource(
     operations: [
-        // ✅ Route existante - grouped
+        // Route grouped
         new GetCollection(
             uriTemplate: '/admin/permissions/grouped',
             provider: PermissionCollectionProvider::class,
         ),
-        // ✅ Routes standard API Platform
+        // Routes standard API Platform
         new Get(),
         new GetCollection(),
-        // ✅ CRUD à ajouter
+        // CRUD à ajouter
         new Post(
             processor: PermissionProcessor::class,
         ),

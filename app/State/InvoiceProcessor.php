@@ -21,7 +21,7 @@ class InvoiceProcessor implements ProcessorInterface
 {
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
     {
-        // ✅ SÉCURITÉ SANCTUM
+        // SÉCURITÉ SANCTUM
         $currentUser = auth('sanctum')->user();
 
         if (!$currentUser) {

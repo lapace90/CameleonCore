@@ -21,14 +21,14 @@ describe('useQuotePricing', () => {
       ]
     }
 
-    // ✅ CORRECTION: Structure correcte avec checkin/checkout
+    //  Structure correcte avec checkin/checkout
     mockDates = {
       checkin: '2024-03-15',
       checkout: '2024-03-18',  // checkout inclusif
       guests: 2
     }
 
-    // ✅ CORRECTION: Structure correcte avec activity/menu (singulier)
+    //  Structure correcte avec activity/menu (singulier)
     mockSelected = {
       activity: [1, 2],  // ✅ "activity" au singulier
       room: [4],
@@ -82,7 +82,7 @@ describe('useQuotePricing', () => {
       const roomLine = result.lines.find(l => l.type === 'room')
       expect(roomLine).toBeDefined()
       expect(roomLine.id).toBe(4)
-      expect(roomLine.unit).toBe(120)  // ✅ CORRECTION: "unit" pas "unitPrice"
+      expect(roomLine.unit).toBe(120)  //  "unit" pas "unitPrice"
       expect(roomLine.qty).toBe(3)     // 3 nuits
       expect(roomLine.lineTotal).toBe(360)
 
@@ -167,7 +167,7 @@ describe('useQuotePricing', () => {
     it('should handle missing catalog items', () => {
       const incompleteSelected = {
         activity: [999], // ID inexistant
-        room: [4],       // ✅ CORRECTION: Array au lieu de number
+        room: [4],       //  Array au lieu de number
         menu: [6]
       }
 

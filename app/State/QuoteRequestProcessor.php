@@ -66,15 +66,15 @@ private function createQuoteRequest(array $context): QuoteRequest
         'total_amount' => $payload['total_price'] ?? 0
     ]);
 
-    // ✅ 1. Validation email basique AVEC TON SERVICE
+    // 1. Validation email basique AVEC TON SERVICE
     if (!$this->emailValidationService->isValidEmail($payload['email'] ?? '')) {
         throw new \InvalidArgumentException('Adresse email invalide');
     }
 
-    // ✅ 2. Rate limiting par IP
+    // 2. Rate limiting par IP
     $this->checkRateLimit();
 
-    // ✅ 3. Préparation données - STRUCTURE SIMPLE !
+    // 3. Préparation données - STRUCTURE SIMPLE !
     $contactData = [
         'email' => $payload['email'],
         'name' => $payload['contact']['name'] ?? $payload['name'] ?? null,
@@ -92,7 +92,7 @@ private function createQuoteRequest(array $context): QuoteRequest
         'customer_id' => $this->findOrCreateCustomer($contactData),
     ];
 
-    // ✅ 4. Validation des items
+    // 4. Validation des items
     if (empty($payload['items'])) {
         throw new \InvalidArgumentException('Aucun produit sélectionné');
     }
@@ -100,13 +100,13 @@ private function createQuoteRequest(array $context): QuoteRequest
     $productIds = array_column($payload['items'], 'product_id');
     $this->validateProductIds($productIds);
 
-    // ✅ 5. Création en base
+    // 5. Création en base
     $quoteRequest = QuoteRequest::createFromQuoteData($quoteData);
     
-    // ✅ 6. Synchroniser les items
+    // 6. Synchroniser les items
     $this->syncProducts($quoteRequest, $payload['items']);
     
-    // ✅ 7. Envoi email de validation
+    // 7. Envoi email de validation
     $this->sendValidationEmail($quoteRequest);
 
     Log::info('✅ Devis créé avec succès', [
@@ -172,7 +172,7 @@ private function createQuoteRequest(array $context): QuoteRequest
         ]);
 
         if ($quoteRequest->validateWithToken($token)) {
-            // ✅ Token valide - Envoi du devis par email
+            // Token valide - Envoi du devis par email
             $this->sendQuoteConfirmation($quoteRequest);
 
             Log::info('✅ Validation réussie - Devis envoyé', [

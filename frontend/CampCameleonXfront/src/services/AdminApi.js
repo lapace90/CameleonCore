@@ -34,7 +34,7 @@ class AdminApi {
     }
 
     /**
-     * ✅ CORRECTION: Récupérer les notifications avec gestion d'erreur améliorée
+     *  Récupérer les notifications avec gestion d'erreur améliorée
      */
     async getNotifications(limit = 10) {
         try {
@@ -62,14 +62,14 @@ class AdminApi {
     }
 
     /**
-     * ✅ CORRECTION: Endpoint correct pour marquer comme lue
+     *  Endpoint correct pour marquer comme lue
      */
     async markNotificationAsRead(notificationId) {
         try {
             console.log(`📝 Marquage notification ${notificationId} comme lue...`)
 
             const response = await axios.patch(
-                `${this.baseURL}/admin/notifications/${notificationId}/mark-read`, // ✅ CORRECTION: /read → /mark-read
+                `${this.baseURL}/admin/notifications/${notificationId}/mark-read`, //  /read → /mark-read
                 {}, // Pas de body nécessaire pour un PATCH simple
                 {
                     headers: {
@@ -88,7 +88,7 @@ class AdminApi {
     }
 
     /**
-     * ✅ AJOUT: Marquer toutes les notifications comme lues (batch)
+     *  Marquer toutes les notifications comme lues (batch)
      */
     async markAllNotificationsAsRead(notificationIds) {
         try {

@@ -11,8 +11,8 @@ class ProductData extends Data
         public ?string $description = null,
         public float $price,
         
-        public string $productableType,
-        public ProductableData $productable,
+        public ?string $productableType = null,
+        public ?ProductableData $productable = null,
         public bool $status = true,
         public bool $isDraft = false,
         public ?int $categoryId = null,

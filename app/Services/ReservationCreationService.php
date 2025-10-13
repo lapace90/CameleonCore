@@ -184,7 +184,7 @@ class ReservationCreationService
                 'type' => class_basename($product->productable_type ?? 'Unknown'),
                 'full_type' => $product->productable_type,
                 'price' => $product->price,
-                'quantity' => $item->quantity, // ✅ AJOUT de la quantité
+                'quantity' => $item->quantity,
                 'is_room' => $product->productable_type === 'App\\Models\\Room',
                 'is_activity' => $product->productable_type === 'App\\Models\\Activity',
                 'is_menu' => $product->productable_type === 'App\\Models\\Menu',

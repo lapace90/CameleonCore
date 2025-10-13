@@ -1,5 +1,4 @@
 <?php
-// app/State/RoleProcessor.php
 
 namespace App\State;
 

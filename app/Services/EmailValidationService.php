@@ -49,20 +49,20 @@ class EmailValidationService
             return false;
         }
 
-        // ✅ 1. Validation syntaxe de base
+        // 1. Validation syntaxe de base
         if (!$this->isValidSyntax($email)) {
             Log::warning('Email syntaxe invalide', ['email' => $email]);
             return false;
         }
 
-        // ✅ 2. Validation domaine
+        // 2. Validation domaine
         $domain = $this->extractDomain($email);
         if (!$this->isValidDomain($domain)) {
             Log::warning('Email domaine invalide', ['email' => $email, 'domain' => $domain]);
             return false;
         }
 
-        // ✅ 3. Vérification domaines bloqués
+        // 3. Vérification domaines bloqués
         if ($this->isBlockedDomain($domain)) {
             Log::warning('Email domaine bloqué', ['email' => $email, 'domain' => $domain]);
             return false;
@@ -83,7 +83,7 @@ class EmailValidationService
 
         $domain = $this->extractDomain($email);
         
-        // ✅ Vérification enregistrement MX du domaine
+        // Vérification enregistrement MX du domaine
         if (!$this->hasMxRecord($domain)) {
             Log::warning('Domaine sans enregistrement MX', ['domain' => $domain]);
             return false;

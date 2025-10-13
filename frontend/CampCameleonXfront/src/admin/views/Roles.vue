@@ -236,7 +236,7 @@ export default {
   },
 
   methods: {
-    // ✅ CORRECTION : Utiliser RolesApi au lieu d'AdminApi
+    //  Utiliser RolesApi au lieu d'AdminApi
     async fetchRoles() {
       this.loading = true
       this.error = null
@@ -286,7 +286,7 @@ export default {
       alert(`Édition du rôle ${role.name} à implémenter`)
     },
 
-    // ✅ CORRECTION : Utiliser RolesApi
+    //  Utiliser RolesApi
     async deleteRole(role) {
       if (!confirm(`Êtes-vous sûr de vouloir supprimer le rôle "${role.name}" ?`)) {
         return

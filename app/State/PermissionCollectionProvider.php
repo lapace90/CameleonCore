@@ -23,11 +23,11 @@ class PermissionCollectionProvider implements ProviderInterface
         if (!$user) {
             throw new UnauthorizedHttpException('Bearer', "Token d'authentification requis");
         }
-        // 🧠 LOGIQUE MÉTIER : Groupement côté serveur
+        // LOGIQUE MÉTIER : Groupement côté serveur
         $permissions = Permission::with('roles')
             ->select([
                 'permissions.*',
-                // ✅ Calculs pré-faits côté serveur
+                // Calculs pré-faits côté serveur
                 DB::raw('(SELECT COUNT(*) FROM permission_role WHERE permission_id = permissions.id) as roles_count'),
                 DB::raw('(SELECT COUNT(DISTINCT u.id) FROM users u 
                          JOIN role_user ru ON u.id = ru.user_id 
@@ -36,13 +36,13 @@ class PermissionCollectionProvider implements ProviderInterface
             ])
             ->get();
 
-        // 🧠 GROUPEMENT par catégories côté serveur - UTILISER LE CHAMP CATEGORY
+        // GROUPEMENT par catégories côté serveur - UTILISER LE CHAMP CATEGORY
         $grouped = $permissions->groupBy(function ($permission) {
-            // ✅ UTILISER LE CHAMP category DE LA BASE (avec fallback automatique)
+            // UTILISER LE CHAMP category DE LA BASE (avec fallback automatique)
             return $permission->category; // L'accessor gérera le fallback
         });
 
-        // 🧠 FORMATAGE pour l'UI côté serveur
+        // FORMATAGE pour l'UI côté serveur
         $categories = [];
         foreach ($grouped as $categoryKey => $categoryPermissions) {
             $categories[] = [
@@ -56,20 +56,20 @@ class PermissionCollectionProvider implements ProviderInterface
                         'id' => $perm->id,
                         'name' => $perm->name,
                         'action' => $perm->action,
-                        'category' => $perm->category, // ✅ Inclure la catégorie réelle
-                        // ✅ Classes CSS pré-calculées
+                        'category' => $perm->category, // Inclure la catégorie réelle
+                        // Classes CSS pré-calculées
                         'badge_class' => $this->getActionBadgeClass($perm->action),
                         'action_label' => $this->getActionLabel($perm->action),
-                        // ✅ États métier calculés
+                        // États métier calculés
                         'is_critical' => $this->isCriticalPermission($perm->action),
                         'is_system' => $this->isSystemPermission($perm->action),
                         'requires_confirmation' => $this->requiresConfirmation($perm->action),
-                        // ✅ Statistiques pré-calculées
+                        // Statistiques pré-calculées
                         'roles_count' => $perm->roles_count,
                         'users_count' => $perm->users_count,
-                        // ✅ Usage status pour l'UI
+                        // Usage status pour l'UI
                         'usage_status' => $this->getUsageStatus($perm->roles_count, $perm->users_count),
-                        // ✅ Relations pour l'UI
+                        // Relations pour l'UI
                         'roles' => $perm->roles->map(function ($role) {
                             return [
                                 'id' => $role->id,
@@ -79,7 +79,7 @@ class PermissionCollectionProvider implements ProviderInterface
                         })->toArray()
                     ];
                 })->toArray(),
-                // ✅ Statistiques de catégorie
+                // Statistiques de catégorie
                 'total_permissions' => $categoryPermissions->count(),
                 'used_permissions' => $categoryPermissions->where('roles_count', '>', 0)->count(),
                 'critical_permissions' => $categoryPermissions->filter(function ($perm) {
@@ -88,7 +88,7 @@ class PermissionCollectionProvider implements ProviderInterface
             ];
         }
 
-        // 🧠 TRI des catégories par priorité UI
+        // TRI des catégories par priorité UI
         usort($categories, function ($a, $b) {
             $priority = [
                 'system' => 1,
@@ -111,7 +111,7 @@ class PermissionCollectionProvider implements ProviderInterface
             return $priorityA - $priorityB;
         });
 
-        // 🧠 STATS GLOBALES
+        // STATS GLOBALES
         $stats = $this->calculateGlobalStats($permissions);
         $stats['total_categories'] = count($categories);
 

@@ -46,7 +46,7 @@ Route::get('/validate-quote/{id}/{token}', function (int $id, string $token) {
     ]);
 })->whereNumber('id')->where('token', '[A-Za-z0-9]+');
 
-// ✅ NOUVELLE ROUTE : Page de paiement dédiée (Solution 2)
+// Page de paiement dédiée (Solution 2)
 Route::get('/payment/{quoteId}', function ($quoteId) {
     // Vérifier que le devis existe et est validé
     $quote = \App\Models\QuoteRequest::findOrFail($quoteId);
@@ -62,7 +62,7 @@ Route::get('/payment/{quoteId}', function ($quoteId) {
     ]);
 })->whereNumber('quoteId')->name('payment.page');
 
-// ✅ ROUTE de redirection depuis email vers page paiement
+// ROUTE de redirection depuis email vers page paiement
 Route::get('/payment-redirect/{id}/{token}', function (int $id, string $token) {
     $quote = \App\Models\QuoteRequest::findOrFail($id);
 
@@ -101,3 +101,4 @@ Route::get('/debug-payment/{sessionId}/{quoteId}', function ($sessionId, $quoteI
         return ['error' => $e->getMessage()];
     }
 });
+
