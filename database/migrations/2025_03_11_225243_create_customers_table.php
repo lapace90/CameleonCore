@@ -30,7 +30,7 @@ return new class extends Migration
 
             $table->timestamps();
 
-            // Index utiles (optionnels)
+            // Index utiles
             $table->index('phone');
             $table->index(['city', 'country']);
         });

@@ -13,6 +13,10 @@ Artisan::command('inspire', function () {
 
 /**
  * Mettre à jour les factures en retard tous les jours à 1h du matin
+ * 
+ * Cette tâche parcourt toutes les factures avec payment_status "pending" 
+ * dont la date d'échéance est dépassée, et les marque comme "overdue".
+ * Une notification est générée pour les administrateurs.
  */
 Schedule::command('invoices:update-overdue')
     ->dailyAt('01:00')
@@ -25,7 +29,14 @@ Schedule::command('invoices:update-overdue')
     });
 
 /**
- * 🆕 Nettoyer les données périmées tous les jours à 2h du matin
+ * Nettoyer les données périmées tous les jours à 2h du matin
+ * 
+ * Cette tâche effectue une purge sélective :
+ * - Supprime les notifications de plus de 7 jours
+ * - Supprime les alertes urgentes de plus de 3 jours
+ * - Nettoie le cache du calendrier obsolète (> 24h)
+ * 
+ * Optimise l'utilisation de Redis et maintient la base de données propre.
  */
 Schedule::command('cleanup:expired-data')
     ->dailyAt('02:00')

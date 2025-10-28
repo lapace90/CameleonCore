@@ -28,3 +28,6 @@ composer.lock
 /frontend/node_modules
 /frontend/package-lock.json
 /frontend/package.json
+# Test coverage
+coverage-report/
+/test-results/*.last-run.json
