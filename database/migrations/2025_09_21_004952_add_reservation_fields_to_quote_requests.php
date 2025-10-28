@@ -4,8 +4,6 @@
 // 1. Migration pour QuoteRequest
 // ===================================
 
-// Créer: database/migrations/2025_XX_XX_add_reservation_fields_to_quote_requests.php
-
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

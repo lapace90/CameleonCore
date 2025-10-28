@@ -31,7 +31,7 @@ class ProductProcessor implements ProcessorInterface
                     'operation' => get_class($operation)
                 ]);
 
-                // 2) Créer ProductData avec votre architecture
+                // 2) Créer ProductData 
                 $productData = ProductData::from($payload);
 
                 Log::info('ProductProcessor - ProductData créé', [
@@ -60,7 +60,7 @@ class ProductProcessor implements ProcessorInterface
     }
 
     /**
-     * 🔧 NEW: Lire directement depuis la Request globale
+     * Lire directement depuis la Request globale
      * Contourne les problèmes avec API Platform context
      */
     private function getDataFromGlobalRequest(): array
@@ -189,7 +189,7 @@ class ProductProcessor implements ProcessorInterface
     }
 
     /**
-     * ✅ Extrait l'ID de catégorie depuis différents formats
+     * Extrait l'ID de catégorie depuis différents formats
      */
     private function extractCategoryId(array $payload): ?int
     {
@@ -222,7 +222,7 @@ class ProductProcessor implements ProcessorInterface
     {
         Log::info('Création du produit avec ProductData', ['product_data' => $data->toArray()]);
 
-        // Créer l'entité productable en utilisant VOTRE logique ProductableData
+        // Créer l'entité productable en utilisant logique ProductableData
         $productable = $this->createProductable($data->productableType, $data->productable);
 
         // Créer le produit
@@ -280,7 +280,7 @@ class ProductProcessor implements ProcessorInterface
 
     private function createProductable(string $type, $productableData): mixed
     {
-        // CORRECTION: Valider avant de traiter
+        // Valider avant de traiter
         if (empty($type)) {
             throw ValidationException::withMessages([
                 'productableType' => ['Le type de produit est requis']
@@ -301,7 +301,6 @@ class ProductProcessor implements ProcessorInterface
 
     private function updateProductable(mixed $productable, $productableData, string $type): void
     {
-        // GARDER votre logique ProductableData !
         $updateData = match ($type) {
             'App\\Models\\Activity' => $productableData->toActivityArray(),
             'App\\Models\\Room' => $productableData->toRoomArray(),

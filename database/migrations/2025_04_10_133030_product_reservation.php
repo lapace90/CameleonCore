@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('product_id');
             $table->unsignedBigInteger('reservation_id');
-            $table->integer('quantity')->default(1); // ⬅️ AJOUT
+            $table->integer('quantity')->default(1); 
             $table->timestamps();
 
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');

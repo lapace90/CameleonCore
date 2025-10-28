@@ -43,31 +43,28 @@ const router = createRouter({
     // Si on navigue vers une ancre
     else if (to.hash) {
       return {
-        el: to.hash,  // Pour Vue 3, utiliser 'el' au lieu de 'selector'
+        el: to.hash,  
         behavior: 'smooth'
       }
     }
     // Sinon, toujours en haut
     else {
-      return { top: 0, left: 0 }  // Pour Vue 3, utiliser 'top' et 'left'
+      return { top: 0, left: 0 } 
     }
   }
 })
 
-// 🔧 ROUTER GUARD SIMPLIFIÉ : SANS ATTENTE BLOQUANTE
 router.beforeEach(async (to, from, next) => {
   console.log(`🧭 Navigation: ${from.path} → ${to.path}`)
 
   const authStore = useAuthStore()
 
-  // 🔧 ROUTES INVITÉ : Rediriger si déjà connecté
   if (to.meta.requiresGuest && authStore.isAuthenticated) {
     console.log('🔒 Déjà connecté, redirection vers dashboard')
     next('/admin/dashboard')
     return
   }
 
-  // 🔧 ROUTES PROTÉGÉES : Vérifier l'authentification
   if (to.matched.some(record => record.meta.requiresAuth)) {
     if (!authStore.isAuthenticated) {
       console.log('🚫 Non connecté, redirection vers login')
@@ -78,7 +75,6 @@ router.beforeEach(async (to, from, next) => {
       return
     }
 
-    // 🔧 VÉRIFICATION DES PERMISSIONS (optionnel)
     if (to.meta.requiresAdmin && !authStore.canAccessAdmin) {
       console.log('🚫 Accès admin refusé')
       next({ name: 'AdminLogin' })

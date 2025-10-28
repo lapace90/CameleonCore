@@ -26,7 +26,7 @@ return new class extends Migration
             $table->index('price', 'products_price_idx');
         });
 
-        // INDEX FULLTEXT pour recherche (PostgreSQL)
+        // INDEX FULLTEXT pour recherche 
         DB::statement('CREATE INDEX products_fulltext_idx ON products USING gin(to_tsvector(\'french\', name || \' \' || coalesce(description, \'\')))');
     }
 

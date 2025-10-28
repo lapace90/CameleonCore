@@ -246,3 +246,7 @@ config.local.php
 # Fichiers générés par les scripts
 /frontend/CampCameleonXfront/find-duplicates.cjs
 /frontend/find-duplicates.cjs
+
+coverage-report/
+frontend/CampCameleonXfront/test-results/.last-run.json
+

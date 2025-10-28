@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Table pivot pour les quantités réelles - VERSION SIMPLE
+        // Table pivot pour les quantités réelles 
         Schema::create('quote_request_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('quote_request_id')->constrained()->onDelete('cascade');
