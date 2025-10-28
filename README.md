@@ -1,66 +1,298 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# CampCameleonX 
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+> **Application web de gestion d'un établissement touristique**  
+> Plateforme complète pour la réservation d'activités, d'hébergements et de restauration
 
-## About Laravel
+![Laravel](https://img.shields.io/badge/Laravel-v12-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)
+![Vue.js](https://img.shields.io/badge/Vue.js-v3-4FC08D?style=for-the-badge&logo=vue.js&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-v17-336791?style=for-the-badge&logo=postgresql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![API Platform](https://img.shields.io/badge/API_Platform-v4-67CDF0?style=for-the-badge)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Vue d'ensemble
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+**CampCameleonX** est une application web complète de gestion pour une maison d'hôtes située dans le désert marocain. Elle permet aux visiteurs de découvrir et réserver des activités, hébergements et services de restauration, tout en offrant aux gestionnaires un back-office puissant pour administrer l'établissement.
 
-## Learning Laravel
+### Contexte
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Projet développé dans le cadre du Titre Professionnel Concepteur Développeur d'Applications (CDA), cette application répond aux besoins réels d'un établissement touristique avec une approche moderne et scalable.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### Objectifs principaux
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- **Digitaliser** la gestion complète de l'établissement
+- **Automatiser** les processus de réservation et facturation
+- **Optimiser** l'expérience utilisateur avec une interface immersive
+- **Centraliser** la gestion des activités, hébergements et restauration
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Fonctionnalités
 
-### Premium Partners
+### Site Public
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+- **Page d'accueil immersive** avec hero section évoquant le désert
+- **Catalogue complet** : activités, hébergements, menus avec système de filtres
+- **Devis personnalisé** multi-étapes avec calendrier interactif
+- **Réservation en ligne** avec paiement sécurisé via Stripe
+- **Espace client** pour suivre ses réservations
+- **Design responsive** mobile-first
 
-## Contributing
+### Back-office Administration
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- **Dashboard** avec statistiques en temps réel et widgets personnalisables
+- **Gestion RBAC** : 6 rôles prédéfinis, 50+ permissions granulaires
+- **Calendrier FullCalendar** avec drag & drop pour la planification
+- **Gestion complète du catalogue** : CRUD pour tous les types de produits
+- **Facturation automatisée** avec système de relances
+- **Notifications temps réel** avec cache optimisé (TTL 7 jours)
+- **Statistiques et analytics** pour le suivi de performance
 
-## Code of Conduct
+### Fonctionnalités Techniques Avancées
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+- **Architecture API-first** avec API Platform pour Laravel
+- **Relations polymorphes** intelligentes (Product → Activity/Room/Menu/Dish)
+- **Système de cache** multi-niveaux avec ETag
+- **Tâches planifiées** via conteneur Docker dédié
+- **Documentation API** automatique (OpenAPI/Swagger)
+- **Conformité RGPD** avec gestion des consentements
 
-## Security Vulnerabilities
+---
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Architecture Technique
 
-## License
+### Stack Technologique
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+#### Backend
+- **Laravel 12** - Framework PHP moderne
+- **API Platform 4** - API REST auto-documentée
+- **PostgreSQL 17** - Base de données relationnelle
+- **Laravel Sanctum** - Authentification SPA
+- **Eloquent ORM** - Mapping objet-relationnel
+
+#### Frontend
+- **Vue.js 3** - Framework JavaScript réactif
+- **Vite** - Build tool ultra-rapide
+- **Pinia** - Gestion d'état centralisée
+- **FullCalendar.js** - Calendrier interactif
+- **SCSS modulaire** - Styles organisés et maintenables
+
+#### Infrastructure
+- **Docker Compose** - Orchestration de conteneurs
+- **4 conteneurs** : Backend, Frontend, PostgreSQL, Scheduler
+- **Nginx** - Serveur web pour le frontend
+- **GitHub Actions** - CI/CD automatisé
+
+### Architecture des Conteneurs
+
+```yaml
+Services:
+  ├── myBackendX    (Laravel API - Port 8000)
+  ├── myFrontendX   (Vue.js SPA - Port 5173)
+  ├── myPostgresX   (PostgreSQL - Port 5433)
+  └── mySchedulerX  (Tâches CRON isolées)
+```
+
+### Pattern Polymorphe
+
+```php
+Product (abstraction commune)
+    ├── Activity    (activités désert)
+    ├── Room        (hébergements)
+    ├── Menu        (formules repas)
+    ├── Dish        (plats individuels)
+    └── Ingredient  (composants)
+```
+
+---
+
+## Installation
+
+### Prérequis
+
+- Docker & Docker Compose
+- Git
+- Node.js 20+ (pour le développement frontend)
+- PHP 8.4+ (pour le développement backend local)
+
+### Installation rapide
+
+1. **Cloner le repository**
+```bash
+git clone https://github.com/lapace90/campcameleonx.git
+cd campcameleonx
+```
+
+2. **Configuration environnement**
+```bash
+cp .env.example .env
+# Éditer .env avec vos paramètres (DB, Stripe, Mail...)
+```
+
+3. **Lancer l'infrastructure Docker**
+```bash
+docker compose up -d --build
+```
+
+4. **Initialiser la base de données**
+```bash
+docker compose exec app php artisan migrate --seed
+```
+
+5. **Accéder à l'application**
+- Frontend : http://localhost:5173
+- API : http://localhost:8000
+- Documentation API : http://localhost:8000/api/docs
+
+### Mode développement
+
+Pour le hot-reload en développement :
+
+```bash
+# Backend uniquement en Docker
+docker compose up -d app db scheduler
+
+# Frontend en local avec hot-reload
+cd frontend/CampCameleonXfront
+npm install
+npm run dev
+```
+
+---
+
+## API Documentation
+
+L'API est auto-documentée grâce à API Platform :
+
+- **OpenAPI/Swagger** : `/api/docs`
+- **JSON-LD/Hydra** : `/api/contexts`
+- **Formats supportés** : JSON, JSON-LD
+- **Authentification** : Bearer token (Laravel Sanctum)
+
+---
+
+## Tests
+
+### Tests automatisés
+
+- **Backend** : 35+ tests Pest/PHPUnit (108+ assertions)
+- **Frontend** : Tests composants avec Vitest
+- **E2E** : Tests de parcours avec Playwright
+
+### Lancer les tests
+
+```bash
+# Tests backend
+docker compose exec app php artisan test
+
+# Tests frontend
+cd frontend/CampCameleonXfront
+npm run test
+
+# Tests E2E
+npm run test:e2e
+```
+
+### Couverture de code
+
+- Authentification et autorisation (RBAC)
+- CRUD des entités principales
+- Processus de réservation complet
+- Paiements Stripe
+- Tâches planifiées
+
+---
+
+## Déploiement
+
+### Déploiement sur serveur
+
+1. **Préparer le serveur**
+```bash
+# SSH vers le serveur
+ssh user@server
+
+# Cloner le projet
+git clone https://github.com/yourusername/campcameleonx.git
+cd campcameleonx
+```
+
+2. **Configuration production**
+```bash
+# Créer le fichier .env de production
+nano .env
+# Configurer toutes les variables (DB, Stripe, URLs...)
+```
+
+3. **Lancer les services**
+```bash
+docker compose up -d --build
+docker compose exec app php artisan migrate --force
+docker compose exec app php artisan optimize
+```
+
+4. **Vérifier le scheduler**
+```bash
+docker compose exec app php artisan schedule:list
+docker compose logs -f scheduler
+```
+
+### Monitoring
+
+```bash
+# État des services
+docker compose ps
+
+# Logs temps réel
+docker compose logs -f app       # API
+docker compose logs -f frontend  # Nginx
+docker compose logs -f db        # PostgreSQL
+docker compose logs -f scheduler # Tâches CRON
+```
+
+---
+
+## Sécurité
+
+- **Authentification** : Laravel Sanctum avec tokens SPA
+- **Autorisation** : RBAC avec 50+ permissions granulaires
+- **Protection** : CSRF, XSS, SQL injection
+- **HTTPS** : SSL/TLS en production
+- **RGPD** : Conformité avec gestion des consentements
+- **Paiements** : Intégration Stripe sécurisée (PCI-DSS)
+
+---
+
+## Contribution
+
+Les contributions sont les bienvenues ! Voici comment participer :
+
+1. Fork le projet
+2. Créer une branche (`git checkout -b feature/AmazingFeature`)
+3. Commit les changements (`git commit -m 'Add: nouvelle fonctionnalité'`)
+4. Push vers la branche (`git push origin feature/AmazingFeature`)
+5. Ouvrir une Pull Request
+
+### Conventions de code
+
+- **Backend** : PSR-12 pour PHP
+- **Frontend** : ESLint + Prettier pour JavaScript/Vue
+- **Commits** : Convention Conventional Commits
+- **Documentation** : Commentaires en français, code en anglais
+
+---
+
+## Équipe
+
+**Développement** : Ilaria Pace  
+**Formation** : Titre Professionnel CDA  
+**Période** : Novembre 2024 - Octobre 2025
+
+---
+
+<div align="center">
+  <strong>CampCameleonX - L'expérience du désert marocain à portée de clic</strong>
+  <br>
+  <sub>Développé avec passion pour le Titre Professionnel CDA</sub>
+</div>
