@@ -16,7 +16,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>🏕️ CampCameleonX</h1>
+        <h1>🦎 CampCameleonX</h1>
         <h2>Votre devis personnalisé</h2>
         <p>Référence : <strong>{{ $quote->reference }}</strong></p>
     </div>
@@ -72,12 +72,12 @@
         </div>
         
         <div style="text-align: center;">
-            <a href="tel:+33XXXXXXXXX" class="button"><i class="fas fa-phone"  style="padding: .5rem;"></i> Réserver par téléphone</a>
+            <a href="tel:+33XXXXXXXXX" class="button"><i class="fas fa-phone" style="padding: .5rem;"></i> Réserver par téléphone</a>
             <a href="mailto:contact@campcameleonx.com?subject=Réservation {{ $quote->reference }}" class="button"><i class="fas fa-envelope"></i>Réserver par email</a>
         </div>
         
         <div class="contact-section">
-            <h3><i class="fas fa-phone"  style="padding: .5rem;"></i> Pour réserver ou obtenir des informations :</h3>
+            <h3><i class="fas fa-phone" style="padding: .5rem;"></i> Pour réserver ou obtenir des informations :</h3>
             <ul>
                 <li><strong>Téléphone :</strong> +33 X XX XX XX XX</li>
                 <li><strong>Email :</strong> contact@campcameleonx.com</li>

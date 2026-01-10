@@ -59,7 +59,7 @@
 
 <body>
     <div class="header">
-        <h1>🏕️ CampCameleonX</h1>
+        <h1>🦎 CampCameleonX</h1>
         <p>Nouveau message de contact</p>
     </div>
 
@@ -84,7 +84,7 @@
         <p><small><i class="fas fa-lightbulb"  style="padding: .5rem;"></i> Répondez directement en cliquant sur "Répondre" dans votre client email.</small></p>
 
         <div class="footer">
-            <p>CampCameleonX - Système de contact<br>
+            <p>🦎 CampCameleonX - Système de contact<br>
                 <i class="fas fa-envelope"  style="padding: .5rem;"></i> Ce message a été envoyé depuis le formulaire de contact du site</p>
         </div>
     </div>

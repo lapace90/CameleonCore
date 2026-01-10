@@ -65,7 +65,7 @@ class ReservationCalendarProvider implements ProviderInterface
                     'title' => $title,
                     'start' => $start,
                     'end'   => $end,
-                    'allDay'=> true,               // à “true” si tu gères des séjours/journées
+                    'allDay'=> true,               // à “true” si on gère des séjours/journées
                     'color' => $color,
                     'extendedProps' => [
                         'status'    => $r->status,

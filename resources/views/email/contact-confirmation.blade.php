@@ -14,7 +14,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>🏕️ CampCameleonX</h1>
+        <h1>🦎 CampCameleonX</h1>
         <p>Confirmation de réception</p>
     </div>
     
@@ -39,7 +39,7 @@
         </p>
         
         <div class="footer">
-            <p>CampCameleonX - Votre évasion dans le désert marocain<br>
+            <p>🦎 CampCameleonX - Votre évasion dans le désert marocain<br>
             <i class="fas fa-phone"  style="padding: .5rem;"></i> +212 6 12 34 56 78 | <i class="fas fa-envelope"></i>contact@campcameleonx.com<br>
             Route du Sahara, Merzouga, Maroc</p>
         </div>

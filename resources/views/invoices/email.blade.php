@@ -194,7 +194,7 @@
     <div class="email-container">
         <!-- Header -->
         <div class="header">
-            <h1>🧾 Votre Facture CampCameleonX</h1>
+            <h1><i class="fas fa-file-lines"></i> Votre Facture CampCameleonX</h1>
             <p>{{ $invoice_number }}</p>
         </div>
 
@@ -211,7 +211,7 @@
 
             <!-- Attachment Notice -->
             <div class="attachment-notice">
-                <p>📎 <strong>Pièce jointe :</strong> Votre facture au format PDF est jointe à cet email.</p>
+                <p><i class="fa-solid fa-paperclip" style="padding: .5rem;"></i> <strong>Pièce jointe :</strong> Votre facture au format PDF est jointe à cet email.</p>
             </div>
 
             <!-- Invoice Summary -->
@@ -274,13 +274,13 @@
 
             <div class="message" style="margin-top: 30px;">
                 <p>Nous espérons vous revoir très bientôt dans le désert marocain !</p>
-                <p style="color: #2c5f2d; font-weight: 600;">À bientôt,<br>L'équipe CampCameleonX 🐪</p>
+                <p style="color: #2c5f2d; font-weight: 600;">À bientôt,<br>L'équipe CampCameleonX 🦎</p>
             </div>
         </div>
 
         <!-- Footer -->
         <div class="footer">
-            <p><strong>CampCameleonX</strong></p>
+            <p><strong>🦎 CampCameleonX</strong></p>
             <p>Désert du Maroc | Merzouga 52202</p>
             <p>
                 <a href="mailto:contact@campcameleonx.com">contact@campcameleonx.com</a> | 

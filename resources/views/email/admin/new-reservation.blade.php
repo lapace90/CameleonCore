@@ -254,7 +254,7 @@
     </div>
     
     <div class="footer">
-        <p><strong>CampCameleonX</strong> - Administration</p>
+        <p><strong>🦎 CampCameleonX</strong> - Administration</p>
         <p>Reçu le {{ now()->format('d/m/Y à H:i') }}</p>
         <p><i class="fas fa-user" style="padding: .5rem;"></i> Destinataire : {{ $admin->name }} ({{ $admin->email }})</p>
     </div>

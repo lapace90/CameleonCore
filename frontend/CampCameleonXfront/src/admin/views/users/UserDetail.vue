@@ -1,4 +1,3 @@
-<!-- path=> C:\Projects\CampCameleonX\frontend\CampCameleonXfront\src\admin\views\users\UserDetail.vue -->
 <template>
   <div class="product-detail-container">
     <!-- Loading -->

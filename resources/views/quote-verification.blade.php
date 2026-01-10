@@ -17,7 +17,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>CampCameleonX</h1>
+        <h1>🦎 CampCameleonX</h1>
         <p>Vérification de votre adresse email</p>
     </div>
     
@@ -56,7 +56,7 @@
         
         <div class="footer">
             <p>CampCameleonX - Votre évasion dans le désert marocain<br>
-            <i class="fas fa-phone"  style="padding: .5rem;"></i> +33 X XX XX XX XX | <i class="fas fa-envelope"></i>contact@campcameleonx.com</p>
+            <i class="fas fa-phone" style="padding: .5rem;"></i> +33 X XX XX XX XX | <i class="fas fa-envelope" style="padding: .5rem;"></i>contact@campcameleonx.com</p>
         </div>
     </div>
 </body>

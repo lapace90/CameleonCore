@@ -206,7 +206,7 @@
 
                 // Afficher loading
                 const originalText = payButton.innerHTML;
-                payButton.innerHTML = '⏳ Préparation...';
+                payButton.innerHTML = '<i class="fas fa-spinner fa-spin" style="padding: .5rem;"></i> Préparation...';
                 payButton.disabled = true;
                 loadingOverlay.style.display = 'flex';
 
