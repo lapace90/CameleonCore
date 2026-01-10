@@ -82,8 +82,8 @@
   transition: all $transition-base;
   cursor: pointer;
   border: 2px solid transparent;
-  display: flex; // ✅ FLEX pour aligner les boutons
-  flex-direction: column; // ✅ Colonne pour pousser le bouton en bas
+  display: flex; 
+  flex-direction: column; 
 
   &:hover {
     transform: translateY(-8px);
@@ -119,7 +119,7 @@
   position: relative;
   height: 250px;
   overflow: hidden;
-  flex-shrink: 0; // ✅ Taille fixe pour l'image
+  flex-shrink: 0; 
 
   img {
     width: 100%;
@@ -196,9 +196,9 @@
 // ========================================
 .menu-content {
   padding: 2rem;
-  display: flex; // ✅ FLEX pour organiser le contenu
+  display: flex; 
   flex-direction: column;
-  flex-grow: 1; // ✅ Prend tout l'espace disponible
+  flex-grow: 1; 
 
   .menu-header {
     margin-bottom: 1.5rem;
@@ -292,7 +292,7 @@
   }
 
   .menu-action {
-    margin-top: auto; // ✅ POUSSE LE BOUTON EN BAS
+    margin-top: auto; 
 
     .select-btn {
       width: 100%;

@@ -94,8 +94,8 @@
     box-shadow: $shadow-soft;
     transition: all $transition-base;
     border: 2px solid transparent;
-    display: flex; // ✅ FLEX pour aligner les boutons
-    flex-direction: column; // ✅ Colonne pour pousser le bouton en bas
+    display: flex; 
+    flex-direction: column;
     margin: 2rem;
 
     &:hover {
@@ -113,7 +113,7 @@
       position: relative;
       height: 250px;
       overflow: hidden;
-      flex-shrink: 0; // ✅ Taille fixe pour l'image
+      flex-shrink: 0; 
 
       img {
         width: 100%;
@@ -168,9 +168,9 @@
 
     .accommodation-content {
       padding: 2rem;
-      display: flex; // ✅ FLEX pour organiser le contenu
+      display: flex; 
       flex-direction: column;
-      flex-grow: 1; // ✅ Prend tout l'espace disponible
+      flex-grow: 1;
 
       h3 {
         font-size: $font-size-2xl;
@@ -233,7 +233,7 @@
         border-radius: $border-radius-lg;
         font-weight: $font-weight-semibold;
         transition: all $transition-base;
-        margin-top: auto; // ✅ POUSSE LE BOUTON EN BAS
+        margin-top: auto; 
 
         &:hover {
           transform: translateY(-2px);
@@ -329,14 +329,14 @@
 
   .amenities-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr); // ✅ 3 colonnes fixes
-    grid-template-rows: repeat(3, 1fr); // ✅ 3 rangées 
+    grid-template-columns: repeat(3, 1fr); 
+    grid-template-rows: repeat(3, 1fr);
     gap: 2rem;
-    max-width: 900px; // ✅ Limitation pour ne pas être trop large
+    max-width: 900px;
     margin: 0 auto;
 
     @media (max-width: 768px) {
-      grid-template-columns: 1fr; // ✅ 1 colonne sur mobile
+      grid-template-columns: 1fr;
       grid-template-rows: auto;
       max-width: 300px;
     }
@@ -347,7 +347,7 @@
       border-radius: $border-radius-xl;
       text-align: center;
       transition: all $transition-base;
-      border: 1px solid rgba($terracotta, 0.1); // ✅ Bordure subtile
+      border: 1px solid rgba($terracotta, 0.1); 
 
       &:hover {
         background: rgba(white, 0.95);
@@ -357,7 +357,7 @@
       }
 
       .amenity-icon {
-        width: 3.5rem; // ✅ Taille légèrement réduite pour l'équilibre
+        width: 3.5rem;
         height: 3.5rem;
         background: $gradient-warm;
         border-radius: 50%;
@@ -365,15 +365,15 @@
         align-items: center;
         justify-content: center;
         color: white;
-        font-size: $font-size-lg; // ✅ Icône proportionnée
+        font-size: $font-size-lg; 
         margin: 0 auto 1rem;
       }
 
       h5 {
         color: $text-primary;
-        margin-bottom: 0.75rem; // ✅ Marge ajustée
+        margin-bottom: 0.75rem;
         font-family: $font-family-primary;
-        font-size: $font-size-base; // ✅ Taille ajustée
+        font-size: $font-size-base; 
         font-weight: $font-weight-semibold;
       }
 
@@ -381,7 +381,7 @@
         color: $text-secondary;
         font-size: $font-size-sm;
         line-height: $line-height-relaxed;
-        margin: 0; // ✅ Suppression des marges
+        margin: 0;
       }
     }
   }
@@ -416,8 +416,8 @@
     transition: all $transition-base;
     border: 2px solid transparent;
     position: relative;
-    display: flex; // ✅ FLEX pour aligner les boutons
-    flex-direction: column; // ✅ Colonne pour pousser le bouton en bas
+    display: flex; 
+    flex-direction: column; 
 
     &:hover {
       transform: translateY(-8px);
@@ -476,7 +476,7 @@
       padding: 0;
       margin: 0 0 2rem 0;
       text-align: left;
-      flex-grow: 1; // ✅ Prend l'espace disponible
+      flex-grow: 1; 
 
       li {
         display: flex;
@@ -498,7 +498,7 @@
       border-radius: $border-radius-lg;
       font-weight: $font-weight-semibold;
       transition: all $transition-base;
-      margin-top: auto; // ✅ POUSSE LE BOUTON EN BAS
+      margin-top: auto; 
 
       &.btn-primary {
         background: $gradient-warm;

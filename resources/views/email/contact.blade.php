@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
-
 <head>
     <meta charset="utf-8">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <title>Nouveau message de contact</title>
     <style>
         body {
@@ -72,7 +72,7 @@
             <p><span class="label">Téléphone :</span> {{ $phone }}</p>
             <p><span class="label">Sujet :</span> {{ $subject }}</p>
             @if($newsletter)
-            <p><span class="label">📧 Newsletter :</span> Souhaite recevoir la newsletter</p>
+            <p><span class="label"><i class="fas fa-envelope"  style="padding: .5rem;"></i> Newsletter :</span> Souhaite recevoir la newsletter</p>
             @endif
         </div>
 
@@ -81,11 +81,11 @@
             <p>{{ $messageContent }}</p>
         </div>
 
-        <p><small>💡 Répondez directement en cliquant sur "Répondre" dans votre client email.</small></p>
+        <p><small><i class="fas fa-lightbulb"  style="padding: .5rem;"></i> Répondez directement en cliquant sur "Répondre" dans votre client email.</small></p>
 
         <div class="footer">
             <p>CampCameleonX - Système de contact<br>
-                📧 Ce message a été envoyé depuis le formulaire de contact du site</p>
+                <i class="fas fa-envelope"  style="padding: .5rem;"></i> Ce message a été envoyé depuis le formulaire de contact du site</p>
         </div>
     </div>
 </body>

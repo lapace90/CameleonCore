@@ -77,7 +77,7 @@ export default {
     CategoryBadge
   },
     mounted() {
-    // ✅ TEMPORAIRE : pour déboguer
+    // TEMPORAIRE : pour déboguer
     console.log('🔍 Product data:', this.product)
     console.log('🔍 GlobalTags:', this.product.globalTags)
     console.log('🔍 SpecificTags:', this.product.specificTags)

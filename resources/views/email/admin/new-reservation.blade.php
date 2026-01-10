@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <title>Nouvelle Réservation - CampCameleonX</title>
     <style>
         body {
@@ -152,18 +153,18 @@
 </head>
 <body>
     <div class="header">
-        <h1>🏨 Nouvelle Réservation Reçue !</h1>
+        <h1><i class="fas fa-clipboard-list" style="padding: .5rem;"></i> Nouvelle Réservation Reçue !</h1>
         <p>Une réservation vient d'être confirmée et payée</p>
     </div>
     
     <div class="content">
         <div class="highlight-box">
-            <h3 style="margin-top: 0; color: #1976d2;">📋 Réservation #{{ $reservation->id }}</h3>
+            <h3 style="margin-top: 0; color: #1976d2;"><i class="fas fa-clipboard-list" style="padding: .5rem;"></i> Réservation #{{ $reservation->id }}</h3>
             <p><strong>Référence devis :</strong> {{ $reservation->quote_reference ?? 'N/A' }}</p>
             <p><strong>Numéro de facture :</strong> {{ $reservation->invoice_number }}</p>
         </div>
         
-        <h3>👤 Informations Client</h3>
+        <h3><i class="fas fa-user" style="padding: .5rem;"></i> Informations Client</h3>
         <div class="info-grid">
             <div class="info-item">
                 <div class="info-label">Nom</div>
@@ -187,7 +188,7 @@
             </div>
         </div>
         
-        <h3>🏕️ Détails du Séjour</h3>
+        <h3><i class="fas fa-campground" style="padding: .5rem;"> Détails du Séjour</h3>
         <div class="info-grid">
             <div class="info-item">
                 <div class="info-label">Arrivée</div>
@@ -216,17 +217,17 @@
             </div>
         </div>
         
-        <h3>💰 Informations Financières</h3>
+        <h3><i class="fas fa-hand-holding-dollar" style="padding: .5rem;"></i> Informations Financières</h3>
         <div class="highlight-box" style="text-align: center;">
             <div class="info-label">Montant Total Payé</div>
             <div class="amount">{{ number_format($reservation->amount, 2) }} €</div>
             <div style="margin-top: 10px;">
-                <span class="status-badge status-confirmed">✅ {{ ucfirst($reservation->payment_status) }}</span>
+                <span class="status-badge status-confirmed"><i class="fas fa-check-circle" style="padding: .5rem;"></i> {{ ucfirst($reservation->payment_status) }}</span>
             </div>
         </div>
         
         @if($reservation->comment)
-        <h3>💬 Commentaire Client</h3>
+        <h3><i class="fas fa-comment" style="padding: .5rem;"></i> Commentaire Client</h3>
         <div class="info-item">
             <p style="margin: 0; font-style: italic;">"{{ $reservation->comment }}"</p>
         </div>
@@ -234,15 +235,15 @@
         
         <div class="actions">
             <a href="{{ config('app.url') }}/admin/reservations/{{ $reservation->id }}" class="btn">
-                📋 Voir la Réservation
+                <i class="fas fa-clipboard-list" style="padding: .5rem;"></i> Voir la Réservation
             </a>
             <a href="{{ config('app.url') }}/admin/calendar" class="btn btn-secondary">
-                📅 Ouvrir le Calendrier
+                <i class="fas fa-calendar-alt" style="padding: .5rem;"></i> Ouvrir le Calendrier
             </a>
         </div>
         
         <div style="margin-top: 30px; padding: 15px; background: #f8f9fa; border-radius: 8px; font-size: 14px;">
-            <strong>⚡ Actions recommandées :</strong>
+            <strong><i class="fas fa-file-lines" style="padding: .5rem;"></i> Actions recommandées :</strong>
             <ul style="margin: 10px 0; padding-left: 20px;">
                 <li>Vérifier la disponibilité des équipements</li>
                 <li>Préparer les clés et l'accueil</li>
@@ -255,7 +256,7 @@
     <div class="footer">
         <p><strong>CampCameleonX</strong> - Administration</p>
         <p>Reçu le {{ now()->format('d/m/Y à H:i') }}</p>
-        <p>👤 Destinataire : {{ $admin->name }} ({{ $admin->email }})</p>
+        <p><i class="fas fa-user" style="padding: .5rem;"></i> Destinataire : {{ $admin->name }} ({{ $admin->email }})</p>
     </div>
 </body>
 </html>

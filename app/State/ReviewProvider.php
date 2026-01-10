@@ -44,7 +44,7 @@ class ReviewProvider implements ProviderInterface
             return $this->normalizeReview($review);
         }
 
-        // 📋 RÉCUPÉRATION DE LA COLLECTION
+        // RÉCUPÉRATION DE LA COLLECTION
         $query = Review::query();
 
         // Récupérer la requête AVANT le filtrage

@@ -366,7 +366,7 @@ export default {
 
       try {
         if (eventData.type === 'reservation') {
-          // ✅ CRÉATION D'UNE RÉSERVATION ADMIN directe
+          // CRÉATION D'UNE RÉSERVATION ADMIN directe
           const reservationPayload = {
             // Informations de base
             checkin: eventData.start,

@@ -103,7 +103,7 @@ class ReviewProcessor implements ProcessorInterface
     }
 
     /**
-     * 🔄 METTRE À JOUR un avis (admin seulement)
+     * METTRE À JOUR un avis (admin seulement)
      */
     private function updateReview($data, array $uriVariables, array $context, bool $isAdmin): Review
     {

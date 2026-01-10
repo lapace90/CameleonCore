@@ -43,7 +43,7 @@ class AdminApi {
 
             const response = await axios.get(`${this.baseURL}/admin/notifications`, {
                 params: { limit },
-                timeout: 30000 // ✅ Timeout de 10 secondes
+                timeout: 30000 
             })
 
             const duration = Date.now() - startTime
@@ -219,7 +219,7 @@ class AdminApi {
         try {
             const response = await axios.get(`${this.baseURL}/admin/calendar/reservations`, {
                 params: { start, end },
-                timeout: 30000 // ✅ Timeout plus long pour les données calendrier
+                timeout: 30000
             })
             return response.data || []
         } catch (error) {
@@ -369,36 +369,36 @@ class AdminApi {
     // =============================
 
     handleError(error) {
-        // ✅ Gestion spécifique des timeouts
+        // Gestion spécifique des timeouts
         if (error.code === 'ECONNABORTED') {
             return new Error('Le serveur met trop de temps à répondre. Vérifiez votre connexion.')
         }
 
-        // ✅ Gestion des erreurs d'authentification
+        // Gestion des erreurs d'authentification
         if (error.response?.status === 401) {
             const authStore = useAuthStore()
             authStore.logout()
             return new Error('Session expirée, veuillez vous reconnecter')
         }
 
-        // ✅ Gestion des erreurs de serveur
+        // Gestion des erreurs de serveur
         if (error.response?.status >= 500) {
             return new Error('Erreur serveur temporaire. Veuillez réessayer.')
         }
 
-        // ✅ Gestion des erreurs de validation
+        // Gestion des erreurs de validation
         if (error.response?.status === 422) {
             const validationErrors = error.response.data?.errors || {}
             const firstError = Object.values(validationErrors)[0]?.[0]
             return new Error(firstError || 'Données invalides')
         }
 
-        // ✅ Gestion des erreurs 404
+        // Gestion des erreurs 404
         if (error.response?.status === 404) {
             return new Error('Ressource non trouvée')
         }
 
-        // ✅ Erreur générique avec message du serveur
+        // Erreur générique avec message du serveur
         const serverMessage = error.response?.data?.message ||
             error.response?.data?.error ||
             error.message
@@ -406,7 +406,7 @@ class AdminApi {
         return new Error(serverMessage || 'Erreur inconnue')
     }
 
-    // ✅ Méthodes d'aide pour les autres composants
+    // Méthodes d'aide pour les autres composants
     async get(endpoint) {
         try {
             const response = await axios.get(`${this.baseURL}${endpoint}`)

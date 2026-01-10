@@ -287,7 +287,7 @@ async function loadPermissions() {
 }
 
 
-// ✅ MODIFICATION : Activer la fonction viewPermissionDetails
+// Activer la fonction viewPermissionDetails
 function viewPermissionDetails(permission) {
     selectedPermission.value = permission
     showDetailsModal.value = true

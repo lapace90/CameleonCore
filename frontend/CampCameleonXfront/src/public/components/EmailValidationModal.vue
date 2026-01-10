@@ -7,7 +7,7 @@
           <i class="fas fa-envelope-circle-check"></i>
         </div>
         
-        <h2 class="modal-title">📧 Validation email requise</h2>
+        <h2 class="modal-title"><i class="fas fa-envelope"  style="padding: .5rem;"></i>Validation email requise</h2>
         
         <div class="modal-content">
           <p class="success-message">

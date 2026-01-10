@@ -282,11 +282,11 @@
         font-size: $font-size-lg;
 
         &.prev {
-            left: 5px; // ✅ Repositionné
+            left: 5px;
         }
 
         &.next {
-            right: 5px; // ✅ Repositionné
+            right: 5px;
         }
     }
 
@@ -434,19 +434,19 @@
 }
 
 .activity-card-detailed {
-    background: rgba(white, 0.95);              // ✅ 0.8 → 0.95
-    border-radius: $border-radius-2xl;          // ✅ xl → 2xl
+    background: rgba(white, 0.95);             
+    border-radius: $border-radius-2xl;          
     overflow: hidden;
     box-shadow: $shadow-soft;                   
     transition: all $transition-base;
-    border: 2px solid transparent;              // ✅ 1px → 2px
+    border: 2px solid transparent;             
     display: flex;
     flex-direction: column;
 
     &:hover {
         background: rgba(white, 0.95);
-        transform: translateY(-8px);            // ✅ -3px → -8px
-        box-shadow: $shadow-strong;             // ✅ medium → strong
+        transform: translateY(-8px);            
+        box-shadow: $shadow-strong;
         border-color: rgba($terracotta, 0.2);   
     }
 
@@ -465,7 +465,7 @@
         .card-badge {
             position: absolute;
             top: 1rem;
-            right: 1rem;                        // ✅ Cohérent avec menus
+            right: 1rem;            
             width: 50px;
             height: 50px;
             background: $gradient-warm;
@@ -490,7 +490,7 @@
         flex-direction: column;
 
         h3 {
-            font-size: $font-size-2xl;          // ✅ 2.5rem → 2xl
+            font-size: $font-size-2xl;        
             margin-bottom: 1rem;
             color: $terracotta;
             font-family: $font-family-display;
@@ -498,7 +498,7 @@
         }
 
         > p {
-            font-size: $font-size-base;         // ✅ lg → base
+            font-size: $font-size-base;        
             line-height: $line-height-relaxed;
             margin-bottom: 1.5rem;
             color: $coffee;
@@ -529,7 +529,7 @@
 
         .cta-button {
             width: 100%;
-            margin-top: auto;                   // ✅ Pousse en bas
+            margin-top: auto;                
             padding: 1rem 1.5rem;
             background: $gradient-warm;
             border: none;
@@ -546,7 +546,7 @@
 
             &:hover {
                 transform: translateY(-2px);
-                box-shadow: 0 8px 16px rgba($terracotta, 0.3);  // ✅ 10px 20px → 8px 16px
+                box-shadow: 0 8px 16px rgba($terracotta, 0.3); 
             }
 
             i {

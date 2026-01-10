@@ -153,7 +153,7 @@ export default {
       selectedProducts: [],
       error: null,
 
-      // ✅ Filtres avec valeurs par défaut
+      // Filtres avec valeurs par défaut
       defaultFilters: {
         search: '',
         category: '',
@@ -192,7 +192,7 @@ export default {
       return PRODUCT_CONFIGS[this.type] || PRODUCT_CONFIGS.activity
     },
 
-    // ✅ Catégories disponibles (calculé depuis les produits chargés)
+    // Catégories disponibles (calculé depuis les produits chargés)
     availableCategories() {
       const toCategory = (p) => {
         const c = p?.category
@@ -219,7 +219,7 @@ export default {
       )
     },
 
-    // ✅ Options pour le select de catégories
+    // Options pour le select de catégories
     categoryOptions() {
       // Si pas encore de produits chargés, retourner un array vide
       if (!this.products || this.products.length === 0) {
@@ -232,7 +232,7 @@ export default {
       }))
     },
 
-    // ✅ Configuration des champs de filtre
+    // Configuration des champs de filtre
     productFilterFields() {
       return [
         {
@@ -256,7 +256,7 @@ export default {
       ]
     },
 
-    // ✅ Produits filtrés (côté client)
+    // Produits filtrés (côté client)
     visibleProducts() {
       const search = (this.filters.search || '').toLowerCase().trim()
       const wantedCat = this.filters.category ? String(this.filters.category) : ''
@@ -387,7 +387,7 @@ export default {
       }
     },
 
-    // ✅ Méthode pour réinitialiser les filtres
+    // Méthode pour réinitialiser les filtres
     resetFilters() {
       this.filters = { ...this.defaultFilters }
     },

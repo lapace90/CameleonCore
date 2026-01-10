@@ -197,7 +197,7 @@ class ReservationTestSeeder extends Seeder
             $reservation->invoice_number = 'RES-' . date('Ymd') . '-' . str_pad($reservation->id, 6, '0', STR_PAD_LEFT);
             $reservation->save();
 
-            // ✅ Synchroniser les produits dans la pivot
+            // Synchroniser les produits dans la pivot
             $pivotData = [];
             foreach ($scenario['products'] as $productData) {
                 $pivotData[$productData['product']->id] = [

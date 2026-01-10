@@ -122,7 +122,7 @@ export default {
     return {
       localFilters: this.buildInitialFilters(),
       searchTimeout: null,
-      // ✅ Générer un ID unique au montage du composant
+      // Générer un ID unique au montage du composant
       componentId: `filter-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
     }
   },
@@ -138,14 +138,14 @@ export default {
       return this.showSearch && this.searchKey
     },
     
-    // ✅ Utiliser componentId au lieu de _uid
+    // Utiliser componentId au lieu de _uid
     searchId() {
       return `${this.componentId}-search`
     },
     
     normalizedFields() {
       return this.fields.map((field, index) => {
-        // ✅ Utiliser componentId au lieu de _uid
+        // Utiliser componentId au lieu de _uid
         const id = field.id || `${this.componentId}-field-${field.key || index}`
         
         const options = (field.options || []).map(option => ({
@@ -285,7 +285,7 @@ export default {
   flex-wrap: wrap;
 }
 
-/* ✅ RECHERCHE À GAUCHE */
+/* RECHERCHE À GAUCHE */
 .search-field {
   flex: 1;
   min-width: 280px;
@@ -326,7 +326,7 @@ export default {
   box-shadow: 0 0 0 3px rgba(94, 114, 228, 0.1);
 }
 
-/* ✅ FILTRES À DROITE - Groupe compact */
+/* FILTRES À DROITE - Groupe compact */
 .filter-field {
   min-width: 160px;
   flex-shrink: 0;
@@ -358,7 +358,7 @@ export default {
   border-color: #adb5bd;
 }
 
-/* ✅ ACTIONS À DROITE */
+/* ACTIONS À DROITE */
 .filters-actions {
   display: flex;
   gap: 0.75rem;
@@ -397,7 +397,7 @@ export default {
   border-top: 1px solid #e9ecef;
 }
 
-/* ✅ RESPONSIVE - Adaptation intelligente */
+/* RESPONSIVE - Adaptation intelligente */
 @media (max-width: 1200px) {
   .search-field {
     max-width: 400px;

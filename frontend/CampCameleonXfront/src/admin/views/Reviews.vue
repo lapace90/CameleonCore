@@ -174,13 +174,13 @@ export default {
         return {
             reviews: [],
             loading: false,
-            isRefreshing: false, // ✅ NOUVEAU: flag séparé pour refresh en arrière-plan
+            isRefreshing: false, // flag séparé pour refresh en arrière-plan
             currentFilter: 'all',
             searchQuery: '',
             successMessage: null,
             error: null,
             refreshInterval: null,
-            lastPendingCount: 0 // ✅ NOUVEAU: pour détecter nouveaux avis
+            lastPendingCount: 0 // pour détecter nouveaux avis
         }
     },
 
@@ -228,7 +228,7 @@ export default {
 
     mounted() {
         this.fetchReviews(true) // Premier chargement SEULEMENT
-        // ❌ PAS D'AUTO-REFRESH - On teste d'abord sans
+        // PAS D'AUTO-REFRESH - On teste d'abord sans
     },
 
     beforeUnmount() {
@@ -237,7 +237,7 @@ export default {
 
     methods: {
         /**
-         * ✅ MODIFIÉ: Fetch avec gestion du loading selon le contexte
+         * Fetch avec gestion du loading selon le contexte
          */
         async fetchReviews(showLoader = false) {
             // Si c'est un refresh silencieux
@@ -251,7 +251,7 @@ export default {
                 const response = await ReviewsApi.getAllAdmin()
                 const newReviews = Array.isArray(response) ? response : []
 
-                // ✅ Détecter les nouveaux avis en attente
+                // Détecter les nouveaux avis en attente
                 const newPendingCount = newReviews.filter(r => r.status === 'pending').length
 
                 if (!showLoader && newPendingCount > this.lastPendingCount) {
@@ -274,7 +274,7 @@ export default {
         },
 
         /**
-         * ✅ NOUVEAU: Refresh manuel déclenché par le bouton
+         * Refresh manuel déclenché par le bouton
          */
         async manualRefresh() {
             this.successMessage = null
@@ -285,7 +285,7 @@ export default {
         },
 
         /**
-         * ✅ NOUVEAU: Afficher notification pour nouveaux avis
+         * Afficher notification pour nouveaux avis
          */
         showNewReviewNotification(count) {
             const message = count === 1

@@ -21,7 +21,7 @@
       </div>
     </div>
 
-    <!-- ✅ AdminFilterBar remplace uniquement categories-filters -->
+    <!-- AdminFilterBar remplace uniquement categories-filters -->
     <AdminFilterBar
       v-model="filters"
       :default-filters="defaultFilters"
@@ -142,11 +142,11 @@ export default {
           type: 'select',
           placeholder: 'Tous les types',
           options: [
-            { value: 'Activity', label: '🏕️ Activités' },
-            { value: 'Menu', label: '🍽️ Menus' },
-            { value: 'Dish', label: '🍲 Plats' },
-            { value: 'Room', label: '🏠 Hébergements' },
-            { value: 'Ingredient', label: '🌿 Ingrédients' }
+            { value: 'Activity', label: '<i class="fas fa-hiking" style="padding: .5rem;"></i> Activités' },
+            { value: 'Menu', label: '<i class="fas fa-utensils" style="padding: .5rem;"></i> Menus' },
+            { value: 'Dish', label: '<i class="fas fa-bowl-food" style="padding: .5rem;"></i> Plats' },
+            { value: 'Room', label: '<i class="fas fa-campground" style="padding: .5rem;"></i> Hébergements' },
+            { value: 'Ingredient', label: '<i class="fas fa-carrot" style="padding: .5rem;"></i> Ingrédients' }
           ]
         }
       ]
@@ -211,11 +211,11 @@ export default {
 
     getTypeLabel(type) {
       const labels = {
-        'Activity': '🏕️ Activités',
-        'Menu': '🍽️ Menus',
-        'Dish': '🍲 Plats', 
-        'Room': '🏠 Hébergements',
-        'Ingredient': '🌿 Ingrédients'
+        'Activity': '<i class="fas fa-hiking"></i> Activités',
+        'Menu': '<i class="fas fa-utensils"></i> Menus',
+        'Dish': '<i class="fas fa-bowl-food"></i> Plats', 
+        'Room': '<i class="fas fa-campground"></i> Hébergements',
+        'Ingredient': '<i class="fas fa-carrot"></i> Ingrédients'
       }
       return labels[type] || type
     },

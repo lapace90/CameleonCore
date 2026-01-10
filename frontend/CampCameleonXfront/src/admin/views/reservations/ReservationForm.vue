@@ -1031,7 +1031,7 @@ export default {
           special_requests: this.form.special_requests || '',
           internal_notes: this.form.internal_notes || '',
           invoice_number: this.form.invoice_number ?? null,
-          items,                                    // ✅ pivot only
+          items,                                    // pivot only
           product_id: rootProductId || undefined,   // NOT NULL en DB
           number_of_adults: Number(this.form?.guests ?? 1),
           number_of_children: Number(this.form?.children ?? 0),

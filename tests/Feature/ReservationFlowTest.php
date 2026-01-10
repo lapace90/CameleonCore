@@ -204,7 +204,6 @@ class ReservationFlowTest extends TestCase
 
         $response = $this->getJson('/api/admin/reservations');
         
-        // ✅ Syntaxe correcte pour Laravel
         $this->assertContains($response->getStatusCode(), [200, 401, 404]);
         
         if ($response->getStatusCode() === 200) {
@@ -229,15 +228,15 @@ class ReservationFlowTest extends TestCase
         $requiredFields = [
             'customer_id' => $customer->id,
             'product_id' => Product::first()?->id ?? 1,
-            'product_type' => 'room',              // ✅ Découvert dans vos erreurs
+            'product_type' => 'room',             
             'date' => Carbon::now(),
             'checkin' => Carbon::now(),
             'checkout' => Carbon::now()->addDay(),
             'amount' => 150.00,
             'status' => 'pending',
             'number_of_adults' => 1,
-            'number_of_children' => 0,             // ✅ Découvert dans vos erreurs
-            'booking_source' => 'admin',           // ✅ Découvert dans vos erreurs
+            'number_of_children' => 0,             
+            'booking_source' => 'admin',          
             'payment_status' => 'pending'
         ];
 

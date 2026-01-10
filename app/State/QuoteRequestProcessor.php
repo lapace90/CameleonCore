@@ -56,68 +56,68 @@ class QuoteRequestProcessor implements ProcessorInterface
     // CRÉATION DEVIS + EMAIL VALIDATION
     // ===========================
 
-private function createQuoteRequest(array $context): QuoteRequest
-{
-    $payload = $this->getDataFromRequest($context);
+    private function createQuoteRequest(array $context): QuoteRequest
+    {
+        $payload = $this->getDataFromRequest($context);
 
-    Log::info('💾 Création demande devis', [
-        'email' => $payload['email'] ?? 'N/A',
-        'items' => $payload['items'] ?? [],
-        'total_amount' => $payload['total_price'] ?? 0
-    ]);
+        Log::info('💾 Création demande devis', [
+            'email' => $payload['email'] ?? 'N/A',
+            'items' => $payload['items'] ?? [],
+            'total_amount' => $payload['total_price'] ?? 0
+        ]);
 
-    // 1. Validation email basique AVEC TON SERVICE
-    if (!$this->emailValidationService->isValidEmail($payload['email'] ?? '')) {
-        throw new \InvalidArgumentException('Adresse email invalide');
+        // 1. Validation email basique AVEC TON SERVICE
+        if (!$this->emailValidationService->isValidEmail($payload['email'] ?? '')) {
+            throw new \InvalidArgumentException('Adresse email invalide');
+        }
+
+        // 2. Rate limiting par IP
+        $this->checkRateLimit();
+
+        // 3. Préparation données - STRUCTURE SIMPLE !
+        $contactData = [
+            'email' => $payload['email'],
+            'name' => $payload['contact']['name'] ?? $payload['name'] ?? null,
+            'last_name' => $payload['contact']['last_name'] ?? $payload['last_name'] ?? null,
+            'phone' => $payload['contact']['phone'] ?? $payload['phone'] ?? null,
+        ];
+
+        $quoteData = [
+            'message' => $payload['contact']['message'] ?? $payload['message'] ?? null,
+            'checkin_date' => $payload['dates']['checkin'] ?? $payload['dates']['start'] ?? null,
+            'checkout_date' => $payload['dates']['checkout'] ?? $payload['dates']['endExclusive'] ?? null,
+            'guests' => $payload['dates']['guests'] ?? $payload['guests'] ?? 2,
+            'total_amount' => $payload['total_price'] ?? 0,
+            'source' => 'website',
+            'customer_id' => $this->findOrCreateCustomer($contactData),
+        ];
+
+        // 4. Validation des items
+        if (empty($payload['items'])) {
+            throw new \InvalidArgumentException('Aucun produit sélectionné');
+        }
+
+        $productIds = array_column($payload['items'], 'product_id');
+        $this->validateProductIds($productIds);
+
+        // 5. Création en base
+        $quoteRequest = QuoteRequest::createFromQuoteData($quoteData);
+
+        // 6. Synchroniser les items
+        $this->syncProducts($quoteRequest, $payload['items']);
+
+        // 7. Envoi email de validation
+        $this->sendValidationEmail($quoteRequest);
+
+        Log::info('✅ Devis créé avec succès', [
+            'id' => $quoteRequest->id,
+            'reference' => $quoteRequest->quote_reference,
+            'products_count' => $quoteRequest->items()->count(),
+            'validation_url' => $quoteRequest->validation_url
+        ]);
+
+        return $quoteRequest;
     }
-
-    // 2. Rate limiting par IP
-    $this->checkRateLimit();
-
-    // 3. Préparation données - STRUCTURE SIMPLE !
-    $contactData = [
-        'email' => $payload['email'],
-        'name' => $payload['contact']['name'] ?? $payload['name'] ?? null,
-        'last_name' => $payload['contact']['last_name'] ?? $payload['last_name'] ?? null,
-        'phone' => $payload['contact']['phone'] ?? $payload['phone'] ?? null,
-    ];
-
-    $quoteData = [
-        'message' => $payload['contact']['message'] ?? $payload['message'] ?? null,
-        'checkin_date' => $payload['dates']['checkin'] ?? $payload['dates']['start'] ?? null,
-        'checkout_date' => $payload['dates']['checkout'] ?? $payload['dates']['endExclusive'] ?? null,
-        'guests' => $payload['dates']['guests'] ?? $payload['guests'] ?? 2,
-        'total_amount' => $payload['total_price'] ?? 0,
-        'source' => 'website',
-        'customer_id' => $this->findOrCreateCustomer($contactData),
-    ];
-
-    // 4. Validation des items
-    if (empty($payload['items'])) {
-        throw new \InvalidArgumentException('Aucun produit sélectionné');
-    }
-    
-    $productIds = array_column($payload['items'], 'product_id');
-    $this->validateProductIds($productIds);
-
-    // 5. Création en base
-    $quoteRequest = QuoteRequest::createFromQuoteData($quoteData);
-    
-    // 6. Synchroniser les items
-    $this->syncProducts($quoteRequest, $payload['items']);
-    
-    // 7. Envoi email de validation
-    $this->sendValidationEmail($quoteRequest);
-
-    Log::info('✅ Devis créé avec succès', [
-        'id' => $quoteRequest->id,
-        'reference' => $quoteRequest->quote_reference,
-        'products_count' => $quoteRequest->items()->count(),
-        'validation_url' => $quoteRequest->validation_url
-    ]);
-
-    return $quoteRequest;
-}
 
     // ===========================
     // SYNCHRONISATION PRODUITS
@@ -431,6 +431,7 @@ private function createQuoteRequest(array $context): QuoteRequest
         Log::info('📝 Mise à jour devis client', [
             'id' => $id,
             'quote_reference' => $quoteRequest->quote_reference,
+            'email_verified' => (bool) $quoteRequest->email_verified_at,
             'new_items' => $payload['items'] ?? [],
             'new_total' => $payload['total_price'] ?? 0
         ]);
@@ -476,14 +477,15 @@ private function createQuoteRequest(array $context): QuoteRequest
             $updateData['message'] = $payload['contact']['message'] ?? $payload['message'];
         }
 
-        if (!empty($updateData)) {
+        if (!empty($updateData) || isset($payload['items'])) {
             $hasImportantChanges = isset($payload['items']) || isset($updateData['total_amount']);
 
-            if ($hasImportantChanges) {
+            // Ne PAS reset la vérification si l'email est déjà vérifié
+            if ($hasImportantChanges && !$quoteRequest->email_verified_at) {
+                // Email pas encore vérifié → régénérer token et renvoyer email
                 $updateData['validation_token'] = Str::random(64);
-                $updateData['validation_token_expires_at'] = Carbon::now()->addHours(48);
+                $updateData['token_expires_at'] = Carbon::now()->addHours(48);
                 $updateData['status'] = 'draft';
-                $updateData['email_verified_at'] = null;
             }
 
             $quoteRequest->update($updateData);
@@ -492,12 +494,19 @@ private function createQuoteRequest(array $context): QuoteRequest
                 $this->syncProducts($quoteRequest, $payload['items']);
             }
 
-            if ($hasImportantChanges) {
+            // Ne renvoyer l'email QUE si pas déjà vérifié
+            if ($hasImportantChanges && !$quoteRequest->email_verified_at) {
                 $this->sendValidationEmail($quoteRequest);
 
-                Log::info('✅ Devis modifié - Nouvel email envoyé', [
+                Log::info('✅ Devis modifié - Nouvel email envoyé (email non vérifié)', [
                     'id' => $quoteRequest->id,
                     'reference' => $quoteRequest->quote_reference
+                ]);
+            } else {
+                Log::info('✅ Devis modifié - Pas de nouvel email (email déjà vérifié)', [
+                    'id' => $quoteRequest->id,
+                    'reference' => $quoteRequest->quote_reference,
+                    'email_verified_at' => $quoteRequest->email_verified_at
                 ]);
             }
         }

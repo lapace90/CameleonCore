@@ -77,7 +77,7 @@ export default {
     data() {
         return {
             showQuote: false,
-            isLoading: false  // ✅ AJOUTER CETTE LIGNE
+            isLoading: false  
         }
     },
     methods: {

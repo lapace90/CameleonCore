@@ -60,7 +60,7 @@ export default {
   },
 
   computed: {
-    // ✅ Stats sécurisées sans NaN
+    // Stats sécurisées sans NaN
     safeStats() {
       const rawStats = this.stats || {}
       
@@ -75,13 +75,13 @@ export default {
   },
 
   methods: {
-    // ✅ Fonction pour éviter NaN
+    // Fonction pour éviter NaN
     safeNumber(value, defaultValue = 0) {
       const num = Number(value)
       return isNaN(num) || !isFinite(num) ? defaultValue : num
     },
 
-    // ✅ Calcul correct de la moyenne des prix
+    // Calcul correct de la moyenne des prix
     calculateAveragePrice() {
       if (!this.products || this.products.length === 0) {
         return 0

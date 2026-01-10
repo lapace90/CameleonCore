@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <title>Paiement réussi - CampCameleonX</title>
     <style>
         body { 
@@ -93,7 +94,7 @@
 <body>
     <div class="success-container">
         <div class="success-header">
-            <span class="success-icon">🎉</span>
+            <span class="success-icon"><i class="fas fa-circle-check"></i></span>
             <h1>Paiement réussi !</h1>
             <p>Votre réservation est confirmée</p>
         </div>
@@ -103,7 +104,7 @@
             <p>Votre paiement a été traité avec succès. Vous recevrez un email de confirmation dans quelques minutes avec tous les détails de votre séjour.</p>
 
             <div class="payment-details">
-                <h3>📋 Détails de votre commande</h3>
+                <h3><i class="fas fa-clipboard-list" style="padding: .5rem;"></i> Détails de votre commande</h3>
                 <div class="detail-row">
                     <span>Référence :</span>
                     <strong>{{ $quote->quote_reference }}</strong>
@@ -129,27 +130,27 @@
             </div>
 
             <div class="next-steps">
-                <h3>📬 Prochaines étapes</h3>
-                <ul>
-                    <li>✅ <strong>Email de confirmation</strong> : Vous le recevrez sous 5 minutes</li>
-                    <li>📄 <strong>Facture</strong> : Incluse dans l'email de confirmation</li>
-                    <li>📞 <strong>Contact avant séjour</strong> : Nous vous appellerons 48h avant pour finaliser les détails</li>
-                    <li>🏕️ <strong>Séjour inoubliable</strong> : Préparez-vous à vivre une expérience unique !</li>
+                <h3><i class="fas fa-hand-point-right" style="padding: .5rem; font-size: 1.5rem;"></i>  Prochaines étapes</h3>
+                <ul style="list-style: none; padding-left: 2rem;">
+                    <li><i class="fas fa-check-circle" style="padding: .5rem;"></i> <strong>Email de confirmation</strong> : Vous le recevrez sous 5 minutes</li>
+                    <li><i class="fas fa-file-lines" style="padding: .6rem;"></i>  <strong>Facture</strong> : Incluse dans l'email de confirmation</li>
+                    <li><i class="fas fa-phone" style="padding: .5rem;"></i>  <strong>Contact avant séjour</strong> : Nous vous appellerons 48h avant pour finaliser les détails</li>
+                    <li><i class="fas fa-campground" style="padding: .5rem;"></i> <strong>Séjour inoubliable</strong> : Préparez-vous à vivre une expérience unique !</li>
                 </ul>
             </div>
 
             <div style="text-align: center; margin-top: 30px;">
                 <a href="mailto:contact@campcameleonx.com?subject=Commande {{ $quote->quote_reference }}" class="button">
-                    📧 Nous contacter
+                    <i class="fas fa-envelope" style="padding: .5rem;"></i> Nous contacter
                 </a>
                 <a href="{{ env('APP_FRONTEND_URL', '/') }}" class="button secondary">
-                    🏠 Retour à l'accueil
+                    <i class="fas fa-house" style="padding: .5rem;"></i> Retour à l'accueil
                 </a>
             </div>
 
             <div class="contact-info">
                 <p><strong>Besoin d'aide ?</strong><br>
-                📞 +33 X XX XX XX XX | ✉️ contact@campcameleonx.com<br>
+                <i class="fas fa-phone" style="padding: .5rem;"></i>  +33 X XX XX XX XX | <i class="fas fa-envelope"  style="padding: .5rem;"></i>contact@campcameleonx.com<br>
                 Horaires : Lundi-Vendredi 9h-18h, Samedi 9h-16h</p>
             </div>
         </div>

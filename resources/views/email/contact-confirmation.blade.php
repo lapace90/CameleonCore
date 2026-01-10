@@ -2,6 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <title>Message bien reçu</title>
     <style>
         body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -21,7 +22,7 @@
         <h2>Bonjour {{ $fullName }} !</h2>
         
         <div class="success-box">
-            <h3 style="color: #155724; margin: 0;">✅ Message bien reçu</h3>
+            <h3 style="color: #155724; margin: 0;"><i class="fas fa-check-circle" style="padding: .5rem;"></i> Message bien reçu</h3>
         </div>
         
         <p>Nous avons bien reçu votre message et nous vous en remercions.</p>
@@ -39,7 +40,7 @@
         
         <div class="footer">
             <p>CampCameleonX - Votre évasion dans le désert marocain<br>
-            📞 +212 6 12 34 56 78 | ✉️ contact@campcameleonx.com<br>
+            <i class="fas fa-phone"  style="padding: .5rem;"></i> +212 6 12 34 56 78 | <i class="fas fa-envelope"></i>contact@campcameleonx.com<br>
             Route du Sahara, Merzouga, Maroc</p>
         </div>
     </div>

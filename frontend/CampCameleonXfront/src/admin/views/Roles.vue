@@ -152,7 +152,7 @@ export default {
       error: null,
       successMessage: null,
 
-      // ✅ Filtres avec valeurs par défaut
+      // Filtres avec valeurs par défaut
       defaultFilters: {
         search: '',
         type: '',
@@ -168,7 +168,7 @@ export default {
   },
 
   computed: {
-    // ✅ Configuration des champs de filtres
+    // Configuration des champs de filtres
     roleFilterFields() {
       return [
         {

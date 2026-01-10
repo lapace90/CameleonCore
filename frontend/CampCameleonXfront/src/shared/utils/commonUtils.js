@@ -1,9 +1,9 @@
 // ===========================
 // COMMON UTILS - CampCameleonX
-// Méthodes utilitaires factorisées pour réduire la duplication
+// Méthodes utilitaires communes
 // ===========================
 
-// ===== 💰 FORMATAGE PRIX =====
+// ===== FORMATAGE PRIX =====
 /**
  * Formate un montant en euros
  * @param {number|string} amount - Montant à formater
@@ -18,7 +18,7 @@ export function formatPrice(amount, locale = 'fr-FR') {
   }).format(numAmount)
 }
 
-// ===== 📅 FORMATAGE DATES =====
+// ===== FORMATAGE DATES =====
 /**
  * Formate une date en français
  * @param {string|Date} dateString - Date à formater
@@ -94,7 +94,7 @@ export function displayEndInclusive(endExclusiveYmd) {
   }
 }
 
-// ===== 🔢 SÉCURITÉ NUMÉRIQUE =====
+// ===== SÉCURITÉ NUMÉRIQUE =====
 /**
  * Sécurise un nombre contre NaN/Infinity
  * @param {any} value - Valeur à sécuriser
@@ -129,7 +129,7 @@ export function calculateAveragePrice(items = [], priceField = 'price') {
   return safeNumber(total / validItems.length)
 }
 
-// ===== ✅ VALIDATION =====
+// ===== VALIDATION =====
 /**
  * Valide une adresse email
  * @param {string} email - Email à valider
@@ -201,7 +201,7 @@ export function validateForm(form, rules) {
   }
 }
 
-// ===== 🎨 CLASSES CSS DYNAMIQUES =====
+// ===== CLASSES CSS DYNAMIQUES =====
 /**
  * Génère des classes CSS pour un statut
  * @param {string} status - Statut (draft, sent, validated, etc.)
@@ -249,7 +249,7 @@ export function getStatusText(status, customLabels = {}) {
   return labels[status] || status
 }
 
-// ===== 📊 MANIPULATION DE DONNÉES =====
+// ===== MANIPULATION DE DONNÉES =====
 /**
  * Normalise un objet avec des alias de propriétés
  * @param {object} obj - Objet à normaliser
@@ -310,7 +310,7 @@ export function uniqueBy(array, key) {
   })
 }
 
-// ===== ⏰ GESTION DU CACHE =====
+// ===== GESTION DU CACHE =====
 /**
  * Vérifie si des données sont encore valides en cache
  * @param {number|null} lastFetch - Timestamp du dernier fetch
@@ -334,7 +334,7 @@ export function createCacheKey(...parts) {
     .join(':')
 }
 
-// ===== 🔤 TEXTE ET STRINGS =====
+// ===== TEXTE ET STRINGS =====
 /**
  * Met en forme un nom complet
  * @param {string} firstName - Prénom
@@ -376,7 +376,7 @@ export function truncateText(text, maxLength, suffix = '...') {
   return text.substring(0, maxLength - suffix.length) + suffix
 }
 
-// ===== 🚀 EXPORT DES UTILS EXISTANTS =====
+// ===== EXPORT DES UTILS EXISTANTS =====
 // Réexporter les utils existants pour centraliser les imports
 export { formatPrice as formatPriceFromUtils } from '@/shared/utils/ProductUtils'
 export { showToast } from '@/shared/utils/toast'

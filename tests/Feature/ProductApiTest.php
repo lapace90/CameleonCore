@@ -43,7 +43,7 @@ class ProductApiTest extends TestCase
     //     // Assert - Format array simple
     //     $response->assertStatus(200)
     //         ->assertJsonStructure([
-    //             '*' => [  // ✅ Array numérique de produits
+    //             '*' => [  // Array numérique de produits
     //                 'id',
     //                 'name',
     //                 'price',
@@ -100,7 +100,7 @@ class ProductApiTest extends TestCase
     //     $response->assertStatus(200);
 
     //     $data = $response->json();
-    //     $this->assertCount(1, $data);  // ✅ 1 seul Activity
+    //     $this->assertCount(1, $data);  // 1 seul Activity
     //     $this->assertSame(Activity::class, $data[0]['productable_type']);
     // }
 
@@ -301,7 +301,7 @@ class ProductApiTest extends TestCase
     //     $response->assertStatus(200);
 
     //     $data = $response->json();
-    //     $this->assertCount(1, $data);  // ✅ 1 résultat
+    //     $this->assertCount(1, $data);  // 1 résultat
     //     $this->assertStringContainsString('Mountain', $data[0]['name']);
     // }
 
@@ -322,7 +322,7 @@ class ProductApiTest extends TestCase
         $response->assertStatus(200);
 
         $data = $response->json();
-        $this->assertCount(10, $data);  // ✅ 10 items par page
+        $this->assertCount(10, $data);  // 10 items par page
     }
 
     // #[\PHPUnit\Framework\Attributes\Test]

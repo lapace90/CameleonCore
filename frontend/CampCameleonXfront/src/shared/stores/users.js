@@ -82,7 +82,7 @@ export const useUsersStore = defineStore('users', {
         return this.availableRoles
       }
 
-      // 🔄 Nouvelle requête
+      // Nouvelle requête
       console.log('🔄 Chargement des rôles depuis l\'API...')
 
       const promise = this._fetchRolesFromApi()

@@ -60,7 +60,7 @@
       </div>
     </div>
 
-    <!-- ✅ AdminFilterBar -->
+    <!-- AdminFilterBar -->
     <AdminFilterBar v-model="filters" :default-filters="defaultFilters" :fields="filterFields"
       search-placeholder="Rechercher par numéro, client, email..." search-key="search" :search-debounce="500"
       reset-label="Réinitialiser" @apply="applyFilters" @reset="resetFilters">
@@ -76,10 +76,10 @@
       </template>
     </AdminFilterBar>
 
-    <!-- ✅ LoadingState pour loading -->
+    <!-- LoadingState pour loading -->
     <LoadingState v-if="loading" state="loading" variant="card" loading-text="Chargement des factures..." />
 
-    <!-- ✅ LoadingState pour empty state -->
+    <!-- LoadingState pour empty state -->
     <LoadingState v-else-if="invoices.length === 0" state="empty" variant="card" empty-title="Aucune facture"
       :empty-message="hasActiveFilters
         ? 'Aucune facture ne correspond à vos critères.'
@@ -157,7 +157,7 @@
       </div>
     </div>
 
-    <!-- ✅ Pagination -->
+    <!-- Pagination -->
     <Pagination v-if="invoices.length > 0 && pagination.lastPage > 1" :pagination="pagination"
       @page-change="changePage" />
   </div>
@@ -183,7 +183,7 @@ export default {
       loading: false,
       error: null,
 
-      // ✅ Filtres par défaut
+      // Filtres par défaut
       defaultFilters: {
         search: '',
         status: '',
@@ -191,7 +191,7 @@ export default {
         end_date: ''
       },
 
-      // ✅ Filtres actuels (liés à AdminFilterBar)
+      // Filtres actuels (liés à AdminFilterBar)
       filters: {
         search: '',
         status: '',
@@ -205,7 +205,7 @@ export default {
         direction: 'desc'
       },
 
-      // ✅ Pagination (format attendu par le composant Pagination)
+      // Pagination (format attendu par le composant Pagination)
       pagination: {
         currentPage: 1,
         perPage: 15,
@@ -216,7 +216,7 @@ export default {
   },
 
   computed: {
-    // ✅ Configuration des champs de filtre pour AdminFilterBar
+    // Configuration des champs de filtre pour AdminFilterBar
     filterFields() {
       return [
         {
@@ -278,7 +278,7 @@ export default {
           per_page: this.pagination.perPage
         })
 
-        // ✅ Mettre à jour la pagination depuis la réponse
+        // Mettre à jour la pagination depuis la réponse
         if (response?.meta) {
           this.pagination = {
             currentPage: response.meta.current_page || 1,

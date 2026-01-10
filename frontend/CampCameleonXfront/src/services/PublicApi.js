@@ -1,6 +1,3 @@
-// frontend/CampCameleonXfront/src/services/PublicApi.js
-// ✅ Service public unifié - LOGIQUE SIMPLE avec product_ids
-
 import axios from 'axios'
 import { getProductableType, buildTypeConfigFromProductableType } from '@/shared/configs/productConfigs'
 
@@ -202,7 +199,7 @@ class PublicApi {
 
       console.log('🔍 DEBUG PublicApi - Payload reçu:', payload)
 
-      // ✅ CONVERSION product_ids → items avec quantités
+      // CONVERSION product_ids → items avec quantités
       let items = []
 
       if (payload.items && Array.isArray(payload.items)) {
@@ -215,7 +212,7 @@ class PublicApi {
           .filter(it => it.product_id && it.quantity > 0)
       }
       else if (payload.product_ids && Array.isArray(payload.product_ids)) {
-        // ✅ CONVERSION : Compter les occurrences
+        // Compter les occurrences
         const productCounts = {}
         for (const id of payload.product_ids) {
           productCounts[id] = (productCounts[id] || 0) + 1
@@ -233,12 +230,12 @@ class PublicApi {
         throw new Error('Aucun produit sélectionné.')
       }
 
-      // ✅ Payload API moderne
+      // Payload API 
       const apiPayload = {
         email: payload.email,
         contact: payload.contact || {},
         dates: payload.dates || {},
-        items: items,  // ← Format moderne
+        items: items, 
         total_price: payload.total_price || payload.total_amount || 0
       }
 

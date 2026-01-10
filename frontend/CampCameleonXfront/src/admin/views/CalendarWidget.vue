@@ -112,7 +112,7 @@ export default {
       calendarOptions: {
         plugins: [dayGridPlugin, interactionPlugin],
         locale: frLocale,
-        initialView: 'dayGridWeek', // ✅ Vue semaine
+        initialView: 'dayGridWeek', // Vue semaine
         headerToolbar: false,
 
         // Hauteur fixe pour éviter les variations
@@ -141,7 +141,7 @@ export default {
         // Rendu des événements en points colorés
         eventContent: this.renderEventDot,
 
-        // ✅ Style pour que les événements soient des points
+        // Style pour que les événements soient des points
         eventDisplay: 'block',
 
         // Header des jours personnalisé
