@@ -257,7 +257,7 @@
             <!-- Reservation Info (if available) -->
             @if($reservation)
             <div class="reservation-info">
-                <h3><i class="fas fa-campground" style="padding: .5rem;"> Détails de votre séjour</h3>
+                <h3><i class="fas fa-campground" style="padding: .5rem;"></i> Détails de votre séjour</h3>
                 <p><strong>Hébergement :</strong> {{ $reservation['product'] }}</p>
                 <p><strong>Arrivée :</strong> {{ $reservation['checkin'] }}</p>
                 <p><strong>Départ :</strong> {{ $reservation['checkout'] }}</p>

@@ -73,8 +73,7 @@ Montant: {$reservation->amount}€
 Arrivée: {$reservation->checkin}
 Départ: {$reservation->checkout}
 
-Voir: " . config('app.url') . "/admin/reservations/{$reservation->id}
-                    ", function ($message) use ($admin, $reservation) {
+Voir: " . env('APP_FRONTEND_URL', config('app.url')) . "/admin/reservations/{$reservation->id}", function ($message) use ($admin, $reservation) {
                         $message->to($admin->email)
                             ->subject("🏨 Nouvelle réservation #{$reservation->id}")
                             ->from(config('mail.from.address'), config('mail.from.name'));

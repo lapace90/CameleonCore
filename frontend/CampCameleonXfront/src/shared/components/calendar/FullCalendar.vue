@@ -3,11 +3,11 @@
     <!-- Header du calendrier -->
     <div class="calendar-header">
       <div class="header-left">
-        <!-- <h2 class="calendar-title"></h2> -->
+        <h2 class="calendar-title">{{ currentMonthText }}</h2>
         <p class="calendar-subtitle">Gestion des réservations et événements</p>
       </div>
       <div class="header-actions">
-        <!-- AJOUT : Boutons de navigation -->
+        <!-- Boutons de navigation -->
         <div class="calendar-navigation">
           <button @click="navigatePrev" class="nav-btn" title="Période précédente">
             <i class="fas fa-chevron-left"></i>
@@ -36,7 +36,6 @@
     </div>
 
     <!-- Stats rapides -->
-    <!-- Dans le template de FullCalendar.vue -->
     <div class="calendar-stats" v-if="showStats">
       <div class="stat-card">
         <div class="stat-icon reservations">
@@ -145,6 +144,7 @@ export default {
       showDetails: false,
       selectedDetail: null,
       selectedEvent: null,
+      currentMonthText: '',
 
       availableViews: [
         { value: 'dayGridMonth', label: 'Mois', icon: 'fas fa-calendar' },
@@ -191,8 +191,10 @@ export default {
   },
 
   mounted() {
-    console.log('🗓️ FullCalendar monté en mode:', this.mode)
     this.loadInitialStats()
+    this.$nextTick(() => {
+      this.updateCurrentMonth()
+    })
   },
 
   methods: {
@@ -202,6 +204,7 @@ export default {
       if (calendar && calendar.calendar) {
         calendar.calendar.prev()
       }
+      this.updateCurrentMonth()
     },
 
     navigateNext() {
@@ -209,12 +212,26 @@ export default {
       if (calendar && calendar.calendar) {
         calendar.calendar.next()
       }
+      this.updateCurrentMonth()
     },
 
     navigateToday() {
       const calendar = this.$refs.calendar
       if (calendar && calendar.calendar) {
         calendar.calendar.today()
+      }
+      this.updateCurrentMonth()
+    },
+    updateCurrentMonth() {
+      const api = this.$refs.calendar?.getApi()
+      if (api) {
+        const date = api.getDate()
+        this.currentMonthText = date.toLocaleDateString('fr-FR', {
+          month: 'long',
+          year: 'numeric'
+        })
+        // Première lettre en majuscule
+        this.currentMonthText = this.currentMonthText.charAt(0).toUpperCase() + this.currentMonthText.slice(1)
       }
     },
 

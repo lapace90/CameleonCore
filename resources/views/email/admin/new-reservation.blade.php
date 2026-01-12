@@ -188,7 +188,7 @@
             </div>
         </div>
         
-        <h3><i class="fas fa-campground" style="padding: .5rem;"> Détails du Séjour</h3>
+        <h3><i class="fas fa-campground" style="padding: .5rem;"></i> Détails du Séjour</h3>
         <div class="info-grid">
             <div class="info-item">
                 <div class="info-label">Arrivée</div>
@@ -234,10 +234,10 @@
         @endif
         
         <div class="actions">
-            <a href="{{ config('app.url') }}/admin/reservations/{{ $reservation->id }}" class="btn">
+            <a href="{{ env('APP_FRONTEND_URL', 'http://localhost:5173') }}/admin/reservations/{{ $reservation->id }}" class="btn">
                 <i class="fas fa-clipboard-list" style="padding: .5rem;"></i> Voir la Réservation
             </a>
-            <a href="{{ config('app.url') }}/admin/calendar" class="btn btn-secondary">
+            <a href="{{ env('APP_FRONTEND_URL', 'http://localhost:5173') }}/admin/agenda" class="btn btn-secondary">
                 <i class="fas fa-calendar-alt" style="padding: .5rem;"></i> Ouvrir le Calendrier
             </a>
         </div>
