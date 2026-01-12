@@ -142,7 +142,6 @@ export default {
     // Gestionnaire pour la recherche
     handleSearch() {
       if (this.searchQuery.length > 2) {
-        console.log('🔍 Recherche:', this.searchQuery)
         // TODO: Implémenter la logique de recherche
       }
     },

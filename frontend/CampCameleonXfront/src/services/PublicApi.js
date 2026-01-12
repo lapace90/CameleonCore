@@ -197,8 +197,6 @@ class PublicApi {
     try {
       const url = `${this.baseURL}/quote-requests`
 
-      console.log('🔍 DEBUG PublicApi - Payload reçu:', payload)
-
       // CONVERSION product_ids → items avec quantités
       let items = []
 

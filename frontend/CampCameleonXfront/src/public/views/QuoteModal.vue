@@ -772,7 +772,6 @@ export default {
         },
 
         showEmailValidationRequired(quote) {
-            console.log('🔍 Quote reçu:', quote)
 
             this.closeModal()
 

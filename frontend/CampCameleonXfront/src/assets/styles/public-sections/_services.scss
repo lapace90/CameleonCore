@@ -23,6 +23,7 @@
     bottom: 0;
     background: radial-gradient(ellipse at center, transparent 0%, rgba($coffee, 0.2) 100%);
   }
+
   .hero-content {
     padding-top: 2rem;
 
@@ -74,16 +75,16 @@
 .accommodation-section {
   padding: 6rem 0;
   background: linear-gradient(135deg, $bg-secondary 0%, $bg-warm 100%);
+  width: 100%;
 
   .accommodation-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: 2.5rem;
+    gap: 2rem;
 
     @media (max-width: 768px) {
       grid-template-columns: 1fr;
       gap: 2rem;
-    
     }
   }
 
@@ -94,9 +95,8 @@
     box-shadow: $shadow-soft;
     transition: all $transition-base;
     border: 2px solid transparent;
-    display: flex; 
+    display: flex;
     flex-direction: column;
-    margin: 2rem;
 
     &:hover {
       transform: translateY(-8px);
@@ -113,7 +113,7 @@
       position: relative;
       height: 250px;
       overflow: hidden;
-      flex-shrink: 0; 
+      flex-shrink: 0;
 
       img {
         width: 100%;
@@ -168,7 +168,7 @@
 
     .accommodation-content {
       padding: 2rem;
-      display: flex; 
+      display: flex;
       flex-direction: column;
       flex-grow: 1;
 
@@ -211,6 +211,7 @@
         padding: 1rem;
         background: rgba($sand, 0.1);
         border-radius: $border-radius;
+        overflow: hidden;
 
         .spec {
           display: flex;
@@ -233,7 +234,7 @@
         border-radius: $border-radius-lg;
         font-weight: $font-weight-semibold;
         transition: all $transition-base;
-        margin-top: auto; 
+        margin-top: auto;
 
         &:hover {
           transform: translateY(-2px);
@@ -317,7 +318,7 @@
   margin-bottom: 1rem;
   display: flex;
   justify-content: space-between;
-  
+
 }
 
 // ========================================
@@ -329,8 +330,8 @@
 
   .amenities-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr); 
-    grid-template-rows: repeat(3, 1fr);
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
     gap: 2rem;
     max-width: 900px;
     margin: 0 auto;
@@ -347,7 +348,7 @@
       border-radius: $border-radius-xl;
       text-align: center;
       transition: all $transition-base;
-      border: 1px solid rgba($terracotta, 0.1); 
+      border: 1px solid rgba($terracotta, 0.1);
 
       &:hover {
         background: rgba(white, 0.95);
@@ -365,7 +366,7 @@
         align-items: center;
         justify-content: center;
         color: white;
-        font-size: $font-size-lg; 
+        font-size: $font-size-lg;
         margin: 0 auto 1rem;
       }
 
@@ -373,7 +374,7 @@
         color: $text-primary;
         margin-bottom: 0.75rem;
         font-family: $font-family-primary;
-        font-size: $font-size-base; 
+        font-size: $font-size-base;
         font-weight: $font-weight-semibold;
       }
 
@@ -416,8 +417,8 @@
     transition: all $transition-base;
     border: 2px solid transparent;
     position: relative;
-    display: flex; 
-    flex-direction: column; 
+    display: flex;
+    flex-direction: column;
 
     &:hover {
       transform: translateY(-8px);
@@ -476,7 +477,7 @@
       padding: 0;
       margin: 0 0 2rem 0;
       text-align: left;
-      flex-grow: 1; 
+      flex-grow: 1;
 
       li {
         display: flex;
@@ -498,7 +499,7 @@
       border-radius: $border-radius-lg;
       font-weight: $font-weight-semibold;
       transition: all $transition-base;
-      margin-top: auto; 
+      margin-top: auto;
 
       &.btn-primary {
         background: $gradient-warm;

@@ -261,7 +261,6 @@ export default {
         console.log('📤 Sauvegarde produit...')
 
         const jsonPayload = this.buildPayload()
-        console.log('🔍 Payload avec image:', jsonPayload)
 
         let response
         if (this.isEditing) {

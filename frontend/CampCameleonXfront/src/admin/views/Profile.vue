@@ -216,8 +216,7 @@ export default {
 
     // hydrate depuis le store
     const loadUserData = () => {
-      console.log('🔍 user.value dans Profile:', user.value)
-      console.log('🔍 user.value.postal_code:', user.value?.postal_code)
+
       form.name = user.value?.name || ''
       form.email = user.value?.email || ''
       form.phone = user.value?.phone || ''
@@ -225,7 +224,6 @@ export default {
       form.city = user.value?.city || ''
       form.postalCode = user.value?.postal_code || ''
       form.avatar = user.value?.avatar || null
-      console.log('🔍 form après assignation:', form)
       originalData.value = { ...form }
       loading.value = false
     }
@@ -271,7 +269,6 @@ const saveProfile = async () => {
     }
 
     // 2. Préparer les données pour l'API (utilise votre structure existante)
-    console.log('🔍 form.avatar avant profileData:', form.avatar, typeof form.avatar)
     const profileData = {
       name: form.name,
       email: form.email,

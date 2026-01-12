@@ -51,11 +51,6 @@
                 color: $accent;
             }
         }
-
-        .brand-icon {
-            background: $gradient-warm;
-        }
-
         .mobile-menu-btn span {
             background-color: $terracotta;
         }
@@ -84,14 +79,14 @@
             justify-content: center;
             font-size: 1.5rem;
             // Background légèrement plus visible par défaut
-            background: rgba($terracotta, 0.2);
+            background: rgba($cream, 0.3);
             backdrop-filter: blur(10px);
             transition: all $transition-base;
-            color: white;
 
             &:hover {
-                background: rgba($terracotta, 0.4);
+                background: rgba($cream, 0.6);
                 transform: translateY(-2px);
+                border: solid 3px $terracotta;
             }
         }
     }

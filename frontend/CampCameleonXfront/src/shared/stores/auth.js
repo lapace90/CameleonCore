@@ -143,7 +143,6 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       console.log('🔄 Vérification du token avec le backend...')
       const response = await axios.get('/api/auth/verify')
-      console.log('🔍 Réponse API verify:', response.data)
       const userData = response.data.user
 
       console.log('✅ Token valide, utilisateur:', userData.name)
@@ -299,8 +298,6 @@ export const useAuthStore = defineStore('auth', () => {
       } else {
         throw new Error('Token d\'authentification manquant')
       }
-
-      console.log('🔍 Headers envoyés:', headers)
 
       const response = await axios.patch(`/api/admin/users/${user.value.id}`, profileData, {
         headers
