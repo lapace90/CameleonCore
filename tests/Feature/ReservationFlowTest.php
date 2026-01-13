@@ -18,7 +18,6 @@ class ReservationFlowTest extends TestCase
     #[Test]
     public function customer_creation_works()
     {
-        dump("TEST CORRECT VERSION EXECUTED");
         $customer = Customer::create([
             'name' => 'Jean',
             'last_name' => 'Dupont', 
@@ -184,7 +183,7 @@ class ReservationFlowTest extends TestCase
             'payment_status' => 'pending'
         ]);
 
-        // Vérifier casting Carbon (selon votre modèle)
+        // Vérifier casting Carbon 
         $this->assertInstanceOf(Carbon::class, $reservation->checkin);
         $this->assertInstanceOf(Carbon::class, $reservation->checkout);
         $this->assertEquals('2024-06-15', $reservation->checkin->format('Y-m-d'));

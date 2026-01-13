@@ -1,5 +1,4 @@
 <?php
-// app/Data/ProductData.php
 namespace App\Data;
 
 use Spatie\LaravelData\Data;
