@@ -4,7 +4,7 @@ import { buildTypeConfigFromProductableType } from '@/shared/configs/productConf
 class ProductsApi {
 
   constructor() {
-    this.baseURL = '/api'
+    // baseURL défini globalement dans main.js
     this.defaultHeaders = {
       'Accept': 'application/json'
     }
@@ -23,7 +23,7 @@ class ProductsApi {
           searchParams.append(key, value)
         }
       })
-      const url = `${this.baseURL}/products${searchParams.toString() ? '?' + searchParams.toString() : ''}`
+      const url = `/products${searchParams.toString() ? '?' + searchParams.toString() : ''}`
       
       console.log("2", new Date())
       const response = await axios.get(url, {
@@ -45,7 +45,7 @@ class ProductsApi {
 
   async getProduct(id) {
     try {
-      const { data: raw } = await axios.get(`${this.baseURL}/products/${id}`, {
+      const { data: raw } = await axios.get(`/products/${id}`, {
         headers: this.defaultHeaders
       })
       console.log('Données brutes reçues du backend:', raw)
@@ -82,7 +82,7 @@ class ProductsApi {
     try {
       console.log('productData:', productData)
       // axios infèrera Content-Type: application/json automatiquement pour les objets JS
-      const response = await axios.post(`${this.baseURL}/products`, productData, {
+      const response = await axios.post(`/products`, productData, {
         headers: this.defaultHeaders
       })
       return response.data
@@ -94,7 +94,7 @@ class ProductsApi {
 
   async updateProduct(id, productData) {
     try {
-      const response = await axios.patch(`${this.baseURL}/products/${id}`, productData, {
+      const response = await axios.patch(`/products/${id}`, productData, {
         headers: {
           ...this.defaultHeaders,
           'Content-Type': 'application/merge-patch+json'
@@ -109,7 +109,7 @@ class ProductsApi {
 
   async deleteProduct(id) {
     try {
-      await axios.delete(`${this.baseURL}/products/${id}`, {
+      await axios.delete(`/products/${id}`, {
         headers: this.defaultHeaders
       })
       return true
@@ -144,7 +144,7 @@ class ProductsApi {
   // ==========================================
   async getCategories() {
     try {
-      const response = await axios.get(`${this.baseURL}/categories`, {
+      const response = await axios.get(`/categories`, {
         headers: this.defaultHeaders
       })
       return response.data.member || response.data || []
@@ -188,7 +188,7 @@ class ProductsApi {
       const endpoint = endpoints[productableType]
       if (!endpoint) throw new Error(`Type productable non supporté: ${productableType}`)
 
-      const response = await axios.patch(`${this.baseURL}/${endpoint}/${productableId}`, relations, {
+      const response = await axios.patch(`/${endpoint}/${productableId}`, relations, {
         headers: {
           ...this.defaultHeaders,
           'Content-Type': 'application/merge-patch+json'
@@ -235,7 +235,7 @@ class ProductsApi {
       console.log('📝 FormData created -> has file:', formData.has('file'), 'keys:', [...formData.keys()])
 
       // IMPORTANT: forcer l'envoi brut du FormData (ne pas définir Content-Type)
-      const response = await axios.post(`${this.baseURL}/media_objects`, formData, {
+      const response = await axios.post(`/media_objects`, formData, {
         headers: {
           'Accept': 'application/json'
           // pas de Content-Type ici, axios/gw doit ajouter le boundary

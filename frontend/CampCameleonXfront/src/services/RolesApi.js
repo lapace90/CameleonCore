@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const toPermissionIri = (id) => `/api/permissions/${String(id).trim()}`
+const toPermissionIri = (id) => `/permissions/${String(id).trim()}`
 const compact = (obj) => {
   const out = {}
   Object.entries(obj || {}).forEach(([k, v]) => {
@@ -25,7 +25,7 @@ const normalizeRolePayload = (input = {}) => {
 
 class RolesApi {
   static async getAll() {
-    const response = await axios.get('/api/roles')
+    const response = await axios.get('/roles')
     return response.data
   }
 
@@ -35,7 +35,7 @@ class RolesApi {
   }
 
   static async create(roleData) {
-    const response = await axios.post('/api/roles', normalizeRolePayload(roleData))
+    const response = await axios.post('/roles', normalizeRolePayload(roleData))
     return response.data
   }
 
@@ -49,7 +49,7 @@ class RolesApi {
   }
 
   static async getAllPermissions() {
-    const response = await axios.get('/api/admin/permissions/grouped')
+    const response = await axios.get('/admin/permissions/grouped')
     return response.data
   }
 

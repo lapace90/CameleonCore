@@ -43,13 +43,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // 🔍 Observers existants pour le système de tags automatiques
-        Ingredient::observe(IngredientObserver::class);
-        Tag::observe(TagObserver::class);
-        Dish::observe(DishObserver::class);
-        Menu::observe(MenuObserver::class);
-        Activity::observe(ActivityObserver::class);
-        Room::observe(RoomObserver::class);
+ 	\Illuminate\Support\Facades\URL::forceScheme('https');
+	
+	// 🔍 Observers existants pour le système de tags automatiques
+        Ingredient::observe(IngredientObserver::class); Tag::observe(TagObserver::class); 
+        Dish::observe(DishObserver::class); Menu::observe(MenuObserver::class); 
+        Activity::observe(ActivityObserver::class); Room::observe(RoomObserver::class); 
         Review::observe(ReviewObserver::class);
 
         // 🆕 Observer pour la création automatique des factures

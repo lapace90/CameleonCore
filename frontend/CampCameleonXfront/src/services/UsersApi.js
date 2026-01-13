@@ -7,7 +7,7 @@ class UsersApi {
    */
   static async getAll() {
     try {
-      const response = await axios.get('/api/admin/users')
+      const response = await axios.get('/admin/users')
       return Array.isArray(response.data)
         ? response.data
         : response.data['hydra:member'] || []
@@ -22,7 +22,7 @@ class UsersApi {
    */
   static async getRoles() {
     try {
-      const response = await axios.get('/api/roles')
+      const response = await axios.get('/roles')
       
       if (response.data && Array.isArray(response.data.data)) {
         return response.data.data
@@ -56,7 +56,7 @@ class UsersApi {
    */
   static async create(payload) {
     try {
-      const response = await axios.post('/api/admin/users', payload)
+      const response = await axios.post('/admin/users', payload)
       return response.data
     } catch (error) {
       console.error('Erreur lors de la création:', error)

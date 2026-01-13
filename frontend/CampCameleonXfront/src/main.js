@@ -9,7 +9,7 @@ import './assets/styles/shared.scss'
 import App from './App.vue'
 
 // ---------- AXIOS DE BASE ----------
-axios.defaults.baseURL = 'http://51.75.31.34:8000'
+axios.defaults.baseURL = import.meta.env.VITE_API_URL || '/api'
 axios.defaults.headers.common['Accept'] = 'application/json'
 axios.defaults.headers.common['Content-Type'] = 'application/json'
 

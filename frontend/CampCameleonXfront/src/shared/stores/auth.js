@@ -142,7 +142,8 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       console.log('🔄 Vérification du token avec le backend...')
-      const response = await axios.get('/api/auth/verify')
+      const response = await axios.get('/auth/verify')
+      console.log('🔍 Réponse API verify:', response.data)
       const userData = response.data.user
 
       console.log('✅ Token valide, utilisateur:', userData.name)
@@ -182,7 +183,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       console.log('📝 Tentative d\'inscription...', userData.email)
 
-      const response = await axios.post('/api/auth/register', userData)
+      const response = await axios.post('/auth/register', userData)
 
       if (response.data.token && response.data.user) {
         console.log('✅ Inscription réussie:', response.data.user.name)
@@ -221,7 +222,7 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
 
     try {
-      const response = await axios.post('/api/auth/login', credentials)
+      const response = await axios.post('/auth/login', credentials)
 
       if (response.data.token && response.data.user) {
         setToken(response.data.token)
@@ -255,7 +256,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const refreshToken = async () => {
     try {
-      const response = await axios.post('/api/auth/refresh')
+      const response = await axios.post('/auth/refresh')
       if (response.data.token) {
         setToken(response.data.token)
         return true
@@ -298,8 +299,9 @@ export const useAuthStore = defineStore('auth', () => {
       } else {
         throw new Error('Token d\'authentification manquant')
       }
+      console.log('🔍 Headers envoyés:', headers)
 
-      const response = await axios.patch(`/api/admin/users/${user.value.id}`, profileData, {
+      const response = await axios.patch(`/admin/users/${user.value.id}`, profileData, {
         headers
       })
 
@@ -341,7 +343,7 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
 
     try {
-      await axios.patch(`/api/admin/users/${user.value.id}`, {
+      await axios.patch(`/admin/users/${user.value.id}`, {
         current_password: current,
         password: newPassword,
         password_confirmation: newPassword

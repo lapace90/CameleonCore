@@ -3,7 +3,7 @@ import { getProductableType, buildTypeConfigFromProductableType } from '@/shared
 
 class PublicApi {
   constructor() {
-    this.baseURL = '/api'
+    this.baseURL = ''
     this.cache = new Map()
     this.cacheTimeout = 5 * 60 * 1000 // 5 minutes
   }
@@ -111,7 +111,7 @@ class PublicApi {
 
   /** Détail produit (normalisé) */
   async getProduct(id) {
-    const url = `${this.baseURL}/products/${id}`
+    const url = `${this.baseURL}products/${id}`
     const response = await axios.get(url, { headers: { Accept: 'application/json' } })
     return this.normalizeProduct(response.data)
   }
@@ -165,7 +165,7 @@ class PublicApi {
   // Devis (formulaire de la modale)
   // =============================
   async createQuoteRequest(payload) {
-    const url = `${this.baseURL}/quotes`
+    const url = `${this.baseURL}quotes`
     const response = await axios.post(url, payload, {
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' }
     })
@@ -178,14 +178,14 @@ class PublicApi {
   // Réservations directes
   // =============================
   async createReservation(payload) {
-    const url = `${this.baseURL}/reservations`
+    const url = `${this.baseURL}reservations`
     const response = await axios.post(url, payload, {
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' }
     })
     return response.data
   }
   async findOrCreateCustomer(customerData) {
-    const response = await axios.post(`${this.baseURL}/customers/find-or-create`, {
+    const response = await axios.post(`${this.baseURL}customers/find-or-create`, {
       email: customerData.customer_email || '',
       name: customerData.customer_name,
       phone: customerData.customer_phone || ''
@@ -195,7 +195,7 @@ class PublicApi {
 
   async saveQuote(payload) {
     try {
-      const url = `${this.baseURL}/quote-requests`
+      const url = `${this.baseURL}quote-requests`
 
       // CONVERSION product_ids → items avec quantités
       let items = []
@@ -279,7 +279,7 @@ class PublicApi {
    */
   async validateQuote(quoteId, token) {
     try {
-      const url = `${this.baseURL}/quote-requests/${quoteId}/validate/${token}`
+      const url = `${this.baseURL}quote-requests/${quoteId}/validate/${token}`
 
       console.log('🔐 Validation devis:', { quoteId, url })
 
@@ -314,7 +314,7 @@ class PublicApi {
    */
   async createStripeSession(quoteId) {
     try {
-      const url = `${this.baseURL}/stripe/create-payment-session`;
+      const url = `${this.baseURL}stripe/create-payment-session`;
 
       console.log('💳 Création session Stripe:', { quoteId, url });
 
@@ -455,7 +455,7 @@ class PublicApi {
    */
   async checkQuoteStatus(reference) {
     try {
-      const url = `${this.baseURL}/quote-requests/status/${reference}`
+      const url = `${this.baseURL}quote-requests/status/${reference}`
       const response = await axios.get(url)
       return response.data
     } catch (error) {
@@ -468,7 +468,7 @@ class PublicApi {
   // Demande de conseil personnalisé
   // =============================
   async requestPersonalAdvice(payload) {
-    const url = `${this.baseURL}/advice-requests`
+    const url = `${this.baseURL}advice-requests`
     const response = await axios.post(url, payload, {
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' }
     })
@@ -480,7 +480,7 @@ class PublicApi {
    */
   async updateQuote(quoteId, editToken, quoteData) {
     try {
-      const response = await axios.patch(`${this.baseURL}/quote-requests/${quoteId}/edit/${editToken}`, quoteData);
+      const response = await axios.patch(`${this.baseURL}quote-requests/${quoteId}/edit/${editToken}`, quoteData);
       return {
         success: true,
         quote: response.data
@@ -514,7 +514,7 @@ class PublicApi {
    */
   async getQuoteForEdit(quoteId, editToken) {
     try {
-      const url = `${this.baseURL}/quote-requests/${quoteId}/edit/${editToken}`;
+      const url = `${this.baseURL}quote-requests/${quoteId}/edit/${editToken}`;
 
       console.log('📝 Récupération devis pour édition:', { quoteId, url });
 
@@ -553,7 +553,7 @@ class PublicApi {
    */
   async updateQuote(quoteId, editToken, quoteData) {
     try {
-      const url = `${this.baseURL}/quote-requests/${quoteId}/edit/${editToken}`;
+      const url = `${this.baseURL}quote-requests/${quoteId}/edit/${editToken}`;
 
       console.log('📝 Mise à jour devis:', { quoteId, url, quoteData });
 

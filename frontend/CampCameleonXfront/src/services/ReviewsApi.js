@@ -6,7 +6,7 @@ class ReviewsApi {
      */
     static async getPublished(params = {}) {
         try {
-            const response = await axios.get('/api/reviews', { params })
+            const response = await axios.get('/reviews', { params })
             return response.data
         } catch (error) {
             console.error('❌ Erreur lors du chargement des avis:', error)
@@ -32,7 +32,7 @@ class ReviewsApi {
      */
     static async create(reviewData) {
         try {
-            const response = await axios.post('/api/reviews', reviewData)
+            const response = await axios.post('/reviews', reviewData)
             return response.data
         } catch (error) {
             console.error('❌ Erreur lors de la création de l\'avis:', error)
@@ -45,7 +45,7 @@ class ReviewsApi {
      */
     static async getAllAdmin(params = {}) {
         try {
-            const response = await axios.get('/api/reviews', { params })
+            const response = await axios.get('/reviews', { params })
             return response.data
         } catch (error) {
             console.error('❌ Erreur lors du chargement des avis (admin):', error)

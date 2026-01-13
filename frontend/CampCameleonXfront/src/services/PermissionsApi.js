@@ -7,7 +7,7 @@ class PermissionsApi {
   // Route existante (custom)
   static async getGrouped() {
     try {
-      const response = await axios.get('/api/admin/permissions/grouped')
+      const response = await axios.get('/admin/permissions/grouped')
       return response.data
     } catch (error) {
       console.error('Erreur lors du chargement des permissions groupées:', error)
@@ -18,7 +18,7 @@ class PermissionsApi {
   // Routes API Platform standard
   static async getAll() {
     try {
-      const response = await axios.get('/api/permissions')
+      const response = await axios.get('/permissions')
       return response.data
     } catch (error) {
       console.error('Erreur lors du chargement des permissions:', error)
@@ -38,7 +38,7 @@ class PermissionsApi {
 
   static async create(permissionData) {
     try {
-      const response = await axios.post('/api/permissions', permissionData)
+      const response = await axios.post('/permissions', permissionData)
       return response.data
     } catch (error) {
       console.error('Erreur lors de la création de la permission:', error)

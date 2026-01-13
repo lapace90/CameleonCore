@@ -7,7 +7,6 @@ import { useAuthStore } from '@/shared/stores/auth'
 
 class AdminApi {
     constructor() {
-        this.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
 
         // Intercepteur pour ajouter le token automatiquement
         axios.interceptors.request.use((config) => {
@@ -25,7 +24,7 @@ class AdminApi {
 
     async getDashboardStats() {
         try {
-            const response = await axios.get(`${this.baseURL}/admin/dashboard/stats`)
+            const response = await axios.get(`/admin/dashboard/stats`)
             return response.data
         } catch (error) {
             console.error('❌ Erreur stats dashboard:', error)
@@ -41,7 +40,7 @@ class AdminApi {
             console.log(`📡 Récupération de ${limit} notifications...`)
             const startTime = Date.now()
 
-            const response = await axios.get(`${this.baseURL}/admin/notifications`, {
+            const response = await axios.get(`/admin/notifications`, {
                 params: { limit },
                 timeout: 30000 
             })
@@ -69,7 +68,7 @@ class AdminApi {
             console.log(`📝 Marquage notification ${notificationId} comme lue...`)
 
             const response = await axios.patch(
-                `${this.baseURL}/admin/notifications/${notificationId}/mark-read`, //  /read → /mark-read
+                `/admin/notifications/${notificationId}/mark-read`, //  /read → /mark-read
                 {}, // Pas de body nécessaire pour un PATCH simple
                 {
                     headers: {
@@ -140,7 +139,7 @@ class AdminApi {
                 queryParams[`order[${sortField}]`] = sortDirection || 'asc'
             }
 
-            const response = await axios.get(`${this.baseURL}/admin/reservations`, {
+            const response = await axios.get(`/admin/reservations`, {
                 params: queryParams,
                 timeout: 30000
             })
@@ -211,13 +210,13 @@ class AdminApi {
             end: endDate
         })
 
-        const response = await axios.get(`${this.baseURL}/admin/calendar/events?${params}`)
+        const response = await axios.get(`/admin/calendar/events?${params}`)
         return response.data
     }
 
     async getReservationsForCalendar({ start, end }) {
         try {
-            const response = await axios.get(`${this.baseURL}/admin/calendar/reservations`, {
+            const response = await axios.get(`/admin/calendar/reservations`, {
                 params: { start, end },
                 timeout: 30000
             })
@@ -232,7 +231,7 @@ class AdminApi {
         try {
             console.log(`📋 Chargement réservation #${id}`)
 
-            const response = await axios.get(`${this.baseURL}/admin/reservations/${id}`, {
+            const response = await axios.get(`/admin/reservations/${id}`, {
                 timeout: 30000 // 10 secondes max
             })
 
@@ -253,7 +252,7 @@ class AdminApi {
 
     async createReservation(data) {
         try {
-            const response = await axios.post(`${this.baseURL}/admin/reservations`, data)
+            const response = await axios.post(`/admin/reservations`, data)
             console.log('✅ Réservation créée:', response.data.id)
             return response.data
         } catch (error) {
@@ -264,7 +263,7 @@ class AdminApi {
 
     async updateReservation(id, payload) {
         try {
-            const response = await axios.put(`${this.baseURL}/admin/reservations/${id}`, payload)
+            const response = await axios.put(`/admin/reservations/${id}`, payload)
             console.log('✅ Réservation mise à jour:', id)
             return response.data
         } catch (error) {
@@ -279,7 +278,7 @@ class AdminApi {
 
     async createEvent(data) {
         try {
-            const response = await axios.post(`${this.baseURL}/admin/events`, data)
+            const response = await axios.post(`/admin/events`, data)
             return response.data
         } catch (error) {
             throw this.handleError(error)
@@ -288,7 +287,7 @@ class AdminApi {
 
     async updateEvent(id, data) {
         try {
-            const response = await axios.put(`${this.baseURL}/admin/events/${id}`, data)
+            const response = await axios.put(`/admin/events/${id}`, data)
             return response.data
         } catch (error) {
             throw this.handleError(error)
@@ -297,7 +296,7 @@ class AdminApi {
 
     async deleteEvent(id) {
         try {
-            const response = await axios.delete(`${this.baseURL}/admin/events/${id}`)
+            const response = await axios.delete(`/admin/events/${id}`)
             return response.data
         } catch (error) {
             throw this.handleError(error)
@@ -306,7 +305,7 @@ class AdminApi {
 
     async deleteReservation(id) {
         try {
-            const response = await axios.delete(`${this.baseURL}/admin/reservations/${id}`)
+            const response = await axios.delete(`/admin/reservations/${id}`)
             return response.data
         } catch (error) {
             throw this.handleError(error)
@@ -409,7 +408,7 @@ class AdminApi {
     // Méthodes d'aide pour les autres composants
     async get(endpoint) {
         try {
-            const response = await axios.get(`${this.baseURL}${endpoint}`)
+            const response = await axios.get(`${endpoint}`)
             return response
         } catch (error) {
             console.error(`❌ AdminApi GET ${endpoint}:`, error)
@@ -419,7 +418,7 @@ class AdminApi {
 
     async post(endpoint, data) {
         try {
-            const response = await axios.post(`${this.baseURL}${endpoint}`, data)
+            const response = await axios.post(`${endpoint}`, data)
             return response
         } catch (error) {
             console.error(`❌ AdminApi POST ${endpoint}:`, error)
