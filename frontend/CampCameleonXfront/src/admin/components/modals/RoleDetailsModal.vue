@@ -1,4 +1,5 @@
 <template>
+    <LoadingState state="loading" loading-text="Chargement des rôles..." />
     <!-- Modal Détails -->
     <div class="modal-overlay" @click.self="$emit('close')">
         <div class="modal-content" @click.stop>

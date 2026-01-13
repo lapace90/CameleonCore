@@ -17,9 +17,15 @@
                 <p class="page-subtitle">
                     Vue d'ensemble des permissions système
                 </p>
+                <div class="header-actions">
+                <router-link to="/admin/roles" class="btn btn-outline btn-sm">
+                    <i class="fas fa-shield-alt"></i>
+                    Gérer les rôles
+                </router-link>
                 <button @click="showCreateModal = true" class="btn btn-primary btn-sm">
                     <i class="fas fa-plus"></i> Nouvelle permission
                 </button>
+                </div>
             </div>
         </div>
 
@@ -68,8 +74,7 @@
 
         <!-- Loading state -->
         <div v-if="loading" class="text-center" style="padding: 3rem;">
-            <i class="fas fa-spinner fa-spin fa-2x"></i>
-            <p style="margin-top: 1rem;">Chargement des permissions...</p>
+               <LoadingState state="loading" loading-text="Chargement des permissions..." />
         </div>
 
         <!-- Error state -->
@@ -197,6 +202,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import PermissionsApi from '@/services/PermissionsApi'
+import LoadingState from '@/admin/components/ui/LoadingState.vue'
 import PermissionCreateModal from '@/admin/components/modals/PermissionCreateModal.vue'
 import PermissionEditModal from '@/admin/components/modals/PermissionEditModal.vue'
 import PermissionDetailsModal from '@/admin/components/modals/PermissionDetailsModal.vue'

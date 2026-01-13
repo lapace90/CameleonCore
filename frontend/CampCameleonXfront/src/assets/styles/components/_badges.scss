@@ -170,6 +170,14 @@
     transform: translateY(-1px);
     box-shadow: $shadow-soft;
   }
+
+  // Badge sélectionné (dans les sélecteurs)
+  .badge.badge-selected,
+  .badges-container .badge-active {
+    background-color: $primary;
+    border-color: $primary;
+    color: white;
+  }
 }
 
 // Badge avec point de couleur

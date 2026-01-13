@@ -1,6 +1,6 @@
 // frontend/CampCameleonXfront/src/admin/views/Categories.vue
 <template>
-    
+
   <div class="categories-page">
     <!-- Header -->
     <div class="page-header">
@@ -22,13 +22,8 @@
     </div>
 
     <!-- AdminFilterBar remplace uniquement categories-filters -->
-    <AdminFilterBar
-      v-model="filters"
-      :default-filters="defaultFilters"
-      :fields="filterFields"
-      search-placeholder="Rechercher une catégorie..."
-      @apply="applyFilters"
-    />
+    <AdminFilterBar v-model="filters" :default-filters="defaultFilters" :fields="filterFields"
+      search-placeholder="Rechercher une catégorie..." @apply="applyFilters" />
 
     <!-- Loading -->
     <div v-if="loading" class="loading-state">
@@ -38,15 +33,14 @@
 
     <!-- Vue par type -->
     <div class="categories-content">
-      <div 
-        v-for="(typeCategories, typeName) in filteredGroupedCategories" 
-        :key="typeName"
-        class="category-type-section"
-      >
+      <div v-for="(typeCategories, typeName) in filteredGroupedCategories" :key="typeName"
+        class="category-type-section">
         <div class="type-header">
           <div class="type-info">
-            <h3>{{ getTypeLabel(typeName) }}</h3>
-            <span class="count">{{ typeCategories.length }} catégories</span>
+            <h3>
+              <i :class="getTypeIcon(typeName)"></i>
+              {{ getTypeLabel(typeName) }}
+            </h3> <span class="count">{{ typeCategories.length }} catégories</span>
           </div>
           <!-- TODO: Réactiver quand CategoryModal sera créé -->
           <!-- <button @click="createCategory(typeName)" class="btn btn-outline btn-sm">
@@ -56,11 +50,7 @@
         </div>
 
         <div class="categories-grid">
-          <div 
-            v-for="category in typeCategories" 
-            :key="category.id"
-            class="category-card"
-          >
+          <div v-for="category in typeCategories" :key="category.id" class="category-card">
             <div class="category-content">
               <div class="category-header">
                 <CategoryBadge :category="category" size="normal" />
@@ -75,9 +65,9 @@
                   <small class="text-muted">Actions à venir</small>
                 </div>
               </div>
-              
+
               <p class="category-description">{{ category.description }}</p>
-              
+
               <div class="category-stats">
                 <span class="stat-item">
                   <i class="fas fa-box"></i>
@@ -107,12 +97,12 @@ export default {
     CategoryBadge,
     AdminFilterBar
   },
-  
+
   data() {
     return {
       categories: [],
       loading: false,
-      
+
       // Filtres pour AdminFilterBar
       defaultFilters: {
         search: '',
@@ -122,7 +112,7 @@ export default {
         search: '',
         type: ''
       },
-      
+
       // Modals
       showCreateModal: false,
       showEditModal: false,
@@ -142,11 +132,11 @@ export default {
           type: 'select',
           placeholder: 'Tous les types',
           options: [
-            { value: 'Activity', label: '<i class="fas fa-hiking" style="padding: .5rem;"></i> Activités' },
-            { value: 'Menu', label: '<i class="fas fa-utensils" style="padding: .5rem;"></i> Menus' },
-            { value: 'Dish', label: '<i class="fas fa-bowl-food" style="padding: .5rem;"></i> Plats' },
-            { value: 'Room', label: '<i class="fas fa-campground" style="padding: .5rem;"></i> Hébergements' },
-            { value: 'Ingredient', label: '<i class="fas fa-carrot" style="padding: .5rem;"></i> Ingrédients' }
+            { value: 'Activity', label: 'Activités' },
+            { value: 'Menu', label: 'Menus' },
+            { value: 'Dish', label: 'Plats' },
+            { value: 'Room', label: 'Hébergements' },
+            { value: 'Ingredient', label: 'Ingrédients' }
           ]
         }
       ]
@@ -169,12 +159,12 @@ export default {
 
     filteredGroupedCategories() {
       let filtered = { ...this.groupedCategories }
-      
+
       // Filtrer par type
       if (this.filters.type) {
         filtered = { [this.filters.type]: filtered[this.filters.type] || [] }
       }
-      
+
       // Filtrer par recherche
       if (this.filters.search) {
         Object.keys(filtered).forEach(type => {
@@ -184,7 +174,7 @@ export default {
           )
         })
       }
-      
+
       return filtered
     }
   },
@@ -211,13 +201,24 @@ export default {
 
     getTypeLabel(type) {
       const labels = {
-        'Activity': '<i class="fas fa-hiking"></i> Activités',
-        'Menu': '<i class="fas fa-utensils"></i> Menus',
-        'Dish': '<i class="fas fa-bowl-food"></i> Plats', 
-        'Room': '<i class="fas fa-campground"></i> Hébergements',
-        'Ingredient': '<i class="fas fa-carrot"></i> Ingrédients'
+        'Activity': 'Activités',
+        'Menu': 'Menus',
+        'Dish': 'Plats',
+        'Room': 'Hébergements',
+        'Ingredient': 'Ingrédients'
       }
       return labels[type] || type
+    },
+
+    getTypeIcon(type) {
+      const icons = {
+        'Activity': 'fas fa-hiking',
+        'Menu': 'fas fa-utensils',
+        'Dish': 'fas fa-bowl-food',
+        'Room': 'fas fa-campground',
+        'Ingredient': 'fas fa-carrot'
+      }
+      return icons[type] || 'fas fa-tag'
     },
 
     getCategoryProductCount(categoryId) {

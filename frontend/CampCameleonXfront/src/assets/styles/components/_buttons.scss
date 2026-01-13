@@ -97,6 +97,17 @@
     // &:hover:not(:disabled) {
     //   background-color: rgba($primary, 0.1);
     // }
+
+    &.btn-light {
+      background-color: $bg-light;
+      border-color: $border-color;
+      color: $text-primary;
+
+      &:hover:not(:disabled) {
+        background-color: $cream;
+        border-color: $sand;
+      }
+    }
   }
 
   // Loading state
@@ -110,10 +121,11 @@
   }
 
 }
+
 #add-user {
-  display:block;
+  display: block;
   max-width: fit-content;
-  float:inline-end;
+  float: inline-end;
   background: $success;
 }
 

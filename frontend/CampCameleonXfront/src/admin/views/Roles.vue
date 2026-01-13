@@ -54,7 +54,7 @@
 
     <!-- Loading -->
     <div v-if="loading" class="loading-state">
-      <LoadingState state="loading" loading-text="Chargement des rôles..." :container-class="'py-5'" />
+    <LoadingState state="loading" loading-text="Chargement des rôles..." />
     </div>
 
     <!-- Liste des rôles -->
