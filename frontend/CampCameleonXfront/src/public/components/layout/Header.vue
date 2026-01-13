@@ -131,6 +131,8 @@ export default {
             }
         },
         goToDevis() {
+            this.closeMobileMenu()
+            
             if (this.$route.path === '/') {
                 // Déjà sur la homepage, juste scroll
                 const element = document.getElementById('devis-section');

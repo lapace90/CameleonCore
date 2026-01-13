@@ -91,7 +91,9 @@ Services:
   ├── myBackendX    (Laravel API - Port 8000)
   ├── myFrontendX   (Vue.js SPA - Port 5173)
   ├── myPostgresX   (PostgreSQL - Port 5433)
-  └── mySchedulerX  (Tâches CRON isolées)
+  ├── mySchedulerX  (Tâches CRON isolées)
+  ├── myPgAdminX    (Administration BDD - Port 5050)
+  └── myMailhogX    (Capture emails dev - Port 8025)
 ```
 
 ### Pattern Polymorphe
@@ -176,7 +178,7 @@ L'API est auto-documentée grâce à API Platform :
 
 ### Tests automatisés
 
-- **Backend** : 35+ tests Pest/PHPUnit (108+ assertions)
+- **Backend** : 51 tests Pest/PHPUnit (164 assertions)
 - **Frontend** : Tests composants avec Vitest
 - **E2E** : Tests de parcours avec Playwright
 
@@ -292,7 +294,11 @@ Les contributions sont les bienvenues ! Voici comment participer :
 ---
 
 <div align="center">
+### Démo en ligne
+
+🌐 **[campcameleonx.ipace.dev](https://campcameleonx.ipace.dev)**
+  <br>
   <strong>CampCameleonX - L'expérience du désert marocain à portée de clic</strong>
   <br>
-  <sub>Développé avec passion pour le Titre Professionnel CDA</sub>
+  <sub>Développé pour le Titre Professionnel CDA</sub>
 </div>
