@@ -83,6 +83,10 @@
   --sidebar-width: 260px;
   --header-height: 70px;
 
+  // Bordures et rayons
+  --border-light: #e2e8f0;
+  --border-color: #d1d5db;
+  --radius-sm: 0.5rem;
 }
 
 // ========================================
@@ -183,7 +187,7 @@ body {
   font-family: var(--font-display);
 }
 
-.nav-link{
+.nav-link {
   display: flex;
   align-items: center;
   padding: 0.7rem 0.6rem;
@@ -278,7 +282,6 @@ body {
 .brand-icon {
   font-size: 1.75rem;
   margin-right: 0.5rem;
-  color: var(--accent);
 }
 
 .brand-text {
@@ -640,7 +643,7 @@ body {
 
       @media (max-width: 768px) {
         font-size: 2.2rem !important;
-        
+
       }
 
       .hero-highlight {

@@ -3,7 +3,6 @@ networks:
     driver: bridge
   frontend:
     driver: bridge
-
 services:
   app:
     build:
@@ -31,7 +30,7 @@ services:
         php artisan serve --host=0.0.0.0 --port=8000
       "
 
-  # 🆕 SERVICE SCHEDULER - Gestion automatique des tâches planifiées
+  # 🕒 SERVICE SCHEDULER - Gestion automatique des tâches planifiées
   scheduler:
     build:
       context: .
@@ -94,6 +93,36 @@ services:
       timeout: 5s
       retries: 5
 
+  # 🗄️ PGADMIN - Interface web pour PostgreSQL
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: myPgAdminX
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@campcameleonx.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+    ports:
+      - "5050:80"
+    volumes:
+      - campcameleonx_pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - db
+    networks:
+      - backend
+    restart: unless-stopped
+
+  # MAILHOG - Capture des emails en développement
+  mailhog:
+    image: mailhog/mailhog
+    container_name: myMailhogX
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Interface web
+    networks:
+      - backend
+    restart: unless-stopped
+
 volumes:
   campcameleonx_postgres_data:
+    driver: local
+  campcameleonx_pgadmin_data:
     driver: local

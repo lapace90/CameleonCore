@@ -2,6 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vérification email - CampCameleonX</title>
     <style>
@@ -16,7 +17,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>🏕️ CampCameleonX</h1>
+        <h1>🦎 CampCameleonX</h1>
         <p>Vérification de votre adresse email</p>
     </div>
     
@@ -30,12 +31,12 @@
         
         <div style="text-align: center;">
             <a href="{{ $verificationUrl }}" class="button">
-                ✅ Vérifier mon email
+                <i class="fas fa-check-circle" style="padding: .5rem;"></i> Vérifier mon email
             </a>
         </div>
         
         <div class="quote-summary">
-            <h3>📋 Récapitulatif de votre sélection :</h3>
+            <h3><i class="fas fa-clipboard-list" style="padding: .5rem;"></i> Récapitulatif de votre sélection :</h3>
             <ul>
                 {{--  Gestion sécurisée des dates nulles --}}
                 <li><strong>Séjour :</strong> 
@@ -55,7 +56,7 @@
         
         <div class="footer">
             <p>CampCameleonX - Votre évasion dans le désert marocain<br>
-            📞 +33 X XX XX XX XX | ✉️ contact@campcameleonx.com</p>
+            <i class="fas fa-phone" style="padding: .5rem;"></i> +33 X XX XX XX XX | <i class="fas fa-envelope" style="padding: .5rem;"></i>contact@campcameleonx.com</p>
         </div>
     </div>
 </body>

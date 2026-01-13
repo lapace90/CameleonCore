@@ -142,7 +142,6 @@ export default {
     // Gestionnaire pour la recherche
     handleSearch() {
       if (this.searchQuery.length > 2) {
-        console.log('🔍 Recherche:', this.searchQuery)
         // TODO: Implémenter la logique de recherche
       }
     },
@@ -306,23 +305,6 @@ export default {
   // Styles pour les notifications
   .header-notification {
     position: relative;
-
-    .notification-btn {
-      background: none;
-      border: none;
-      color: #8898aa;
-      font-size: 1.2rem;
-      padding: 0.5rem;
-      border-radius: 0.375rem;
-      cursor: pointer;
-      position: relative;
-      transition: all 0.2s ease;
-
-      &:hover {
-        color: #5e72e4;
-        background: #f6f9fc;
-      }
-    }
 
     .notification-badge {
       position: absolute;

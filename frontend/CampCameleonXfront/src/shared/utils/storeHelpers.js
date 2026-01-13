@@ -107,7 +107,7 @@ export function createCacheActions(defaultTTL = 5 * 60 * 1000) {
   }
 }
 
-// ===== 🔄 GESTION DES REQUÊTES =====
+// ===== GESTION DES REQUÊTES =====
 /**
  * Mixin pour éviter les requêtes en doublon
  * @returns {object} Actions de gestion des requêtes

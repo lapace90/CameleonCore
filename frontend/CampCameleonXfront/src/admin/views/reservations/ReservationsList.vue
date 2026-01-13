@@ -108,7 +108,7 @@
             <td>
               <strong>{{ getCustomerName(reservation) }}</strong><br>
               <small v-if="getCustomerEmail(reservation)" class="text-muted">
-                <i class="fas fa-envelope"></i> {{ getCustomerEmail(reservation) }}
+                <i class="fas fa-envelope"  style="padding: .5rem;"> </i>{{ getCustomerEmail(reservation) }}
               </small><br>
               <small v-if="getCustomerPhone(reservation)" class="text-muted">
                 <i class="fas fa-phone"></i> {{ getCustomerPhone(reservation) }}

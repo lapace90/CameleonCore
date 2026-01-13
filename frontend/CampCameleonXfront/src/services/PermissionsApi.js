@@ -4,7 +4,7 @@
 import axios from 'axios'
 
 class PermissionsApi {
-  // ✅ Route existante (custom)
+  // Route existante (custom)
   static async getGrouped() {
     try {
       const response = await axios.get('/api/admin/permissions/grouped')
@@ -15,7 +15,7 @@ class PermissionsApi {
     }
   }
 
-  // ✅ Routes API Platform standard
+  // Routes API Platform standard
   static async getAll() {
     try {
       const response = await axios.get('/api/permissions')

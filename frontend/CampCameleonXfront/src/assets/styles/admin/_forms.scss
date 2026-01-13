@@ -5,6 +5,18 @@
   width: 90%;
 }
 
+.category-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  background: $bg-light;
+  border: 1px solid $border-color;
+  border-radius: $border-radius;
+}
+
 .error-message {
   margin-bottom: 1rem;
 }
@@ -375,18 +387,16 @@
 }
 
 .input-group .form-input {
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
   border-right: none;
 }
 
 .input-addon {
-  padding: 0.75rem;
+  padding: 0.5rem;
   background: #f9fafb;
   border: 1px solid #d1d5db;
   border-left: none;
-  border-top-right-radius: 8px;
-  border-bottom-right-radius: 8px;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   font-size: 0.875rem;
   color: #6b7280;
 }

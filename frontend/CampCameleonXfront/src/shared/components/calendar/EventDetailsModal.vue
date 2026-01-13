@@ -151,7 +151,7 @@ export default {
                 this.$emit('refresh')
                 this.$emit('update:modelValue', false)
             } catch (error) {
-                alert('❌ ' + (error.response?.data?.message || 'Erreur'))
+                alert('<i class="fas fa-times-circle" style="padding: .5rem;"></i> ' + (error.response?.data?.message || 'Erreur'))
             }
         },
         
@@ -162,7 +162,7 @@ export default {
                 this.$emit('refresh')
                 this.$emit('update:modelValue', false)
             } catch (error) {
-                alert('❌ ' + (error.response?.data?.message || 'Erreur'))
+                alert('<i class="fas fa-times-circle" style="padding: .5rem;"></i> ' + (error.response?.data?.message || 'Erreur'))
             }
         }
     }

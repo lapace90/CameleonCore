@@ -38,14 +38,8 @@
     </div>
 
     <!--  AdminFilterBar -->
-    <AdminFilterBar
-      v-model="filters"
-      :default-filters="defaultFilters"
-      :fields="roleFilterFields"
-      search-placeholder="Rechercher un rôle..."
-      reset-label="Réinitialiser"
-      @apply="applyFilters"
-    >
+    <AdminFilterBar v-model="filters" :default-filters="defaultFilters" :fields="roleFilterFields"
+      search-placeholder="Rechercher un rôle..." reset-label="Réinitialiser" @apply="applyFilters">
       <!-- Résultats personnalisés -->
       <template #results="{ activeCount }">
         <span class="results-info">
@@ -60,11 +54,7 @@
 
     <!-- Loading -->
     <div v-if="loading" class="loading-state">
-      <LoadingState 
-        state="loading" 
-        loading-text="Chargement des rôles..." 
-        :container-class="'py-5'"
-      />
+    <LoadingState state="loading" loading-text="Chargement des rôles..." />
     </div>
 
     <!-- Liste des rôles -->
@@ -76,15 +66,13 @@
             <span class="role-slug">{{ role.slug }}</span>
           </div>
           <div class="role-actions">
+            <button @click="viewRole(role)" class="btn-icon" title="Voir">
+              <i class="fas fa-eye"></i>
+            </button>
             <button @click="editRole(role)" class="btn-icon" title="Modifier">
               <i class="fas fa-edit"></i>
             </button>
-            <button 
-              v-if="!role.is_system" 
-              @click="deleteRole(role)" 
-              class="btn-icon text-danger" 
-              title="Supprimer"
-            >
+            <button v-if="!role.is_system" @click="deleteRole(role)" class="btn-icon text-danger" title="Supprimer">
               <i class="fas fa-trash"></i>
             </button>
           </div>
@@ -128,7 +116,15 @@
       </button>
     </div>
 
-    <!-- Modal création/édition (à implémenter) -->
+    <!-- Modals -->
+    <RoleCreateModal v-if="showCreateModal" @close="showCreateModal = false"
+      @created="fetchRoles(); showCreateModal = false" />
+
+    <RoleEditModal v-if="showEditModal && selectedRole" :role="selectedRole" @close="showEditModal = false"
+      @updated="fetchRoles(); showEditModal = false" />
+
+    <RoleDetailsModal v-if="showDetailsModal && selectedRole" :role="selectedRole" @close="showDetailsModal = false"
+      @edit="showDetailsModal = false; editRole($event)" />
   </div>
 </template>
 
@@ -136,12 +132,18 @@
 import AdminFilterBar from '@/admin/components/ui/AdminFilterBar.vue'
 import RolesApi from '@/services/RolesApi'
 import LoadingState from '@/admin/components/ui/LoadingState.vue'
+import RoleEditModal from '@/admin/components/modals/RoleEditModal.vue'
+import RoleCreateModal from '@/admin/components/modals/RoleCreateModal.vue'
+import RoleDetailsModal from '@/admin/components/modals/RoleDetailsModal.vue'
 
 export default {
   name: 'Roles',
   components: {
     AdminFilterBar,
-    LoadingState
+    LoadingState,
+    RoleDetailsModal,
+    RoleCreateModal,
+    RoleEditModal
   },
 
   data() {
@@ -151,8 +153,12 @@ export default {
       loading: false,
       error: null,
       successMessage: null,
+      showCreateModal: false,
+      showEditModal: false,
+      selectedRole: null,
+      showDetailsModal: false,
 
-      // ✅ Filtres avec valeurs par défaut
+      // Filtres avec valeurs par défaut
       defaultFilters: {
         search: '',
         type: '',
@@ -168,7 +174,7 @@ export default {
   },
 
   computed: {
-    // ✅ Configuration des champs de filtres
+    // Configuration des champs de filtres
     roleFilterFields() {
       return [
         {
@@ -243,7 +249,7 @@ export default {
 
       try {
         const response = await RolesApi.getAll()
-        
+
         // Normaliser la réponse (support API Platform hydra)
         if (response && response['hydra:member']) {
           this.rolesData = {
@@ -277,13 +283,16 @@ export default {
     },
 
     openCreateModal() {
-      // TODO: Implémenter modal de création
-      alert('Modal de création à implémenter')
+      this.showCreateModal = true
     },
 
     editRole(role) {
-      // TODO: Implémenter modal d'édition
-      alert(`Édition du rôle ${role.name} à implémenter`)
+      this.selectedRole = role
+      this.showEditModal = true
+    },
+    viewRole(role) {
+      this.selectedRole = role
+      this.showDetailsModal = true
     },
 
     //  Utiliser RolesApi

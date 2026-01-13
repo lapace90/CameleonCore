@@ -30,9 +30,9 @@ describe('useQuotePricing', () => {
 
     //  Structure correcte avec activity/menu (singulier)
     mockSelected = {
-      activity: [1, 2],  // ✅ "activity" au singulier
+      activity: [1, 2], 
       room: [4],
-      menu: [6]          // ✅ "menu" au singulier
+      menu: [6]  
     }
   })
 
@@ -124,7 +124,7 @@ describe('useQuotePricing', () => {
 
       const activityLine = result.lines.find(l => l.type === 'activity' && l.id === 1)
       expect(activityLine).toBeDefined()
-      expect(activityLine.qty).toBe(3)  // ✅ Override appliqué
+      expect(activityLine.qty).toBe(3)  // Override appliqué
       expect(activityLine.lineTotal).toBe(240)  // 80 * 3 = 240
 
       // Vérifier que l'activité 2 n'est pas affectée
@@ -154,7 +154,7 @@ describe('useQuotePricing', () => {
   describe('Gestion des cas limites', () => {
     it('should handle empty selections', () => {
       const result = computeQuoteTotal({
-        selected: { activity: [], room: [], menu: [] },  // ✅ Structure correcte
+        selected: { activity: [], room: [], menu: [] },  
         catalog: mockCatalog,
         dates: mockDates,
         overrides: {}

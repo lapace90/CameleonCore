@@ -88,7 +88,7 @@ class ProfileManagementTest extends TestCase
             'name' => 'Hacked Name',
         ]);
 
-        // ✅ Doit être bloqué par la Policy -> 403
+        // Doit être bloqué par la Policy -> 403
         $response->assertStatus(403);
 
         $otherUser->refresh();

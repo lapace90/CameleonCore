@@ -1,16 +1,16 @@
 <template>
     <div class="edit-quote-page">
         <!-- Loading state -->
-        <Loading v-if="isLoading" text="Chargement de votre devis..." size="lg" />
+        <Loading v-if="isLoading" text="Chargement de votre devis..." size="lg" variant="light" />
 
         <!-- Error state -->
         <div v-else-if="error" class="error-container">
             <div class="error-box">
-                <h2>❌ Erreur</h2>
+                <h2><i class="fas fa-times-circle" style="padding: .5rem;"></i> Erreur</h2>
                 <p>{{ error }}</p>
                 <div class="error-actions">
-                    <button @click="retryLoad" class="btn btn-primary">🔄 Réessayer</button>
-                    <a href="mailto:contact@campcameleonx.com" class="btn btn-secondary">📧 Nous contacter</a>
+                    <button @click="retryLoad" class="btn btn-primary btn-sm"><i class="fas fa-sync"  style="padding: .5rem;"></i> Réessayer</button>
+                    <a href="mailto:contact@campcameleonx.com" class="btn btn-secondary btn-sm">📧 Nous contacter</a>
                 </div>
             </div>
         </div>
@@ -19,7 +19,7 @@
         <div v-else-if="quote" class="edit-quote-container">
             <!-- Header -->
             <div class="edit-header">
-                <h1>📝 Modifier votre devis</h1>
+                <h1><i class="fas fa-edit" style="padding: .5rem;"></i> Modifier votre devis</h1>
                 <div class="quote-info">
                     <span class="quote-ref">{{ quote.quote_reference }}</span>
                     <span class="quote-status" :class="statusClass">{{ statusText }}</span>
@@ -41,7 +41,7 @@
             <div class="quote-form-wrapper">
                 <!-- Step 1: Dates -->
                 <div class="form-section">
-                    <h3>📅 Dates de votre séjour</h3>
+                    <h3><i class="fas fa-calendar-alt"  style="padding: .5rem;"></i> Dates de votre séjour</h3>
                     <div class="date-picker-group">
                         <div class="form-group">
                             <label>Date d'arrivée</label>
@@ -63,7 +63,7 @@
 
                 <!-- Step 2: Activities -->
                 <div class="form-section">
-                    <h3>🏃‍♂️ Activités</h3>
+                    <h3><i class="fas fa-hiking"  style="padding: .5rem;"></i> Activités</h3>
                     <div v-if="activitiesLoading">Chargement des activités...</div>
                     <div v-else class="products-grid">
                         <div v-for="activity in activities" :key="activity.id" class="product-card"
@@ -79,7 +79,7 @@
 
                 <!-- Step 3: Meals -->
                 <div class="form-section">
-                    <h3>🍽️ Restauration</h3>
+                    <h3><i class="fas fa-utensils" style="padding: .5rem;"></i> Restauration</h3>
                     <div v-if="menusLoading">Chargement des menus...</div>
                     <div v-else class="products-grid">
                         <div v-for="menu in menus" :key="menu.id" class="product-card"
@@ -95,7 +95,7 @@
 
                 <!-- Step 4: Accommodation -->
                 <div class="form-section">
-                    <h3>🏕️ Hébergement</h3>
+                    <h3><i class="fas fa-campground" style="padding: .5rem;"></i> Hébergement</h3>
                     <div v-if="roomsLoading">Chargement des hébergements...</div>
                     <div v-else class="products-grid">
                         <div v-for="room in rooms" :key="room.id" class="product-card"
@@ -114,7 +114,7 @@
 
                 <!-- Step 5: Contact & Message -->
                 <div class="form-section">
-                    <h3>💬 Message (optionnel)</h3>
+                    <h3><i class="fas fa-comment" style="padding: .5rem;"></i> Message (optionnel)</h3>
                     <div class="form-group">
                         <label>Informations complémentaires</label>
                         <textarea v-model="formData.message" class="form-textarea" rows="4"
@@ -124,7 +124,7 @@
 
                 <!-- Summary & Actions -->
                 <div class="quote-summary">
-                    <h3>📋 Récapitulatif</h3>
+                    <h3><i class="fas fa-clipboard-list" style="padding: .5rem;"></i> Récapitulatif</h3>
 
                     <!-- Si on a des produits avec quantités du backend -->
                     <div v-if="quote?.products_with_quantities?.length" class="summary-items">
@@ -185,11 +185,13 @@
 </template>
 
 <script>
+
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import PublicApi from '@/services/PublicApi'
 import { computeQuoteTotal } from '@/shared/composables/useQuotePricing'
 import Loading from '@/shared/components/ui/Loading.vue'
+import { showToast } from '@/shared/utils/toast'
 
 export default {
     name: 'EditQuote',
@@ -357,7 +359,6 @@ export default {
                         quantity: quantity,
                         unitPrice: unitPrice,
                         price: unitPrice * quantity
-                        // ✅ SUPPRIMÉ: type qui causait des erreurs
                     }
                 }).filter(item => item.quantity > 0)
             }
@@ -523,19 +524,23 @@ export default {
                 }
             }
         }
-
+        // --- HELPER REDIRECTION VERS VALIDATION
+        const redirectToValidation = () => {
+            const { quoteId, editToken } = route.params
+            // Redirection vers le backend Laravel (pas le SPA Vue)
+            const backendUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:8000'
+            window.location.href = `${backendUrl}/validate-quote/${quoteId}/${editToken}`
+        }
         // --- ACTIONS
         const saveChanges = async () => {
             if (isSubmitting.value || !hasChanges.value) return
             try {
                 isSubmitting.value = true
 
-                // ✅ Utiliser votre logique existante pour vérifier les hébergements
                 if (formData.selectedItems.room.length === 0) {
                     throw new Error('Veuillez sélectionner un hébergement')
                 }
 
-                // Construire product_ids en "dépliant" les quantités
                 const productIds = []
                 for (const item of selectedItemsForDisplay.value) {
                     for (let i = 0; i < item.quantity; i++) {
@@ -553,11 +558,12 @@ export default {
                 const { quoteId, editToken } = route.params
                 const result = await api.updateQuote(quoteId, editToken, updateData)
 
-                alert('✅ Modifications sauvegardées !')
-                router.push('/')
+                // Toast + redirection vers page de validation Laravel
+                showToast('✅ Modifications sauvegardées !', 'success')
+                redirectToValidation()
             } catch (err) {
                 console.error('❌ Erreur sauvegarde:', err)
-                alert('❌ Erreur\n\n' + (err.message || 'Sauvegarde impossible'))
+                showToast('<i class="fas fa-times-circle" style="padding: .5rem;"></i> ' + (err.message || 'Sauvegarde impossible'), 'error')
             } finally {
                 isSubmitting.value = false
             }
@@ -565,7 +571,7 @@ export default {
 
         const cancelEdit = () => {
             if (hasChanges.value && !confirm('Abandonner les modifications ?')) return
-            router.push('/')
+            redirectToValidation()
         }
 
         const retryLoad = () => loadQuote()
@@ -586,7 +592,9 @@ export default {
             // méthodes existantes
             isProductSelected, toggleProduct, saveChanges, cancelEdit, retryLoad,
             // méthodes pour les quantités
-            getProductQuantity, setProductQuantity, getMaxQuantity
+            getProductQuantity, setProductQuantity, getMaxQuantity,
+            // 
+            redirectToValidation
         }
     }
 }

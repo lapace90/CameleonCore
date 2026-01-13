@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Log;
 class ContactController extends Controller
 {
     /**
-     * 📧 Envoyer un message de contact par email
+     * Envoyer un message de contact par email
      */
     public function sendContactMessage(Request $request)
     {

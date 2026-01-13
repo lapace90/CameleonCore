@@ -82,7 +82,7 @@ export const useUsersStore = defineStore('users', {
         return this.availableRoles
       }
 
-      // 🔄 Nouvelle requête
+      // Nouvelle requête
       console.log('🔄 Chargement des rôles depuis l\'API...')
 
       const promise = this._fetchRolesFromApi()
@@ -226,21 +226,9 @@ export const useUsersStore = defineStore('users', {
         if (!user) {
           console.log(`🔄 Chargement utilisateur ${userId}...`)
 
-          // 🔍 DEBUG 1: Appel API
-          console.log('🔍 Store - Avant appel UsersApi.getById')
           const userData = await UsersApi.getById(userId)
-          console.log('🔍 Store - Après appel UsersApi.getById:', JSON.stringify(userData, null, 2))
-
-          // 🔍 DEBUG 2: Vérifier les rôles spécifiquement
-          console.log('🔍 Store - userData.role:', userData.role)
-          console.log('🔍 Store - userData.roles:', userData.roles)
-          console.log('🔍 Store - userData.additional_roles:', userData.additional_roles)
-          console.log('🔍 Store - userData.additionalRoles:', userData.additionalRoles)
 
           this.currentUser = userData
-
-          // 🔍 DEBUG 3: Après assignation à currentUser
-          console.log('🔍 Store - this.currentUser après assignation:', JSON.stringify(this.currentUser, null, 2))
 
           // Ajouter/mettre à jour dans la liste
           const existingIndex = this.users.findIndex(u => u.id === userId)

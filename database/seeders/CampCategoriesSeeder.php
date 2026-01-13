@@ -15,19 +15,19 @@ class CampCategoriesSeeder extends Seeder
     {
         $this->command->info('🦎 Création des catégories CampCameleonX...');
 
-        // 🏕️ CATÉGORIES ACTIVITÉS
+        // CATÉGORIES ACTIVITÉS
         $this->createActivityCategories();
         
-        // 🍽️ CATÉGORIES MENUS
+        // CATÉGORIES MENUS
         $this->createMenuCategories();
         
-        // 🍲 CATÉGORIES PLATS  
+        // CATÉGORIES PLATS  
         $this->createDishCategories();
         
-        // 🏠 CATÉGORIES HÉBERGEMENTS
+        // CATÉGORIES HÉBERGEMENTS
         $this->createRoomCategories();
         
-        // 🌿 CATÉGORIES INGRÉDIENTS
+        // CATÉGORIES INGRÉDIENTS
         $this->createIngredientCategories();
 
         $this->command->info('✅ Catégories créées avec succès !');

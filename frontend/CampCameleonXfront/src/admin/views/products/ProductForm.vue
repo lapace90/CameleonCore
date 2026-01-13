@@ -252,7 +252,7 @@ export default {
 
           const mediaResponse = await ProductsApi.uploadToMediaObjects(this.form.image)
 
-          // 🔧 FIX: Mettre à jour this.form.image avec l'URL reçue
+          // Mettre à jour this.form.image avec l'URL reçue
           this.form.image = mediaResponse.contentUrl
           console.log('✅ MediaObject créé, URL assignée:', this.form.image)
         }
@@ -261,7 +261,6 @@ export default {
         console.log('📤 Sauvegarde produit...')
 
         const jsonPayload = this.buildPayload()
-        console.log('🔍 Payload avec image:', jsonPayload)
 
         let response
         if (this.isEditing) {

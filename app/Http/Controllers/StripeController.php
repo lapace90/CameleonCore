@@ -302,7 +302,7 @@ class StripeController extends Controller
                         " . ($reservation ? "<p>✅ Réservation #{$reservation->id} créée</p>" : "") . "
                         " . ($invoice ? "<p>✅ Facture {$invoice->invoice_number} générée</p>" : "") . "
                         <p>Vous allez recevoir un email de confirmation avec votre facture.</p>
-                        <a href='mailto:contact@campcameleonx.com'>📧 Nous contacter</a>
+                        <a href='mailto:contact@campcameleonx.com'><i class='fas fa-envelope'></i> Nous contacter</a>
                     </body>
                     </html>
                 ", 200);

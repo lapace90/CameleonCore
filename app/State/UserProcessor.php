@@ -217,7 +217,7 @@ class UserProcessor implements ProcessorInterface
             ]);
         }
 
-        // ✅ Validation PATCH (ne valide email que s'il est présent) + règles phone/postal_code
+        // Validation PATCH (ne valide email que s'il est présent) + règles phone/postal_code
         $baseRules = UserData::rulesForUpdate($userId);
 
         // Rendre l'email "sometimes|email|unique:..." si défini ainsi dans UserData.

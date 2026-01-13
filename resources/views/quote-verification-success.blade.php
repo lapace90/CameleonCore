@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="utf-8">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Email vérifié - CampCameleonX</title>
     <style>
@@ -90,14 +91,20 @@
             font-size: 18px;
         }
 
+        .loading-overlay>div {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
         .spinner {
             width: 50px;
             height: 50px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #28a745;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #ffffff;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-right: 15px;
+            animation: spin 0.8s linear infinite;
         }
 
         @keyframes spin {
@@ -122,17 +129,17 @@
     </div>
 
     <div class="success-box">
-        <h1>✅ Email vérifié avec succès !</h1>
+        <h1><i class="fas fa-check-circle" style="padding: .5rem;"></i> Email vérifié avec succès !</h1>
         <p>Merci {{ $quote->name ?? 'Client' }}, votre adresse email a été vérifiée.</p>
     </div>
 
     <!-- SECTION PAIEMENT -->
     <div class="payment-section">
-        <h2>💳 Procéder au paiement</h2>
+        <h2><i class="fas fa-credit-card" style="padding: .5rem;"></i> Procéder au paiement</h2>
         <p>Votre devis <strong>{{ $quote->quote_reference }}</strong> est validé !</p>
 
         <div class="quote-summary">
-            <h3>📋 Récapitulatif :</h3>
+            <h3><i class="fas fa-clipboard-list" style="padding: .5rem;"></i> Récapitulatif :</h3>
             <ul>
                 <li><strong>Référence :</strong> {{ $quote->quote_reference }}</li>
                 @if($quote->checkin_date && $quote->checkout_date)
@@ -149,18 +156,18 @@
         <button id="payButton"
             data-quote-id="{{ $quote->id }}"
             class="button-primary">
-            💳 Payer maintenant - {{ number_format($quote->total_amount, 2) }}€
+            <i class="fas fa-credit-card" style="padding: .5rem;"></i> Payer maintenant - {{ number_format($quote->total_amount, 2) }}€
         </button>
 
         <br><br>
         <!-- BOUTON POUR REVENIR MODIFIER LE DEVIS -->
         <a href="{{ $editUrl }}" class="button-secondary" id="editQuoteBtn">
-            📝 Modifier mon devis
+            <i class="fas fa-edit" style="padding: .5rem;"></i> Modifier mon devis
         </a>
 
         <a href="mailto:contact@campcameleonx.com?subject=Question devis {{ $quote->quote_reference }}"
             class="button-secondary">
-            📧 Une question ?
+            <i class="fas fa-envelope"  style="padding: .5rem;"></i>Une question ?
         </a>
     </div>
 
@@ -199,7 +206,7 @@
 
                 // Afficher loading
                 const originalText = payButton.innerHTML;
-                payButton.innerHTML = '⏳ Préparation...';
+                payButton.innerHTML = '<i class="fas fa-spinner fa-spin" style="padding: .5rem;"></i> Préparation...';
                 payButton.disabled = true;
                 loadingOverlay.style.display = 'flex';
 
@@ -254,11 +261,11 @@
                 loadingOverlay.style.display = 'none';
 
                 // Restaurer le bouton
-                payButton.innerHTML = '💳 Payer maintenant - {{ number_format($quote->total_amount, 2) }}€';
+                payButton.innerHTML = '<i class="fas fa-credit-card" style="padding: .5rem;"></i> Payer maintenant - {{ number_format($quote->total_amount, 2) }}€';
                 payButton.disabled = false;
 
                 // Afficher erreur utilisateur
-                let userMessage = '❌ Erreur de paiement\n\n';
+                let userMessage = '<i class="fas fa-times-circle" style="padding: .5rem;"></i> Erreur de paiement\n\n';
 
                 if (error.message.includes('validé par email')) {
                     userMessage += 'Ce devis doit être validé par email avant le paiement.';
@@ -281,7 +288,7 @@
 
     <div style="text-align: center; margin-top: 30px; color: #666; font-size: 12px;">
         <p>CampCameleonX - Votre évasion dans le désert marocain<br>
-            📞 +33 X XX XX XX XX | ✉️ contact@campcameleonx.com</p>
+            <i class="fas fa-phone" style="padding: .5rem;"></i> +33 X XX XX XX XX | <i class="fas fa-envelope" style="padding: .5rem;"></i>contact@campcameleonx.com</p>
     </div>
 </body>
 

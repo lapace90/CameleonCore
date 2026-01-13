@@ -9,7 +9,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 /**
- * 📧 Mail pour l'envoi de factures
+ * Mail pour l'envoi de factures
  */
 class InvoiceMail extends Mailable implements ShouldQueue
 {

@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <title>Erreur de paiement - CampCameleonX</title>
     <style>
         body { 
@@ -67,7 +68,7 @@
 </head>
 <body>
     <div class="error-box">
-        <span class="error-icon">❌</span>
+        <span class="error-icon"><i class="fas fa-times-circle" style="padding: .5rem;"></i></span>
         <h1>Erreur de paiement</h1>
         <p>Une erreur s'est produite lors du traitement de votre paiement.</p>
         
@@ -78,7 +79,7 @@
         @endif
 
         <div class="help-section">
-            <h3>💡 Que faire ?</h3>
+            <h3><i class="fas fa-lightbulb"  style="padding: .5rem;"></i> Que faire ?</h3>
             <ul>
                 <li><strong>Vérifiez votre carte bancaire</strong> (solde, limite, date d'expiration)</li>
                 <li><strong>Réessayez</strong> dans quelques minutes</li>
@@ -89,7 +90,7 @@
 
         <div style="margin-top: 30px;">
             <a href="{{ env('APP_FRONTEND_URL', '/') }}" class="button">
-                🏠 Retour à l'accueil
+                <i class="fas fa-house"  style="padding: .5rem;"></i> Retour à l'accueil
             </a>
             <a href="mailto:contact@campcameleonx.com?subject=Problème paiement" class="button danger">
                 🆘 Signaler le problème
@@ -98,7 +99,7 @@
 
         <div style="color: #6c757d; font-size: 0.9rem; margin-top: 25px;">
             <p><strong>Support technique :</strong><br>
-            📞 +33 X XX XX XX XX | ✉️ contact@campcameleonx.com<br>
+            <i class="fas fa-phone"  style="padding: .5rem;"></i> +33 X XX XX XX XX | <i class="fas fa-envelope"></i>contact@campcameleonx.com<br>
             Disponible 7j/7 pour vous aider</p>
         </div>
     </div>

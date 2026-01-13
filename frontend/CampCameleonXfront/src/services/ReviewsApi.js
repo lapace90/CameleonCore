@@ -66,13 +66,13 @@ class ReviewsApi {
         }
     }
     /**
-     * 🔒 ADMIN - Dépublier une review (la cacher du site sans changer son statut)
+     * ADMIN - Dépublier une review (la cacher du site sans changer son statut)
      */
     static async unpublish(id) {
         try {
             const response = await axios.put(`/api/reviews/${id}`, {
                 is_published: false
-                // ✅ On garde status: 'approved', on change juste la visibilité
+                // On garde status: 'approved', on change juste la visibilité
             })
             return response.data
         } catch (error) {
@@ -82,13 +82,13 @@ class ReviewsApi {
     }
 
     /**
-     * 🔒 ADMIN - Republier une review (la rendre visible sur le site)
+     * ADMIN - Republier une review (la rendre visible sur le site)
      */
     static async republish(id) {
         try {
             const response = await axios.put(`/api/reviews/${id}`, {
                 is_published: true
-                // ✅ Status reste 'approved'
+                // Status reste 'approved'
             })
             return response.data
         } catch (error) {

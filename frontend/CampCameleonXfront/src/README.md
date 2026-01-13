@@ -1,4 +1,4 @@
-# ⛺ CampCameleonX Frontend
+# 🦎 CampCameleonX Frontend
 
 Interface moderne et responsive pour CampCameleonX - Solution complète de gestion de camping avec dashboard administrateur et site public.
 

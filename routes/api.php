@@ -26,10 +26,10 @@ Route::prefix('auth')->group(function () {
     });
 });
 
-// 📧 Contact (route publique)
+// Contact (route publique)
 Route::post('contact', [\App\Http\Controllers\Api\ContactController::class, 'sendContactMessage']);
 
-// ⚙️ SETTINGS - JUSTE auth:sanctum (SANS role:super-admin qui plante)
+// SETTINGS - JUSTE auth:sanctum (SANS role:super-admin qui plante)
 Route::prefix('admin/settings')->middleware(['auth:sanctum'])->group(function () {
     Route::get('/', [SettingsController::class, 'index']);
     Route::get('/maintenance-status', [SettingsController::class, 'maintenanceStatus']);
@@ -38,7 +38,7 @@ Route::prefix('admin/settings')->middleware(['auth:sanctum'])->group(function ()
     Route::get('/system-info', [SettingsController::class, 'systemInfo']);
 });
 
-// 📊 Stats
+// Stats
 Route::get('admin/stats/dashboard', function () {
     return response()->json([
         'users_count' => \App\Models\User::count(),

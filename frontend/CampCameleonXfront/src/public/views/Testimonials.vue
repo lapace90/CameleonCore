@@ -150,7 +150,7 @@ export default {
     async fetchTestimonials() {
       this.loading = true
       try {
-        // ✅ Force le mode public même si admin connecté
+        // Force le mode public même si admin connecté
         const response = await ReviewsApi.getPublished({
           public_only: true  // Paramètre pour forcer le filtre
         })

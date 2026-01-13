@@ -16,7 +16,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>🏕️ CampCameleonX</h1>
+        <h1>🦎 CampCameleonX</h1>
         <h2>Votre devis personnalisé</h2>
         <p>Référence : <strong>{{ $quote->reference }}</strong></p>
     </div>
@@ -35,7 +35,7 @@
         
         @if($activities->isNotEmpty())
         <div class="product-section">
-            <h3>🥾 Activités sélectionnées</h3>
+            <h3><i class="fas fa-hiking"  style="padding: .5rem;"></i> Activités sélectionnées</h3>
             <ul>
                 @foreach($activities as $activity)
                 <li>Activité #{{ $activity['id'] }}</li>
@@ -46,7 +46,7 @@
         
         @if($menus->isNotEmpty())
         <div class="product-section">
-            <h3>🍽️ Menus sélectionnés</h3>
+            <h3><i class="fas fa-utensils"  style="padding: .5rem;"></i> Menus sélectionnés</h3>
             <ul>
                 @foreach($menus as $menu)
                 <li>Menu #{{ $menu['id'] }}</li>
@@ -57,7 +57,7 @@
         
         @if($rooms->isNotEmpty())
         <div class="product-section">
-            <h3>🏠 Hébergement sélectionné</h3>
+            <h3><i class="fas fa-bed"  style="padding: .5rem;"></i> Hébergement sélectionné</h3>
             <ul>
                 @foreach($rooms as $room)
                 <li>Hébergement #{{ $room['id'] }}</li>
@@ -72,12 +72,12 @@
         </div>
         
         <div style="text-align: center;">
-            <a href="tel:+33XXXXXXXXX" class="button">📞 Réserver par téléphone</a>
-            <a href="mailto:contact@campcameleonx.com?subject=Réservation {{ $quote->reference }}" class="button">✉️ Réserver par email</a>
+            <a href="tel:+33XXXXXXXXX" class="button"><i class="fas fa-phone" style="padding: .5rem;"></i> Réserver par téléphone</a>
+            <a href="mailto:contact@campcameleonx.com?subject=Réservation {{ $quote->reference }}" class="button"><i class="fas fa-envelope"></i>Réserver par email</a>
         </div>
         
         <div class="contact-section">
-            <h3>📞 Pour réserver ou obtenir des informations :</h3>
+            <h3><i class="fas fa-phone" style="padding: .5rem;"></i> Pour réserver ou obtenir des informations :</h3>
             <ul>
                 <li><strong>Téléphone :</strong> +33 X XX XX XX XX</li>
                 <li><strong>Email :</strong> contact@campcameleonx.com</li>
@@ -87,7 +87,7 @@
         
         @if($quote->customer_message)
         <div class="product-section">
-            <h3>💬 Votre message :</h3>
+            <h3><i class="fas fa-comment"  style="padding: .5rem;"></i> Votre message :</h3>
             <p><em>"{{ $quote->customer_message }}"</em></p>
         </div>
         @endif

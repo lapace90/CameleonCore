@@ -171,7 +171,7 @@ export default {
       error: null,
       successMessage: null,
 
-      // ✅ Filtres avec valeurs par défaut
+      // Filtres avec valeurs par défaut
       defaultFilters: {
         search: '',
         role: '',
@@ -207,7 +207,7 @@ export default {
   },
 
   computed: {
-    // ✅ Configuration des champs de filtres
+    // Configuration des champs de filtres
     userFilterFields() {
       return [
         {
@@ -407,7 +407,7 @@ export default {
       }
     },
 
-    // ✅ Bulk actions (à adapter selon ton API backend)
+    // Bulk actions (à adapter selon ton API backend)
     executeBulkAction() {
       if (!this.bulkAction) return
 

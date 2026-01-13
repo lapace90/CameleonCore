@@ -323,16 +323,6 @@ export default {
       try {
         const response = await ProductsApi.getProduct(this.productId)
         this.product = response
-
-        // 🐛 DÉBOGAGE 
-        console.log('🔍 Produit reçu:', this.product)
-        console.log('🔍 Type:', this.product.productableType)
-        console.log('🔍 Productable detail:', this.product.productableDetail)
-
-        if (this.product.productableDetail) {
-          console.log('🔍 Dishes:', this.product.productableDetail.dishes)
-          console.log('🔍 Ingredients:', this.product.productableDetail.ingredients)
-        }
       } catch (error) {
         console.error('Erreur lors du chargement du produit:', error)
         this.error = error.response?.status === 404

@@ -208,7 +208,7 @@
                                     <h5 class="mini-title">{{ room.name }}</h5>
                                     <div class="mini-meta">
                                         <span class="mini-price">{{ room.formatted_price }}/nuit</span>
-                                        <!-- ✅ SEULE INFO PRODUCTABLE : Capacité -->
+                                        <!-- SEULE INFO PRODUCTABLE : Capacité -->
                                         <span v-if="room.productable_data?.capacity || room.productableData?.capacity"
                                             class="mini-pill">
                                             <i class="fas fa-users"></i>
@@ -740,7 +740,7 @@ export default {
                     throw new Error('Veuillez sélectionner un hébergement avant de procéder au paiement.')
                 }
 
-                // ✅ UTILISER LA MÊME LOGIQUE QUE saveQuote()
+                // UTILISER LA MÊME LOGIQUE QUE saveQuote()
                 const quoteResponse = await this.saveQuote()
 
                 if (!quoteResponse.success) {
@@ -749,7 +749,7 @@ export default {
 
                 const quote = quoteResponse.quote_request
 
-                // ✅ VÉRIFIER next_step
+                // VÉRIFIER next_step
                 if (quoteResponse.next_step === 'validation_email') {
                     this.showEmailValidationRequired(quote)
                     return
@@ -765,21 +765,20 @@ export default {
 
             } catch (e) {
                 console.error('❌ Erreur paiement:', e)
-                alert('❌ ' + (e.message || 'Erreur inconnue'))
+                alert('<i class="fas fa-times-circle" style="padding: .5rem;"></i> ' + (e.message || 'Erreur inconnue'))
             } finally {
                 this.isSubmitting = false
             }
         },
 
         showEmailValidationRequired(quote) {
-            console.log('🔍 Quote reçu:', quote)
 
             this.closeModal()
 
-            // ✅ L'API retourne { success: true, quote_request: {...} }
+            // L'API retourne { success: true, quote_request: {...} }
             const quoteData = quote.quote_request || quote
 
-            // ✅ Extraire la référence et l'email
+            // Extraire la référence et l'email
             const reference = quoteData.quote_reference
                 || quoteData.quoteReference
                 || quoteData.emailData?.reference
@@ -820,7 +819,7 @@ export default {
                 const result = await this.saveQuote()
                 if (!result.success) throw new Error(result.message || 'Erreur lors de la sauvegarde')
                 this.showSuccessModal({
-                    title: '📧 Email de validation envoyé !',
+                    title: '<i class="fas fa-envelope"  style="padding: .5rem;">Email de validation envoyé !',
                     message: `Votre devis ${result.quote_request.quote_reference} a été créé.
 Vérifiez votre boîte email et validez-le (lien valable 48h).`,
                     showContacts: true
@@ -828,7 +827,7 @@ Vérifiez votre boîte email et validez-le (lien valable 48h).`,
                 this.$emit('quote-saved', { quote: result.quote_request, type: 'email_validation_required' })
             } catch (e) {
                 console.error('❌ Erreur sauvegarde:', e)
-                alert('❌ ' + (e.message || 'Erreur inconnue'))
+                alert('<i class="fas fa-times-circle" style="padding: .5rem;"></i> ' + (e.message || 'Erreur inconnue'))
             } finally {
                 this.isSubmitting = false
             }
@@ -856,7 +855,7 @@ Vérifiez votre boîte email et validez-le (lien valable 48h).`,
                 })
             } catch (e) {
                 console.error('❌ Erreur conseil:', e)
-                alert('❌ ' + (e.message || 'Erreur inconnue'))
+                alert('<i class="fas fa-times-circle" style="padding: .5rem;"></i> ' + (e.message || 'Erreur inconnue'))
             } finally {
                 this.isSubmitting = false
             }

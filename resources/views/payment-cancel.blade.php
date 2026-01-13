@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <title>Paiement annulé - CampCameleonX</title>
     <style>
         body { 
@@ -69,7 +70,7 @@
         
         @if($quote)
         <div class="quote-info">
-            <h3>📋 Votre devis reste disponible :</h3>
+            <h3><i class="fas fa-clipboard-list" style="padding: .5rem;"></i> Votre devis reste disponible :</h3>
             <p><strong>Référence :</strong> {{ $quote->quote_reference }}</p>
             <p><strong>Montant :</strong> {{ number_format($quote->total_amount, 2, ',', ' ') }} €</p>
             @if($quote->checkin_date)
@@ -82,16 +83,16 @@
 
         <div style="margin-top: 30px;">
             <a href="{{ env('APP_FRONTEND_URL', '/') }}" class="button">
-                🏠 Retour à l'accueil
+                <i class="fas fa-house"  style="padding: .5rem;"></i> Retour à l'accueil
             </a>
             <a href="mailto:contact@campcameleonx.com@if($quote)?subject=Question devis {{ $quote->quote_reference }}@endif" class="button secondary">
-                📧 Nous contacter
+                <i class="fas fa-envelope"  style="padding: .5rem;"></i> Nous contacter
             </a>
         </div>
 
         <div class="help-text">
             <p><strong>Besoin d'aide pour finaliser votre réservation ?</strong><br>
-            📞 +33 X XX XX XX XX | ✉️ contact@campcameleonx.com</p>
+            <i class="fas fa-phone"  style="padding: .5rem;"></i> +33 X XX XX XX XX | <i class="fas fa-envelope"></i>contact@campcameleonx.com</p>
         </div>
     </div>
 </body>

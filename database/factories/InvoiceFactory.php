@@ -29,7 +29,7 @@ class InvoiceFactory extends Factory
             'due_date' => $this->faker->dateTimeBetween('now', '+1 year'),
             'status' => $this->faker->randomElement(['paid', 'unpaid', 'overdue']),
             'customer_id' => \App\Models\Customer::factory(),  // OK - lazy
-            'reservation_id' => null,                          // ✅ PAS de circular ref
+            'reservation_id' => null,                          // PAS de circular ref
         ];
     }
 }

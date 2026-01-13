@@ -2,7 +2,7 @@
   <div class="form-section" v-if="hasRelations">
     <h3>{{ getRelationTitle() }}</h3>
 
-    <!-- ✅ SIMPLIFIER : Utiliser la même logique que ProductDetails -->
+    <!-- Utiliser la même logique que ProductDetails -->
 
     <!-- Plats du menu (comme dans ProductDetails) -->
     <div v-if="menuDishes && menuDishes.length > 0" class="selection-area">
@@ -215,7 +215,7 @@ methods: {
     }
   },
 
-  // ✅ MÉTHODES CORRIGÉES - Mode édition seulement
+  // Mode édition seulement
 addDish(dish) {
   if (this.editMode) {
     this.localDishes.push(dish)
@@ -299,7 +299,7 @@ addDish(dish) {
   margin-bottom: 20px;
 }
 
-/* ✅ Styles pour les relations actuelles - comme ProductDetails */
+/* Styles pour les relations actuelles - comme ProductDetails */
 .current-relations {
   display: flex;
   flex-direction: column;
@@ -356,7 +356,7 @@ addDish(dish) {
   border-radius: 6px;
 }
 
-/* ✅ Boutons d'action jolis */
+/* Boutons d'action jolis */
 .btn-remove {
   background: linear-gradient(135deg, #ef4444, #dc2626);
   color: white;
@@ -395,14 +395,14 @@ addDish(dish) {
   transform: translateY(-1px);
 }
 
-/* ✅ Recherche élégante */
+/* Recherche élégante */
 .search-box {
   position: relative;
   margin-bottom: 16px;
 }
 
 
-/* ✅ Liste des éléments disponibles */
+/* Liste des éléments disponibles */
 .available-items {
   max-height: 320px;
   overflow-y: auto;
@@ -462,7 +462,7 @@ addDish(dish) {
   border-radius: 6px;
 }
 
-/* ✅ Message vide élégant */
+/* Message vide élégant */
 .no-relations {
   text-align: center;
   padding: 32px;
@@ -473,7 +473,7 @@ addDish(dish) {
   border-radius: 8px;
 }
 
-/* ✅ Scrollbar personnalisée */
+/* Scrollbar personnalisée */
 .available-items::-webkit-scrollbar {
   width: 6px;
 }
@@ -492,7 +492,7 @@ addDish(dish) {
   background: #94a3b8;
 }
 
-/* ✅ Animation d'entrée */
+/* Animation d'entrée */
 .relation-item {
   animation: slideIn 0.3s ease-out;
 }

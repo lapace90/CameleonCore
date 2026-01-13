@@ -1,5 +1,5 @@
 <template>
-  <div class="basic-fields">
+  <div class="basic-fields form-section">
     <h3>Informations générales</h3>
     <div class="form-grid">
       <div class="form-group">
@@ -46,7 +46,7 @@
           </button>
         </div>
         <!-- Actions -->
-        <div class="flex text-center items-center gap-2 mt-2" style="border: 1px solid var(--sand); padding: 1rem .4rem; border-radius: 8px; ">
+        <div class="category-actions">
           <router-link class="btn btn-primary btn-sm" :to="categoriesManageTo" target="_blank"
             title="Gérer les catégories">
             <i class="fas fa-folder-tree"></i>
@@ -105,7 +105,6 @@ export default {
     }
   },
   computed: {
-    // Pont v-model (⚠️ pas de watch profond qui ré-émet)
     localValue: {
       get() { return this.modelValue },
       set(v) { this.$emit('update:modelValue', v) }

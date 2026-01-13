@@ -130,7 +130,7 @@ class RoleCollectionProvider implements ProviderInterface
                     ];
                 }),
                 
-                // 📅 Métadonnées
+                // Métadonnées
                 'created_at' => $role->created_at?->toISOString(),
                 'updated_at' => $role->updated_at?->toISOString(),
             ];

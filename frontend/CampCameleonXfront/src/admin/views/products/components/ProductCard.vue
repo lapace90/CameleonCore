@@ -76,12 +76,6 @@ export default {
   components: {
     CategoryBadge
   },
-    mounted() {
-    // ✅ TEMPORAIRE : pour déboguer
-    console.log('🔍 Product data:', this.product)
-    console.log('🔍 GlobalTags:', this.product.globalTags)
-    console.log('🔍 SpecificTags:', this.product.specificTags)
-  },
   methods: {
     truncateText(text, length) {
       if (!text) return ''

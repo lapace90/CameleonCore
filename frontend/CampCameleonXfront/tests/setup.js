@@ -27,8 +27,12 @@ const mockCalendarApi = {
   changeView: vi.fn(),
   refetchEvents: vi.fn(),
   getEvents: vi.fn(() => []),
+  getDate: vi.fn(() => new Date('2025-10-15')),  
   render: vi.fn(),
-  destroy: vi.fn()
+  destroy: vi.fn(),
+  prev: vi.fn(),
+  next: vi.fn(),
+  today: vi.fn()
 }
 
 vi.mock('@fullcalendar/vue3', () => ({
