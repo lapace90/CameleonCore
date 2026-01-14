@@ -95,7 +95,10 @@
               <router-link to="/testimonials" class="btn btn-secondary btn-sm">
                 <i class="fas fa-comments"></i>
                 Voir tous les avis
-                <span class="testimonials-count "></span>
+              </router-link>
+              <router-link to="/testimonials?review=true" class="btn btn-outline btn-sm">
+                <i class="fas fa-pen"></i>
+                Laisser un avis
               </router-link>
             </div>
           </div>
@@ -131,9 +134,34 @@ export default {
 </script>
 
 <style scoped>
-/* Supprime l'espace vide pour la page Hero */
 .home-page {
   margin-top: -45px;
-  /* Remonte pour coller au header */
+}
+
+.view-all-testimonials {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.8);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-outline:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: white;
+  color: white;
 }
 </style>

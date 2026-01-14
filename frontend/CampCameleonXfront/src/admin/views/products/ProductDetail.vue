@@ -53,7 +53,6 @@
             {{ product.typeConfig.singular }}
           </div>
           <h1 class="product-title">{{ product.name }}</h1>
-          <p v-if="product.category" class="product-category">{{ product.category.name }}</p>
         </div>
 
         <div class="title-right">
@@ -114,10 +113,10 @@
                 <label>Prix</label>
                 <span>{{ product.formatted_price }}</span>
               </div>
-              <div v-if="product.category" class="info-item">
-                <label>Catégorie</label>
-                <div v-foreach="product.category" :key="product.category.id" class="info-item">
-                  <CategoryBadge v-if="product.category" :category="product.category" />
+              <div v-if="product.categories && product.categories.length > 0" class="info-item">
+                <label>Catégories</label>
+                <div class="badges-container">
+                  <CategoryBadge v-for="cat in product.categories" :key="cat.id" :category="cat" />
                 </div>
               </div>
               <div class="info-item">
@@ -189,10 +188,10 @@
           </div>
 
           <!-- Tags -->
-          <div v-if="product.tags && product.tags.length > 0" class="info-section">
+          <div v-if="allTags.length > 0" class="info-section">
             <h3>Tags</h3>
             <div class="tags-container">
-              <span v-for="tag in product.tags" :key="tag.id" class="tag" :style="{ backgroundColor: tag.color }">
+              <span v-for="tag in allTags" :key="tag.id" class="tag" :style="{ backgroundColor: tag.color }">
                 {{ tag.name }}
               </span>
             </div>
@@ -305,6 +304,13 @@ export default {
       if (this.product?.productableDetail?.dishes) return 'Plats du menu'
       if (this.product?.productableDetail?.ingredients) return 'Ingrédients'
       return 'Relations'
+    },
+    
+    allTags() {
+      let tags = []
+      if (this.product?.globalTags) tags = [...tags, ...this.product.globalTags]
+      if (this.product?.specificTags) tags = [...tags, ...this.product.specificTags]
+      return tags
     }
   },
 

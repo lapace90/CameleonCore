@@ -1,5 +1,4 @@
 <?php
-// database/seeders/CampCategoriesSeeder.php
 
 namespace Database\Seeders;
 

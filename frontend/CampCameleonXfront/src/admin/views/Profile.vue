@@ -167,13 +167,12 @@
 </template>
 
 <script>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useAuthStore } from '@/shared/stores/auth'
 import BaseButton from '@/shared/components/ui/BaseButton.vue'
 import BaseInput from '@/shared/components/ui/BaseInput.vue'
 import BaseCard from '@/shared/components/ui/BaseCard.vue'
 import ImageUpload from '@/admin/components/ui/ImageUpload.vue'
-// Ajouter l'import de ProductsApi pour réutiliser uploadToMediaObjects
 import ProductsApi from '@/services/ProductsApi'
 
 export default {
@@ -206,6 +205,23 @@ export default {
       city: '',
       postalCode: '',
       avatar: null
+    })
+
+    watch(() => form.avatar, async (newAvatar, oldAvatar) => {
+      console.log('👀 Avatar changé:', { newAvatar, oldAvatar })
+
+      // Si c'est une nouvelle URL (après upload) et différente de l'originale
+      if (typeof newAvatar === 'string' && newAvatar && newAvatar !== originalData.value.avatar) {
+        console.log('📤 Sauvegarde automatique du profil...')
+        try {
+          await authStore.updateProfile({ avatar: newAvatar })
+          originalData.value.avatar = newAvatar
+          successMessage.value = 'Photo de profil mise à jour !'
+        } catch (error) {
+          console.error('Erreur:', error)
+          errorMessage.value = 'Erreur lors de la mise à jour de la photo'
+        }
+      }
     })
 
     const errors = reactive({ name: '', email: '', phone: '' })
@@ -249,52 +265,52 @@ export default {
       return ok
     }
 
-// Remplacer la méthode saveProfile par :
-const saveProfile = async () => {
-  if (!validateForm()) return
+    // Remplacer la méthode saveProfile par :
+    const saveProfile = async () => {
+      if (!validateForm()) return
 
-  saving.value = true
-  clearMessages()
+      saving.value = true
+      clearMessages()
 
-  try {
-    // 1. Upload avatar vers MediaObject si fichier sélectionné
-    if (form.avatar instanceof File) {
-      console.log('📤 Upload avatar vers /api/media_objects...')
-      
-      const mediaResponse = await ProductsApi.uploadToMediaObjects(form.avatar)
-      
-      // Mettre à jour avec l'URL reçue
-      form.avatar = mediaResponse.contentUrl
-      console.log('✅ Avatar uploadé:', form.avatar)
+      try {
+        // 1. Upload avatar vers MediaObject si fichier sélectionné
+        if (form.avatar instanceof File) {
+          console.log('📤 Upload avatar vers /api/media_objects...')
+
+          const mediaResponse = await ProductsApi.uploadToMediaObjects(form.avatar)
+
+          // Mettre à jour avec l'URL reçue
+          form.avatar = mediaResponse.contentUrl
+          console.log('✅ Avatar uploadé:', form.avatar)
+        }
+
+        // 2. Préparer les données pour l'API (utilise votre structure existante)
+        const profileData = {
+          name: form.name,
+          email: form.email,
+          phone: form.phone || null,
+          address: form.address || null,
+          city: form.city || null,
+          postal_code: form.postalCode || null,
+          avatar: (typeof form.avatar === 'string') ? form.avatar : null  // URL du MediaObject
+        }
+
+        console.log('📤 Sauvegarde profil:', profileData)
+
+        // 3. Utiliser votre store auth existant
+        await authStore.updateProfile(profileData)
+
+        successMessage.value = 'Profil mis à jour avec succès !'
+        isEditing.value = false
+        originalData.value = { ...form }
+
+      } catch (error) {
+        console.error('Erreur sauvegarde profil:', error)
+        errorMessage.value = error.message || 'Erreur lors de la sauvegarde'
+      } finally {
+        saving.value = false
+      }
     }
-
-    // 2. Préparer les données pour l'API (utilise votre structure existante)
-    const profileData = {
-      name: form.name,
-      email: form.email,
-      phone: form.phone || null,
-      address: form.address || null,
-      city: form.city || null,
-      postal_code: form.postalCode || null,
-      avatar: (typeof form.avatar === 'string') ? form.avatar : null  // URL du MediaObject
-    }
-
-    console.log('📤 Sauvegarde profil:', profileData)
-
-    // 3. Utiliser votre store auth existant
-    await authStore.updateProfile(profileData)
-
-    successMessage.value = 'Profil mis à jour avec succès !'
-    isEditing.value = false
-    originalData.value = { ...form }
-
-  } catch (error) {
-    console.error('Erreur sauvegarde profil:', error)
-    errorMessage.value = error.message || 'Erreur lors de la sauvegarde'
-  } finally {
-    saving.value = false
-  }
-}
 
     // mot de passe via store
     const validatePasswordForm = () => {

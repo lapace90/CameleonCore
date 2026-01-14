@@ -16,7 +16,7 @@ Route::prefix('stripe')->group(function () {
 Route::prefix('auth')->group(function () {
     // Routes publiques (sans auth)
     Route::post('login', [AuthController::class, 'login']);
-    Route::post('register', [AuthController::class, 'register']); 
+    Route::post('register', [AuthController::class, 'register']);
 
     // Routes protégées (avec auth)
     Route::middleware('auth:sanctum')->group(function () {
@@ -82,4 +82,21 @@ Route::patch('/quote-requests/{id}/edit/{token}', function ($id, $token) {
         ]);
         return response()->json(['error' => 'Erreur lors de la mise à jour du devis'], 500);
     }
+});
+
+// Route publique pour télécharger une facture PDF
+Route::get('/invoices/{invoice_number}/download', function ($invoice_number) {
+    $invoice = \App\Models\Invoice::where('invoice_number', $invoice_number)->firstOrFail();
+
+    $pdfPath = storage_path("app/public/invoices/{$invoice_number}.pdf");
+
+    // Générer le PDF s'il n'existe pas
+    if (!file_exists($pdfPath)) {
+        $invoiceService = app(\App\Services\InvoiceService::class);
+        $invoiceService->generatePdf($invoice);
+    }
+
+    return response()->download($pdfPath, "facture_{$invoice_number}.pdf", [
+        'Content-Type' => 'application/pdf'
+    ]);
 });

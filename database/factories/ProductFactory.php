@@ -26,7 +26,7 @@ class ProductFactory extends Factory
             'name' => $this->faker->word(),
             'description' => $this->faker->sentence(),
             'price' => $this->faker->randomFloat(2, 1, 100),
-            'category_id' => Category::factory(), // AJOUT: Créer automatiquement
+            'category_id' => Category::factory(), 
             'productable_type' => \App\Models\Room::class,
             'productable_id' => $room->id,
             'image' => $this->faker->imageUrl(),

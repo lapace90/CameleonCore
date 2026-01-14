@@ -59,16 +59,8 @@
               :config="typeConfig" v-model="form.productable" />
 
             <!-- Relations -->
-            <ProductRelations v-if="isEditing && typeConfig.hasRelation && product" :type="productType"
-              :config="typeConfig" :product="product" :edit-mode="true" @relations-changed="onRelationsChanged" />
-
-            <!-- Message pour création -->
-            <div v-if="!isEditing && typeConfig.hasRelation" class="form-section">
-              <div class="form-note">
-                <i class="fas fa-info-circle"></i>
-                Les {{ getRelationTitle().toLowerCase() }} pourront être ajoutés après la création.
-              </div>
-            </div>
+            <ProductRelations v-if="typeConfig.hasRelation" :type="productType" :config="typeConfig"
+              :product="productForRelations" :edit-mode="true" @relations-changed="onRelationsChanged" />
 
           </div>
         </div>
@@ -154,6 +146,17 @@ export default {
 
     isFormValid() {
       return this.form.name && this.form.price >= 0 && Object.keys(this.errors).length === 0
+    },
+    
+    productForRelations() {
+      if (this.isEditing && this.product) {
+        return this.product
+      }
+      // Objet vide pour la création
+      return {
+        relations: { dishes: [], ingredients: [] },
+        productableDetail: { dishes: [], ingredients: [] }
+      }
     }
   },
 

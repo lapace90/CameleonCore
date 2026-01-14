@@ -163,6 +163,11 @@ class ProductProcessor implements ProcessorInterface
         // CATÉGORIES
         $normalized['category_id'] = $this->extractCategoryId($payload);
 
+        // CATEGORIES (multi)
+        if (isset($payload['categories']) && is_array($payload['categories'])) {
+            $normalized['categories'] = $payload['categories'];
+        }
+
         // IMAGE
         if (isset($payload['image']) && is_string($payload['image'])) {
             $normalized['image'] = $payload['image'];
@@ -247,7 +252,7 @@ class ProductProcessor implements ProcessorInterface
         // Gérer les relations avec VOTRE logique
         $this->handleRelations($product, $productable, $data);
 
-        return $product->loadMissing(['category', 'productable', 'globalTags', 'options']);
+        return $product->loadMissing(['category', 'categories', 'productable', 'globalTags', 'options']);
     }
 
     private function updateProduct(ProductData $data, int $productId): Product
@@ -275,7 +280,7 @@ class ProductProcessor implements ProcessorInterface
         // Gérer les relations
         $this->handleRelations($product, $product->productable, $data);
 
-        return $product->loadMissing(['category', 'productable', 'globalTags', 'options']);
+        return $product->loadMissing(['category', 'categories', 'productable', 'globalTags', 'options']);
     }
 
     private function createProductable(string $type, $productableData): mixed
@@ -378,6 +383,16 @@ class ProductProcessor implements ProcessorInterface
         if (!empty($data->options)) {
             $optionIds = $this->extractIds($data->options);
             $product->options()->sync($optionIds);
+        }
+
+        // Categories (multi)
+        if (!empty($data->categories)) {
+            $categoryIds = $this->extractIds($data->categories);
+            $product->categories()->sync($categoryIds);
+            Log::info("Categories mises à jour", [
+                'product_id' => $product->id,
+                'category_ids' => $categoryIds
+            ]);
         }
     }
 

@@ -58,7 +58,7 @@
       </div>
     </div>
 
-    <!-- Ingrédients du plat (comme dans ProductDetails) -->
+    <!-- Ingrédients du plat -->
     <div v-if="dishIngredients && dishIngredients.length > 0" class="selection-area">
       <h4>
         <i class="fas fa-seedling" style="color: #22c55e; margin-right: 8px;"></i>
@@ -76,6 +76,10 @@
           </button>
         </div>
       </div>
+    </div>
+
+    <!-- Bouton pour AJOUTER - TOUJOURS visible en édition pour les plats -->
+    <div v-if="editMode && config.hasRelation === 'ingredients'" class="selection-area">
       <button type="button" @click="showAvailableIngredients = !showAvailableIngredients"
         class="btn btn-outline btn-sm">
         <i class="fas fa-plus" style="margin-right: 6px;"></i>
@@ -166,19 +170,35 @@ export default {
     },
 
     filteredAvailableDishes() {
-      if (!this.searchTerm) return this.availableDishes
-      return this.availableDishes.filter(dish =>
-        dish.name.toLowerCase().includes(this.searchTerm.toLowerCase()) &&
-        !this.localDishes.some(existing => existing.id === dish.id)
+      let dishes = this.availableDishes.filter(dish =>
+        !this.localDishes.some(existing =>
+          existing.product_id === dish.id || existing.id === dish.id
+        )
       )
+
+      if (this.searchTerm) {
+        dishes = dishes.filter(dish =>
+          dish.name.toLowerCase().includes(this.searchTerm.toLowerCase())
+        )
+      }
+
+      return dishes
     },
 
     filteredAvailableIngredients() {
-      if (!this.searchTerm) return this.availableIngredients
-      return this.availableIngredients.filter(ingredient =>
-        ingredient.name.toLowerCase().includes(this.searchTerm.toLowerCase()) &&
-        !this.localIngredients.some(existing => existing.id === ingredient.id)
+      let ingredients = this.availableIngredients.filter(ingredient =>
+        !this.localIngredients.some(existing =>
+          existing.product_id === ingredient.id || existing.id === ingredient.id
+        )
       )
+
+      if (this.searchTerm) {
+        ingredients = ingredients.filter(ingredient =>
+          ingredient.name.toLowerCase().includes(this.searchTerm.toLowerCase())
+        )
+      }
+
+      return ingredients
     }
   },
 
@@ -193,8 +213,20 @@ export default {
 
     // Initialiser les relations locales
     initializeLocalRelations() {
-      this.localDishes = [...(this.product.relations?.dishes || [])]
-      this.localIngredients = [...(this.product.relations?.ingredients || [])]
+      const dishes = this.product.relations?.dishes
+        || this.product.productableDetail?.dishes
+        || this.product.productable_detail?.dishes
+        || []
+      this.localDishes = [...dishes]
+
+      const ingredients = this.product.relations?.ingredients
+        || this.product.productableDetail?.ingredients
+        || this.product.productable_detail?.ingredients
+        || []
+      this.localIngredients = [...ingredients]
+
+      // Émettre les relations initiales au parent
+      this.emitRelationsChanged()
     },
 
     async loadAvailableDishes() {

@@ -60,11 +60,18 @@ class ProductOutputData extends Data
                 'type' => $product->category->type ?? null,
                 'description' => $product->category->description ?? null,
             ] : null,
-            'tags' => $product->globalTags->map(fn($tag) => [
+            'categories' => $product->categories->map(fn($cat) => [
+                'id' => $cat->id,
+                'name' => $cat->name,
+                'type' => $cat->type ?? null,
+                'description' => $cat->description ?? null,
+            ])->toArray(),
+            'globalTags' => $product->globalTags->map(fn($tag) => [
                 'id' => $tag->id,
                 'name' => $tag->name,
                 'color' => $tag->color ?? '#6b7280'
             ])->toArray(),
+            'specificTags' => self::getSpecificTags($product),
             'options' => $product->options->map(fn($option) => [
                 'id' => $option->id,
                 'name' => $option->name,
@@ -200,6 +207,24 @@ class ProductOutputData extends Data
     {
         if ($product->is_draft) return 'status-draft';
         return $product->status ? 'status-active' : 'status-inactive';
+    }
+
+    private static function getSpecificTags(\App\Models\Product $product): array
+    {
+        if (!$product->productable || !method_exists($product->productable, 'specificTags')) {
+            return [];
+        }
+
+        if (!$product->productable->relationLoaded('specificTags')) {
+            $product->productable->load('specificTags');
+        }
+
+        return $product->productable->specificTags->map(fn($tag) => [
+            'id' => $tag->id,
+            'name' => $tag->name,
+            'icon' => $tag->icon ?? null,
+            'color' => '#8b5cf6'
+        ])->toArray();
     }
 
     private static function formatDifficulty(int $level): string

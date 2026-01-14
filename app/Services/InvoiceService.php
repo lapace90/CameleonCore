@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Invoice;
 use App\Models\Reservation;
 use App\Models\Customer;
+use App\Models\Product;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
@@ -264,17 +265,44 @@ class InvoiceService
         if ($invoice->reservation) {
             $reservation = $invoice->reservation;
 
-            // Ligne principale : hébergement
-            $items[] = [
-                'description' => $reservation->product?->name ?? 'Séjour',
-                'quantity' => 1,
-                'unit_price' => $invoice->amount,
-                'total' => $invoice->amount,
-                'details' => $this->getItemDetails($reservation),
-            ];
+            // Charger les produits multiples
+            $reservation->load('products.productable');
 
-            // TODO: Ajouter les services supplémentaires si vous gérez ça
-            // (activités, menus, etc.)
+            // Si la réservation a plusieurs produits (via pivot)
+            if ($reservation->products->isNotEmpty()) {
+                foreach ($reservation->products as $product) {
+                    $quantity = $product->pivot->quantity ?? 1;
+                    $unitPrice = $product->price ?? 0;
+
+                    $items[] = [
+                        'description' => $product->name,
+                        'quantity' => $quantity,
+                        'unit_price' => $unitPrice,
+                        'total' => $unitPrice * $quantity,
+                        'details' => $this->getProductDetails($product),
+                    ];
+                }
+            }
+            // Sinon, produit unique (ancien système)
+            elseif ($reservation->product) {
+                $items[] = [
+                    'description' => $reservation->product->name ?? 'Séjour',
+                    'quantity' => 1,
+                    'unit_price' => $invoice->amount,
+                    'total' => $invoice->amount,
+                    'details' => $this->getItemDetails($reservation),
+                ];
+            }
+            // Aucun produit trouvé
+            else {
+                $items[] = [
+                    'description' => 'Séjour',
+                    'quantity' => 1,
+                    'unit_price' => $invoice->amount,
+                    'total' => $invoice->amount,
+                    'details' => $this->getItemDetails($reservation),
+                ];
+            }
         } else {
             // Facture sans réservation liée
             $items[] = [
@@ -287,6 +315,22 @@ class InvoiceService
         }
 
         return $items;
+    }
+
+    /**
+     * Récupérer les détails d'un produit
+     */
+    private function getProductDetails(Product $product): ?string
+    {
+        $details = [];
+
+        // Type de produit
+        $typeLabel = $product->typeConfig['singular'] ?? null;
+        if ($typeLabel) {
+            $details[] = $typeLabel;
+        }
+
+        return !empty($details) ? implode(' • ', $details) : null;
     }
 
     /**
