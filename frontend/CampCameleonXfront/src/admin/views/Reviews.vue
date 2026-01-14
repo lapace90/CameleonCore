@@ -433,17 +433,6 @@ export default {
 </script>
 
 <style scoped>
-.badge-published {
-    background: rgba(40, 167, 69, 0.15);
-    color: #28a745;
-    font-weight: 600;
-}
-
-.badge-hidden {
-    background: rgba(108, 117, 125, 0.15);
-    color: #6c757d;
-    font-weight: 600;
-}
 
 .filters-section {
     padding: 1.5rem;

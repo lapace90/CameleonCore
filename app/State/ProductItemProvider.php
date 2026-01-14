@@ -18,39 +18,50 @@ class ProductItemProvider implements ProviderInterface
             'globalTags',
             'options'
         ])->find($uriVariables['id']);
-        
+
         if (!$product) {
             return null;
         }
-        
+
         // CHARGER les relations pivot correctement
         $this->loadRelations($product);
-        
+
         // RETOURNER ProductOutputData au lieu du modèle brut
         return ProductOutputData::fromProduct($product);
     }
-    
+
     private function loadRelations(Product $product): void
     {
         try {
             switch ($product->productable_type) {
                 case 'App\\Models\\Menu':
-                    //  Charger les plats du menu (table pivot dish_menu)
-                    $product->productable->load(['dishes' => function($query) {
-                        $query->with('product'); // Charger le Product de chaque Dish
+                    Log::info('🔍 Avant load dishes', [
+                        'menu_id' => $product->productable->id,
+                        'relationLoaded' => $product->productable->relationLoaded('dishes'),
+                        'dishes_count' => $product->productable->dishes()->count()
+                    ]);
+
+                    $product->productable->load(['dishes' => function ($query) {
+                        $query->with('product');
                     }]);
+
+                    Log::info('✅ Après load dishes', [
+                        'menu_id' => $product->productable->id,
+                        'relationLoaded' => $product->productable->relationLoaded('dishes'),
+                        'dishes_count' => $product->productable->dishes->count()
+                    ]);
                     break;
-                    
+
                 case 'App\\Models\\Dish':
                     //  Charger les ingrédients du plat (table pivot dish_ingredient)
-                    $product->productable->load(['ingredients' => function($query) {
+                    $product->productable->load(['ingredients' => function ($query) {
                         $query->with('product'); // Charger le Product de chaque Ingredient
                     }]);
                     break;
-                    
+
                 case 'App\\Models\\Ingredient':
                     //  Charger les plats qui utilisent cet ingrédient
-                    $product->productable->load(['dishes' => function($query) {
+                    $product->productable->load(['dishes' => function ($query) {
                         $query->with('product');
                     }]);
                     break;
@@ -60,7 +71,7 @@ class ProductItemProvider implements ProviderInterface
             // $product->load(['reservations' => function ($query) {
             //     $query->latest('created_at')->limit(5);
             // }]);
-            
+
         } catch (\Exception $e) {
             Log::warning("Erreur lors du chargement des relations pour le produit {$product->id}: " . $e->getMessage());
         }

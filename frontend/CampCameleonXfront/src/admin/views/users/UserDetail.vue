@@ -449,7 +449,7 @@ export default {
 
     async exportUserData() {
       try {
-        const response = await axios.get(`/api/admin/users/${this.user.id}/export`)
+        const response = await axios.get(`/admin/users/${this.user.id}/export`)
         const blob = new Blob([JSON.stringify(response.data, null, 2)], { type: 'application/json' })
         const url = window.URL.createObjectURL(blob)
         const a = document.createElement('a')

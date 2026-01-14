@@ -1,4 +1,3 @@
-// @/shared/configs/productConfigs.js
 /**
  * Configuration des types de produits - SOURCE UNIQUE
  * Remplace les duplications dans ProductForm.vue, ProductsApi.js, Breadcrumb.vue, ProductsShow.vue
