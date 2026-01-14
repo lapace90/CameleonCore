@@ -147,7 +147,7 @@ class ProductCollectionProvider implements ProviderInterface
     }
 
     //  Nouvelle méthode pour récupérer les tags spécifiques
-    private function getSpecificTags($product): array
+    public function getSpecificTags($product): array
     {
         if (!$product->productable || !method_exists($product->productable, 'specificTags')) {
             return [];

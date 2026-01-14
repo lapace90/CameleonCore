@@ -12,11 +12,12 @@ class RecalculateTagsCommand extends Command
      * The name and signature of the console command.
      */
     protected $signature = 'tags:recalculate 
-                           {--type= : Recalculer seulement un type (dish,menu,activity,room,ingredient)}
-                           {--global : Recalculer les tags globaux des produits}
-                           {--specific : Recalculer les tags spécifiques des modèles}
-                           {--force : Forcer le recalcul même si pas de changement}
-                           {--create-missing : Créer les tags manquants automatiquement}';
+                       {--type= : Recalculer seulement un type (dish,menu,activity,room,ingredient)}
+                       {--global : Recalculer les tags globaux des produits}
+                       {--specific : Recalculer les tags spécifiques des modèles}
+                       {--force : Forcer le recalcul même si pas de changement}
+                       {--create-missing : Créer les tags manquants automatiquement}
+                       {--if-needed : Ne lancer que si des modifications ont eu lieu}';
 
     /**
      * The console command description.
@@ -59,8 +60,15 @@ class RecalculateTagsCommand extends Command
      */
     public function handle()
     {
+
+        // Vérifier si recalcul nécessaire
+        if ($this->option('if-needed') && !$this->hasRecentChanges()) {
+            $this->info('🏷️  Aucune modification détectée, recalcul ignoré.');
+            return 0;
+        }
+
         $this->info('🏷️  Recalcul des tags automatiques...');
-        
+
         $type = $this->option('type');
         $globalOnly = $this->option('global');
         $specificOnly = $this->option('specific');
@@ -96,6 +104,9 @@ class RecalculateTagsCommand extends Command
 
         $this->newLine();
         $this->info('✅ Recalcul terminé !');
+
+        // Mettre à jour le timestamp du dernier recalcul
+        cache()->put('tags:last_recalculate', now(), now()->addDays(30));
         
         return 0;
     }
@@ -106,10 +117,10 @@ class RecalculateTagsCommand extends Command
     private function recalculateGlobalTags(bool $force = false): void
     {
         $this->info('🌍 Recalcul des tags globaux des produits...');
-        
+
         // Cette partie dépend de votre logique métier pour les tags globaux
         // Par exemple, tags basés sur la catégorie, le prix, etc.
-        
+
         $products = Product::with('globalTags')->get();
         $bar = $this->output->createProgressBar($products->count());
         $bar->start();
@@ -125,7 +136,7 @@ class RecalculateTagsCommand extends Command
                 $globalTagIds = Tag::whereIn('name', $newTags)
                     ->where('is_global', true)
                     ->pluck('id');
-                
+
                 $product->globalTags()->sync($globalTagIds);
                 $updated++;
 
@@ -190,7 +201,7 @@ class RecalculateTagsCommand extends Command
 
         // Charger les modèles avec leurs relations nécessaires
         $items = $this->loadModelsWithRelations($modelClass, $type);
-        
+
         if ($items->isEmpty()) {
             $this->warn("   ⚠️ Aucun(e) {$label} trouvé(e)");
             return;
@@ -211,8 +222,8 @@ class RecalculateTagsCommand extends Command
                 continue;
             }
 
-            $oldTags = method_exists($item, 'specificTags') 
-                ? $item->specificTags()->pluck('name')->toArray() 
+            $oldTags = method_exists($item, 'specificTags')
+                ? $item->specificTags()->pluck('name')->toArray()
                 : [];
             $newTags = $item->calculateSpecificTags();
 
@@ -232,7 +243,7 @@ class RecalculateTagsCommand extends Command
                         ->pluck('id');
                     $item->specificTags()->sync($tagIds);
                 }
-                
+
                 $updated++;
 
                 if ($this->output->isVerbose()) {
@@ -287,5 +298,31 @@ class RecalculateTagsCommand extends Command
                 ]
             );
         }
+    }
+
+    /**
+     * Vérifier si des modifications ont eu lieu depuis le dernier run
+     */
+    private function hasRecentChanges(): bool
+    {
+        $lastRun = cache()->get('tags:last_recalculate');
+
+        if (!$lastRun) {
+            return true;
+        }
+
+        // Vérifier si des produits ont été modifiés depuis le dernier run
+        $hasChanges = Product::where('updated_at', '>', $lastRun)->exists();
+
+        if (!$hasChanges) {
+            foreach ($this->productTypes as $config) {
+                if ($config['model']::where('updated_at', '>', $lastRun)->exists()) {
+                    $hasChanges = true;
+                    break;
+                }
+            }
+        }
+
+        return $hasChanges;
     }
 }

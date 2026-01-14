@@ -47,3 +47,19 @@ Schedule::command('cleanup:expired-data')
     ->onFailure(function () {
         Log::error('❌ CRON cleanup:expired-data a échoué');
     });
+
+/**
+ * Recalculer les tags automatiques tous les jours à 3h du matin si nécessaire
+ * 
+ * Cette tâche vérifie si des modifications ont eu lieu depuis le dernier
+ * recalcul. Si oui, elle exécute la commande de recalcul des tags.
+ */
+Schedule::command('tags:recalculate --if-needed')
+    ->dailyAt('03:00')
+    ->timezone('Africa/Casablanca')
+    ->onSuccess(function () {
+        Log::info('✅ CRON tags:recalculate exécuté avec succès');
+    })
+    ->onFailure(function () {
+        Log::error('❌ CRON tags:recalculate a échoué');
+    });
