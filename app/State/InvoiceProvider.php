@@ -26,6 +26,13 @@ class InvoiceProvider implements ProviderInterface
         ]);
 
         // ===========================
+        // TÉLÉCHARGEMENT PUBLIC PAR NUMÉRO
+        // ===========================
+        if (str_contains($path, '/download') && isset($uriVariables['invoice_number'])) {
+            return $this->downloadPdfByNumber($uriVariables['invoice_number']);
+        }
+
+        // ===========================
         // STATISTIQUES DASHBOARD
         // ===========================
         if (str_contains($path, '/invoices/stats')) {
@@ -218,6 +225,15 @@ class InvoiceProvider implements ProviderInterface
         return response($pdf->output())
             ->header('Content-Type', 'application/pdf')
             ->header('Content-Disposition', 'attachment; filename="facture-' . $invoice->invoice_number . '.pdf"');
+    }
+
+    private function downloadPdfByNumber(string $invoiceNumber)
+    {
+        Log::info("📄 Téléchargement PDF par numéro: {$invoiceNumber}");
+
+        $invoice = Invoice::where('invoice_number', $invoiceNumber)->firstOrFail();
+
+        return $this->generatePdf($invoice->id);
     }
 
     // ===========================

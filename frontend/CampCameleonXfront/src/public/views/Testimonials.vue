@@ -1,4 +1,3 @@
-<!-- frontend/CampCameleonXfront/src/public/views/Testimonials.vue -->
 <template>
   <div class="testimonials-page">
     <!-- Hero Section -->
@@ -10,6 +9,10 @@
             Découvrez les expériences authentiques partagées par ceux qui ont vécu la magie du désert avec nous.
           </p>
           <div class="stats-summary">
+            <button @click="scrollToReviewForm" class="quick-review-btn">
+              <i class="fas fa-pen"></i>
+              Laisser un avis
+            </button>
             <div class="stat">
               <span class="number">{{ averageRating.toFixed(1) }}</span>
               <div class="stars">⭐⭐⭐⭐⭐</div>
@@ -144,6 +147,14 @@ export default {
 
   mounted() {
     this.fetchTestimonials()
+
+    if (this.$route?.query?.review === 'true') {
+      this.showReviewForm = true
+      setTimeout(() => {
+        const section = document.querySelector('.leave-review-section')
+        if (section) section.scrollIntoView({ behavior: 'smooth' })
+      }, 500)
+    }
   },
 
   methods: {
@@ -167,7 +178,15 @@ export default {
         this.loading = false
       }
     },
-
+    scrollToReviewForm() {
+      this.showReviewForm = true
+      this.$nextTick(() => {
+        const section = document.querySelector('.leave-review-section')
+        if (section) {
+          section.scrollIntoView({ behavior: 'smooth' })
+        }
+      })
+    },
     handleReviewSubmitted() {
       this.fetchTestimonials()
       console.log('✅ Merci pour votre avis ! Il sera publié après validation.')
@@ -255,6 +274,29 @@ export default {
         letter-spacing: 0.5px;
       }
     }
+  }
+}
+
+.quick-review-btn {
+  margin-top: 2rem;
+  background: rgba(white, 0.15);
+  border: 2px solid white;
+  color: white;
+  padding: 1rem;
+  border-radius: $border-radius-lg;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  cursor: pointer;
+  transition: all $transition-base;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  backdrop-filter: blur(10px);
+
+  &:hover {
+    background: white;
+    color: $terracotta;
+    transform: translateY(-3px);
   }
 }
 

@@ -29,16 +29,28 @@ class InvoiceMail extends Mailable implements ShouldQueue
         $subject = "Facture {$this->invoice->invoice_number} - CampCameleonX";
 
         return $this->subject($subject)
-            ->view('emails.invoice')
+            ->view('email.invoices.email')
             ->with([
-                'invoice' => $this->invoice,
-                'customer' => $this->invoice->customer,
-                'company' => [
-                    'name' => 'CampCameleonX',
-                    'email' => 'contact@campcameleonx.com',
-                    'phone' => '+212 XXX XXX XXX',
-                    'website' => 'https://campcameleonx.com'
-                ]
+                'invoice_number' => $this->invoice->invoice_number,
+                'customer' => [
+                    'name' => $this->invoice->customer->first_name ?? '',
+                    'last_name' => $this->invoice->customer->last_name ?? '',
+                ],
+                'dates' => [
+                    'issue_date' => $this->invoice->issue_date->format('d/m/Y'),
+                    'due_date' => $this->invoice->due_date->format('d/m/Y'),
+                ],
+                'status' => [
+                    'code' => $this->invoice->payment_status,
+                ],
+                'amount' => [
+                    'formatted' => number_format($this->invoice->total_amount, 2, ',', ' ') . ' €',
+                ],
+                'reservation' => $this->invoice->reservation ? [
+                    'product' => $this->invoice->reservation->product->name ?? 'Séjour',
+                    'checkin' => $this->invoice->reservation->start_date->format('d/m/Y'),
+                    'checkout' => $this->invoice->reservation->end_date->format('d/m/Y'),
+                ] : null,
             ])
             ->attach($this->pdfPath, [
                 'as' => "facture_{$this->invoice->invoice_number}.pdf",
