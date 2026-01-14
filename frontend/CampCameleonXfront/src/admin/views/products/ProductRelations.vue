@@ -1,5 +1,5 @@
 <template>
-  <div class="form-section" v-if="hasRelations">
+  <div class="form-section" v-if="editMode || hasRelations">
     <h3>{{ getRelationTitle() }}</h3>
 
     <!-- Utiliser la même logique que ProductDetails -->
@@ -21,6 +21,10 @@
           </button>
         </div>
       </div>
+    </div>
+
+    <!-- Bouton pour AJOUTER - TOUJOURS visible en édition -->
+    <div v-if="editMode && config.hasRelation === 'dishes'" class="selection-area">
       <button type="button" @click="showAvailableDishes = !showAvailableDishes" class="btn btn-outline btn-sm">
         <i class="fas fa-plus" style="margin-right: 6px;"></i>
         {{ showAvailableDishes ? 'Masquer les plats disponibles' : 'Ajouter des plats' }}
@@ -72,7 +76,8 @@
           </button>
         </div>
       </div>
-      <button type="button" @click="showAvailableIngredients = !showAvailableIngredients" class="btn btn-outline btn-sm">
+      <button type="button" @click="showAvailableIngredients = !showAvailableIngredients"
+        class="btn btn-outline btn-sm">
         <i class="fas fa-plus" style="margin-right: 6px;"></i>
         {{ showAvailableIngredients ? 'Masquer les ingrédients disponibles' : 'Ajouter des ingrédients' }}
       </button>
@@ -143,12 +148,13 @@ export default {
 
   mounted() {
     this.initializeLocalRelations()
+    console.log('localDishes au chargement:', this.localDishes)
   },
 
   computed: {
     // Utiliser les relations locales en mode édition
     hasRelations() {
-      return this.menuDishes.length > 0 || this.dishIngredients.length > 0
+      return this.editMode || this.menuDishes.length > 0 || this.dishIngredients.length > 0
     },
 
     menuDishes() {
@@ -176,107 +182,119 @@ export default {
     }
   },
 
-// Remplacer les méthodes dans ProductRelations.vue
+  methods: {
+    getRelationTitle() {
+      if (this.config.hasRelation === 'ingredients') return 'Ingrédients'
+      if (this.config.hasRelation === 'dishes') {
+        return this.type === 'ingredient' ? 'Plats utilisant cet ingrédient' : 'Plats du menu'
+      }
+      return 'Relations'
+    },
 
-methods: {
-  getRelationTitle() {
-    if (this.config.hasRelation === 'ingredients') return 'Ingrédients'
-    if (this.config.hasRelation === 'dishes') {
-      return this.type === 'ingredient' ? 'Plats utilisant cet ingrédient' : 'Plats du menu'
+    // Initialiser les relations locales
+    initializeLocalRelations() {
+      this.localDishes = [...(this.product.relations?.dishes || [])]
+      this.localIngredients = [...(this.product.relations?.ingredients || [])]
+    },
+
+    async loadAvailableDishes() {
+      if (this.availableDishes.length > 0) return
+      try {
+        const { data } = await ProductsApi.getRelationProducts('dishes')
+
+        const selectedIds = this.localDishes.map(d => d.id)
+        const filtered = data.filter(d => !selectedIds.includes(d.id))
+
+        this.availableDishes = filtered
+      } catch (error) {
+        console.error('Erreur lors du chargement des plats disponibles:', error)
+      }
+    },
+
+    async loadAvailableIngredients() {
+      if (this.availableIngredients.length > 0) return
+
+      try {
+        const { data } = await ProductsApi.getRelationProducts('ingredients')
+        this.availableIngredients = data
+      } catch (error) {
+        console.error('Erreur lors du chargement des ingrédients disponibles:', error)
+      }
+    },
+
+    // Mode édition seulement
+    addDish(dish) {
+      const normalizedDish = {
+        id: dish.id,
+        product_id: dish.id,
+        name: dish.name,
+        price: dish.price,
+        formatted_price: dish.formatted_price,
+        productable_detail: dish.productable_data || {}
+      }
+      this.localDishes.push(normalizedDish)
+      this.emitRelationsChanged()
+    },
+
+    removeDish(dishId) {
+      if (!this.editMode) {
+        console.warn('removeDish appelé sans mode édition')
+        return
+      }
+
+      // Supprimer localement uniquement
+      this.localDishes = this.localDishes.filter(d => d.id !== dishId)
+      this.emitRelationsChanged()
+    },
+
+
+    addIngredient(ingredient) {
+      const normalizedIngredient = {
+        id: ingredient.id,
+        product_id: ingredient.id,
+        name: ingredient.name,
+        price: ingredient.price,
+        formatted_price: ingredient.formatted_price,
+        productable_detail: ingredient.productable_data || {}
+      }
+      this.localIngredients.push(normalizedIngredient)
+      this.emitRelationsChanged()
+    },
+
+    removeIngredient(ingredientId) {
+      if (!this.editMode) {
+        console.warn('removeIngredient appelé sans mode édition')
+        return
+      }
+
+      // Supprimer localement uniquement
+      this.localIngredients = this.localIngredients.filter(i => i.id !== ingredientId)
+      this.emitRelationsChanged()
+    },
+
+    // Émettre les changements vers le parent
+    emitRelationsChanged() {
+      const relations = {}
+
+      if (this.localDishes?.length) {
+        relations.dishes = this.localDishes.map(d => d.productable_detail?.id || d.id)
+      }
+
+      if (this.localIngredients?.length) {
+        relations.ingredients = this.localIngredients.map(i => i.productable_detail?.id || i.id)
+      }
+
+      this.$emit('relations-changed', relations)
+    },
+
+    // Méthode publique pour récupérer les relations
+    getLocalRelations() {
+      return {
+        dishes: this.localDishes.map(d => d.id),
+        ingredients: this.localIngredients.map(i => i.id)
+      }
     }
-    return 'Relations'
   },
-
-  // Initialiser les relations locales
-  initializeLocalRelations() {
-    this.localDishes = [...(this.product.relations?.dishes || [])]
-    this.localIngredients = [...(this.product.relations?.ingredients || [])]
-  },
-
-  async loadAvailableDishes() {
-    if (this.availableDishes.length > 0) return
-
-    try {
-      const { data } = await ProductsApi.getRelationProducts('dishes')
-      this.availableDishes = data
-    } catch (error) {
-      console.error('Erreur lors du chargement des plats disponibles:', error)
-    }
-  },
-
-  async loadAvailableIngredients() {
-    if (this.availableIngredients.length > 0) return
-
-    try {
-      const { data } = await ProductsApi.getRelationProducts('ingredients')
-      this.availableIngredients = data
-    } catch (error) {
-      console.error('Erreur lors du chargement des ingrédients disponibles:', error)
-    }
-  },
-
-  // Mode édition seulement
-addDish(dish) {
-  if (this.editMode) {
-    this.localDishes.push(dish)
-    this.emitRelationsChanged()
-  }
-},
-
-  removeDish(dishId) {
-    if (!this.editMode) {
-      console.warn('removeDish appelé sans mode édition')
-      return
-    }
-    
-    // Supprimer localement uniquement
-    this.localDishes = this.localDishes.filter(d => d.id !== dishId)
-    this.emitRelationsChanged()
-  },
-
-  addIngredient(ingredient) {
-    if (!this.editMode) {
-      console.warn('addIngredient appelé sans mode édition')
-      return
-    }
-    
-    // Vérifier si l'ingrédient n'est pas déjà ajouté
-    if (this.localIngredients.some(i => i.id === ingredient.id)) {
-      return
-    }
-    
-    // Ajouter localement uniquement
-    this.localIngredients.push(ingredient)
-    this.emitRelationsChanged()
-  },
-
-  removeIngredient(ingredientId) {
-    if (!this.editMode) {
-      console.warn('removeIngredient appelé sans mode édition')
-      return
-    }
-    
-    // Supprimer localement uniquement
-    this.localIngredients = this.localIngredients.filter(i => i.id !== ingredientId)
-    this.emitRelationsChanged()
-  },
-
-  // Émettre les changements vers le parent
-  emitRelationsChanged() {
-    this.$emit('relations-changed', {
-      dishes: this.localDishes.map(d => d.id),
-      ingredients: this.localIngredients.map(i => i.id)
-    })
-  },
-
-  // Méthode publique pour récupérer les relations
-  getLocalRelations() {
-    return {
-      dishes: this.localDishes.map(d => d.id),
-      ingredients: this.localIngredients.map(i => i.id)
-    }
-  }
-},
 
   watch: {
     showAvailableDishes(show) {

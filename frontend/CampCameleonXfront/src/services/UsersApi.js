@@ -1,4 +1,3 @@
-// src/services/UsersApi.js - VERSION NETTOYÉE
 import axios from 'axios'
 
 class UsersApi {

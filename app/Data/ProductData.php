@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Data;
 
 use Spatie\LaravelData\Data;
@@ -9,7 +10,7 @@ class ProductData extends Data
         public string $name,
         public ?string $description = null,
         public float $price,
-        
+
         public ?string $productableType = null,
         public ?ProductableData $productable = null,
         public bool $status = true,
@@ -40,14 +41,32 @@ class ProductData extends Data
             'relations' => $data['relations'] ?? [],
         ];
 
-        // Gestion du type productable (plusieurs formats possibles)
-        $normalized['productableType'] = $data['productable_type'] 
-            ?? $data['productableType'] 
+        // Gestion du type productable
+        $normalized['productableType'] = $data['productable_type']
+            ?? $data['productableType']
             ?? '';
 
         // Données productable
         $productableData = $data['productable'] ?? [];
+
+        // EXTRAIRE les relations du productable AVANT ProductableData
+        $relationExtracted = [];
+        if (isset($productableData['dishes'])) {
+            $relationExtracted['dishes'] = $productableData['dishes'];
+            unset($productableData['dishes']);
+        }
+        if (isset($productableData['ingredients'])) {
+            $relationExtracted['ingredients'] = $productableData['ingredients'];
+            unset($productableData['ingredients']);
+        }
+
         $normalized['productable'] = ProductableData::fromArray($productableData);
+
+        // Fusionner les relations
+        $normalized['relations'] = array_merge(
+            $normalized['relations'],
+            $relationExtracted
+        );
 
         return new static(...$normalized);
     }

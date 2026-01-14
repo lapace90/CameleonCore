@@ -12,7 +12,7 @@ class ProductableData extends Data
         public ?int $duration = null,
         public ?string $meeting_point = null,
         public ?int $max_people = null,
-        // 🔧 IMPORTANT: Changer le type pour accepter int ET string
+        // IMPORTANT: Changer le type pour accepter int ET string
         public mixed $difficulty_level = null,
         
         // Room fields
@@ -75,7 +75,7 @@ class ProductableData extends Data
             }
         }
 
-        // 🎯 DÉBOGAGE DU DIFFICULTY_LEVEL
+        // DÉBOGAGE DU DIFFICULTY_LEVEL
         if (isset($cleanData['difficulty_level'])) {
             \Illuminate\Support\Facades\Log::info('🎯 ProductableData - difficulty_level trouvé', [
                 'value' => $cleanData['difficulty_level'],
@@ -88,7 +88,7 @@ class ProductableData extends Data
             duration: isset($cleanData['duration']) ? (int) $cleanData['duration'] : null,
             meeting_point: $cleanData['meeting_point'] ?? null,
             max_people: isset($cleanData['max_people']) ? (int) $cleanData['max_people'] : null,
-            // 🔧 PRÉSERVER LA VALEUR TELLE QUELLE (int ou string)
+            //  PRÉSERVER LA VALEUR TELLE QUELLE (int ou string)
             difficulty_level: $cleanData['difficulty_level'] ?? null,
             capacity: isset($cleanData['capacity']) ? (int) $cleanData['capacity'] : null,
             availability: isset($cleanData['availability']) ? (bool) $cleanData['availability'] : null,
@@ -103,7 +103,7 @@ class ProductableData extends Data
     }
     
     /**
-     * 🔧 CORRECTION SYSTÈME UNIFIÉ - 1=facile, 2=moyen, 3=difficile
+     * 1=facile, 2=moyen, 3=difficile
      */
     public function toActivityArray(): array
     {
@@ -124,7 +124,7 @@ class ProductableData extends Data
     }
     
     /**
-     * 🔧 NOUVEAU - Normalise le niveau de difficulté vers le système unifié
+     * Normalise le niveau de difficulté vers le système unifié
      * Frontend: easy/medium/hard → 1/2/3
      * Database: 1/2/3
      * Évite les conversions multiples qui corrompent les données

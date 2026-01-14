@@ -5,6 +5,7 @@ namespace App\Data;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelData\Attributes\DataCollectionOf;
 use Spatie\LaravelData\Attributes\Computed;
+use Illuminate\Support\Facades\Log;
 
 class ProductOutputData extends Data
 {
@@ -27,7 +28,7 @@ class ProductOutputData extends Data
         public string $created_at,
         public string $updated_at,
     ) {}
-    
+
     public static function fromProduct(\App\Models\Product $product): array
     {
         return [
@@ -38,21 +39,21 @@ class ProductOutputData extends Data
             'formatted_price' => number_format((float) $product->price, 2, ',', ' ') . ' €',
             'status' => $product->status,
             'is_draft' => $product->is_draft,
-            
+
             // Champs pour le frontend
             'status_label' => self::getStatusLabel($product),
             'status_class' => self::getStatusClass($product),
             'typeConfig' => self::getTypeConfig($product->productable_type),
             'productableType' => $product->productable_type,
-            
+
             'image' => $product->image,
             'productable_type' => $product->productable_type,
             'productable_detail' => $product->productable?->toArray() ?? [],
             'productableDetail' => $product->productable?->toArray() ?? [],
-            
+
             // Detail fields pour les activités, rooms, etc.
             'detail_fields' => self::getDetailFields($product),
-            
+
             'category' => $product->category ? [
                 'id' => $product->category->id,
                 'name' => $product->category->name,
@@ -81,13 +82,13 @@ class ProductOutputData extends Data
             'updated_at' => $product->updated_at->toISOString(),
         ];
     }
-    
+
     private static function getRelations(\App\Models\Product $product): array
     {
         $relations = [];
-        
+
         if (!$product->productable) return $relations;
-        
+
         switch ($product->productable_type) {
             case 'App\\Models\\Menu':
                 if ($product->productable->relationLoaded('dishes')) {
@@ -100,7 +101,7 @@ class ProductOutputData extends Data
                     ])->toArray();
                 }
                 break;
-                
+
             case 'App\\Models\\Dish':
                 if ($product->productable->relationLoaded('ingredients')) {
                     $relations['ingredients'] = $product->productable->ingredients->map(fn($ingredient) => [
@@ -112,7 +113,7 @@ class ProductOutputData extends Data
                 }
                 break;
         }
-        
+
         return $relations;
     }
 
@@ -120,7 +121,7 @@ class ProductOutputData extends Data
     {
         $fields = [];
         $productable = $product->productable;
-        
+
         if (!$productable) return $fields;
 
         switch ($product->productable_type) {
@@ -131,12 +132,12 @@ class ProductOutputData extends Data
                 $fields['max_people'] = ['label' => 'Capacité max', 'value' => ($productable->max_people ?? 0) . ' pers.'];
                 $fields['difficulty_level'] = ['label' => 'Difficulté', 'value' => self::formatDifficulty($productable->difficulty_level ?? 1)];
                 break;
-                
+
             case 'App\\Models\\Room':
                 $fields['capacity'] = ['label' => 'Capacité', 'value' => ($productable->capacity ?? 0) . ' pers.'];
                 $fields['availability'] = ['label' => 'Disponibilité', 'value' => ($productable->availability ?? false) ? 'Disponible' : 'Non disponible'];
                 break;
-                
+
             case 'App\\Models\\Ingredient':
                 $fields['stock'] = ['label' => 'Stock', 'value' => ($productable->stock ?? 0) . ' unités'];
                 $fields['dietary_info'] = ['label' => 'Info diététique', 'value' => self::formatDietaryInfo($productable)];
@@ -204,7 +205,7 @@ class ProductOutputData extends Data
     private static function formatDifficulty(int $level): string
     {
         $difficulties = [
-            1 => 'Facile', 
+            1 => 'Facile',
             2 => 'Moyen',
             3 => 'Difficile'
         ];
@@ -215,15 +216,15 @@ class ProductOutputData extends Data
     private static function formatDietaryInfo($ingredient): string
     {
         $info = [];
-        
+
         if ($ingredient->is_vegan) $info[] = 'Vegan';
         elseif ($ingredient->is_vegetarian) $info[] = 'Végétarien';
-        
+
         if ($ingredient->is_spicy) $info[] = 'Épicé';
         if ($ingredient->is_gluten_free) $info[] = 'Sans gluten';
         if ($ingredient->is_lactose_free) $info[] = 'Sans lactose';
         if ($ingredient->is_nut_free) $info[] = 'Sans noix';
-        
+
         return empty($info) ? 'Aucune restriction' : implode(', ', $info);
     }
 }
