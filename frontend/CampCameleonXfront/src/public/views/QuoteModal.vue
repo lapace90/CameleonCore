@@ -67,7 +67,7 @@
                                             <div>
                                                 <label>Départ</label>
                                                 <span>{{ formatDate(displayEndInclusive(selectedDates.endExclusive))
-                                                }}</span>
+                                                    }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -94,7 +94,7 @@
                                         <div class="guests-display">
                                             <span class="guests-number">{{ selectedDates.guests }}</span>
                                             <span class="guests-text">personne{{ selectedDates.guests > 1 ? 's' : ''
-                                            }}</span>
+                                                }}</span>
                                         </div>
 
                                         <button type="button" @click="increaseGuests"
@@ -316,7 +316,7 @@
                                 </div>
                                 <div class="summary-item">
                                     <span>{{ selectedDates.guests }} personne{{ selectedDates.guests > 1 ? 's' : ''
-                                    }}</span>
+                                        }}</span>
                                 </div>
                             </div>
 
@@ -331,7 +331,7 @@
 
                         <!-- Coordonnées -->
                         <div class="contact-form">
-                            <h4>Vos coordonnées</h4>
+                            <h4>Vos coordonnées *</h4>
                             <div class="form-row">
                                 <input type="text" v-model="contactInfo.name" placeholder="Prenom" class="form-input" />
                                 <input type="text" v-model="contactInfo.last_name" placeholder="Nom"
@@ -818,12 +818,12 @@ export default {
                 if (!this.selectedItems.room) throw new Error('Veuillez sélectionner un hébergement avant de sauvegarder le devis.')
                 const result = await this.saveQuote()
                 if (!result.success) throw new Error(result.message || 'Erreur lors de la sauvegarde')
-                this.showSuccessModal({
-                    title: '<i class="fas fa-envelope"  style="padding: .5rem;">Email de validation envoyé !',
-                    message: `Votre devis ${result.quote_request.quote_reference} a été créé.
-Vérifiez votre boîte email et validez-le (lien valable 48h).`,
-                    showContacts: true
-                })
+                const quoteData = result.quote_request || result
+                const quoteRef = quoteData.quote_reference || quoteData.quoteReference || 'N/A'
+
+                this.showEmailValidationRequired(result)
+
+                this.$emit('quote-saved', { quote: quoteData, type: 'email_validation_required' })
                 this.$emit('quote-saved', { quote: result.quote_request, type: 'email_validation_required' })
             } catch (e) {
                 console.error('❌ Erreur sauvegarde:', e)

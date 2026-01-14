@@ -4,7 +4,7 @@
 
 ### Connexion
 
-1. Accéder à l'URL du site : `https://votre-domaine.com/admin`
+1. Accéder à l'URL du site : `https://campcameleonx.ipace.dev/admin/`
 2. Entrer vos identifiants (email + mot de passe)
 3. Cliquer sur **Connexion**
 

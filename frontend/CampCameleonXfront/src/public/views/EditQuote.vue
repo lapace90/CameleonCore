@@ -9,7 +9,8 @@
                 <h2><i class="fas fa-times-circle" style="padding: .5rem;"></i> Erreur</h2>
                 <p>{{ error }}</p>
                 <div class="error-actions">
-                    <button @click="retryLoad" class="btn btn-primary btn-sm"><i class="fas fa-sync"  style="padding: .5rem;"></i> Réessayer</button>
+                    <button @click="retryLoad" class="btn btn-primary btn-sm"><i class="fas fa-sync"
+                            style="padding: .5rem;"></i> Réessayer</button>
                     <a href="mailto:contact@campcameleonx.com" class="btn btn-secondary btn-sm">📧 Nous contacter</a>
                 </div>
             </div>
@@ -41,7 +42,7 @@
             <div class="quote-form-wrapper">
                 <!-- Step 1: Dates -->
                 <div class="form-section">
-                    <h3><i class="fas fa-calendar-alt"  style="padding: .5rem;"></i> Dates de votre séjour</h3>
+                    <h3><i class="fas fa-calendar-alt" style="padding: .5rem;"></i> Dates de votre séjour</h3>
                     <div class="date-picker-group">
                         <div class="form-group">
                             <label>Date d'arrivée</label>
@@ -63,7 +64,7 @@
 
                 <!-- Step 2: Activities -->
                 <div class="form-section">
-                    <h3><i class="fas fa-hiking"  style="padding: .5rem;"></i> Activités</h3>
+                    <h3><i class="fas fa-hiking" style="padding: .5rem;"></i> Activités</h3>
                     <div v-if="activitiesLoading">Chargement des activités...</div>
                     <div v-else class="products-grid">
                         <div v-for="activity in activities" :key="activity.id" class="product-card"
@@ -326,21 +327,6 @@ export default {
         )
 
         const totalPrice = computed(() => {
-            if (quote.value?.products_with_quantities && Object.keys(formData.quantityOverrides).length > 0) {
-                // Recalcul avec les overrides
-                let total = 0
-                for (const item of quote.value.products_with_quantities) {
-                    const quantity = getProductQuantity(item.product_id)
-                    const unitPrice = item.product?.price || 0
-                    total += unitPrice * quantity
-                }
-                return total
-            }
-
-            if (quote.value?.total_amount) {
-                return parseFloat(quote.value.total_amount)
-            }
-
             return pricing.value.total
         })
 
@@ -525,10 +511,18 @@ export default {
             }
         }
         // --- HELPER REDIRECTION VERS VALIDATION
+        const getBackendUrl = () => {
+            // En production, même origine
+            if (import.meta.env.PROD) {
+                return window.location.origin
+            }
+            // En dev, backend sur port 8000
+            return 'http://localhost:8000'
+        }
+
         const redirectToValidation = () => {
             const { quoteId, editToken } = route.params
-            // Redirection vers le backend Laravel (pas le SPA Vue)
-            const backendUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:8000'
+            const backendUrl = getBackendUrl()
             window.location.href = `${backendUrl}/validate-quote/${quoteId}/${editToken}`
         }
         // --- ACTIONS
