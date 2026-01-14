@@ -176,8 +176,8 @@ class ProductProcessor implements ProcessorInterface
             ?? null;
 
         // PRODUCTABLE DATA
-        if (isset($payload['productable']) && is_array($payload['productable'])) {
-            $normalized['productable'] = $payload['productable'];
+        if (isset($payload['relations']) && is_array($payload['relations'])) {
+            $normalized['relations'] = $payload['relations'];
         }
 
         Log::info('🎯 Payload normalisé', [
