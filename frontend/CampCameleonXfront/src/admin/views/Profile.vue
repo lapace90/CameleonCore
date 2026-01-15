@@ -208,17 +208,21 @@ export default {
     })
 
     watch(() => form.avatar, async (newAvatar, oldAvatar) => {
-      console.log('👀 Avatar changé:', { newAvatar, oldAvatar })
-
-      // Si c'est une nouvelle URL (après upload) et différente de l'originale
       if (typeof newAvatar === 'string' && newAvatar && newAvatar !== originalData.value.avatar) {
-        console.log('📤 Sauvegarde automatique du profil...')
         try {
-          await authStore.updateProfile({ avatar: newAvatar })
+          // Envoyer TOUT le profil, pas juste l'avatar
+          await authStore.updateProfile({
+            name: form.name,
+            email: form.email,
+            phone: form.phone || null,
+            address: form.address || null,
+            city: form.city || null,
+            postal_code: form.postalCode || null,
+            avatar: newAvatar
+          })
           originalData.value.avatar = newAvatar
           successMessage.value = 'Photo de profil mise à jour !'
         } catch (error) {
-          console.error('Erreur:', error)
           errorMessage.value = 'Erreur lors de la mise à jour de la photo'
         }
       }
