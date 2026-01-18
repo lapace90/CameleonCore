@@ -1,5 +1,4 @@
 <?php
-// app/Models/Permission.php - Version CRUD Laravel + API Platform
 
 namespace App\Models;
 
