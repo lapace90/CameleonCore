@@ -1,5 +1,4 @@
 <?php
-// app/Models/Category.php - VERSION API PLATFORM
 
 namespace App\Models;
 

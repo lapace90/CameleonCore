@@ -153,7 +153,6 @@ class ReservationProcessor implements ProcessorInterface
 
         $reservation->update($cleanPayload);
 
-        // 🆕 AJOUTER CES 3 LIGNES
         if (isset($payload['products']) && is_array($payload['products'])) {
             $this->syncProducts($reservation, $payload['products']);
         }
@@ -163,7 +162,7 @@ class ReservationProcessor implements ProcessorInterface
     }
 
     /**
-     * 🆕 Synchroniser les produits avec la table pivot
+     *  Synchroniser les produits avec la table pivot
      * 
      * @param Reservation $reservation
      * @param array $products Format: [['product_id' => 1, 'quantity' => 2], ...]

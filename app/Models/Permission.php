@@ -24,7 +24,6 @@ use App\State\PermissionProcessor;
         // Routes standard API Platform
         new Get(),
         new GetCollection(),
-        // CRUD à ajouter
         new Post(
             processor: PermissionProcessor::class,
         ),
@@ -96,7 +95,7 @@ class Permission extends Model
     }
 
     // ===========================
-    // 🧠 BUSINESS LOGIC pour le processor
+    //  BUSINESS LOGIC pour le processor
     // ===========================
 
     /**

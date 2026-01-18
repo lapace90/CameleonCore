@@ -14,7 +14,7 @@ class UserItemProvider implements ProviderInterface
 {
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): array
     {
-        // 🔐 SÉCURITÉ SANCTUM : Vérifier l'authentification
+        // SÉCURITÉ SANCTUM : Vérifier l'authentification
         $currentUser = auth('sanctum')->user();
         
         if (!$currentUser) {
@@ -45,7 +45,7 @@ class UserItemProvider implements ProviderInterface
             throw new NotFoundHttpException("Utilisateur avec l'ID {$userId} non trouvé");
         }
 
-        // 🔍 DEBUG : Vérifier que les permissions sont chargées
+        // DEBUG : Vérifier que les permissions sont chargées
         $principalPermissions = $user->role?->permissions ?? collect();
         $additionalPermissions = $user->roles->flatMap(fn($role) => $role->permissions) ?? collect();
         

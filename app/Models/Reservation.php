@@ -20,14 +20,14 @@ use ApiPlatform\Metadata\Delete;
 
 #[ApiResource(
     operations: [
-        // 🟢 Événements calendrier — collection dédiée, aucun risque de collision
+        //  Événements calendrier — collection dédiée
         new GetCollection(
             uriTemplate: '/admin/calendar/events',
             provider: CalendarProvider::class,
             security: "is_granted('ROLE_ADMIN')",
             description: 'Tous les événements FullCalendar (réservations + événements)'
         ),
-        // 🔵 CRUD admin standard avec relations
+        //  CRUD admin standard avec relations
         new GetCollection(
             uriTemplate: '/admin/reservations',
             provider: ReservationProvider::class,

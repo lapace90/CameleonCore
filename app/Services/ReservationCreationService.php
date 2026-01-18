@@ -100,7 +100,7 @@ class ReservationCreationService
         return Reservation::create([
             'customer_id' => $quote->customer_id,
             'product_id' => $mainProduct->id,
-            'product_type' => $mainProduct->productable_type ?? 'App\\Models\\Product', // Type polymorphe
+            'product_type' => $mainProduct->productable_type ?? 'App\\Models\\Product', 
             'date' => now(),
             'checkin' => $quote->checkin_date,
             'checkout' => $quote->checkout_date,

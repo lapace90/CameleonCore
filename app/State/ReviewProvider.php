@@ -21,13 +21,7 @@ class ReviewProvider implements ProviderInterface
         $currentUser = auth('sanctum')->user();
         $isAdmin = $currentUser && $currentUser->isAdmin();
 
-        Log::info('📖 ReviewProvider - Début', [
-            'is_authenticated' => $currentUser !== null,
-            'is_admin' => $isAdmin,
-            'user_id' => $currentUser?->id
-        ]);
-
-        // 🔍 RÉCUPÉRATION D'UN SEUL AVIS
+        //  RÉCUPÉRATION D'UN SEUL AVIS
         if (isset($uriVariables['id'])) {
             $reviewId = (int) $uriVariables['id'];
 

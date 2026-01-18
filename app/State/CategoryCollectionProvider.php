@@ -1,5 +1,4 @@
 <?php
-// app/State/CategoryCollectionProvider.php
 
 namespace App\State;
 

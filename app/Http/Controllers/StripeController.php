@@ -9,26 +9,25 @@ use App\Models\Invoice;
 use Stripe\Stripe;
 use Stripe\Checkout\Session;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use App\Services\ReservationCreationService;
 use App\Services\AdminNotificationService;
-use App\Services\InvoiceService;  // 🆕 AJOUT
+use App\Services\InvoiceService;  
 
 class StripeController extends Controller
 {
     private ReservationCreationService $reservationService;
     private AdminNotificationService $notificationService;
-    private InvoiceService $invoiceService;  // 🆕 AJOUT
+    private InvoiceService $invoiceService;  
 
     public function __construct(
         ReservationCreationService $reservationService,
         AdminNotificationService $notificationService,
-        InvoiceService $invoiceService  // 🆕 AJOUT
+        InvoiceService $invoiceService  
     ) {
         Stripe::setApiKey(config('services.stripe.secret'));
         $this->reservationService = $reservationService;
         $this->notificationService = $notificationService;
-        $this->invoiceService = $invoiceService;  // 🆕 AJOUT
+        $this->invoiceService = $invoiceService;  
     }
 
     /**
@@ -200,7 +199,7 @@ class StripeController extends Controller
                             'payment_method' => 'stripe_card',
                         ];
 
-                        // 🎯 ÉTAPE 1 : Créer la réservation
+                        //  ÉTAPE 1 : Créer la réservation
                         // (L'Observer va créer automatiquement la facture)
                         $reservation = $this->reservationService->createReservationFromQuote($quote, $paymentData);
 
@@ -211,7 +210,7 @@ class StripeController extends Controller
                             'payment_status' => $reservation->payment_status
                         ]);
 
-                        // 🎯 ÉTAPE 2 : Récupérer la facture créée automatiquement par l'Observer
+                        //  ÉTAPE 2 : Récupérer la facture créée automatiquement par l'Observer
                         $invoice = Invoice::where('reservation_id', $reservation->id)->first();
 
                         if ($invoice) {
@@ -221,7 +220,7 @@ class StripeController extends Controller
                                 'status' => $invoice->status
                             ]);
 
-                            // 🎯 ÉTAPE 3 : Envoyer la facture par email
+                            //  ÉTAPE 3 : Envoyer la facture par email
                             try {
                                 $this->invoiceService->sendEmail($invoice);
                                 Log::info('📧 Facture envoyée par email', [
@@ -278,10 +277,10 @@ class StripeController extends Controller
                         'quote' => $quote,
                         'session' => $session,
                         'reservation' => $reservation,
-                        'invoice' => $invoice,  // 🆕 AJOUT
+                        'invoice' => $invoice,  
                         'amount_paid' => $session->amount_total / 100,
                         'reservation_created' => (bool) $reservation,
-                        'invoice_created' => (bool) $invoice  // 🆕 AJOUT
+                        'invoice_created' => (bool) $invoice  
                     ]);
                 } catch (\Exception $viewException) {
                     Log::error('Erreur template payment-success', [

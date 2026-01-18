@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
-// app/Services/EmailValidationService.php - Validation email basique pour Phase 1
 class EmailValidationService
 {
     // Domaines email suspects à bloquer

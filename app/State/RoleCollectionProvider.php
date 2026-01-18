@@ -24,17 +24,17 @@ class RoleCollectionProvider implements ProviderInterface
     }
     
     /**
-     * 🚀 MODE LIGHT : Pour formulaires (UserForm, etc.)
+     *  MODE LIGHT : Pour formulaires (UserForm, etc.)
      * Retourne juste id, name, description - ULTRA RAPIDE
      */
     private function provideLightMode(): array
     {
-        // 🚀 REQUÊTE MINIMALE : Juste les champs essentiels, pas de relations
+        //  REQUÊTE MINIMALE : Juste les champs essentiels, pas de relations
         $roles = Role::select(['id', 'name', 'description', 'slug'])
             ->orderBy('name')
             ->get();
 
-        // 🚀 FORMATAGE MINIMAL : Pas d'enrichissement lourd
+        //  FORMATAGE MINIMAL : Pas d'enrichissement lourd
         $simpleRoles = $roles->map(function ($role) {
             return [
                 'id' => $role->id,
@@ -82,7 +82,7 @@ class RoleCollectionProvider implements ProviderInterface
             ->orderBy('name')
             ->get();
 
-        // 🧠 ENRICHISSEMENT pour l'UI 
+        //  ENRICHISSEMENT pour l'UI 
         $enrichedRoles = $roles->map(function ($role) {
             return [
                 'id' => $role->id,
@@ -90,7 +90,7 @@ class RoleCollectionProvider implements ProviderInterface
                 'description' => $role->description,
                 'slug' => $role->slug,
                 
-                // 🎨 Métadonnées UI calculées côté serveur
+                //  Métadonnées UI calculées côté serveur
                 'color' => $role->color ?? null,
                 'icon' => $role->icon ?? null,
                 'is_critical' => method_exists($role, 'isCritical') ? $role->isCritical() : false,
@@ -136,7 +136,7 @@ class RoleCollectionProvider implements ProviderInterface
             ];
         });
 
-        // 🎯 FORMATAGE FINAL pour l'UI
+        //  FORMATAGE FINAL pour l'UI
         return [
             'data' => $enrichedRoles->toArray(),
             'meta' => [

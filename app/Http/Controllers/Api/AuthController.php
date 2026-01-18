@@ -86,7 +86,7 @@ class AuthController extends Controller
     }
 
     /**
-     * 🔐 CONNEXION
+     *  CONNEXION
      */
     public function login(Request $request)
     {
@@ -127,7 +127,7 @@ class AuthController extends Controller
     }
 
     /**
-     * 🚪 DÉCONNEXION
+     *  DÉCONNEXION
      */
     public function logout(Request $request)
     {

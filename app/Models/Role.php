@@ -1,5 +1,4 @@
 <?php
-// app/Models/Role.php - Version CRUD complète avec API Platform
 
 namespace App\Models;
 

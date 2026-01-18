@@ -24,13 +24,13 @@ class RoleProcessor implements ProcessorInterface
 {
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
     {
-        // 🔐 Auth Sanctum
+        // Auth Sanctum
         $currentUser = auth('sanctum')->user();
         if (!$currentUser) {
             throw new UnauthorizedHttpException('Bearer', 'Token d\'authentification requis');
         }
 
-        // 🔐 Autorisation
+        // Autorisation
         if (!$this->canManageRoles($currentUser)) {
             throw new AccessDeniedHttpException('Permissions insuffisantes pour gérer les rôles');
         }

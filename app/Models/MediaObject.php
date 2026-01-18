@@ -25,7 +25,7 @@ use Illuminate\Database\Eloquent\Model;
             processor: MediaObjectProcessor::class,
             input: MediaObjectData::class,
             output: MediaObjectOutputData::class,
-            deserialize: false // Important pour gérer FormData
+            deserialize: false 
         )
     ]
 )]

@@ -43,7 +43,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // 🔍 Observers existants pour le système de tags automatiques
+        //  Observers existants pour le système de tags automatiques
         Ingredient::observe(IngredientObserver::class);
         Tag::observe(TagObserver::class);
         Dish::observe(DishObserver::class);
@@ -52,7 +52,7 @@ class AppServiceProvider extends ServiceProvider
         Room::observe(RoomObserver::class);
         Review::observe(ReviewObserver::class);
 
-        // 🆕 Observer pour la création automatique des factures
+        //  Observer pour la création automatique des factures
         Reservation::observe(ReservationObserver::class);
     }
 }
