@@ -250,3 +250,5 @@ config.local.php
 coverage-report/
 frontend/CampCameleonXfront/test-results/.last-run.json
 
+public/storage
+frontend/CampCameleonXfront/test-results/.last-run.json

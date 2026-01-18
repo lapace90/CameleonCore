@@ -1,4 +1,3 @@
-// src/services/httpClient.js
 import axios from 'axios'
 
 // Instance axios centralisée avec la bonne baseURL

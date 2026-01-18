@@ -1,4 +1,4 @@
-import axios from 'axios'
+import httpClient from './httpClient'
 
 const toPermissionIri = (id) => `/permissions/${String(id).trim()}`
 const compact = (obj) => {
@@ -14,7 +14,7 @@ const compact = (obj) => {
 const normalizeRolePayload = (input = {}) => {
   const payload = {
     name: input.name?.trim(),
-    slug: input.slug?.trim(),            // si vide => retiré par compact()
+    slug: input.slug?.trim(),
     description: input.description?.trim(),
   }
   if (Array.isArray(input.permissions)) {
@@ -25,36 +25,36 @@ const normalizeRolePayload = (input = {}) => {
 
 class RolesApi {
   static async getAll() {
-    const response = await axios.get('/roles')
+    const response = await httpClient.get('/roles')
     return response.data
   }
 
   static async getById(id) {
-    const response = await axios.get(`/api/roles/${id}`)
+    const response = await httpClient.get(`/roles/${id}`)
     return response.data
   }
 
   static async create(roleData) {
-    const response = await axios.post('/roles', normalizeRolePayload(roleData))
+    const response = await httpClient.post('/roles', normalizeRolePayload(roleData))
     return response.data
   }
 
   static async update(id, roleData) {
-    const response = await axios.put(`/api/roles/${id}`, normalizeRolePayload(roleData))
+    const response = await httpClient.put(`/roles/${id}`, normalizeRolePayload(roleData))
     return response.data
   }
 
   static async delete(id) {
-    await axios.delete(`/api/roles/${id}`)
+    await httpClient.delete(`/roles/${id}`)
   }
 
   static async getAllPermissions() {
-    const response = await axios.get('/admin/permissions/grouped')
+    const response = await httpClient.get('/admin/permissions/grouped')
     return response.data
   }
 
   static async syncPermissions(roleId, permissionIds) {
-    const response = await axios.put(`/api/roles/${roleId}`, normalizeRolePayload({ permissions: permissionIds }))
+    const response = await httpClient.put(`/roles/${roleId}`, normalizeRolePayload({ permissions: permissionIds }))
     return response.data
   }
 }

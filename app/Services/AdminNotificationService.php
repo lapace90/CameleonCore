@@ -139,11 +139,6 @@ Voir: " . env('APP_FRONTEND_URL', config('app.url')) . "/admin/reservations/{$re
         $notifications = array_slice($notifications, 0, 50);
 
         Cache::put($cacheKey, $notifications, now()->addDays(7));
-
-        Log::info('✅ Notification dashboard créée', [
-            'notification_id' => $notification['id'],
-            'reservation_id' => $reservation->id
-        ]);
     }
 
     /**
@@ -157,13 +152,11 @@ Voir: " . env('APP_FRONTEND_URL', config('app.url')) . "/admin/reservations/{$re
         //  Pas de tags avec le driver file
         // Cache::tags(['calendar'])->flush(); // Ne marche qu'avec Redis/Memcached
         
-        // Alternative : supprimer les clés spécifiques
+        // Supprimer les clés spécifiques
         $keys = ['calendar_events_month', 'calendar_events_week', 'calendar_events_day'];
         foreach ($keys as $key) {
             Cache::forget($key);
         }
-
-        Log::info('✅ Cache calendrier invalidé pour mise à jour');
     }
 
     /**
@@ -190,7 +183,6 @@ Voir: " . env('APP_FRONTEND_URL', config('app.url')) . "/admin/reservations/{$re
                 return true;
             }
         }
-
         return false;
     }
 
