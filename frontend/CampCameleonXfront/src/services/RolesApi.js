@@ -1,6 +1,6 @@
 import httpClient from './httpClient'
 
-const toPermissionIri = (id) => `/permissions/${String(id).trim()}`
+const toPermissionIri = (id) => `/api/permissions/${String(id).trim()}` // solution pour prod, pas en dev FIXME rajouter baseUrl à la requête ?
 const compact = (obj) => {
   const out = {}
   Object.entries(obj || {}).forEach(([k, v]) => {

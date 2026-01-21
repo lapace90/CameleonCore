@@ -99,4 +99,4 @@ Route::get('/invoices/{invoice_number}/download', function ($invoice_number) {
     return response()->download($pdfPath, "facture_{$invoice_number}.pdf", [
         'Content-Type' => 'application/pdf'
     ]);
-});
+})->where('invoice_number', '.*');
