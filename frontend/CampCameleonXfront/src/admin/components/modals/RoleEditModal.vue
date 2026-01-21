@@ -29,8 +29,8 @@
 
                     <div class="form-group">
                         <label for="slug">Identifiant (slug)</label>
-                        <input id="slug" v-model="form.slug" type="text" class="form-control"
-                            placeholder="Ex: manager" :class="{ 'is-invalid': formErrors.slug }" />
+                        <input id="slug" v-model="form.slug" type="text" class="form-control" placeholder="Ex: manager"
+                            :class="{ 'is-invalid': formErrors.slug }" />
                         <div v-if="formErrors.slug" class="invalid-feedback">{{ formErrors.slug[0] }}</div>
                     </div>
 
@@ -39,7 +39,8 @@
                         <textarea id="description" v-model="form.description" class="form-control" rows="3"
                             placeholder="Description du rôle et de ses responsabilités"
                             :class="{ 'is-invalid': formErrors.description }"></textarea>
-                        <div v-if="formErrors.description" class="invalid-feedback">{{ formErrors.description[0] }}</div>
+                        <div v-if="formErrors.description" class="invalid-feedback">{{ formErrors.description[0] }}
+                        </div>
                     </div>
                 </div>
 
@@ -56,10 +57,8 @@
                     </h4>
 
                     <!-- Loading des permissions -->
-                    <div v-if="loadingPermissions" class="loading-state">
-                        <div class="spinner"></div>
-                        <p>Chargement des permissions...</p>
-                    </div>
+                    <LoadingState v-if="loadingPermissions" state="loading" variant="inline"
+                        loading-text="Chargement des permissions..." />
 
                     <!-- Erreur de chargement -->
                     <div v-else-if="loadError" class="error-state">
@@ -73,16 +72,11 @@
 
                     <!-- Accordéon des permissions -->
                     <div v-else-if="allPermissions.length > 0">
-                        <PermissionsAccordion 
-                            :permissions="allPermissions"
-                            :selected-permissions="selectedPermissions"
-                            :original-permissions="originalPermissions"
-                            mode="editable"
-                            :show-actions="true"
+                        <PermissionsAccordion :permissions="allPermissions" :selected-permissions="selectedPermissions"
+                            :original-permissions="originalPermissions" mode="editable" :show-actions="true"
                             :default-open-categories="getDefaultOpenCategories()"
                             @update:selected-permissions="selectedPermissions = $event"
-                            @permission-changed="handlePermissionChanged"
-                        />
+                            @permission-changed="handlePermissionChanged" />
 
                         <!-- Résumé des changements -->
                         <div v-if="hasChanges" class="alert alert-info mt-3">
@@ -126,12 +120,14 @@
 <script>
 import RolesApi from '@/services/RolesApi'
 import PermissionsAccordion from '@/admin/components/ui/PermissionsAccordion.vue'
+import LoadingState from '@/admin/components/ui/LoadingState.vue'
 
 export default {
     name: 'RoleEditModal',
 
     components: {
-        PermissionsAccordion
+        PermissionsAccordion,
+        LoadingState
     },
 
     props: {
@@ -173,7 +169,7 @@ export default {
 
         permissionsChanged() {
             if (this.originalPermissions.length !== this.selectedPermissions.length) return true
-            
+
             const setSelected = new Set(this.selectedPermissions.map(String))
             return !this.originalPermissions.every(id => setSelected.has(String(id)))
         }
@@ -203,7 +199,7 @@ export default {
                 slug: r.slug || '',
                 description: r.description || '',
             }
-            
+
             // Permissions sélectionnées initiales
             const selected = (r.permissions || []).map(p => String(p.id))
             this.selectedPermissions = [...selected]
@@ -231,10 +227,10 @@ export default {
                 const { useRolesStore } = await import('@/shared/stores/roles')
                 const rolesStore = useRolesStore()
                 await rolesStore.ensurePermissions()
-                
+
                 // Conversion du format store vers format PermissionsAccordion
                 this.allPermissions = this.flattenPermissions(rolesStore.availablePermissions.categories)
-                
+
             } catch (e) {
                 console.error('Erreur chargement permissions:', e)
                 this.loadError = true
@@ -261,16 +257,16 @@ export default {
             // Ouvre les catégories qui ont des permissions sélectionnées
             const selectedSet = new Set(this.selectedPermissions.map(String))
             const openCategories = new Set()
-            
+
             this.allPermissions.forEach(permission => {
                 if (selectedSet.has(String(permission.id))) {
                     openCategories.add(permission.category)
                 }
             })
-            
+
             // Toujours ouvrir 'users' par défaut
             openCategories.add('users')
-            
+
             return Array.from(openCategories)
         },
 
@@ -303,12 +299,12 @@ export default {
                 }
 
                 const response = await RolesApi.update(this.currentRole.id, payload)
-                
+
                 this.$emit('updated', response)
                 this.$emit('close')
             } catch (error) {
                 console.error('Erreur lors de la mise à jour:', error)
-                
+
                 if (error.response?.status === 422) {
                     this.formErrors = error.response.data.errors || {}
                 } else {

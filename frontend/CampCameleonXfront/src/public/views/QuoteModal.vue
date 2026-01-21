@@ -67,7 +67,7 @@
                                             <div>
                                                 <label>Départ</label>
                                                 <span>{{ formatDate(displayEndInclusive(selectedDates.endExclusive))
-                                                    }}</span>
+                                                }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -94,7 +94,7 @@
                                         <div class="guests-display">
                                             <span class="guests-number">{{ selectedDates.guests }}</span>
                                             <span class="guests-text">personne{{ selectedDates.guests > 1 ? 's' : ''
-                                                }}</span>
+                                            }}</span>
                                         </div>
 
                                         <button type="button" @click="increaseGuests"
@@ -126,10 +126,7 @@
                         <h3 class="step-title">Choisissez vos activités</h3>
                         <p class="step-description">Sélectionnez les expériences qui vous tentent.</p>
 
-                        <div v-if="loading" class="loading-state">
-                            <div class="spinner"></div>
-                            <p>Chargement des activités...</p>
-                        </div>
+                        <Loading v-if="loading" text="Chargement des activités..." size="sm" />
 
                         <div v-else class="mini-grid">
                             <article v-for="activity in availableActivities" :key="activity.id" class="mini-card"
@@ -160,10 +157,7 @@
                         <h3 class="step-title">Choisissez vos menus</h3>
                         <p class="step-description">Sélectionnez les repas qui vous intéressent.</p>
 
-                        <div v-if="loading" class="loading-state">
-                            <div class="spinner"></div>
-                            <p>Chargement des menus...</p>
-                        </div>
+                        <Loading v-if="loading" text="Chargement des menus..." size="sm" />
 
                         <div v-else class="mini-grid">
                             <article v-for="menu in availableMenus" :key="menu.id" class="mini-card"
@@ -194,10 +188,7 @@
                         <h3 class="step-title">Choisissez votre hébergement</h3>
                         <p class="step-description">Sélectionnez votre logement.</p>
 
-                        <div v-if="loading" class="loading-state">
-                            <div class="spinner"></div>
-                            <p>Chargement des hébergements...</p>
-                        </div>
+                        <Loading v-if="loading" text="Chargement des hébergements..." size="sm" />
 
                         <div v-else class="mini-grid">
                             <article v-for="room in availableRooms" :key="room.id" class="mini-card"
@@ -316,7 +307,7 @@
                                 </div>
                                 <div class="summary-item">
                                     <span>{{ selectedDates.guests }} personne{{ selectedDates.guests > 1 ? 's' : ''
-                                        }}</span>
+                                    }}</span>
                                 </div>
                             </div>
 
@@ -417,10 +408,11 @@ import interactionPlugin from '@fullcalendar/interaction'
 import frLocale from '@fullcalendar/core/locales/fr'
 import { computeQuoteTotal } from '@/shared/composables/useQuotePricing'
 import EmailValidationModal from '@/public/components/EmailValidationModal.vue'
+import Loading from '@/shared/components/ui/Loading.vue'
 
 export default {
     name: 'QuoteModal',
-    components: { FullCalendar, EmailValidationModal },
+    components: { FullCalendar, EmailValidationModal, Loading },
     emits: ['close', 'quote-saved'],
 
     props: { show: { type: Boolean, default: false } },

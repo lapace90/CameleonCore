@@ -1,10 +1,8 @@
 <template>
   <div class="product-detail-container">
     <!-- Loading -->
-    <div v-if="loading" class="loading-state">
-      <div class="spinner"></div>
-      <p>Chargement des détails utilisateur...</p>
-    </div>
+    <LoadingState v-if="loading" state="loading" variant="inline"
+      loading-text="Chargement des détails utilisateur..." />
 
     <!-- Erreur -->
     <div v-else-if="error" class="error-state">
@@ -170,7 +168,7 @@
                   <div>
                     <i class="fas fa-users-cog" style="color: var(--terracotta);"></i>
                     <strong class="px-2">Rôles : {{ (user.role ? 1 : 0) + (user.additional_roles?.length || 0)
-                    }}</strong>
+                      }}</strong>
                   </div>
                 </div>
               </div>
@@ -322,11 +320,13 @@
 <script>
 import UsersApi from '@/services/UsersApi'
 import PermissionsAccordion from '@/admin/components/ui/PermissionsAccordion.vue'
+import LoadingState from '@/admin/components/ui/LoadingState.vue'
 
 export default {
   name: 'UserDetail',
   components: {
-    PermissionsAccordion
+    PermissionsAccordion,
+    LoadingState
   },
   data() {
     return {

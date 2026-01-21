@@ -10,10 +10,7 @@
     </div>
 
     <!-- Loading -->
-    <div v-if="loading" class="loading-state">
-      <div class="spinner"></div>
-      <p>Chargement...</p>
-    </div>
+    <LoadingState v-if="loading" state="loading" variant="inline" loading-text="Chargement du formulaire..." />
 
     <!-- Contenu principal -->
     <div v-else>
@@ -83,6 +80,7 @@ import ProductBasicFields from './components/ProductBasicFields.vue'
 import ProductFormActions from './components/ProductFormActions.vue'
 import { PRODUCT_CONFIGS, getProductableType } from '@/shared/configs/productConfigs'
 import { formatPrice, getFieldLabel } from '@/shared/utils/ProductUtils.js'
+import LoadingState from '@/admin/components/ui/LoadingState.vue'
 
 export default {
   name: 'ProductForm',
@@ -92,7 +90,8 @@ export default {
     ProductTypeFields,
     ProductImageUpload,
     ProductBasicFields,
-    ProductFormActions
+    ProductFormActions,
+    LoadingState
   },
 
   props: {
@@ -147,7 +146,7 @@ export default {
     isFormValid() {
       return this.form.name && this.form.price >= 0 && Object.keys(this.errors).length === 0
     },
-    
+
     productForRelations() {
       if (this.isEditing && this.product) {
         return this.product

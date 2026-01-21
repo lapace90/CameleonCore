@@ -1,129 +1,123 @@
 <!-- frontend/CampCameleonXfront/src/admin/components/modals/RoleCreateModal.vue -->
 <template>
-    <div class="modal-overlay" @click.self="$emit('close')">
-        <div class="modal-container modal-lg">
-            <div class="modal-header">
-                <h3>
-                    <i class="fas fa-plus-circle"></i>
-                    Créer un nouveau rôle
-                </h3>
-                <button @click="$emit('close')" class="btn-close">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
+  <div class="modal-overlay" @click.self="$emit('close')">
+    <div class="modal-container modal-lg">
+      <div class="modal-header">
+        <h3>
+          <i class="fas fa-plus-circle"></i>
+          Créer un nouveau rôle
+        </h3>
+        <button @click="$emit('close')" class="btn-close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
 
-            <form @submit.prevent="handleSubmit" class="modal-body">
-                <!-- Informations du rôle -->
-                <div class="form-section">
-                    <h4>
-                        <i class="fas fa-info-circle"></i>
-                        Informations générales
-                    </h4>
+      <form @submit.prevent="handleSubmit" class="modal-body">
+        <!-- Informations du rôle -->
+        <div class="form-section">
+          <h4>
+            <i class="fas fa-info-circle"></i>
+            Informations générales
+          </h4>
 
-                    <div class="form-group">
-                        <label for="name">Nom du rôle *</label>
-                        <input id="name" v-model="form.name" type="text" class="form-control"
-                            placeholder="Ex: Gestionnaire" :class="{ 'is-invalid': formErrors.name }" required />
-                        <div v-if="formErrors.name" class="invalid-feedback">{{ formErrors.name[0] }}</div>
-                    </div>
+          <div class="form-group">
+            <label for="name">Nom du rôle *</label>
+            <input id="name" v-model="form.name" type="text" class="form-control" placeholder="Ex: Gestionnaire"
+              :class="{ 'is-invalid': formErrors.name }" required />
+            <div v-if="formErrors.name" class="invalid-feedback">{{ formErrors.name[0] }}</div>
+          </div>
 
-                    <div class="form-group">
-                        <label for="slug">Identifiant (slug)</label>
-                        <input id="slug" v-model="form.slug" type="text" class="form-control"
-                            placeholder="Ex: manager" :class="{ 'is-invalid': formErrors.slug }" />
-                        <small class="form-text">Laissez vide pour génération automatique</small>
-                        <div v-if="formErrors.slug" class="invalid-feedback">{{ formErrors.slug[0] }}</div>
-                    </div>
+          <div class="form-group">
+            <label for="slug">Identifiant (slug)</label>
+            <input id="slug" v-model="form.slug" type="text" class="form-control" placeholder="Ex: manager"
+              :class="{ 'is-invalid': formErrors.slug }" />
+            <small class="form-text">Laissez vide pour génération automatique</small>
+            <div v-if="formErrors.slug" class="invalid-feedback">{{ formErrors.slug[0] }}</div>
+          </div>
 
-                    <div class="form-group">
-                        <label for="description">Description</label>
-                        <textarea id="description" v-model="form.description" class="form-control" rows="3"
-                            placeholder="Description du rôle et de ses responsabilités"
-                            :class="{ 'is-invalid': formErrors.description }"></textarea>
-                        <div v-if="formErrors.description" class="invalid-feedback">{{ formErrors.description[0] }}</div>
-                    </div>
-                </div>
-
-                <!-- Permissions -->
-                <div class="form-section">
-                    <h4>
-                        <i class="fas fa-key"></i>
-                        Permissions
-                        <span class="text-muted">({{ selectedPermissions.length }})</span>
-                    </h4>
-
-                    <!-- Loading des permissions -->
-                    <div v-if="loadingPermissions" class="loading-state">
-                        <div class="spinner"></div>
-                        <p>Chargement des permissions...</p>
-                    </div>
-
-                    <!-- Erreur de chargement -->
-                    <div v-else-if="loadError" class="error-state">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <p>Impossible de charger les permissions</p>
-                        <button type="button" @click="loadPermissions" class="btn btn-outline btn-sm">
-                            <i class="fas fa-redo"></i>
-                            Réessayer
-                        </button>
-                    </div>
-
-                    <!-- Accordéon des permissions -->
-                    <div v-else-if="allPermissions.length > 0">
-                        <PermissionsAccordion 
-                            :permissions="allPermissions"
-                            :selected-permissions="selectedPermissions"
-                            :original-permissions="originalPermissions"
-                            mode="editable"
-                            :show-actions="true"
-                            :default-open-categories="['users']"
-                            @update:selected-permissions="selectedPermissions = $event"
-                            @permission-changed="handlePermissionChanged"
-                        />
-                    </div>
-
-                    <!-- Aucune permission -->
-                    <div v-else class="form-note">
-                        <i class="fas fa-info-circle"></i>
-                        Aucune permission disponible.
-                    </div>
-                </div>
-
-                <!-- Actions -->
-                <div class="modal-footer">
-                    <button type="button" @click="$emit('close')" class="btn btn-secondary btn-sm">
-                        Annuler
-                    </button>
-                    <button type="submit" class="btn btn-primary btn-sm" :disabled="!isFormValid || submitting">
-                        <i v-if="submitting" class="fas fa-spinner fa-spin"></i>
-                        <i v-else class="fas fa-save"></i>
-                        {{ submitting ? 'Création...' : 'Créer le rôle' }}
-                    </button>
-                </div>
-            </form>
+          <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" v-model="form.description" class="form-control" rows="3"
+              placeholder="Description du rôle et de ses responsabilités"
+              :class="{ 'is-invalid': formErrors.description }"></textarea>
+            <div v-if="formErrors.description" class="invalid-feedback">{{ formErrors.description[0] }}</div>
+          </div>
         </div>
+
+        <!-- Permissions -->
+        <div class="form-section">
+          <h4>
+            <i class="fas fa-key"></i>
+            Permissions
+            <span class="text-muted">({{ selectedPermissions.length }})</span>
+          </h4>
+
+          <!-- Loading des permissions -->
+          <LoadingState v-if="loadingPermissions" state="loading" variant="inline"
+            loading-text="Chargement des permissions..." />
+
+          <!-- Erreur de chargement -->
+          <div v-else-if="loadError" class="error-state">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p>Impossible de charger les permissions</p>
+            <button type="button" @click="loadPermissions" class="btn btn-outline btn-sm">
+              <i class="fas fa-redo"></i>
+              Réessayer
+            </button>
+          </div>
+
+          <!-- Accordéon des permissions -->
+          <div v-else-if="allPermissions.length > 0">
+            <PermissionsAccordion :permissions="allPermissions" :selected-permissions="selectedPermissions"
+              :original-permissions="originalPermissions" mode="editable" :show-actions="true"
+              :default-open-categories="['users']" @update:selected-permissions="selectedPermissions = $event"
+              @permission-changed="handlePermissionChanged" />
+          </div>
+
+          <!-- Aucune permission -->
+          <div v-else class="form-note">
+            <i class="fas fa-info-circle"></i>
+            Aucune permission disponible.
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="modal-footer">
+          <button type="button" @click="$emit('close')" class="btn btn-secondary btn-sm">
+            Annuler
+          </button>
+          <button type="submit" class="btn btn-primary btn-sm" :disabled="!isFormValid || submitting">
+            <i v-if="submitting" class="fas fa-spinner fa-spin"></i>
+            <i v-else class="fas fa-save"></i>
+            {{ submitting ? 'Création...' : 'Créer le rôle' }}
+          </button>
+        </div>
+      </form>
     </div>
+  </div>
 </template>
 
 <script>
 import RolesApi from '@/services/RolesApi'
 import PermissionsAccordion from '@/admin/components/ui/PermissionsAccordion.vue'
+import LoadingState from '@/admin/components/ui/LoadingState.vue'
 
 export default {
   name: 'RoleCreateModal',
-  
+
   components: {
-    PermissionsAccordion
+    PermissionsAccordion,
+    LoadingState
   },
-  
+
   emits: ['close', 'created'],
 
   data() {
     return {
-      form: { 
-        name: '', 
-        slug: '', 
-        description: '' 
+      form: {
+        name: '',
+        slug: '',
+        description: ''
       },
       selectedPermissions: [],
       originalPermissions: [], // vide pour création
@@ -153,10 +147,10 @@ export default {
         const { useRolesStore } = await import('@/shared/stores/roles')
         const rolesStore = useRolesStore(this.$pinia)
         await rolesStore.ensurePermissions()
-        
+
         // Conversion du format store vers format PermissionsAccordion
         this.allPermissions = this.flattenPermissions(rolesStore.availablePermissions.categories)
-        
+
       } catch (e) {
         console.error('Erreur chargement permissions:', e)
         this.loadError = true
@@ -197,12 +191,12 @@ export default {
         }
 
         const response = await RolesApi.create(payload)
-        
+
         this.$emit('created', response)
         this.$emit('close')
       } catch (error) {
         console.error('Erreur lors de la création:', error)
-        
+
         if (error.response?.status === 422) {
           this.formErrors = error.response.data.errors || {}
         } else {

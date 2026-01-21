@@ -2,6 +2,7 @@
 // QUOTE STYLES - Styles partagés pour les devis
 // CampCameleonX - Factorisation des styles communs QuoteModal + EditQuote + composants devis
 // ===========================
+@use "sass:color";
 
 // ===== STRUCTURE DE QUOTE MODAL =====
 .quote-modal {
@@ -523,36 +524,6 @@
   }
 }
 
-// ===== LOADING STATES =====
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  padding: 2rem;
-  color: #666;
-}
-
-.spinner,
-.loading-spinner {
-  width: 24px;
-  height: 24px;
-  border: 2px solid #f3f3f3;
-  border-top: 2px solid $terracotta;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
 // ===== ACTIONS DE DEVIS =====
 .quote-actions {
   display: flex;
@@ -568,26 +539,6 @@
     border-radius: 8px;
     font-weight: 600;
     transition: all 0.15s ease;
-
-    &.btn-success {
-      background: $success;
-      border-color: $success;
-      color: white;
-
-      &:hover {
-        background: color.adjust($success, $lightness: -10%);
-      }
-    }
-
-    &.btn-primary {
-      background: $primary;
-      border-color: $primary;
-      color: white;
-
-      &:hover {
-        background: color.adjust($primary, $lightness: -10%);
-      }
-    }
 
     &.btn-outline {
       background: transparent;

@@ -26,10 +26,7 @@
       search-placeholder="Rechercher une catégorie..." @apply="applyFilters" />
 
     <!-- Loading -->
-    <div v-if="loading" class="loading-state">
-      <div class="spinner"></div>
-      <p>Chargement...</p>
-    </div>
+    <LoadingState v-if="loading" state="loading" variant="inline" loading-text="Chargement des catégories..." />
 
     <!-- Vue par type -->
     <div class="categories-content">
@@ -90,12 +87,14 @@
 import CategoryBadge from '@/admin/views/products/components/CategoryBadge.vue'
 import AdminFilterBar from '@/admin/components/ui/AdminFilterBar.vue'
 import ProductsApi from '@/services/ProductsApi'
+import LoadingState from '@/admin/components/ui/LoadingState.vue'
 
 export default {
   name: 'Categories',
   components: {
     CategoryBadge,
-    AdminFilterBar
+    AdminFilterBar,
+    LoadingState
   },
 
   data() {

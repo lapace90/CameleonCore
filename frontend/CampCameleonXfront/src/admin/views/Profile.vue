@@ -50,10 +50,7 @@
     </div>
 
     <!-- Loading -->
-    <div v-if="loading" class="loading-state">
-      <div class="spinner"></div>
-      <p>Chargement du profil...</p>
-    </div>
+    <LoadingState v-if="loading" state="loading" variant="inline" loading-text="Chargement du profil..." />
 
     <!-- Formulaire principal -->
     <form v-else class="product-form" @submit.prevent="saveProfile">
@@ -174,10 +171,11 @@ import BaseInput from '@/shared/components/ui/BaseInput.vue'
 import BaseCard from '@/shared/components/ui/BaseCard.vue'
 import ImageUpload from '@/admin/components/ui/ImageUpload.vue'
 import ProductsApi from '@/services/ProductsApi'
+import LoadingState from '@/admin/components/ui/LoadingState.vue'
 
 export default {
   name: 'ProfileView',
-  components: { BaseButton, BaseInput, BaseCard, ImageUpload },
+  components: { BaseButton, BaseInput, BaseCard, ImageUpload, LoadingState },
 
   setup() {
     const authStore = useAuthStore()

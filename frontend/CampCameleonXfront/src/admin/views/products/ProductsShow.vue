@@ -76,10 +76,8 @@
     <!-- Contenu principal -->
     <div class="products-content">
       <!-- Loading -->
-      <div v-if="loading" class="loading-state">
-        <div class="spinner"></div>
-        <p>Chargement des {{ typeConfig.label }}...</p>
-      </div>
+      <LoadingState v-if="loading" state="loading" variant="inline"
+        :loading-text="`Chargement des ${typeConfig.label}...`" />
 
       <!-- Empty state -->
       <div v-else-if="visibleProducts.length === 0" class="empty-state">
@@ -129,6 +127,7 @@ import Pagination from './components/Pagination.vue'
 import CategoryBadge from './components/CategoryBadge.vue'
 import AdminFilterBar from '@/admin/components/ui/AdminFilterBar.vue'
 import { PRODUCT_CONFIGS } from '@/shared/configs/productConfigs'
+import LoadingState from '@/admin/components/ui/LoadingState.vue'
 
 export default {
   name: 'ProductsShow',
@@ -139,7 +138,8 @@ export default {
     ProductStats,
     BulkActions,
     Pagination,
-    AdminFilterBar
+    AdminFilterBar,
+    LoadingState
   },
   props: {
     type: { type: String, required: true }

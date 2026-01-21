@@ -1,10 +1,7 @@
 <template>
   <div class="product-detail-container">
     <!-- Loading -->
-    <div v-if="loading" class="loading-state">
-      <div class="spinner"></div>
-      <p>Chargement...</p>
-    </div>
+    <LoadingState v-if="loading" state="loading" variant="inline" loading-text="Chargement..." />
 
     <!-- Erreur -->
     <div v-else-if="error" class="error-state">
@@ -233,6 +230,7 @@ import ProductsApi from '@/services/ProductsApi'
 import CategoryBadge from './components/CategoryBadge.vue'
 import { getStatIcon, getStatLabel, formatStatValue } from '@/shared/utils/ProductUtils'
 import { formatDate } from '@/shared/utils/helpers'
+import LoadingState from '@/admin/components/ui/LoadingState.vue'
 
 export default {
   name: 'ProductDetail',
@@ -248,7 +246,8 @@ export default {
     }
   },
   components: {
-    CategoryBadge
+    CategoryBadge,
+    LoadingState
   },
 
   computed: {
@@ -305,7 +304,7 @@ export default {
       if (this.product?.productableDetail?.ingredients) return 'Ingrédients'
       return 'Relations'
     },
-    
+
     allTags() {
       let tags = []
       if (this.product?.globalTags) tags = [...tags, ...this.product.globalTags]

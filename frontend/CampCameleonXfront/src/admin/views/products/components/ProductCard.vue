@@ -294,28 +294,6 @@ export default {
   gap: 8px;
 }
 
-.btn-icon {
-  width: 32px;
-  height: 32px;
-  border: none;
-  border-radius: 6px;
-  background: #f9fafb;
-  color: #6b7280;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-icon:hover {
-  background: #f3f4f6;
-}
-
-.text-danger {
-  color: #ef4444 !important;
-}
-
 .text-danger:hover {
   background: #fee2e2 !important;
 }
