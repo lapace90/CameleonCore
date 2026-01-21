@@ -1,4 +1,4 @@
-import axios from 'axios'
+import httpClient from './httpClient'
 
 class UsersApi {
   /**
@@ -6,7 +6,7 @@ class UsersApi {
    */
   static async getAll() {
     try {
-      const response = await axios.get('/admin/users')
+      const response = await httpClient.get('/admin/users')
       return Array.isArray(response.data)
         ? response.data
         : response.data['hydra:member'] || []
@@ -21,7 +21,7 @@ class UsersApi {
    */
   static async getRoles() {
     try {
-      const response = await axios.get('/roles')
+      const response = await httpClient.get('/roles')
       
       if (response.data && Array.isArray(response.data.data)) {
         return response.data.data
@@ -42,7 +42,7 @@ class UsersApi {
    */
   static async getById(userId) {
     try {
-      const response = await axios.get(`/api/admin/users/${userId}`)
+      const response = await httpClient.get(`/admin/users/${userId}`)
       return response.data
     } catch (error) {
       console.error('Erreur lors du chargement de l\'utilisateur:', error)
@@ -55,7 +55,7 @@ class UsersApi {
    */
   static async create(payload) {
     try {
-      const response = await axios.post('/admin/users', payload)
+      const response = await httpClient.post('/admin/users', payload)
       return response.data
     } catch (error) {
       console.error('Erreur lors de la création:', error)
@@ -68,7 +68,7 @@ class UsersApi {
    */
   static async update(userId, payload) {
     try {
-      const response = await axios.patch(`/api/admin/users/${userId}`, payload)
+      const response = await httpClient.patch(`/admin/users/${userId}`, payload)
       return response.data
     } catch (error) {
       console.error('Erreur lors de la mise à jour:', error)
@@ -81,7 +81,7 @@ class UsersApi {
    */
   static async delete(userId) {
     try {
-      await axios.delete(`/api/admin/users/${userId}`)
+      await httpClient.delete(`/admin/users/${userId}`)
       return true
     } catch (error) {
       console.error('Erreur lors de la suppression:', error)

@@ -1,5 +1,4 @@
 <?php
-// app/State/CategoryProcessor.php
 
 namespace App\State;
 

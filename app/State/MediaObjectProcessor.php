@@ -27,9 +27,9 @@ class MediaObjectProcessor implements ProcessorInterface
 
         $file = $request->file('file');
         
-        // 🔧 FIX: Validation correcte Laravel
+        // Validation correcte Laravel
         $validator = Validator::make($request->all(), [
-            'file' => 'required|file|mimes:jpeg,png,jpg,gif,webp,heic,avif|max:5120' // 5MB max
+            'file' => 'required|file|mimes:jpeg,png,jpg,gif,webp,heic,avif|max:10240' // 10MB max
         ]);
 
         if ($validator->fails()) {
@@ -40,12 +40,6 @@ class MediaObjectProcessor implements ProcessorInterface
             // Upload du fichier
             $path = $file->store('media', 'public');
             
-            Log::info('Fichier uploadé', [
-                'original_name' => $file->getClientOriginalName(),
-                'stored_path' => $path,
-                'size' => $file->getSize()
-            ]);
-            
             // Créer l'objet MediaObject
             $mediaObject = MediaObject::create([
                 'file_name' => $file->getClientOriginalName(),
@@ -53,8 +47,6 @@ class MediaObjectProcessor implements ProcessorInterface
                 'file_size' => $file->getSize(),
                 'mime_type' => $file->getMimeType(),
             ]);
-
-            Log::info('MediaObject créé', ['id' => $mediaObject->id]);
 
             return MediaObjectOutputData::fromMediaObject($mediaObject);
         } catch (\Exception $e) {

@@ -12,7 +12,7 @@ class ProductableData extends Data
         public ?int $duration = null,
         public ?string $meeting_point = null,
         public ?int $max_people = null,
-        // IMPORTANT: Changer le type pour accepter int ET string
+        //  Changer le type pour accepter int ET string
         public mixed $difficulty_level = null,
         
         // Room fields

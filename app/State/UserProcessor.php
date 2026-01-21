@@ -26,14 +26,7 @@ class UserProcessor implements ProcessorInterface
 {
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
     {
-        Log::info('🚀 DÉBUT UserProcessor', [
-        'operation' => get_class($operation),
-        'uri_variables' => $uriVariables,
-        'request_method' => request()->method(),
-        'user_authenticated' => auth('sanctum')->check(),
-        'request_data' => request()->all()
-    ]);
-        // 🔐 SÉCURITÉ SANCTUM : Vérifier l'authentification pour toutes les opérations
+        // SÉCURITÉ SANCTUM : Vérifier l'authentification pour toutes les opérations
         $currentUser = auth('sanctum')->user();
 
         if (!$currentUser) {
@@ -79,7 +72,7 @@ class UserProcessor implements ProcessorInterface
      */
     private function createUser(mixed $data, array $context, User $currentUser): UserOutputData
     {
-        // 🔒 AUTORISATION : Seuls les admins peuvent créer des utilisateurs
+        //  AUTORISATION : Seuls les admins peuvent créer des utilisateurs
         if (!$currentUser->canManageUsers()) {
             throw new AccessDeniedHttpException('Permissions insuffisantes pour créer un utilisateur');
         }
@@ -101,7 +94,7 @@ class UserProcessor implements ProcessorInterface
         // Créer UserData
         $userData = UserData::fromArray($payload);
 
-        // 🔒 SÉCURITÉ : Vérifier que le rôle assigné n'est pas supérieur au rôle courant
+        //  SÉCURITÉ : Vérifier que le rôle assigné n'est pas supérieur au rôle courant
         if ($userData->role_id && !$this->canAssignRole($currentUser, $userData->role_id)) {
             throw new AccessDeniedHttpException('Vous ne pouvez pas assigner un rôle supérieur au vôtre');
         }
@@ -139,18 +132,7 @@ class UserProcessor implements ProcessorInterface
             throw new NotFoundHttpException("Utilisateur avec l'ID {$userId} non trouvé");
         }
 
-        // 🔍 DEBUG : Logs détaillés pour comprendre le problème Gate
-        Log::info('🔍 DEBUG Gate vérification', [
-            'current_user_id' => $currentUser->id,
-            'target_user_id' => $user->id,
-            'is_same_user' => $currentUser->id === $user->id,
-            'current_user_name' => $currentUser->name,
-            'target_user_name' => $user->name,
-            'has_canManageUsers_method' => method_exists($currentUser, 'canManageUsers'),
-            'canManageUsers_result' => method_exists($currentUser, 'canManageUsers') ? $currentUser->canManageUsers() : 'METHOD_NOT_EXISTS'
-        ]);
-
-        // 🔍 DEBUG : Tester la Policy directement
+        // DEBUG : Tester la Policy directement
         try {
             $policyResult = Gate::allows('update', $user);
             Log::info('🔍 DEBUG Policy result', [
@@ -164,15 +146,12 @@ class UserProcessor implements ProcessorInterface
             ]);
         }
 
-        // 🚨 TEMPORAIRE : Désactiver la vérification Gate pour tester
+        //  TEMPORAIRE : Désactiver la vérification Gate pour tester
         /*
     if (Gate::denies('update', $user)) {
         throw new AccessDeniedHttpException('You are not allowed to update this profile.');
     }
     */
-
-        // 🔍 DEBUG : Continuer avec la logique normale pour voir si c'est bien le Gate le problème
-        Log::info('🔍 DEBUG : Gate check bypassed, continuing...');
 
         // Reste de votre logique existante...
         $canEditProfile = ($userId === $currentUser->id);  
@@ -187,14 +166,7 @@ class UserProcessor implements ProcessorInterface
 
         $payload = $this->normalizeInputKeys($payload);
 
-        Log::info('UserProcessor - Mise à jour utilisateur', [
-            'user_id' => $userId,
-            'payload' => $payload,
-            'updated_by' => $currentUser->name,
-            'is_self_edit' => $canEditProfile
-        ]);
-
-        // 🔒 SÉCURITÉ : Si c'est une auto-édition, limiter les champs modifiables
+        //  SÉCURITÉ : Si c'est une auto-édition, limiter les champs modifiables
         if ($canEditProfile && !$canManageUsers) {
             // Un utilisateur peut modifier ses champs de profil complets
             $allowedFields = [
@@ -211,10 +183,6 @@ class UserProcessor implements ProcessorInterface
             ];
             $payload = array_intersect_key($payload, array_flip($allowedFields));
 
-            Log::info('Auto-édition détectée, champs limités', [
-                'allowed_fields' => array_keys($payload),
-                'user_id' => $userId
-            ]);
         }
 
         // Validation PATCH (ne valide email que s'il est présent) + règles phone/postal_code
@@ -243,7 +211,7 @@ class UserProcessor implements ProcessorInterface
             $this->validatePasswordChange($user, $userData);
         }
 
-        // 🔒 SÉCURITÉ : Vérifier les changements de rôle
+        // SÉCURITÉ : Vérifier les changements de rôle
         if ($userData->role_id && $userData->role_id !== $user->role_id) {
             if (!$canManageUsers) {
                 throw new AccessDeniedHttpException('Permissions insuffisantes pour changer de rôle');
@@ -309,7 +277,7 @@ class UserProcessor implements ProcessorInterface
      */
     private function deleteUser(int $userId, User $currentUser): void
     {
-        // 🔒 AUTORISATION : Seuls les admins peuvent supprimer des utilisateurs
+        // AUTORISATION : Seuls les admins peuvent supprimer des utilisateurs
         if (!$currentUser->canManageUsers()) {
             throw new AccessDeniedHttpException('Permissions insuffisantes pour supprimer un utilisateur');
         }
@@ -320,12 +288,12 @@ class UserProcessor implements ProcessorInterface
             throw new NotFoundHttpException("Utilisateur avec l'ID {$userId} non trouvé");
         }
 
-        // 🔒 SÉCURITÉ : Ne pas permettre l'auto-suppression
+        // SÉCURITÉ : Ne pas permettre l'auto-suppression
         if ($userId === $currentUser->id) {
             throw new AccessDeniedHttpException('Vous ne pouvez pas supprimer votre propre compte');
         }
 
-        // 🔒 SÉCURITÉ : Vérifier la hiérarchie des rôles
+        // SÉCURITÉ : Vérifier la hiérarchie des rôles
         if ($user->isSuperAdmin() && !$currentUser->isSuperAdmin()) {
             throw new AccessDeniedHttpException('Seul un super-admin peut supprimer un super-admin');
         }
@@ -405,7 +373,7 @@ class UserProcessor implements ProcessorInterface
             'all_roles' => $allrole_ids->toArray()
         ]);
 
-        // 🧠 LOGIQUE INTELLIGENTE SELON LE NOMBRE DE RÔLES
+        // LOGIQUE INTELLIGENTE SELON LE NOMBRE DE RÔLES
         if ($allrole_ids->isEmpty()) {
             // Cas 1: Aucun rôle spécifié - conserver l'existant
             Log::info('Aucun rôle spécifié, conservation des rôles existants', [

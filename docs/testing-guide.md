@@ -1,146 +1,120 @@
-
-// Makefile - Commands pour développeurs
-.PHONY: test test-backend test-frontend test-e2e test-all install setup
-
-# Installation complète
-install:
-	composer install
-	cd frontend && npm install
-	npx playwright install
-
-# Configuration de l'environnement de test
-setup:
-	cp .env.testing .env
-	php artisan key:generate
-	php artisan migrate:fresh --seed
-	cd frontend && npm run dev &
-
-# Tests backend
-test-backend:
-	php artisan test tests
-
-test-backend-coverage:
-	php artisan test --coverage-html coverage/backend
-
-# Tests frontend
-test-frontend:
-	cd frontend/CampCameleonXfront && npm run test || npx vitest run tests
-
-test-frontend-coverage:
-	cd frontend && npm run test:coverage
-
-test-frontend-watch:
-	cd frontend && npm run test:watch
-
-# Tests E2E
-test-e2e:
-	cd frontend && npm run test:e2e
-
-test-e2e-debug:
-	cd frontend && npm run test:e2e:debug
-
-# Tests par catégorie
-test-integration:
-	cd frontend && npm run test:integration
-
-test-stores:
-	cd frontend && npm run test:stores
-
-test-components:
-	cd frontend && npm run test:components
-
-# Tous les tests
-test-all:
-	make test-backend
-	make test-frontend
-	make test-e2e
-
-# Tests CI
-test-ci:
-	make test-backend-coverage
-	make test-frontend-coverage
-	make test-e2e
-
-# Nettoyage
-clean:
-	rm -rf frontend/node_modules
-	rm -rf vendor
-	rm -rf frontend/dist
-	rm -rf coverage
-
-# docs/testing-guide.md - Guide pour les développeurs
 # Guide de Tests - CampCameleonX
 
 ## Vue d'ensemble
 
-Cette suite de tests couvre tous les aspects de l'application :
+Suite de tests ciblée sur les parties critiques de l'application : authentification, RBAC, flux métier.
 
-### Backend (PHP/Laravel)
-- **Tests unitaires** : Models, Services, Providers
-- **Tests d'intégration** : API endpoints complets
-- **Tests de validation** : Règles métier et sécurité
+**Stratégie** : Filet de sécurité ciblé, pas couverture exhaustive. On teste ce qui est complexe, répétitif, et risqué à vérifier manuellement.
 
-### Frontend (Vue.js)
-- **Tests de composants** : Rendu et interactions
-- **Tests de stores** : Logique Pinia
-- **Tests d'intégration** : Flux complets
-- **Tests E2E** : Parcours utilisateur
+### Métriques actuelles
 
-## Exécution des tests
+| Domaine | Tests | Assertions |
+|---------|-------|------------|
+| Backend (Pest/PHPUnit) | 51 | 164 |
+| Frontend (Vitest) | 31 | - |
 
-### Développement local
+---
+
+## Backend (Pest/PHPUnit)
+
+### Couverture
+
+- **Authentification** : login, logout, vérification token, cas d'erreur
+- **RBAC** : héritage permissions entre rôles, déduplication multi-rôles, hiérarchie
+- **Réservations** : création customer, création réservation, validation champs, relations
+- **Profil utilisateur** : mise à jour, permissions
+
+### Exécution
+
 ```bash
-# Tests en mode watch
-make test-frontend-watch
+# Tous les tests backend
+php artisan test
 
-# Tests spécifiques
-npm run test:stores
-npm run test:components
-php artisan test --filter=ReservationTest
+# Test spécifique
+php artisan test --filter=RolePermissionTest
 
-# Coverage complet
-make test-ci
+# Avec coverage
+php artisan test --coverage-html coverage/backend
 ```
 
-### Debugging
-```bash
-# E2E avec interface
-npm run test:e2e:ui
-
-# Tests frontend avec UI
-npm run test:ui
-
-# Debug test spécifique
-npx vitest run tests/components/QuoteModal.test.js
-```
-
-## Structure des tests
+### Structure
 
 ```
 tests/
-├── backend/
-│   ├── Feature/          # Tests d'intégration API
-│   ├── Unit/            # Tests unitaires models/services
-│   └── Integration/     # Tests flux complets
-├── components/          # Tests composants Vue
-├── stores/             # Tests stores Pinia
-├── integration/        # Tests flux frontend
-├── e2e/               # Tests end-to-end
-└── setup.js           # Configuration globale
+├── Feature/
+│   ├── Auth/
+│   │   ├── AuthenticationTest.php
+│   │   ├── LoginTest.php
+│   │   └── ProfileManagementTest.php
+│   ├── RBAC/
+│   │   └── RolePermissionTest.php
+│   └── ReservationFlowTest.php
+├── Unit/
+│   └── ExampleTest.php
+├── Traits/
+│   ├── AuthenticatesUsers.php
+│   ├── CreatesTestData.php
+│   └── AssertsApiResponses.php
+└── TestCase.php
 ```
+
+### Limite connue
+
+Le test de check-out complet est skipped : l'isolation transactionnelle entre API Platform et PHPUnit empêche de simuler le flux complet (création réservation → check-in → check-out). Documenté comme limite technique.
+
+---
+
+## Frontend (Vitest)
+
+### Couverture
+
+- **Composables** : `useQuotePricing` (calcul prix devis)
+- **Composants calendrier** : `EventModal`, `FullCalendar`
+- **Composants public** : `QuoteModal`
+- **Intégration** : `ReservationFlow`
+
+### Exécution
+
+```bash
+# Tous les tests frontend
+cd frontend/CampCameleonXfront && npx vitest run
+
+# Mode watch (développement)
+cd frontend/CampCameleonXfront && npx vitest
+
+# Avec UI
+cd frontend/CampCameleonXfront && npx vitest --ui
+
+# Test spécifique
+cd frontend/CampCameleonXfront && npx vitest run tests/components/calendar/FullCalendar.test.js
+```
+
+### Structure
+
+```
+frontend/CampCameleonXfront/tests/
+├── setup.js                              # Config globale (mocks matchMedia, ResizeObserver)
+├── composables/
+│   └── useQuotePricing.test.js          # 10 tests
+├── components/
+│   ├── calendar/
+│   │   ├── EventModal.test.js           # 5 tests
+│   │   └── FullCalendar.test.js         # 9 tests
+│   └── public/
+│       └── QuoteModal.test.js           # 5 tests
+└── integration/
+    └── ReservationFlow.test.js          # 2 tests
+```
+
+### Approche
+
+Les appels réseau sont **mockés** pour contrôler le contrat JSON attendu, indépendamment de l'état du backend. Si le format de réponse API change, les tests cassent immédiatement.
+
+---
 
 ## Bonnes pratiques
 
 1. **Tests isolés** : Chaque test est indépendant
 2. **Mocks appropriés** : APIs et dépendances externes mockées
-3. **Assertions claires** : Messages d'erreur explicites
-4. **Coverage élevé** : >80% pour le code critique
-5. **Tests rapides** : <3s pour la suite complète
-
-## Métriques ciblées
-
-- **Backend** : >85% coverage
-- **Frontend composants** : >70% coverage
-- **Stores** : 100% coverage
-- **E2E** : Flux critiques couverts
-- **Performance** : Temps de réponse <2s
+3. **Focus critique** : Auth, RBAC, flux métier en priorité
+4. **Pragmatisme** : On ne teste pas pour le coverage, on teste ce qui compte

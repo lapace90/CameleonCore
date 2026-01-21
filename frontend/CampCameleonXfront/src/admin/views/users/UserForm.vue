@@ -9,11 +9,8 @@
       </div>
     </div>
 
-    <!-- Loading minimal -->
-    <div v-if="loading" class="loading-state">
-      <div class="spinner"></div>
-      <p>Chargement...</p>
-    </div>
+    <!-- Loading -->
+    <LoadingState v-if="loading" state="loading" loading-text="Chargement de l'utilisateur..." />
 
     <!-- Contenu principal -->
     <div v-else>
@@ -517,33 +514,6 @@ export default {
 
 
 <style scoped>
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-  gap: 1rem;
-}
-
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #f3f4f6;
-  border-top: 4px solid #3b82f6;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-
-  100% {
-    transform: rotate(360deg);
-  }
-}
 
 .error-message .alert {
   background: #fef2f2;

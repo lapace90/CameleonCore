@@ -173,7 +173,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   // ===========================
-  // 🆕 INSCRIPTION (REGISTER)
+  //  INSCRIPTION (REGISTER)
   // ===========================
 
   const register = async (userData) => {

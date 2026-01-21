@@ -1,5 +1,3 @@
-// routes/admin.routes.js
-
 export default [
   {
     path: '',
@@ -36,7 +34,7 @@ export default [
       // Redirection vers agenda
       { path: 'calendar', redirect: { name: 'FullAgenda' } },
 
-      // 🆕 FACTURES - Routes ajoutées
+      //  FACTURES - Routes ajoutées
       { path: 'invoices', name: 'InvoiceList', component: () => import('@/admin/views/invoices/InvoiceList.vue'), meta: { requiresAuth: true } },
       { path: 'invoices/:id', name: 'InvoiceDetail', component: () => import('@/admin/views/invoices/InvoiceDetail.vue'), props: true, meta: { requiresAuth: true } },
 

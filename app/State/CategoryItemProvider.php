@@ -1,5 +1,4 @@
 <?php
-// app/State/CategoryItemProvider.php
 
 namespace App\State;
 

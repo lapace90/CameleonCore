@@ -1,5 +1,4 @@
 <?php
-// app/State/PermissionProcessor.php - Pattern conforme à UserProcessor
 
 namespace App\State;
 
@@ -22,19 +21,19 @@ class PermissionProcessor implements ProcessorInterface
 {
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
     {
-        // 🔐 SÉCURITÉ SANCTUM (comme UserProcessor)
+        //  SÉCURITÉ SANCTUM (comme UserProcessor)
         $currentUser = auth('sanctum')->user();
 
         if (!$currentUser) {
             throw new UnauthorizedHttpException('Bearer', 'Token d\'authentification requis');
         }
 
-        // 🔐 AUTORISATION (comme UserProcessor)
+        //  AUTORISATION (comme UserProcessor)
         if (!$this->canManagePermissions($currentUser)) {
             throw new AccessDeniedHttpException('Permissions insuffisantes pour gérer les permissions');
         }
 
-        // 🎯 PATTERN identique à UserProcessor
+        //  PATTERN identique à UserProcessor
         try {
             switch (true) {
                 case $operation instanceof Post:
@@ -68,7 +67,7 @@ class PermissionProcessor implements ProcessorInterface
     }
 
     /**
-     * 🧠 VALIDATION Laravel pour création
+     *  VALIDATION Laravel pour création
      */
     private function createPermission(mixed $data, array $context, $currentUser): Permission
     {
@@ -79,7 +78,7 @@ class PermissionProcessor implements ProcessorInterface
             'created_by' => $currentUser->name
         ]);
 
-        // 🧠 VALIDATION Laravel avec support category
+        //  VALIDATION Laravel avec support category
         $validator = Validator::make($payload, [
             'name' => 'required|string|max:255|unique:permissions,name',
             'action' => 'required|string|max:100|regex:/^[a-z0-9-]+$/|unique:permissions,action',
@@ -95,7 +94,7 @@ class PermissionProcessor implements ProcessorInterface
             throw new ValidationException($validator);
         }
 
-        // 🧠 LOGIQUE MÉTIER
+        //  LOGIQUE MÉTIER
         $payload['action'] = Permission::normalizeAction($payload['action']);
 
         if (empty($payload['name'])) {
@@ -133,7 +132,7 @@ class PermissionProcessor implements ProcessorInterface
             'updated_by' => $currentUser->name
         ]);
 
-        // 🧠 VALIDATION pour update avec support category
+        //  VALIDATION pour update avec support category
         $validator = Validator::make($payload, [
             'name' => "required|string|max:255|unique:permissions,name,{$permissionId}",
             'action' => "required|string|max:100|regex:/^[a-z0-9-]+$/|unique:permissions,action,{$permissionId}",
@@ -144,7 +143,7 @@ class PermissionProcessor implements ProcessorInterface
             throw new ValidationException($validator);
         }
 
-        // 🧠 LOGIQUE MÉTIER
+        //  LOGIQUE MÉTIER
         if (isset($payload['action'])) {
             $payload['action'] = Permission::normalizeAction($payload['action']);
         }
@@ -153,7 +152,7 @@ class PermissionProcessor implements ProcessorInterface
             $payload['name'] = Permission::generateNameFromAction($payload['action']);
         }
 
-        // 🧠 LOG pour permissions critiques
+        //  LOG pour permissions critiques
         if ($permission->isCritical() && isset($payload['action'])) {
             Log::warning('Modification permission critique', [
                 'permission_id' => $permission->id,
@@ -175,7 +174,7 @@ class PermissionProcessor implements ProcessorInterface
     }
 
     /**
-     * 🧠 SUPPRESSION
+     *  SUPPRESSION
      */
     private function deletePermission(int $permissionId, $currentUser): void
     {
@@ -185,7 +184,7 @@ class PermissionProcessor implements ProcessorInterface
             throw new NotFoundHttpException("Permission avec l'ID {$permissionId} non trouvée");
         }
 
-        // 🧠 VÉRIFICATIONS MÉTIER
+        //  VÉRIFICATIONS MÉTIER
         if (!$permission->canBeDeleted()) {
             throw new \RuntimeException("Impossible de supprimer cette permission car elle est utilisée par {$permission->roles()->count()} rôle(s)");
         }

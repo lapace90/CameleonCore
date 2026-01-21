@@ -34,7 +34,7 @@ class CalendarProvider implements ProviderInterface
         return Cache::remember($cacheKey, 60, function () use ($startBoundary, $endBoundary) {
             $allEvents = [];
 
-            // 1️⃣ RÉCUPÉRER LES RÉSERVATIONS
+            // 1️ RÉCUPÉRER LES RÉSERVATIONS
             $reservations = Reservation::query()
                 ->where(function ($q) use ($startBoundary, $endBoundary) {
                     $q->whereBetween('checkin', [$startBoundary, $endBoundary])
@@ -47,13 +47,13 @@ class CalendarProvider implements ProviderInterface
                 ->with(['customer', 'product'])
                 ->get();
 
-            // 2️⃣ RÉCUPÉRER LES ÉVÉNEMENTS GÉNÉRIQUES
+            // 2️ RÉCUPÉRER LES ÉVÉNEMENTS GÉNÉRIQUES
             $events = Event::query()
                 ->inPeriod($startBoundary, $endBoundary)
                 ->active()
                 ->get();
 
-            // 3️⃣ MAPPER LES RÉSERVATIONS
+            // 3️ MAPPER LES RÉSERVATIONS
             foreach ($reservations as $reservation) {
                 $allEvents[] = [
                     'id' => 'reservation_' . $reservation->id, // Préfixe pour différencier
@@ -78,7 +78,7 @@ class CalendarProvider implements ProviderInterface
                 ];
             }
 
-            // 4️⃣ MAPPER LES ÉVÉNEMENTS GÉNÉRIQUES
+            // 4️ MAPPER LES ÉVÉNEMENTS GÉNÉRIQUES
             foreach ($events as $event) {
                 $allEvents[] = [
                     'id' => 'event_' . $event->id, // Préfixe pour différencier
