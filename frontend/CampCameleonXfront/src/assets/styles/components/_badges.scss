@@ -267,6 +267,37 @@
   }
 }
 
+
+// ========================================
+// BADGES RÔLES UTILISATEURS
+// ========================================
+.role-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.role-badge.role-primary {
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+  color: #8b5a00;
+  border: 1px solid #e6c200;
+}
+
+.role-badge.role-secondary {
+  background: #e9ecef;
+  color: #495057;
+  border: 1px solid #ced4da;
+}
+
+.roles-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+
 // ========================================
 // RESPONSIVE
 // ========================================

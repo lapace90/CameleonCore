@@ -15,10 +15,7 @@
     </div>
 
     <!-- Loading -->
-    <div v-if="loading" class="loading-state">
-      <div class="spinner"></div>
-      <p>Chargement...</p>
-    </div>
+    <LoadingState v-if="loading" state="loading" variant="inline" loading-text="Chargement..." />
 
     <!-- Contenu principal -->
     <div v-else>

@@ -40,12 +40,11 @@
     </section>
 
     <!-- Loading -->
-    <div v-if="loading" class="testimonials-grid-section">
-      <div class="container" style="text-align: center; padding: 5rem 0; color: white;">
-        <div class="spinner" style="margin: 0 auto 1rem;"></div>
-        <p>Chargement des témoignages...</p>
+    <section v-if="loading" class="testimonials-grid-section">
+      <div class="container">
+        <Loading text="Chargement des témoignages..." variant="light" />
       </div>
-    </div>
+    </section>
 
     <!-- Témoignages -->
     <section v-else class="testimonials-grid-section">
@@ -94,12 +93,14 @@
 import TestimonialCard from '@/public/components/ui/Testimonial.vue'
 import ReviewForm from '@/public/components/ui/ReviewForm.vue'
 import ReviewsApi from '@/services/ReviewsApi'
+import Loading from '@/shared/components/ui/Loading.vue';
 
 export default {
   name: 'TestimonialsPage',
   components: {
     TestimonialCard,
-    ReviewForm
+    ReviewForm,
+    Loading
   },
 
   data() {
@@ -165,8 +166,6 @@ export default {
         const response = await ReviewsApi.getPublished({
           public_only: true  // Paramètre pour forcer le filtre
         })
-
-        console.log('📥 Réponse API testimonials:', response)
 
         this.testimonials = Array.isArray(response) ? response : []
 
@@ -347,22 +346,6 @@ export default {
 
   @media (min-width: 768px) {
     gap: 2.5rem;
-  }
-}
-
-/* Spinner simple */
-.spinner {
-  border: 4px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
   }
 }
 

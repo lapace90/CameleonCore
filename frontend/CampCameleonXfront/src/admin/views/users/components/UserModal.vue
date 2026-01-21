@@ -3,10 +3,7 @@
     <div class="modal-content" style="border-radius: 16px;" @click.stop>
 
       <!-- État de chargement si user null -->
-      <div v-if="!user" class="modal-loading">
-        <div class="spinner"></div>
-        <p>Chargement...</p>
-      </div>
+      <LoadingState v-if="!user" state="loading" loading-text="Chargement de l'utilisateur..." />
 
       <!-- Contenu principal si user existe -->
       <template v-else>
@@ -62,6 +59,7 @@
                 </div>
               </div>
             </div>
+
             <!-- Statistiques rôles -->
             <div class="detail-section">
               <div class="stat-card">
@@ -107,8 +105,11 @@
 </template>
 
 <script>
+import LoadingState from '@/admin/components/ui/LoadingState.vue'
+
 export default {
   name: 'UserDetailsModal',
+  components: { LoadingState },
   props: {
     show: { type: Boolean, default: false },
     user: { type: [Object, null], default: null },
@@ -118,88 +119,59 @@ export default {
 
   computed: {
     totalRolesCount() {
-      if (!this.user) return 0;
+      if (!this.user) return 0
 
-      let count = 0;
-      if (this.user.role) count++;
-      if (this.user.additional_roles?.length) count += this.user.additional_roles.length;
+      let count = 0
+      if (this.user.role) count++
+      if (this.user.additional_roles?.length) count += this.user.additional_roles.length
 
-      return count;
+      return count
     },
 
     isActive() {
-      if (!this.user) return false;
-      const status = String(this.user.status || '').toLowerCase();
-      return ['active', 'enabled', '1', 'true'].includes(status);
+      if (!this.user) return false
+      const status = String(this.user.status || '').toLowerCase()
+      return ['active', 'enabled', '1', 'true'].includes(status)
     },
 
     isInactive() {
-      if (!this.user) return false;
-      const status = String(this.user.status || '').toLowerCase();
-      return ['inactive', 'disabled', '0', 'false'].includes(status);
+      if (!this.user) return false
+      const status = String(this.user.status || '').toLowerCase()
+      return ['inactive', 'disabled', '0', 'false'].includes(status)
     },
 
     statusLabel() {
-      if (!this.user) return 'Inconnu';
-      const status = String(this.user.status || '').toLowerCase();
+      if (!this.user) return 'Inconnu'
+      const status = String(this.user.status || '').toLowerCase()
 
-      if (this.isActive) return 'Actif';
-      if (this.isInactive) return 'Inactif';
-      if (['pending', 'invited', 'waiting'].includes(status)) return 'En attente';
+      if (this.isActive) return 'Actif'
+      if (this.isInactive) return 'Inactif'
+      if (['pending', 'invited', 'waiting'].includes(status)) return 'En attente'
 
-      return status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Inconnu';
+      return status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Inconnu'
     },
 
     statusBadgeClass() {
-      if (this.isActive) return 'badge-success';
-      if (this.isInactive) return 'badge-danger';
-      if (['pending', 'invited', 'waiting'].includes(String(this.user?.status || '').toLowerCase())) return 'badge-warning';
-      return 'badge-normal';
+      if (this.isActive) return 'badge-success'
+      if (this.isInactive) return 'badge-danger'
+      if (['pending', 'invited', 'waiting'].includes(String(this.user?.status || '').toLowerCase())) return 'badge-warning'
+      return 'badge-normal'
     }
   },
 
   methods: {
     formatDate(dateString) {
-      if (!dateString) return '';
-      const date = new Date(dateString);
-      return isNaN(date) ? dateString : date.toLocaleString('fr-FR');
+      if (!dateString) return ''
+      const date = new Date(dateString)
+      return isNaN(date) ? dateString : date.toLocaleString('fr-FR')
     }
   }
 }
 </script>
 
 <style scoped>
-.modal-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem;
-  color: #6c757d;
-}
-
-.spinner {
-  width: 2rem;
-  height: 2rem;
-  border: 3px solid #e9ecef;
-  border-top: 3px solid #007bff;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
 .detail-item {
-  padding-bottom: 1.2rem;
+  padding-bottom: 1rem;
 }
 
 .stat-card {
@@ -220,39 +192,17 @@ export default {
 .stat-label {
   font-weight: 600;
   color: #495057;
-  display: block;
   margin-bottom: 0.5rem;
-}
-
-.roles-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-}
-
-.role-badge {
-  display: inline-block;
-  padding: 3px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.role-badge.role-primary {
-  background: linear-gradient(135deg, #ffd700, #ffed4e);
-  color: #8b5a00;
-  border: 1px solid #e6c200;
-}
-
-.role-badge.role-secondary {
-  background: #e9ecef;
-  color: #495057;
-  border: 1px solid #ced4da;
 }
 
 .footer-actions {
   display: flex;
   gap: 0.5rem;
-  justify-content: flex-end;
+}
+
+.modal-footer {
+  border-top: 1px solid #e9ecef;
+  padding: 1rem 1.5rem;
+  justify-content: center;
 }
 </style>

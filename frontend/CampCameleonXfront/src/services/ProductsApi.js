@@ -1,35 +1,22 @@
-import axios from 'axios'
+import httpClient from './httpClient'
 import { buildTypeConfigFromProductableType } from '@/shared/configs/productConfigs'
 
 class ProductsApi {
-
-  constructor() {
-    this.baseURL = '/api'
-    this.defaultHeaders = {
-      'Accept': 'application/json'
-    }
-    console.log('ProductsApi initialized')
-  }
 
   // ==========================================
   // PRODUCTS CRUD
   // ==========================================
   async getProducts(params = {}) {
     try {
-      console.log("1: ", new Date())
       const searchParams = new URLSearchParams()
       Object.entries(params).forEach(([key, value]) => {
         if (value !== null && value !== undefined && value !== '') {
           searchParams.append(key, value)
         }
       })
-      const url = `${this.baseURL}/products${searchParams.toString() ? '?' + searchParams.toString() : ''}`
+      const url = `/products${searchParams.toString() ? '?' + searchParams.toString() : ''}`
       
-      console.log("2", new Date())
-      const response = await axios.get(url, {
-        headers: this.defaultHeaders
-      })
-      console.log("3: ", new Date())
+      const response = await httpClient.get(url)
 
       return {
         data: response.data.member || response.data || [],
@@ -45,10 +32,7 @@ class ProductsApi {
 
   async getProduct(id) {
     try {
-      const { data: raw } = await axios.get(`${this.baseURL}/products/${id}`, {
-        headers: this.defaultHeaders
-      })
-      console.log('Données brutes reçues du backend:', raw)
+      const { data: raw } = await httpClient.get(`/products/${id}`)
 
       let product
       if (raw?.['@type'] === 'Collection' && Array.isArray(raw.member)) {
@@ -65,8 +49,6 @@ class ProductsApi {
         product.typeConfig = this.buildTypeConfig(product.productableType)
       }
 
-      console.log('✅ Produit.typeConfig:', product.typeConfig)
-      console.log('✅ Produit.productableDetail:', product.productableDetail)
       return product
     } catch (error) {
       console.error(`Erreur lors de la récupération du produit ${id}:`, error)
@@ -80,11 +62,7 @@ class ProductsApi {
 
   async createProduct(productData) {
     try {
-      console.log('productData:', productData)
-      // axios infèrera Content-Type: application/json automatiquement pour les objets JS
-      const response = await axios.post(`${this.baseURL}/products`, productData, {
-        headers: this.defaultHeaders
-      })
+      const response = await httpClient.post('/products', productData)
       return response.data
     } catch (error) {
       console.error('Erreur lors de la création du produit:', error)
@@ -94,9 +72,8 @@ class ProductsApi {
 
   async updateProduct(id, productData) {
     try {
-      const response = await axios.patch(`${this.baseURL}/products/${id}`, productData, {
+      const response = await httpClient.patch(`/products/${id}`, productData, {
         headers: {
-          ...this.defaultHeaders,
           'Content-Type': 'application/merge-patch+json'
         }
       })
@@ -109,9 +86,7 @@ class ProductsApi {
 
   async deleteProduct(id) {
     try {
-      await axios.delete(`${this.baseURL}/products/${id}`, {
-        headers: this.defaultHeaders
-      })
+      await httpClient.delete(`/products/${id}`)
       return true
     } catch (error) {
       console.error(`Erreur lors de la suppression du produit ${id}:`, error)
@@ -140,13 +115,11 @@ class ProductsApi {
   }
 
   // ==========================================
-  // RELATIONS / UTILS (inchangés)
+  // RELATIONS / UTILS
   // ==========================================
   async getCategories() {
     try {
-      const response = await axios.get(`${this.baseURL}/categories`, {
-        headers: this.defaultHeaders
-      })
+      const response = await httpClient.get('/categories')
       return response.data.member || response.data || []
     } catch (error) {
       console.warn('Impossible de charger les catégories:', error)
@@ -162,102 +135,35 @@ class ProductsApi {
       'rooms': 'App\\Models\\Room',
       'activities': 'App\\Models\\Activity'
     }
-    const apiType = typeMap[type]
-    if (!apiType) throw new Error(`Type de relation non supporté: ${type}`)
+    const productableType = typeMap[type] || type
     try {
-      return await this.getProducts({
-        type: apiType,
-        per_page: 100,
-        status: 'active'
+      const response = await httpClient.get('/products', {
+        params: { type: productableType, per_page: 100 }
       })
+      return response.data.member || response.data || []
     } catch (error) {
-      console.error(`Erreur lors de la récupération des ${type}:`, error)
-      return { data: [], totalItems: 0 }
+      console.warn(`Impossible de charger les produits de type ${type}:`, error)
+      return []
     }
   }
 
-  async updateProductRelations(productId, productableId, productableType, relations) {
+  // ==========================================
+  // MEDIA UPLOAD
+  // ==========================================
+  async uploadImage(file) {
     try {
-      const endpoints = {
-        'App\\Models\\Menu': 'menus',
-        'App\\Models\\Dish': 'dishes',
-        'App\\Models\\Ingredient': 'ingredients',
-        'App\\Models\\Room': 'rooms',
-        'App\\Models\\Activity': 'activities'
-      }
-      const endpoint = endpoints[productableType]
-      if (!endpoint) throw new Error(`Type productable non supporté: ${productableType}`)
+      const formData = new FormData()
+      formData.append('file', file)
 
-      const response = await axios.patch(`${this.baseURL}/${endpoint}/${productableId}`, relations, {
+      const response = await httpClient.post('/media_objects', formData, {
         headers: {
-          ...this.defaultHeaders,
-          'Content-Type': 'application/merge-patch+json'
+          'Content-Type': 'multipart/form-data'
         }
       })
-      return response.data
-    } catch (error) {
-      console.error('Erreur lors de la mise à jour des relations:', error)
-      throw this.handleError(error)
-    }
-  }
-
-  // ==========================================
-  // UPLOAD (fix spécial FormData)
-  // ==========================================
-  async uploadToMediaObjects(file) {
-    try {
-      console.log('📤 Début upload vers /api/media_objects', {
-        fileName: file?.name,
-        fileSize: file?.size,
-        fileType: file?.type
-      })
-
-      if (!file || !(file instanceof File)) {
-        throw new Error('Fichier invalide')
-      }
-
-      if (file.size > 5 * 1024 * 1024) {
-        throw new Error('Fichier trop volumineux (max 5MB)')
-      }
-
-      const allowedTypes = [
-        'image/jpeg', 'image/jpg', 'image/png',
-        'image/gif', 'image/webp', 'image/heic', 'image/avif'
-      ]
-      if (!allowedTypes.includes(file.type)) {
-        throw new Error('Format de fichier non supporté')
-      }
-
-      const formData = new FormData()
-      formData.append('file', file, file.name)
-
-      // debug console avant envoi
-      console.log('📝 FormData created -> has file:', formData.has('file'), 'keys:', [...formData.keys()])
-
-      // IMPORTANT: forcer l'envoi brut du FormData (ne pas définir Content-Type)
-      const response = await axios.post(`${this.baseURL}/media_objects`, formData, {
-        headers: {
-          'Accept': 'application/json'
-          // pas de Content-Type ici, axios/gw doit ajouter le boundary
-        },
-        transformRequest: (data) => data,
-        timeout: 30000
-      })
-
-      console.log('✅ Upload réussi:', {
-        id: response.data.id,
-        contentUrl: response.data.contentUrl || response.data.content_url,
-        fileName: response.data.fileName || response.data.file_name
-      })
 
       return response.data
     } catch (error) {
-      console.error('❌ Erreur upload MediaObject:', {
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data,
-        message: error.message
-      })
+      console.error('Erreur upload MediaObject:', error)
 
       if (error.response?.status === 413) throw new Error('Fichier trop volumineux')
       if (error.response?.status === 422) throw new Error('Format de fichier non supporté')
