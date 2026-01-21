@@ -8,6 +8,8 @@ import '@fortawesome/fontawesome-free/css/all.css'
 import './assets/styles/shared.scss'
 import App from './App.vue'
 
+import 'driver.js/dist/driver.css'
+
 // ---------- AXIOS DE BASE ----------
 axios.defaults.baseURL = import.meta.env.VITE_API_URL || '/api'
 axios.defaults.headers.common['Accept'] = 'application/json'

@@ -21,7 +21,6 @@
                         <h2 class="title">
                             Votre expérience, votre budget:
                         </h2>
-
                     </div>
 
                     <!-- Bouton CTA principal -->
@@ -71,19 +70,34 @@
 
 <script>
 import QuoteModal from '@/public/views/QuoteModal.vue'
+
 export default {
     name: 'DevisSection',
     components: { QuoteModal },
+    
     data() {
         return {
             showQuote: false,
             isLoading: false  
         }
     },
+
     methods: {
         onBooking(data) {
             console.log('Réservation:', data)
+        },
+        openQuoteFromDemo() {
+            this.showQuote = true
         }
+    },
+
+    mounted() {
+        // Écoute l'event du bouton démo
+        window.addEventListener('demo:open-quote-modal', this.openQuoteFromDemo)
+    },
+
+    beforeUnmount() {
+        window.removeEventListener('demo:open-quote-modal', this.openQuoteFromDemo)
     }
 }
 </script>

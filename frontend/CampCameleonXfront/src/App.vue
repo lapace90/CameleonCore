@@ -1,6 +1,4 @@
-<!-- src/App.vue -->
 <template>
-
        
     <!-- Main content -->
     <main class="main-content">

@@ -67,7 +67,7 @@
                                             <div>
                                                 <label>Départ</label>
                                                 <span>{{ formatDate(displayEndInclusive(selectedDates.endExclusive))
-                                                }}</span>
+                                                    }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -94,7 +94,7 @@
                                         <div class="guests-display">
                                             <span class="guests-number">{{ selectedDates.guests }}</span>
                                             <span class="guests-text">personne{{ selectedDates.guests > 1 ? 's' : ''
-                                            }}</span>
+                                                }}</span>
                                         </div>
 
                                         <button type="button" @click="increaseGuests"
@@ -307,7 +307,7 @@
                                 </div>
                                 <div class="summary-item">
                                     <span>{{ selectedDates.guests }} personne{{ selectedDates.guests > 1 ? 's' : ''
-                                    }}</span>
+                                        }}</span>
                                 </div>
                             </div>
 
@@ -409,6 +409,7 @@ import frLocale from '@fullcalendar/core/locales/fr'
 import { computeQuoteTotal } from '@/shared/composables/useQuotePricing'
 import EmailValidationModal from '@/public/components/EmailValidationModal.vue'
 import Loading from '@/shared/components/ui/Loading.vue'
+import { emitDemoStep, emitDemoModalClose, emitDemoValidation } from '@/demo-tour/demoEvents'
 
 export default {
     name: 'QuoteModal',
@@ -586,11 +587,10 @@ export default {
         }
     },
 
-    // 4️⃣ Dans QuoteModal.vue, ajoutez ce watcher dans la section watch: {}
-
     watch: {
         show(val) {
             if (val) this.initializeModal()
+            emitDemoStep(1)
         },
 
         // clamp des overrides si le nb d'invités baisse
@@ -672,9 +672,22 @@ export default {
         // --- Navigation ---
         increaseGuests() { if (this.selectedDates.guests < 20) this.selectedDates.guests++ },
         decreaseGuests() { if (this.selectedDates.guests > 1) this.selectedDates.guests-- },
-        nextStep() { if (this.canProceed && this.currentStep < 5) this.currentStep++ },
-        previousStep() { if (this.currentStep > 1) this.currentStep-- },
-        closeModal() { this.$emit('close') },
+        nextStep() {
+            if (this.canProceed && this.currentStep < 5) {
+                this.currentStep++
+                emitDemoStep(this.currentStep)
+            }
+        },
+        previousStep() {
+            if (this.currentStep > 1) {
+                this.currentStep--
+                emitDemoStep(this.currentStep)
+            }
+        },
+        closeModal() {
+            this.$emit('close')
+            emitDemoModalClose()
+        },
 
         resetSelections() {
             this.selectedItems = { activities: [], room: null, menus: [] }
@@ -790,6 +803,7 @@ export default {
             }
 
             this.showEmailValidation = true
+            emitDemoValidation()
         },
 
         async createStripeSession(quoteId) {

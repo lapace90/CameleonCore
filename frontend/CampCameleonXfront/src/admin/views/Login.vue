@@ -1,6 +1,9 @@
 <template>
     <div class="login-page">
-        <form class="login-form" @submit.prevent="handleLogin">
+        <!-- Mobile Blocker -->
+        <MobileBlocker v-if="isMobile" />
+
+        <form v-else class="login-form" @submit.prevent="handleLogin">
             <h1>Connexion administrateur</h1>
             <BaseInput v-model="email" type="email" placeholder="Email" required />
             <BaseInput v-model="password" type="password" placeholder="Mot de passe" required />
@@ -10,16 +13,16 @@
             <p v-if="auth.error" class="error-message">{{ auth.error }}</p>
             <p class="switch-auth">Pas de compte ? <router-link to="/admin/register">Inscription</router-link></p>
         </form>
-
     </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/shared/stores/auth'
 import BaseInput from '@/shared/components/ui/BaseInput.vue'
 import BaseButton from '@/shared/components/ui/BaseButton.vue'
+import MobileBlocker from '@/demo-tour/components/MobileBlocker.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -27,6 +30,30 @@ const auth = useAuthStore()
 
 const email = ref('')
 const password = ref('')
+const windowWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1200)
+
+const isMobile = computed(() => {
+    // Vérifie si démo désactivée
+    if (import.meta.env.VITE_DEMO_MODE === 'false') return false
+    if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search)
+        if (params.get('demo') === 'off') return false
+        if (localStorage.getItem('campcameleon-demo-disabled') === 'true') return false
+    }
+    return windowWidth.value < 1024
+})
+
+const updateWidth = () => {
+    windowWidth.value = window.innerWidth
+}
+
+onMounted(() => {
+    window.addEventListener('resize', updateWidth)
+})
+
+onUnmounted(() => {
+    window.removeEventListener('resize', updateWidth)
+})
 
 const handleLogin = async () => {
     try {
