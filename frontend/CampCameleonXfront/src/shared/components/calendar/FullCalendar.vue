@@ -43,7 +43,7 @@
         </div>
         <div class="stat-content">
           <span class="stat-number">{{ stats.totalReservations }}</span>
-          <span class="stat-label">Réservations totales</span>
+          <span class="stat-label">Réservations — {{ reservationsLabel }}</span>
         </div>
       </div>
 
@@ -190,6 +190,14 @@ export default {
     }
   },
 
+  computed: {
+    reservationsLabel() {
+      if (this.currentView === 'timeGridWeek') return 'Cette semaine'
+      if (this.currentView === 'timeGridDay') return "Aujourd'hui"
+      return 'Ce mois'
+    }
+  },
+
   mounted() {
     this.loadInitialStats()
     this.$nextTick(() => {
@@ -261,37 +269,24 @@ export default {
     },
 
     updateStatsFromEvents(events) {
-      const reservations = events.filter(e => e.type === 'reservation')
-      const otherEvents = events.filter(e => e.type !== 'reservation')
-
+      const reservations = events.filter(e => e.extendedProps?.type === 'reservation')
       this.stats = {
-        reservations: reservations.length,
-        events: otherEvents.length,
-        occupancy: Math.round((reservations.length / 30) * 100) // Exemple: sur 30 chambres
+        ...this.stats,
+        totalReservations: reservations.length
       }
     },
 
     async loadInitialStats() {
       try {
         const stats = await AdminApi.getDashboardStats()
-
-        console.log('📊 Stats reçues:', stats)
-
         this.stats = {
-          totalReservations: stats.reservations.total || 0,
-          currentGuests: stats.occupancy.current_guests || 0,
-          checkinsToday: stats.occupancy.checkins_today || 0,
-          checkoutsToday: stats.occupancy.checkouts_today || 0
+          ...this.stats,
+          currentGuests: stats.occupancy?.current_guests || 0,
+          checkinsToday: stats.occupancy?.checkins_today || 0,
+          checkoutsToday: stats.occupancy?.checkouts_today || 0
         }
       } catch (error) {
         console.error('❌ Erreur chargement stats:', error)
-        // Valeurs par défaut
-        this.stats = {
-          totalReservations: 0,
-          currentGuests: 0,
-          checkinsToday: 0,
-          checkoutsToday: 0
-        }
       }
     },
 

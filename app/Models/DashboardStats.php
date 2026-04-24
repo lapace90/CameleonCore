@@ -11,6 +11,7 @@ use App\State\DashboardStatsProvider;
         new Get(
             uriTemplate: '/admin/dashboard/stats',
             provider: DashboardStatsProvider::class,
+            middleware: ['auth:sanctum'],
             security: "is_granted('ROLE_ADMIN')",
             description: 'Statistiques dashboard admin'
         ),
