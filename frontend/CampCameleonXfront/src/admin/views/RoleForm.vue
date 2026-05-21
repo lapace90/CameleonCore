@@ -277,7 +277,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import httpClient from '@/services/httpClient'
 import LoadingState from '@/admin/components/ui/LoadingState.vue'
 
 export default {
@@ -338,7 +338,7 @@ export default {
   methods: {
     async loadPermissions() {
       try {
-        const response = await axios.get('/api/permissions')
+        const response = await httpClient.get('/permissions')
         this.permissions = Array.isArray(response.data) 
           ? response.data 
           : response.data['hydra:member'] || []
@@ -351,7 +351,7 @@ export default {
     async loadRole() {
       this.loading = true
       try {
-        const response = await axios.get(`/api/roles/${this.roleId}`)
+        const response = await httpClient.get(`/roles/${this.roleId}`)
         this.role = response.data
         
         // Remplir le formulaire
@@ -374,13 +374,13 @@ export default {
       this.errors = {}
       
       try {
-        const url = this.isEditing 
-          ? `/api/roles/${this.roleId}`
-          : '/api/roles'
-          
+        const url = this.isEditing
+          ? `/roles/${this.roleId}`
+          : '/roles'
+
         const method = this.isEditing ? 'put' : 'post'
-        
-        const response = await axios[method](url, this.form)
+
+        const response = await httpClient[method](url, this.form)
         
         // Redirection avec message de succès
         this.$router.push({
@@ -409,7 +409,7 @@ export default {
       
       this.saving = true
       try {
-        await axios.delete(`/api/roles/${this.roleId}`)
+        await httpClient.delete(`/roles/${this.roleId}`)
         this.$router.push({
           path: '/admin/roles',
           query: { success: 'Rôle supprimé avec succès' }

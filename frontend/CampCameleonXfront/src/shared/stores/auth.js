@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import axios from 'axios'
+import httpClient from '@/services/httpClient'
 
 export const useAuthStore = defineStore('auth', () => {
   // ===========================
@@ -51,9 +51,7 @@ export const useAuthStore = defineStore('auth', () => {
   // ===========================
   // 2. AJOUTER LA MÉTHODE initializeToken :
   const initializeToken = () => {
-    if (token.value) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token.value}`
-    }
+    // httpClient reads auth-token from localStorage on every request — no-op here
   }
 
   // Configuration du token
@@ -61,11 +59,9 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = newToken
     if (newToken) {
       localStorage.setItem('auth-token', newToken)
-      axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`
       isAuthenticated.value = true
     } else {
       localStorage.removeItem('auth-token')
-      delete axios.defaults.headers.common['Authorization']
       isAuthenticated.value = false
     }
   }
@@ -142,7 +138,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       console.log('🔄 Vérification du token avec le backend...')
-      const response = await axios.get('/auth/verify')
+      const response = await httpClient.get('/auth/verify')
       console.log('🔍 Réponse API verify:', response.data)
       const userData = response.data.user
 
@@ -183,7 +179,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       console.log('📝 Tentative d\'inscription...', userData.email)
 
-      const response = await axios.post('/auth/register', userData)
+      const response = await httpClient.post('/auth/register', userData)
 
       if (response.data.token && response.data.user) {
         console.log('✅ Inscription réussie:', response.data.user.name)
@@ -222,7 +218,7 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
 
     try {
-      const response = await axios.post('/auth/login', credentials)
+      const response = await httpClient.post('/auth/login', credentials)
 
       if (response.data.token && response.data.user) {
         setToken(response.data.token)
@@ -256,7 +252,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const refreshToken = async () => {
     try {
-      const response = await axios.post('/auth/refresh')
+      const response = await httpClient.post('/auth/refresh')
       if (response.data.token) {
         setToken(response.data.token)
         return true
@@ -301,7 +297,7 @@ export const useAuthStore = defineStore('auth', () => {
       }
       console.log('🔍 Headers envoyés:', headers)
 
-      const response = await axios.patch(`/admin/users/${user.value.id}`, profileData, {
+      const response = await httpClient.patch(`/admin/users/${user.value.id}`, profileData, {
         headers
       })
 
@@ -343,7 +339,7 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
 
     try {
-      await axios.patch(`/admin/users/${user.value.id}`, {
+      await httpClient.patch(`/admin/users/${user.value.id}`, {
         current_password: current,
         password: newPassword,
         password_confirmation: newPassword

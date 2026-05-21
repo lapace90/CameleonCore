@@ -40,7 +40,6 @@
     "@fullcalendar/timegrid": "^6.1.18",
     "@fullcalendar/vue3": "^6.1.18",
     "@popperjs/core": "^2.11.8",
-    "axios": "^1.11.0",
     "bootstrap": "^5.3.6",
     "chart.js": "^4.4.1",
     "core-js": "^3.36.0",

@@ -226,7 +226,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import httpClient from '@/services/httpClient'
 
 export default {
   name: 'PublicContact',
@@ -295,7 +295,7 @@ export default {
       this.submitting = true;
 
       try {
-        const response = await axios.post('/api/contact', this.form);
+        const response = await httpClient.post('/contact', this.form);
 
         console.log('✅ Message envoyé:', response.data);
 
