@@ -1,4 +1,4 @@
-@import '@/assets/styles/variables';
+@use '@/assets/styles/variables' as *;
 
 .contact-page {
   margin-top: -120px; // Background remonte sous header transparent

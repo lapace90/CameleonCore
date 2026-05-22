@@ -22,7 +22,7 @@ export default {
 
 <style lang="scss">
 // Import de vos styles globaux
-@import '@/assets/styles/shared.scss';
+@use '@/assets/styles/shared.scss' as *;
 
 #app {
   min-height: 100vh;

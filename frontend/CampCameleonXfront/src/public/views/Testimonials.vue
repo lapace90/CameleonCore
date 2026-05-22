@@ -199,7 +199,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/styles/variables';
+@use 'sass:color';
+@use '@/assets/styles/variables' as *;
 
 .testimonials-page {
   margin-top: -120px;
@@ -335,7 +336,7 @@ export default {
 /* Grille de témoignages */
 .testimonials-grid-section {
   padding: 4rem 0;
-  background: linear-gradient(135deg, $slate-blue 0%, lighten($slate-blue, 20%) 100%);
+  background: linear-gradient(135deg, $slate-blue 0%, color.adjust($slate-blue, $lightness: 20%) 100%);
 }
 
 .testimonials-grid {

@@ -5,7 +5,7 @@
 // Import des modules Sass modernes
 @use "sass:map";
 @use "sass:color";
-@import 'variables';
+@use 'variables' as *;
 
 // Mixin pour les variants de boutons
 @mixin button-variant($color) {

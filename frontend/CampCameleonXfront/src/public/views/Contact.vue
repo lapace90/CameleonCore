@@ -346,7 +346,8 @@ export default {
 </script>
 
 <style scoped lang="scss">
-@import '@/assets/styles/variables';
+@use 'sass:color';
+@use '@/assets/styles/variables' as *;
 
 .privacy-link {
   color: $terracotta;
@@ -354,7 +355,7 @@ export default {
   font-weight: 500;
 
   &:hover {
-    color: darken($terracotta, 10%);
+    color: color.adjust($terracotta, $lightness: -10%);
   }
 }
 // Map Section - Ajustements Mobile

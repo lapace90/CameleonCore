@@ -1,12 +1,13 @@
+@use '../variables' as *;
 // Styles spécifiques à l'admin
-@import './forms';
-@import '../admin-section/users';
-@import '../admin-section/categories';
-@import './tables';
-@import '../components/grids';
-@import '../admin-section/roles';
-@import '../components/stats-card';
-@import '../admin-section/reservations';
+@use './forms' as *;
+@use '../admin-section/users' as *;
+@use '../admin-section/categories' as *;
+@use './tables' as *;
+@use '../components/grids' as *;
+@use '../admin-section/roles' as *;
+@use '../components/stats-card' as *;
+@use '../admin-section/reservations' as *;
 
 // Cards spécifiques admin
 .stats-card {

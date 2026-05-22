@@ -2,26 +2,26 @@
 //  LAYOUT + COULEURS MOODBOARD
 // ====================================
 @use 'sass:color';
-@import './variables';
+@use './variables' as *;
 
 // Import des layouts publics
-@import 'public/layout';
-@import 'public/public';
+@use 'public/layout' as *;
+@use 'public/public' as *;
 
 // Import des layouts admin  
-@import 'admin/layout';
-@import 'admin/admin';
+@use 'admin/layout' as *;
+@use 'admin/admin' as *;
 
 // Import des composants communs
-@import 'components/buttons';
-@import 'components/cards';
-@import 'components/forms';
-@import 'components/notifications';
-@import 'components/modals';
-@import 'components/badges';
+@use 'components/buttons' as *;
+@use 'components/cards' as *;
+@use 'components/forms' as *;
+@use 'components/notifications' as *;
+@use 'components/modals' as *;
+@use 'components/badges' as *;
 
 // Utilitaires à la fin
-@import 'utilities';
+@use 'utilities' as *;
 
 // Import des polices Google Fonts
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');

@@ -1,7 +1,8 @@
 // ========================================
 // BADGES DIÉTÉTIQUES ET AUTRES
 // ========================================
-@import '../variables';
+@use '../variables' as *;
+@use '../mixins' as *;
 
 // Base badge
 .badge {

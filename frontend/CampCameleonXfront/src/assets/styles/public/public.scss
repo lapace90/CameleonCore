@@ -1,14 +1,14 @@
 // public/public.scss - on importe les composant du site clients
-@import '../variables';
-@import '../mixins';
-@import '../public-sections/menu';
-@import '../public-sections/devis';
-@import '../public-sections/services';
-@import '../public-sections/contact';
-@import '../public-sections/activities';
-@import '../public-sections/landingpage';
-@import '../public/components/modals';
-@import '../public/components/quote';
+@use '../variables' as *;
+@use '../mixins' as *;
+@use '../public-sections/menu' as *;
+@use '../public-sections/devis' as *;
+@use '../public-sections/services' as *;
+@use '../public-sections/contact' as *;
+@use '../public-sections/activities' as *;
+@use '../public-sections/landingpage' as *;
+@use '../public/components/modals' as *;
+@use '../public/components/quote' as *;
 
 // ========================================
 // SECTION À PROPOS - AVEC VOS VARIABLES

@@ -2,7 +2,9 @@
 // Styles des pages publiques
 // ====================================
 
-@import '../variables';
+@use 'sass:color';
+@use '../variables' as *;
+@use '../mixins' as *;
 
 // Page commune
 .page {

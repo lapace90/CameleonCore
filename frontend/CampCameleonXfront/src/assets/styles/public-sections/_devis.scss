@@ -1,5 +1,5 @@
 @use 'sass:color';
-@import '@/assets/styles/variables';
+@use '@/assets/styles/variables' as *;
 
 .devis-section {
     padding: 6rem 0;

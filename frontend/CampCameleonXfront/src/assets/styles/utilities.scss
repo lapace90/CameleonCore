@@ -1,5 +1,6 @@
 @use "sass:color";
-@import 'variables';
+@use 'variables' as *;
+@use 'mixins' as *;
 
 // Espacement (margin/padding)
 @each $prop, $abbrev in (margin: m, padding: p) {
