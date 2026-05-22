@@ -1,254 +1,79 @@
 # ====================================
-# .gitignore - CampCameleonX
+# ENVIRONNEMENT
 # ====================================
-
-# ====================================
-# BACKEND LARAVEL
-# ====================================
-
-# Dépendances
-/vendor/
-/node_modules/
-
-# Fichiers d'environnement
 .env
 .env.backup
 .env.production
 .env.testing
+.env.local
 
-# Cache et logs
-/storage/*.key
-/storage/app/*
-!/storage/app/.gitkeep
-/storage/framework/cache/*
-!/storage/framework/cache/.gitkeep
-/storage/framework/sessions/*
-!/storage/framework/sessions/.gitkeep
-/storage/framework/views/*
-!/storage/framework/views/.gitkeep
-/storage/logs/*
-!/storage/logs/.gitkeep
-/bootstrap/cache/*
-!/bootstrap/cache/.gitkeep
-
-# Fichiers temporaires Laravel
+# ====================================
+# BACKEND (Laravel)
+# ====================================
+backend/vendor/
+backend/node_modules/
+backend/storage/*.key
+backend/storage/app/*
+!backend/storage/app/.gitkeep
+backend/storage/framework/cache/*
+!backend/storage/framework/cache/.gitkeep
+backend/storage/framework/sessions/*
+!backend/storage/framework/sessions/.gitkeep
+backend/storage/framework/views/*
+!backend/storage/framework/views/.gitkeep
+backend/storage/logs/*
+!backend/storage/logs/.gitkeep
+backend/bootstrap/cache/*
+!backend/bootstrap/cache/.gitkeep
+backend/public/storage
+backend/public/uploads/
+backend/storage/app/invoices/
+backend/storage/app/public/
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-Homestead.json
-Homestead.yaml
-auth.json
-
-# PHPUnit / Tests
 .phpunit.result.cache
-coverage/
 .phpunit.cache
+coverage/
 
 # ====================================
-# FRONTEND VUE.JS
+# FRONTEND (Vue.js)
 # ====================================
-
-# Dépendances Node
-/frontend/CampCameleonXfront/node_modules/
-/frontend/node_modules/
-
-# Build et dist
-/frontend/CampCameleonXfront/dist/
-/frontend/CampCameleonXfront/dist-ssr/
-/frontend/dist/
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/.vite/
+frontend/coverage/
+frontend/test-results/
+frontend/playwright-report/
+frontend/playwright/.cache/
 *.local
-
-# Cache Vite
-/frontend/CampCameleonXfront/.vite/
-/frontend/.vite/
-
-# Logs frontend
-/frontend/CampCameleonXfront/*.log
-/frontend/CampCameleonXfront/npm-debug.log*
-/frontend/CampCameleonXfront/yarn-debug.log*
-/frontend/CampCameleonXfront/yarn-error.log*
-/frontend/CampCameleonXfront/pnpm-debug.log*
-/frontend/CampCameleonXfront/lerna-debug.log*
-
-# Test coverage frontend
-/frontend/CampCameleonXfront/coverage/
-/frontend/coverage/
-
-# ====================================
-# FICHIERS LOURDS ET MÉDIAS
-# ====================================
-
-# Images uploadées (NE PAS versionner)
-/public/storage/
-/public/uploads/
-/public/images/uploads/
-/storage/app/public/uploads/
-/storage/app/public/products/
-/storage/app/public/avatars/
-
-# PDFs générés
-/storage/app/invoices/
-/storage/app/public/invoices/
-*.pdf
-
-# Vidéos et fichiers volumineux
-*.mp4
-*.mov
-*.avi
-*.mkv
-*.webm
-
-# Archives
-*.zip
-*.tar
-*.tar.gz
-*.rar
-*.7z
-
-# ====================================
-# BASE DE DONNÉES
-# ====================================
-
-# Dumps SQL
-*.sql
-*.sqlite
-*.sqlite3
-*.db
-/database/*.sqlite
-/database/*.sqlite3
-
-# Backups
-/backups/
-*.backup
-*.bak
 
 # ====================================
 # DOCKER
 # ====================================
-
-# Volumes Docker (ne pas versionner les données)
-/docker/volumes/
-/docker/postgres-data/
-/docker/mysql-data/
-
-# Logs Docker
 docker-compose.override.yml
 
 # ====================================
-# IDE ET ÉDITEURS
+# IDE
 # ====================================
-
-# VSCode
 .vscode/
 *.code-workspace
-.history/
-
-# PHPStorm / WebStorm / IntelliJ IDEA
 .idea/
 *.iml
-*.iws
-*.ipr
-.idea_modules/
-
-# Sublime Text
 *.sublime-project
 *.sublime-workspace
 
-# Atom
-.atom/
-
 # ====================================
-# SYSTÈMES D'EXPLOITATION
+# OS
 # ====================================
-
-# macOS
 .DS_Store
-.AppleDouble
-.LSOverride
-._*
-.Spotlight-V100
-.Trashes
-
-# Windows
 Thumbs.db
-Thumbs.db:encryptable
-ehthumbs.db
 Desktop.ini
-$RECYCLE.BIN/
-
-# Linux
 *~
-.directory
-.Trash-*
 
 # ====================================
-# PACKAGES ET LOCKFILES (Optionnel)
+# CERTIFICATS
 # ====================================
-
-# Décommenter si vous voulez ignorer les lockfiles
-# composer.lock
-# package-lock.json
-# yarn.lock
-# pnpm-lock.yaml
-
-# ====================================
-# FICHIERS TEMPORAIRES
-# ====================================
-
-*.swp
-*.swo
-*.tmp
-*.temp
-*.cache
-.sass-cache/
-
-# ====================================
-# CERTIFICATS ET CLÉS
-# ====================================
-
-# Clés SSH/SSL/TLS
 *.pem
 *.key
 *.crt
-*.cer
 *.p12
-*.pfx
-
-# ====================================
-# AUTRES
-# ====================================
-
-# Fichiers de debug
-.debug
-debug.log
-
-# Documentation générée
-/docs/build/
-/docs/_build/
-
-# Fichiers Xdebug
-xdebug-*
-
-# Playwright
-/frontend/CampCameleonXfront/test-results/
-/frontend/CampCameleonXfront/playwright-report/
-/frontend/CampCameleonXfront/playwright/.cache/
-
-# ====================================
-# SPÉCIFIQUE AU PROJET
-# ====================================
-
-# Fichiers de configuration locale
-config.local.php
-.env.local
-
-# Fichiers générés par les scripts
-/frontend/CampCameleonXfront/find-duplicates.cjs
-/frontend/find-duplicates.cjs
-
-coverage-report/
-frontend/CampCameleonXfront/test-results/.last-run.json
-
-public/storage
-frontend/CampCameleonXfront/test-results/.last-run.json

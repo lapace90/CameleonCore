@@ -88,12 +88,12 @@ Projet développé dans le cadre du Titre Professionnel Concepteur Développeur 
 
 ```yaml
 Services:
-  ├── myBackendX    (Laravel API - Port 8000)
-  ├── myFrontendX   (Vue.js SPA - Port 5173)
-  ├── myPostgresX   (PostgreSQL - Port 5433)
-  ├── mySchedulerX  (Tâches CRON isolées)
-  ├── myPgAdminX    (Administration BDD - Port 5050)
-  └── myMailhogX    (Capture emails dev - Port 8025)
+  ├── myBackendCore    (Laravel API - Port 8000)
+  ├── myFrontendCore   (Vue.js SPA - Port 5173)
+  ├── myPostgresCore   (PostgreSQL - Port 5433)
+  ├── mySchedulerCore  (Tâches CRON isolées)
+  ├── myPgAdminCore    (Administration BDD - Port 5050)
+  └── myMailhogCore    (Capture emails dev - Port 8025)
 ```
 
 ### Pattern Polymorphe

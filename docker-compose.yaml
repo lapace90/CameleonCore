@@ -8,7 +8,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: myBackendX
+    container_name: myBackendCore
     ports:
       - 8000:8000
     volumes:
@@ -35,7 +35,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: mySchedulerX
+    container_name: mySchedulerCore
     volumes:
       - ./backend:/app
     depends_on:
@@ -63,7 +63,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: myFrontendX
+    container_name: myFrontendCore
     ports:
       - 5173:80
     networks:
@@ -77,7 +77,7 @@ services:
     ports:
       - 5433:5432
     volumes:
-      - campcameleonx_postgres_data:/var/lib/postgresql/data
+      - cameleoncore_postgres_data:/var/lib/postgresql/data
     env_file:
       - .env
     environment:
@@ -86,7 +86,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     networks:
       - backend
-    container_name: myPostgresX
+    container_name: myPostgresCore
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -96,7 +96,7 @@ services:
   # 🗄️ PGADMIN - Interface web pour PostgreSQL
   pgadmin:
     image: dpage/pgadmin4:latest
-    container_name: myPgAdminX
+    container_name: myPgAdminCore
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@campcameleonx.com}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
@@ -113,7 +113,7 @@ services:
   # MAILHOG - Capture des emails en développement
   mailhog:
     image: mailhog/mailhog
-    container_name: myMailhogX
+    container_name: myMailhogCore
     ports:
       - "1025:1025"   # SMTP
       - "8025:8025"   # Interface web
@@ -122,7 +122,7 @@ services:
     restart: unless-stopped
 
 volumes:
-  campcameleonx_postgres_data:
+  cameleoncore_postgres_data:
     driver: local
   campcameleonx_pgadmin_data:
     driver: local

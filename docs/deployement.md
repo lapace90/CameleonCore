@@ -115,11 +115,11 @@ docker compose ps
 
 ```
 NAME            STATUS          PORTS
-myBackendX      Up              0.0.0.0:8000->8000/tcp
-myFrontendX     Up              0.0.0.0:5173->80/tcp
-myPostgresX     Up (healthy)    0.0.0.0:5433->5432/tcp
-mySchedulerX    Up              
-myPgAdminX      Up              0.0.0.0:5050->80/tcp
+myBackendCore      Up              0.0.0.0:8000->8000/tcp
+myFrontendCore     Up              0.0.0.0:5173->80/tcp
+myPostgresCore     Up (healthy)    0.0.0.0:5433->5432/tcp
+mySchedulerCore    Up              
+myPgAdminCore      Up              0.0.0.0:5050->80/tcp
 ```
 
 ### 5. Initialiser la base de données
