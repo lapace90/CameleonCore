@@ -108,7 +108,7 @@
             <td>
               <strong>{{ getCustomerName(reservation) }}</strong><br>
               <small v-if="getCustomerEmail(reservation)" class="text-muted">
-                <i class="mail"  style="padding: .5rem;"> </i>{{ getCustomerEmail(reservation) }}
+                <AppIcon name="mail" /> {{ getCustomerEmail(reservation) }}
               </small><br>
               <small v-if="getCustomerPhone(reservation)" class="text-muted">
                 <AppIcon name="phone" /> {{ getCustomerPhone(reservation) }}
@@ -518,7 +518,31 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
   padding: 24px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.header-left {
+  flex: 1;
+}
+
+.page-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
 }
 
 .page-title .app-icon {
@@ -526,73 +550,25 @@ export default {
 }
 
 .page-subtitle {
-  margin: 0;
+  margin: 6px 0 0 0;
   color: #6b7280;
-  font-size: 15px;
+  font-size: 13px;
 }
 
-.state-card {
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 48px 24px;
-  text-align: center;
+.header-actions {
   display: flex;
-  flex-direction: column;
+  gap: 12px;
+}
+
+.table-container {
+  padding: 24px;
+}
+
+.results-info {
+  display: flex;
   align-items: center;
-  gap: 16px;
-  color: #111827;
-  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.04);
+  gap: 8px;
+  color: #6b7280;
+  font-size: 13px;
 }
-
-.state-card .app-icon {
-  font-size: 32px;
-  color: #2563eb;
-}
-
-.state-card.error .app-icon {
-  color: #dc2626;
-}
-
-.status-badge {
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.status-confirmed {
-  background: #d1fae5;
-  color: #065f46;
-}
-
-.status-pending {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.status-cancelled {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-.status-completed {
-  background: #dbeafe;
-  color: #1e40af;
-}
-
-.status-draft {
-  background: #f3f4f6;
-  color: #374151;
-}
-
-.status-checked_in {
-  background: #d1fae5;
-  color: #065f46;
-}
-
-.status-checked_out {
-  background: #dbeafe;
-  color: #1e40af;
-}
-
 </style>
