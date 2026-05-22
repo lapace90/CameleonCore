@@ -24,6 +24,11 @@ async function initializeAndMount() {
 
   const storedToken = localStorage.getItem('auth-token')
 
+  // Après la création de pinia, avant checkAuth
+  const { useInstanceStore } = await import('./shared/stores/instance')
+  const instanceStore = useInstanceStore(pinia)
+  await instanceStore.load()
+
   // Hydrate rapidement depuis le storage (sans requête)
   if (storedToken) {
     authStore.token = storedToken

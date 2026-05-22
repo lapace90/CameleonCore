@@ -5,7 +5,10 @@ use App\Http\Controllers\Api\Admin\SettingsController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\StripeController;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\InstanceConfigController;
 
+// Instance config (public, no auth)
+Route::get('/config/public', [InstanceConfigController::class, 'public']);
 
 Route::prefix('stripe')->group(function () {
     // Créer une session de paiement depuis un devis validé
