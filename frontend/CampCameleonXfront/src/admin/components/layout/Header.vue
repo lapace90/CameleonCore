@@ -12,14 +12,85 @@
       <!-- Right side - Actions and user menu -->
       <div class="header-right">
         <!-- Search -->
-        <div class="search-box">
+        <div class="search-box" ref="searchContainer">
           <AppIcon name="search" />
-          <input 
-            type="text" 
-            placeholder="Rechercher..." 
-            v-model="searchQuery" 
+          <input
+            type="text"
+            placeholder="Rechercher..."
+            v-model="searchQuery"
             @input="handleSearch"
+            @keydown.esc="closeSearch"
+            @focus="onSearchFocus"
+            autocomplete="off"
           >
+          <button v-if="searchQuery" class="search-clear" @click="clearSearch">
+            <AppIcon name="x" />
+          </button>
+
+          <!-- Dropdown résultats -->
+          <div class="search-dropdown" v-show="showSearchResults">
+            <div v-if="isSearching" class="search-state">
+              <span class="search-spinner"></span>
+              <span>Recherche en cours...</span>
+            </div>
+
+            <div v-else-if="hasResults" class="search-results">
+              <!-- Produits -->
+              <div v-if="searchResults.products.length" class="results-section">
+                <div class="results-section-title">Produits</div>
+                <button
+                  v-for="product in searchResults.products"
+                  :key="'p-' + product.id"
+                  class="result-item"
+                  @click="navigateTo({ name: 'ProductDetail', params: { type: product.urlType, id: product.id } })"
+                >
+                  <AppIcon name="package" class="result-icon" />
+                  <div class="result-text">
+                    <span class="result-name">{{ product.name }}</span>
+                    <span class="result-meta">{{ product.typeLabel }}</span>
+                  </div>
+                </button>
+              </div>
+
+              <!-- Utilisateurs -->
+              <div v-if="searchResults.users.length" class="results-section">
+                <div class="results-section-title">Utilisateurs</div>
+                <button
+                  v-for="user in searchResults.users"
+                  :key="'u-' + user.id"
+                  class="result-item"
+                  @click="navigateTo({ name: 'UserDetail', params: { id: user.id } })"
+                >
+                  <AppIcon name="user" class="result-icon" />
+                  <div class="result-text">
+                    <span class="result-name">{{ user.name }}</span>
+                    <span class="result-meta">{{ user.email }}</span>
+                  </div>
+                </button>
+              </div>
+
+              <!-- Réservations -->
+              <div v-if="searchResults.reservations.length" class="results-section">
+                <div class="results-section-title">Réservations</div>
+                <button
+                  v-for="res in searchResults.reservations"
+                  :key="'r-' + res.id"
+                  class="result-item"
+                  @click="navigateTo({ name: 'ReservationDetail', params: { id: res.id } })"
+                >
+                  <AppIcon name="calendar" class="result-icon" />
+                  <div class="result-text">
+                    <span class="result-name">{{ res.customer_name || res.customerName || '#' + res.id }}</span>
+                    <span class="result-meta">{{ res.status || 'Réservation' }}</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <div v-else-if="searchQuery.length >= 2" class="search-state">
+              <span>Aucun résultat pour "{{ searchQuery }}"</span>
+            </div>
+          </div>
         </div>
 
         <!-- Notifications -->
@@ -82,6 +153,7 @@
 import Breadcrumb from '@/admin/components/Breadcrumb.vue'
 import NotificationPanel from '@/admin/components/NotificationPanel.vue'
 import { useAuthStore } from '@/shared/stores/auth'
+import httpClient from '@/services/httpClient'
 
 export default {
   name: 'AdminHeader',
@@ -101,11 +173,20 @@ export default {
       searchQuery: '',
       showNotifications: false,
       showUserMenu: false,
-      notificationCount: 0
+      notificationCount: 0,
+      showSearchResults: false,
+      isSearching: false,
+      searchResults: { products: [], users: [], reservations: [] },
+      searchDebounceTimer: null
     }
   },
 
   computed: {
+    hasResults() {
+      const r = this.searchResults
+      return r.products.length > 0 || r.users.length > 0 || r.reservations.length > 0
+    },
+
     pageTitle() {
       // Génération automatique du titre depuis la route
       const routeName = this.$route.name
@@ -139,11 +220,100 @@ export default {
   },
 
   methods: {
-    // Gestionnaire pour la recherche
+    // Gestionnaire pour la recherche (avec debounce)
     handleSearch() {
-      if (this.searchQuery.length > 2) {
-        // TODO: Implémenter la logique de recherche
+      clearTimeout(this.searchDebounceTimer)
+      const q = this.searchQuery.trim()
+      if (q.length < 2) {
+        this.showSearchResults = false
+        this.searchResults = { products: [], users: [], reservations: [] }
+        return
       }
+      this.showSearchResults = true
+      this.isSearching = true
+      this.searchDebounceTimer = setTimeout(() => this.performSearch(q), 350)
+    },
+
+    onSearchFocus() {
+      if (this.searchQuery.trim().length >= 2) {
+        this.showSearchResults = true
+      }
+    },
+
+    async performSearch(q) {
+      try {
+        const [prodRes, usersRes, resRes] = await Promise.allSettled([
+          httpClient.get('/products', { params: { search: q, per_page: 4 } }),
+          httpClient.get('/admin/users', { params: { name: q } }),
+          httpClient.get('/admin/reservations', { params: { search: q, itemsPerPage: 4 } })
+        ])
+
+        const productableTypeMap = {
+          'App\\Models\\Room': 'room',
+          'App\\Models\\Activity': 'activity',
+          'App\\Models\\Menu': 'menu',
+          'App\\Models\\Dish': 'dish',
+          'App\\Models\\Ingredient': 'ingredient'
+        }
+        const typeLabelMap = {
+          room: 'Chambre', activity: 'Activité', menu: 'Menu',
+          dish: 'Plat', ingredient: 'Ingrédient'
+        }
+
+        let products = []
+        if (prodRes.status === 'fulfilled') {
+          const raw = prodRes.value.data
+          const list = raw?.member || raw?.['hydra:member'] || (Array.isArray(raw) ? raw : [])
+          products = list.slice(0, 4).map(p => {
+            const urlType = productableTypeMap[p.productableType] || p.productableType || 'room'
+            return { id: p.id, name: p.name, urlType, typeLabel: typeLabelMap[urlType] || urlType }
+          })
+        }
+
+        let users = []
+        if (usersRes.status === 'fulfilled') {
+          const raw = usersRes.value.data
+          const list = raw?.['hydra:member'] || raw?.data || (Array.isArray(raw) ? raw : [])
+          const lq = q.toLowerCase()
+          users = list
+            .filter(u => u.name?.toLowerCase().includes(lq) || u.email?.toLowerCase().includes(lq))
+            .slice(0, 4)
+            .map(u => ({ id: u.id, name: u.name, email: u.email }))
+        }
+
+        let reservations = []
+        if (resRes.status === 'fulfilled') {
+          const raw = resRes.value.data
+          const list = raw?.['hydra:member'] || raw?.data || (Array.isArray(raw) ? raw : [])
+          reservations = list.slice(0, 4).map(r => ({
+            id: r.id,
+            customer_name: r.customer_name || r.customerName || r.customer?.name,
+            status: r.status
+          }))
+        }
+
+        this.searchResults = { products, users, reservations }
+      } catch {
+        this.searchResults = { products: [], users: [], reservations: [] }
+      } finally {
+        this.isSearching = false
+      }
+    },
+
+    clearSearch() {
+      this.searchQuery = ''
+      this.closeSearch()
+    },
+
+    closeSearch() {
+      this.showSearchResults = false
+      this.searchResults = { products: [], users: [], reservations: [] }
+    },
+
+    navigateTo(route) {
+      this.closeSearch()
+      this.searchQuery = ''
+      this.$router.push(route)
     },
 
     // Toggle notifications
@@ -160,28 +330,18 @@ export default {
 
     // Gestionnaire global des clics
     handleGlobalClick(event) {
-      // Vérifier si le clic est à l'intérieur des conteneurs de dropdown
       const notificationContainer = this.$refs.notificationContainer
       const userMenuContainer = this.$refs.userMenuContainer
+      const searchContainer = this.$refs.searchContainer
 
-      let clickInsideNotification = false
-      let clickInsideUserMenu = false
-
-      if (notificationContainer) {
-        clickInsideNotification = notificationContainer.contains(event.target)
-      }
-
-      if (userMenuContainer) {
-        clickInsideUserMenu = userMenuContainer.contains(event.target)
-      }
-
-      // Fermer les dropdowns si le clic est à l'extérieur
-      if (!clickInsideNotification) {
+      if (notificationContainer && !notificationContainer.contains(event.target)) {
         this.showNotifications = false
       }
-
-      if (!clickInsideUserMenu) {
+      if (userMenuContainer && !userMenuContainer.contains(event.target)) {
         this.showUserMenu = false
+      }
+      if (searchContainer && !searchContainer.contains(event.target)) {
+        this.showSearchResults = false
       }
     },
 
@@ -278,10 +438,11 @@ export default {
       left: 0.75rem;
       color: #adb5bd;
       font-size: 0.875rem;
+      pointer-events: none;
     }
 
     input {
-      padding: 0.5rem 0.75rem 0.5rem 2.5rem;
+      padding: 0.5rem 2rem 0.5rem 2.5rem;
       border: 1px solid #dee2e6;
       border-radius: 0.375rem;
       background: #f8f9fa;
@@ -298,6 +459,126 @@ export default {
 
       &::placeholder {
         color: #adb5bd;
+      }
+    }
+
+    .search-clear {
+      position: absolute;
+      right: 0.5rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #adb5bd;
+      display: flex;
+      align-items: center;
+      padding: 0.125rem;
+      border-radius: 50%;
+
+      &:hover {
+        color: #495057;
+        background: #e9ecef;
+      }
+
+      .app-icon {
+        position: static;
+        font-size: 0.75rem;
+        pointer-events: none;
+      }
+    }
+
+    .search-dropdown {
+      position: absolute;
+      top: calc(100% + 0.5rem);
+      left: 0;
+      width: 340px;
+      background: white;
+      border-radius: 0.5rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      border: 1px solid #e9ecef;
+      z-index: 1100;
+      overflow: hidden;
+      animation: dropdownAppear 0.15s ease-out;
+
+      .search-state {
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+        padding: 1rem 1.25rem;
+        font-size: 0.875rem;
+        color: #6c757d;
+      }
+
+      .search-spinner {
+        width: 14px;
+        height: 14px;
+        border: 2px solid #dee2e6;
+        border-top-color: #5e72e4;
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite;
+        flex-shrink: 0;
+      }
+
+      .results-section {
+        &:not(:last-child) {
+          border-bottom: 1px solid #f1f3f5;
+        }
+      }
+
+      .results-section-title {
+        padding: 0.5rem 1rem 0.375rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: #adb5bd;
+        background: #f8f9fa;
+      }
+
+      .result-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        width: 100%;
+        padding: 0.625rem 1rem;
+        background: none;
+        border: none;
+        cursor: pointer;
+        text-align: left;
+        transition: background 0.15s;
+
+        &:hover {
+          background: #f8f9ff;
+        }
+
+        .result-icon {
+          position: static;
+          color: #5e72e4;
+          font-size: 0.875rem;
+          flex-shrink: 0;
+        }
+
+        .result-text {
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+
+          .result-name {
+            font-size: 0.875rem;
+            color: #32325d;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          .result-meta {
+            font-size: 0.75rem;
+            color: #8898aa;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+        }
       }
     }
   }
@@ -452,6 +733,10 @@ export default {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 // Responsive
