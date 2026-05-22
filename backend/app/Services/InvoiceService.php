@@ -24,8 +24,12 @@ class InvoiceService
             'amount' => $reservation->amount
         ]);
 
-        // Vérifier qu'une facture n'existe pas déjà
-        if (Invoice::existsForReservation($reservation->id)) {
+        // Vérifier qu'une facture complète n'existe pas déjà
+        $existingComplete = Invoice::where('reservation_id', $reservation->id)
+            ->where('type', Invoice::TYPE_COMPLETE)
+            ->exists();
+
+        if ($existingComplete) {
             throw new \Exception("Une facture existe déjà pour cette réservation");
         }
 
@@ -70,6 +74,90 @@ class InvoiceService
         ]);
 
         return $invoice->load(['customer', 'reservation']);
+    }
+
+    /**
+     * Créer une facture d'acompte depuis une réservation
+     */
+    public function createDepositInvoice(Reservation $reservation): Invoice
+    {
+        $depositPercentage = config('instance.features.deposit_percentage', 30);
+        $depositAmount = round($reservation->amount * $depositPercentage / 100, 2);
+
+        Log::info('🧾 Création facture acompte', [
+            'reservation_id' => $reservation->id,
+            'total' => $reservation->amount,
+            'deposit_pct' => $depositPercentage,
+            'deposit_amount' => $depositAmount,
+        ]);
+
+        $invoice = Invoice::create([
+            'customer_id' => $reservation->customer_id,
+            'reservation_id' => $reservation->id,
+            'amount' => $depositAmount,
+            'type' => Invoice::TYPE_DEPOSIT,
+            'issue_date' => Carbon::now(),
+            'due_date' => Carbon::now()->addDays(30),
+            'status' => Invoice::STATUS_PAID,
+            'payment_date' => Carbon::now(),
+            'payment_method' => Invoice::PAYMENT_METHOD_CARD,
+            'notes' => $this->generateDepositNotes($reservation, $depositPercentage),
+        ]);
+
+        Log::info('✅ Facture acompte créée', [
+            'invoice_id' => $invoice->id,
+            'invoice_number' => $invoice->invoice_number,
+        ]);
+
+        return $invoice->load(['customer', 'reservation']);
+    }
+
+    /**
+     * Créer une facture de solde liée à une facture d'acompte
+     */
+    public function createBalanceInvoice(Invoice $depositInvoice): Invoice
+    {
+        if ($depositInvoice->type !== Invoice::TYPE_DEPOSIT) {
+            throw new \Exception("Seule une facture d'acompte peut générer une facture de solde");
+        }
+
+        if ($depositInvoice->linkedFrom) {
+            throw new \Exception("Une facture de solde existe déjà pour cet acompte");
+        }
+
+        $reservation = $depositInvoice->reservation;
+        if (!$reservation) {
+            throw new \Exception("Aucune réservation liée à cette facture");
+        }
+
+        $balanceAmount = round($reservation->amount - $depositInvoice->amount, 2);
+
+        Log::info('🧾 Création facture solde', [
+            'deposit_invoice_id' => $depositInvoice->id,
+            'total' => $reservation->amount,
+            'deposit' => $depositInvoice->amount,
+            'balance' => $balanceAmount,
+        ]);
+
+        $invoice = Invoice::create([
+            'customer_id' => $depositInvoice->customer_id,
+            'reservation_id' => $reservation->id,
+            'amount' => $balanceAmount,
+            'type' => Invoice::TYPE_BALANCE,
+            'linked_invoice_id' => $depositInvoice->id,
+            'issue_date' => Carbon::now(),
+            'due_date' => Carbon::now()->addDays(30),
+            'status' => Invoice::STATUS_UNPAID,
+            'notes' => $this->generateBalanceNotes($depositInvoice),
+        ]);
+
+        Log::info('✅ Facture solde créée', [
+            'invoice_id' => $invoice->id,
+            'invoice_number' => $invoice->invoice_number,
+            'linked_to' => $depositInvoice->invoice_number,
+        ]);
+
+        return $invoice->load(['customer', 'reservation', 'linkedInvoice']);
     }
 
     /**
@@ -236,25 +324,45 @@ class InvoiceService
         return implode("\n", $notes);
     }
 
+    private function generateDepositNotes(Reservation $reservation, int $percentage): string
+    {
+        $notes = ["Acompte de {$percentage}% sur la prestation"];
+
+        if ($reservation->product) {
+            $notes[] = "Prestation : {$reservation->product->name}";
+        }
+
+        $notes[] = "Montant total : " . number_format($reservation->amount, 2, ',', ' ') . ' €';
+
+        return implode("\n", $notes);
+    }
+
+    private function generateBalanceNotes(Invoice $depositInvoice): string
+    {
+        $reservation = $depositInvoice->reservation;
+        $notes = ["Solde restant dû"];
+        $notes[] = "Acompte versé : {$depositInvoice->formatted_amount} (facture {$depositInvoice->invoice_number})";
+
+        if ($reservation) {
+            $notes[] = "Montant total : " . number_format($reservation->amount, 2, ',', ' ') . ' €';
+        }
+
+        return implode("\n", $notes);
+    }
+
     /**
      * Récupérer les informations de l'entreprise pour la facture
      */
     private function getCompanyInfo(): array
     {
         return [
-            'name' => config('app.name', 'CampCameleonX'),
-            'address' => 'Désert du Maroc',
-            'city' => 'Merzouga',
-            'postal_code' => '52202',
-            'country' => 'Maroc',
-            'phone' => '+212 XXX XXX XXX',
-            'email' => 'contact@campcameleonx.com',
-            'website' => 'www.campcameleonx.com',
-            'siret' => 'XXX XXX XXX XXXXX', // À remplacer
-            'tva' => 'MAXXXXXX', // Numéro de TVA si applicable
+            'name' => config('instance.name'),
+            'address' => config('instance.contact.address'),
+            'phone' => config('instance.contact.phone'),
+            'email' => config('instance.contact.email'),
+            'siret' => config('instance.contact.siret'),
         ];
     }
-
     /**
      * Récupérer les lignes de la facture
      */
