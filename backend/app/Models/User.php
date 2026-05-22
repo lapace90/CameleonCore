@@ -179,13 +179,18 @@ class User extends Authenticatable
 
     /**
      * Vérifier si l'utilisateur est admin
-     */
-    /**
-     * Vérifier si l'utilisateur est admin
      * Utilise la logique définie dans le modèle Role
+     * Sans RBAC, tout utilisateur authentifié est considéré comme admin pour simplifier l'accès à l'admin panel
+     * Avec RBAC, seuls les utilisateurs avec un rôle marqué comme admin sont considérés comme tels
+     * 
      */
     public function isAdmin(): bool
     {
+        // Sans RBAC, tout utilisateur authentifié est admin
+        if (!config('instance.modules.rbac')) {
+            return true;
+        }
+
         // Vérifier le rôle principal
         if ($this->role && $this->role->isAdminRole()) {
             return true;
@@ -230,18 +235,34 @@ class User extends Authenticatable
     }
 
     /**
+     * 
      * Vérifier si l'utilisateur peut accéder à l'administration
+     * Sans RBAC, tout utilisateur authentifié peut accéder à l'admin panel
+     * Avec RBAC, seuls les utilisateurs avec un rôle marqué comme admin peuvent accéder à l'admin panel
+     * 
      */
     public function canAccessAdmin(): bool
     {
+        if (!config('instance.modules.rbac')) {
+            return true;
+        }
+
         return $this->isAdmin();
     }
 
     /**
+     * 
      * Vérifier si l'utilisateur a une permission spécifique VIA SES RÔLES
+     * Si RBAC est désactivé, tous les utilisateurs ont toutes les permissions pour simplifier l'accès à l'admin panel
+     * Si RBAC est activé, on vérifie les permissions du rôle principal et des rôles additionnels
+     * 
      */
     public function hasPermission(string $permission): bool
     {
+        if (!config('instance.modules.rbac')) {
+            return true;
+        }
+
         // 1. Vérifier rôle principal
         if ($this->role && $this->role->hasPermission($permission)) {
             return true;
