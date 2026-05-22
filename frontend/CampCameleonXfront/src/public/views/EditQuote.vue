@@ -6,11 +6,10 @@
         <!-- Error state -->
         <div v-else-if="error" class="error-container">
             <div class="error-box">
-                <h2><i class="fas fa-times-circle" style="padding: .5rem;"></i> Erreur</h2>
+                <h2><AppIcon name="circle-x" style="padding: .5rem;" /> Erreur</h2>
                 <p>{{ error }}</p>
                 <div class="error-actions">
-                    <button @click="retryLoad" class="btn btn-primary btn-sm"><i class="fas fa-sync"
-                            style="padding: .5rem;"></i> Réessayer</button>
+                    <button @click="retryLoad" class="btn btn-primary btn-sm"><AppIcon name="rotate-cw" style="padding: .5rem;" /> Réessayer</button>
                     <a href="mailto:contact@campcameleonx.com" class="btn btn-secondary btn-sm">📧 Nous contacter</a>
                 </div>
             </div>
@@ -20,7 +19,7 @@
         <div v-else-if="quote" class="edit-quote-container">
             <!-- Header -->
             <div class="edit-header">
-                <h1><i class="fas fa-edit" style="padding: .5rem;"></i> Modifier votre devis</h1>
+                <h1><AppIcon name="pencil" style="padding: .5rem;" /> Modifier votre devis</h1>
                 <div class="quote-info">
                     <span class="quote-ref">{{ quote.quote_reference }}</span>
                     <span class="quote-status" :class="statusClass">{{ statusText }}</span>
@@ -30,7 +29,7 @@
 
             <!-- Important notice -->
             <div class="notice-box">
-                <i class="fas fa-info-circle"></i>
+                <AppIcon name="info" />
                 <div>
                     <p><strong>Modification de votre séjour</strong></p>
                     <p>Vous pouvez ajuster vos sélections. Si vous modifiez les prestations ou dates, un nouvel email de
@@ -42,7 +41,7 @@
             <div class="quote-form-wrapper">
                 <!-- Step 1: Dates -->
                 <div class="form-section">
-                    <h3><i class="fas fa-calendar-alt" style="padding: .5rem;"></i> Dates de votre séjour</h3>
+                    <h3><AppIcon name="calendar-days" style="padding: .5rem;" /> Dates de votre séjour</h3>
                     <div class="date-picker-group">
                         <div class="form-group">
                             <label>Date d'arrivée</label>
@@ -64,7 +63,7 @@
 
                 <!-- Step 2: Activities -->
                 <div class="form-section">
-                    <h3><i class="fas fa-hiking" style="padding: .5rem;"></i> Activités</h3>
+                    <h3><AppIcon name="footprints" style="padding: .5rem;" /> Activités</h3>
                     <div v-if="activitiesLoading">Chargement des activités...</div>
                     <div v-else class="products-grid">
                         <div v-for="activity in activities" :key="activity.id" class="product-card"
@@ -80,7 +79,7 @@
 
                 <!-- Step 3: Meals -->
                 <div class="form-section">
-                    <h3><i class="fas fa-utensils" style="padding: .5rem;"></i> Restauration</h3>
+                    <h3><AppIcon name="utensils" style="padding: .5rem;" /> Restauration</h3>
                     <div v-if="menusLoading">Chargement des menus...</div>
                     <div v-else class="products-grid">
                         <div v-for="menu in menus" :key="menu.id" class="product-card"
@@ -96,7 +95,7 @@
 
                 <!-- Step 4: Accommodation -->
                 <div class="form-section">
-                    <h3><i class="fas fa-campground" style="padding: .5rem;"></i> Hébergement</h3>
+                    <h3><AppIcon name="tent" style="padding: .5rem;" /> Hébergement</h3>
                     <div v-if="roomsLoading">Chargement des hébergements...</div>
                     <div v-else class="products-grid">
                         <div v-for="room in rooms" :key="room.id" class="product-card"
@@ -115,7 +114,7 @@
 
                 <!-- Step 5: Contact & Message -->
                 <div class="form-section">
-                    <h3><i class="fas fa-comment" style="padding: .5rem;"></i> Message (optionnel)</h3>
+                    <h3><AppIcon name="message-square" style="padding: .5rem;" /> Message (optionnel)</h3>
                     <div class="form-group">
                         <label>Informations complémentaires</label>
                         <textarea v-model="formData.message" class="form-textarea" rows="4"
@@ -125,7 +124,7 @@
 
                 <!-- Summary & Actions -->
                 <div class="quote-summary">
-                    <h3><i class="fas fa-clipboard-list" style="padding: .5rem;"></i> Récapitulatif</h3>
+                    <h3><AppIcon name="clipboard-list" style="padding: .5rem;" /> Récapitulatif</h3>
 
                     <!-- Si on a des produits avec quantités du backend -->
                     <div v-if="quote?.products_with_quantities?.length" class="summary-items">
@@ -170,13 +169,13 @@
                 <!-- Action buttons -->
                 <div class="form-actions">
                     <button @click="saveChanges" :disabled="isSubmitting || !hasChanges" class="btn btn-primary btn-sm">
-                        <i v-if="isSubmitting" class="fas fa-spinner fa-spin"></i>
-                        <i v-else class="fas fa-save"></i>
+                        <AppIcon name="loader-circle" :spin="true" v-if="isSubmitting" />
+                        <AppIcon name="save" v-else />
                         {{ isSubmitting ? 'Sauvegarde...' : 'Sauvegarder les modifications' }}
                     </button>
 
                     <button @click="cancelEdit" class="btn btn-secondary btn-sm">
-                        <i class="fas fa-times"></i>
+                        <AppIcon name="x" />
                         Annuler
                     </button>
                 </div>
@@ -557,7 +556,7 @@ export default {
                 redirectToValidation()
             } catch (err) {
                 console.error('❌ Erreur sauvegarde:', err)
-                showToast('<i class="fas fa-times-circle" style="padding: .5rem;"></i> ' + (err.message || 'Sauvegarde impossible'), 'error')
+                showToast('<AppIcon name="circle-x" style="padding: .5rem;" /> ' + (err.message || 'Sauvegarde impossible'), 'error')
             } finally {
                 isSubmitting.value = false
             }

@@ -9,7 +9,7 @@
 
     <!-- Error State -->
     <div v-else-if="state === 'error'" class="state-content state-error">
-      <i :class="['state-icon', errorIcon]"></i>
+      <AppIcon :name="errorIcon" class="state-icon" />
       <h3 v-if="errorTitle" class="state-title">{{ errorTitle }}</h3>
       <p class="state-text">{{ errorMessage }}</p>
       <button 
@@ -17,7 +17,7 @@
         @click="$emit('retry')" 
         class="btn btn-outline btn-sm"
       >
-        <i class="fas fa-redo"></i>
+        <AppIcon name="rotate-cw" />
         {{ retryLabel }}
       </button>
       <slot name="error" :message="errorMessage" />
@@ -25,7 +25,7 @@
 
     <!-- Empty State -->
     <div v-else-if="state === 'empty'" class="state-content state-empty">
-      <i :class="['state-icon', emptyIcon]"></i>
+      <AppIcon :name="emptyIcon" class="state-icon" />
       <h3 v-if="emptyTitle" class="state-title">{{ emptyTitle }}</h3>
       <p class="state-text">{{ emptyMessage }}</p>
       <button 
@@ -33,7 +33,7 @@
         @click="$emit('action')" 
         class="btn btn-primary btn-sm"
       >
-        <i v-if="actionIcon" :class="actionIcon"></i>
+        <AppIcon v-if="actionIcon" :name="actionIcon" />
         {{ actionLabel }}
       </button>
       <slot name="empty" />
@@ -41,7 +41,7 @@
 
     <!-- Success State (optionnel) -->
     <div v-else-if="state === 'success'" class="state-content state-success">
-      <i :class="['state-icon', successIcon]"></i>
+      <AppIcon :name="successIcon" class="state-icon" />
       <h3 v-if="successTitle" class="state-title">{{ successTitle }}</h3>
       <p class="state-text">{{ successMessage }}</p>
       <slot name="success" />
@@ -92,7 +92,7 @@ export default {
     },
     errorIcon: {
       type: String,
-      default: 'fas fa-exclamation-triangle'
+      default: 'triangle-alert'
     },
     showRetry: {
       type: Boolean,
@@ -114,7 +114,7 @@ export default {
     },
     emptyIcon: {
       type: String,
-      default: 'fas fa-inbox'
+      default: 'inbox'
     },
     showAction: {
       type: Boolean,
@@ -126,7 +126,7 @@ export default {
     },
     actionIcon: {
       type: String,
-      default: 'fas fa-plus'
+      default: 'plus'
     },
 
     // Success
@@ -140,7 +140,7 @@ export default {
     },
     successIcon: {
       type: String,
-      default: 'fas fa-check-circle'
+      default: 'circle-check'
     }
   },
 

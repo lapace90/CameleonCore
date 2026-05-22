@@ -4,11 +4,11 @@
         <div class="modal-container modal-lg">
             <div class="modal-header">
                 <h3>
-                    <i class="fas fa-edit"></i>
+                    <AppIcon name="pencil" />
                     Modifier le rôle : {{ currentRole.name }}
                 </h3>
                 <button @click="$emit('close')" class="btn-close">
-                    <i class="fas fa-times"></i>
+                    <AppIcon name="x" />
                 </button>
             </div>
 
@@ -16,7 +16,7 @@
                 <!-- Informations du rôle -->
                 <div class="form-section">
                     <h4>
-                        <i class="fas fa-info-circle"></i>
+                        <AppIcon name="info" />
                         Informations générales
                     </h4>
 
@@ -47,11 +47,11 @@
                 <!-- Permissions -->
                 <div class="form-section">
                     <h4>
-                        <i class="fas fa-key"></i>
+                        <AppIcon name="key" />
                         Permissions
                         <span class="text-muted">({{ selectedPermissions.length }})</span>
                         <span v-if="permissionsChanged" class="badge badge-warning ml-2">
-                            <i class="fas fa-exclamation-triangle"></i>
+                            <AppIcon name="triangle-alert" />
                             Modifiées
                         </span>
                     </h4>
@@ -62,10 +62,10 @@
 
                     <!-- Erreur de chargement -->
                     <div v-else-if="loadError" class="error-state">
-                        <i class="fas fa-exclamation-triangle"></i>
+                        <AppIcon name="triangle-alert" />
                         <p>Impossible de charger les permissions</p>
                         <button type="button" @click="loadPermissions" class="btn btn-outline btn-sm">
-                            <i class="fas fa-redo"></i>
+                            <AppIcon name="rotate-cw" />
                             Réessayer
                         </button>
                     </div>
@@ -80,7 +80,7 @@
 
                         <!-- Résumé des changements -->
                         <div v-if="hasChanges" class="alert alert-info mt-3">
-                            <h6><i class="fas fa-info-circle"></i> Résumé des modifications</h6>
+                            <h6><AppIcon name="info" /> Résumé des modifications</h6>
                             <div class="changes-summary">
                                 <div v-if="permissionsChanged">
                                     <strong>Permissions :</strong> {{ selectedPermissions.length }} sélectionnées
@@ -92,7 +92,7 @@
 
                     <!-- Aucune permission -->
                     <div v-else class="form-note">
-                        <i class="fas fa-info-circle"></i>
+                        <AppIcon name="info" />
                         Aucune permission disponible.
                     </div>
                 </div>
@@ -103,12 +103,12 @@
                         Annuler
                     </button>
                     <button type="button" @click="resetForm" class="btn btn-outline btn-sm" :disabled="!hasChanges">
-                        <i class="fas fa-undo"></i>
+                        <AppIcon name="undo-2" />
                         Réinitialiser
                     </button>
                     <button type="submit" class="btn btn-primary btn-sm" :disabled="!hasChanges || submitting">
-                        <i v-if="submitting" class="fas fa-spinner fa-spin"></i>
-                        <i v-else class="fas fa-save"></i>
+                        <AppIcon name="loader-circle" :spin="true" v-if="submitting" />
+                        <AppIcon name="save" v-else />
                         {{ submitting ? 'Mise à jour...' : 'Mettre à jour' }}
                     </button>
                 </div>

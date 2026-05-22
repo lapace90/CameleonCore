@@ -24,7 +24,7 @@
             </p>
             <div class="about-actions">
               <router-link to="/about" class="btn btn-primary">
-                <i class="fas fa-compass"></i>
+                <AppIcon name="compass" />
                 En savoir plus
               </router-link>
             </div>
@@ -93,11 +93,11 @@
             <!-- Bouton voir tous les avis -->
             <div class="view-all-testimonials">
               <router-link to="/testimonials" class="btn btn-secondary btn-sm">
-                <i class="fas fa-comments"></i>
+                <AppIcon name="message-circle" />
                 Voir tous les avis
               </router-link>
               <router-link to="/testimonials?review=true" class="btn btn-outline btn-sm">
-                <i class="fas fa-pen"></i>
+                <AppIcon name="pen" />
                 Laisser un avis
               </router-link>
             </div>

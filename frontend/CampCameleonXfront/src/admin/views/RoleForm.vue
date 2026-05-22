@@ -3,7 +3,7 @@
     <!-- Message d'erreur -->
     <div v-if="error" class="error-message">
       <div class="alert alert-danger">
-        <i class="fas fa-exclamation-triangle"></i>
+        <AppIcon name="triangle-alert" />
         {{ error }}
         <button @click="error = null" class="btn-close">&times;</button>
       </div>
@@ -24,12 +24,12 @@
       <div class="form-header">
         <div class="header-navigation">
           <router-link to="/admin/roles" class="back-link">
-            <i class="fas fa-arrow-left"></i>
+            <AppIcon name="arrow-left" />
             Retour aux rôles
           </router-link>
           <div class="breadcrumb">
             <span>Rôles</span>
-            <i class="fas fa-chevron-right"></i>
+            <AppIcon name="chevron-right" />
             <span>{{ isEditing ? role?.name : 'Nouveau rôle' }}</span>
           </div>
         </div>
@@ -38,7 +38,7 @@
       <!-- Titre -->
       <div class="page-title-section">
         <div class="product-type-badge" style="background-color: #7c3aed;">
-          <i class="fas fa-shield-alt"></i>
+          <AppIcon name="shield" />
           Rôle
         </div>
         <h1 class="page-title">
@@ -96,12 +96,12 @@
             <!-- Gestion des permissions -->
             <div class="form-section">
               <h3>
-                <i class="fas fa-key"></i>
+                <AppIcon name="key" />
                 Permissions
               </h3>
               
               <div v-if="permissions.length === 0" class="form-note">
-                <i class="fas fa-info-circle"></i>
+                <AppIcon name="info" />
                 Aucune permission disponible. Créez d'abord des permissions dans la section dédiée.
               </div>
 
@@ -113,7 +113,7 @@
                     @click="selectAllPermissions" 
                     class="btn btn-outline btn-sm"
                   >
-                    <i class="fas fa-check-square"></i>
+                    <AppIcon name="square-check" />
                     Tout sélectionner
                   </button>
                   
@@ -122,7 +122,7 @@
                     @click="unselectAllPermissions" 
                     class="btn btn-outline btn-sm"
                   >
-                    <i class="fas fa-square"></i>
+                    <AppIcon name="square" />
                     Tout désélectionner
                   </button>
 
@@ -140,7 +140,7 @@
                   >
                     <div class="category-header">
                       <h4 class="category-title">
-                        <i :class="getCategoryIcon(category)"></i>
+                        <AppIcon :name="getCategoryIcon(category)" />
                         {{ getCategoryLabel(category) }}
                       </h4>
                       
@@ -150,7 +150,7 @@
                           @click="selectCategoryPermissions(category)" 
                           class="btn btn-ghost btn-sm"
                         >
-                          <i class="fas fa-check"></i>
+                          <AppIcon name="check" />
                           Tout
                         </button>
                         
@@ -159,7 +159,7 @@
                           @click="unselectCategoryPermissions(category)" 
                           class="btn btn-ghost btn-sm"
                         >
-                          <i class="fas fa-times"></i>
+                          <AppIcon name="x" />
                           Rien
                         </button>
                       </div>
@@ -201,13 +201,13 @@
             <!-- Aperçu des utilisateurs avec ce rôle -->
             <div v-if="isEditing && role?.users_count > 0" class="form-section">
               <h3>
-                <i class="fas fa-users"></i>
+                <AppIcon name="users" />
                 Utilisateurs concernés
               </h3>
               
               <div class="users-preview">
                 <div class="users-count">
-                  <i class="fas fa-user"></i>
+                  <AppIcon name="user" />
                   {{ role.users_count }} utilisateur(s) ont ce rôle
                 </div>
                 
@@ -218,7 +218,7 @@
                     class="user-item"
                   >
                     <div class="user-avatar">
-                      <i class="fas fa-user"></i>
+                      <AppIcon name="user" />
                     </div>
                     <div class="user-info">
                       <span class="user-name">{{ user.name }}</span>
@@ -241,7 +241,7 @@
                   @click="resetForm" 
                   class="btn btn-outline btn-sm"
                 >
-                  <i class="fas fa-undo"></i>
+                  <AppIcon name="undo-2" />
                   Réinitialiser
                 </button>
               </div>
@@ -254,7 +254,7 @@
                   class="btn btn-danger btn-sm"
                   :disabled="saving"
                 >
-                  <i class="fas fa-trash"></i>
+                  <AppIcon name="trash-2" />
                   Supprimer
                 </button>
                 
@@ -263,8 +263,8 @@
                   class="btn btn-primary btn-sm" 
                   :disabled="saving"
                 >
-                  <i v-if="saving" class="fas fa-spinner fa-spin"></i>
-                  <i v-else class="fas fa-check"></i>
+                  <AppIcon name="loader-circle" :spin="true" v-if="saving" />
+                  <AppIcon name="check" v-else />
                   {{ isEditing ? 'Mettre à jour' : 'Créer le rôle' }}
                 </button>
               </div>
@@ -507,15 +507,15 @@ export default {
 
     getCategoryIcon(category) {
       const icons = {
-        'create': 'fas fa-plus',
-        'read': 'fas fa-eye',
-        'update': 'fas fa-edit',
-        'delete': 'fas fa-trash',
-        'admin': 'fas fa-cog',
-        'other': 'fas fa-key'
+        'create': 'plus',
+        'read': 'eye',
+        'update': 'pencil',
+        'delete': 'trash-2',
+        'admin': 'settings',
+        'other': 'key'
       }
       
-      return icons[category] || 'fas fa-key'
+      return icons[category] || 'key'
     },
 
     getActionClass(action) {

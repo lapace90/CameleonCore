@@ -16,22 +16,22 @@
         </div>
         <div class="header-actions">
           <button @click="goBack" class="btn btn-secondary btn-sm">
-            <i class="fas fa-arrow-left"></i> Retour
+            <AppIcon name="arrow-left" /> Retour
           </button>
 
           <!-- Boutons conditionnels selon permission ET statut -->
           <button v-if="reservation.status === 'confirmed' && canCheckIn" class="btn btn-success btn-sm"
             @click="onCheckIn">
-            <i class="fas fa-door-open"></i> Faire check-in
+            <AppIcon name="door-open" /> Faire check-in
           </button>
 
           <button v-if="reservation.status === 'checked_in' && canCheckOut" class="btn btn-info btn-sm"
             @click="onCheckOut">
-            <i class="fas fa-door-closed"></i> Faire check-out
+            <AppIcon name="door-closed" /> Faire check-out
           </button>
 
           <button @click="editReservation" class="btn btn-primary btn-sm">
-            <i class="fas fa-edit"></i> Modifier
+            <AppIcon name="pencil" /> Modifier
           </button>
         </div>
       </div>
@@ -39,11 +39,11 @@
       <!-- Status badges existant -->
       <div class="status-row">
         <div :class="['status-badge', getStatusClass(reservation.status)]">
-          <i :class="getStatusIcon(reservation.status)"></i>
+          <AppIcon :name="getStatusIcon(reservation.status)" />
           {{ getStatusLabel(reservation.status) }}
         </div>
         <div :class="['status-badge', getPaymentStatusClass(reservation.payment_status)]">
-          <i :class="getPaymentStatusIcon(reservation.payment_status)"></i>
+          <AppIcon :name="getPaymentStatusIcon(reservation.payment_status)" />
           {{ getPaymentStatusLabel(reservation.payment_status) }}
         </div>
       </div>
@@ -51,7 +51,7 @@
       <!-- Grid existante avec données complètes -->
       <div class="info-grid">
         <!-- Client -->
-        <ReservationInfoCard title="Client" icon="fas fa-user">
+        <ReservationInfoCard title="Client" icon="user">
           <div class="info-item">
             <label>Nom:</label>
             <span>{{ getCustomerName() }}</span>
@@ -67,7 +67,7 @@
         </ReservationInfoCard>
 
         <!-- Séjour -->
-        <ReservationInfoCard title="Séjour" icon="fas fa-calendar">
+        <ReservationInfoCard title="Séjour" icon="calendar">
           <div class="info-item">
             <label>Arrivée:</label>
             <span>{{ formatDate(reservation.checkin) }}</span>
@@ -83,7 +83,7 @@
         </ReservationInfoCard>
 
         <!-- Invités -->
-        <ReservationInfoCard title="Invités" icon="fas fa-users">
+        <ReservationInfoCard title="Invités" icon="users">
           <div class="info-item">
             <label>Adultes:</label>
             <span>{{ reservation.number_of_adults || 0 }}</span>
@@ -99,7 +99,7 @@
         </ReservationInfoCard>
 
         <!-- Produits & Services -->
-        <ReservationInfoCard title="Produits & Services" icon="fas fa-shopping-cart">
+        <ReservationInfoCard title="Produits & Services" icon="shopping-cart">
           <!-- Produit principal (hébergement) -->
           <div class="info-item">
             <label>Hébergement principal:</label>
@@ -112,7 +112,7 @@
             <div class="product-items">
               <div v-for="product in reservation.products" :key="product.id" class="product-item">
                 <span class="product-icon">
-                  <i :class="getProductIcon(product.productable_type)"></i>
+                  <AppIcon :name="getProductIcon(product.productable_type)" />
                 </span>
                 <span class="product-name">{{ product.name }}</span>
                 <span class="product-quantity">x{{ product.quantity }}</span>
@@ -134,7 +134,7 @@
         </ReservationInfoCard>
 
         <!-- Paiement -->
-        <ReservationInfoCard title="Paiement" icon="fas fa-credit-card">
+        <ReservationInfoCard title="Paiement" icon="credit-card">
           <div class="info-item">
             <label>Montant:</label>
             <span class="amount">{{ formatCurrency(reservation.amount) }}</span>
@@ -150,7 +150,7 @@
         </ReservationInfoCard>
 
         <!-- Références -->
-        <ReservationInfoCard title="Références" icon="fas fa-hashtag">
+        <ReservationInfoCard title="Références" icon="hash">
           <div class="info-item">
             <label>Facture:</label>
             <span>{{ reservation.invoice_number || 'Non générée' }}</span>
@@ -167,23 +167,23 @@
       </div>
 
       <!-- Notes -->
-      <ReservationInfoCard v-if="reservation.comment" title="Commentaires" icon="fas fa-sticky-note">
+      <ReservationInfoCard v-if="reservation.comment" title="Commentaires" icon="sticky-note">
         <div class="comment-box">
           {{ reservation.comment }}
         </div>
       </ReservationInfoCard>
       <!-- À ajouter dans le template après les cartes existantes -->
       <div v-if="reservation.actual_checkin || reservation.actual_checkout" class="info-grid">
-        <ReservationInfoCard title="Historique Check-in/out" icon="fas fa-history">
+        <ReservationInfoCard title="Historique Check-in/out" icon="history">
           <div v-if="reservation.actual_checkin" class="info-row">
             <span class="info-label">
-              <i class="fas fa-door-open text-success"></i> Check-in réel:
+              <AppIcon name="door-open" /> Check-in réel:
             </span>
             <span class="info-value">{{ formatDateTime(reservation.actual_checkin) }}</span>
           </div>
           <div v-if="reservation.actual_checkout" class="info-row">
             <span class="info-label">
-              <i class="fas fa-door-closed text-info"></i> Check-out réel:
+              <AppIcon name="door-closed" /> Check-out réel:
             </span>
             <span class="info-value">{{ formatDateTime(reservation.actual_checkout) }}</span>
           </div>
@@ -284,13 +284,13 @@ export default {
     },
 
     getProductIcon(productableType) {
-      if (!productableType) return 'fas fa-box'
+      if (!productableType) return 'box'
 
-      if (productableType.includes('Room')) return 'fas fa-bed'
-      if (productableType.includes('Activity')) return 'fas fa-hiking'
-      if (productableType.includes('Menu')) return 'fas fa-utensils'
+      if (productableType.includes('Room')) return 'bed'
+      if (productableType.includes('Activity')) return 'footprints'
+      if (productableType.includes('Menu')) return 'utensils'
 
-      return 'fas fa-box'
+      return 'box'
     },
 
     getProductTypeName(productableType) {
@@ -402,15 +402,15 @@ export default {
 
     getStatusIcon(status) {
       const icons = {
-        confirmed: 'fas fa-check-circle',
-        pending: 'fas fa-hourglass-half',
-        checked_in: 'fas fa-door-open',
-        checked_out: 'fas fa-door-closed',
-        completed: 'fas fa-flag-checkered',
-        cancelled: 'fas fa-times-circle',
-        no_show: 'fas fa-user-slash'
+        confirmed: 'circle-check',
+        pending: 'hourglass',
+        checked_in: 'door-open',
+        checked_out: 'door-closed',
+        completed: 'flag',
+        cancelled: 'circle-x',
+        no_show: 'user-x'
       }
-      return icons[status] || 'fas fa-question-circle'
+      return icons[status] || 'circle-help'
     },
 
     getPaymentStatusLabel(status) {
@@ -428,11 +428,11 @@ export default {
 
     getPaymentStatusIcon(status) {
       const icons = {
-        paid: 'fas fa-check-circle',
-        pending: 'fas fa-hourglass-half',
-        failed: 'fas fa-times-circle'
+        paid: 'circle-check',
+        pending: 'hourglass',
+        failed: 'circle-x'
       }
-      return icons[status] || 'fas fa-credit-card'
+      return icons[status] || 'credit-card'
     },
 
     getPaymentMethodLabel() {

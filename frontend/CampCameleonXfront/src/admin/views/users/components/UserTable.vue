@@ -4,7 +4,7 @@
     <LoadingState v-if="loading || error || users.length === 0" :state="loading ? 'loading' : error ? 'error' : 'empty'"
       loading-text="Chargement des utilisateurs..." :error-message="error" empty-title="Aucun utilisateur trouvé"
       :empty-message="hasFilters ? 'Essayez de modifier vos critères de recherche' : 'Commencez par créer votre premier utilisateur'"
-      empty-icon="fas fa-users" :show-action="!hasFilters" action-label="Créer un utilisateur" @retry="$emit('retry')"
+      empty-icon="users" :show-action="!hasFilters" action-label="Créer un utilisateur" @retry="$emit('retry')"
       @action="$router.push('/admin/users/create')" />
 
     <!-- Tableau des utilisateurs -->
@@ -18,13 +18,13 @@
           <th>
             <button @click="$emit('sort', 'name')" class="sort-button btn btn-sm">
               Utilisateur
-              <i :class="getSortIcon('name')"></i>
+              <AppIcon :name="getSortIcon('name')" />
             </button>
           </th>
           <th>
             <button @click="$emit('sort', 'email')" class="sort-button btn btn-sm">
               Email
-              <i :class="getSortIcon('email')"></i>
+              <AppIcon :name="getSortIcon('email')" />
             </button>
           </th>
           <th>Rôles</th>
@@ -32,13 +32,13 @@
           <th>
             <button @click="$emit('sort', 'created_at')" class="sort-button btn btn-sm">
               Inscription
-              <i :class="getSortIcon('created_at')"></i>
+              <AppIcon :name="getSortIcon('created_at')" />
             </button>
           </th>
           <th>
             <button @click="$emit('sort', 'last_login')" class="sort-button btn btn-sm">
               Dernière connexion
-              <i :class="getSortIcon('last_login')"></i>
+              <AppIcon :name="getSortIcon('last_login')" />
             </button>
           </th>
           <th width="120">Actions</th>
@@ -57,7 +57,7 @@
           <td class="user-info-cell">
             <div class="user-info">
               <div class="user-avatar">
-                <i class="fas fa-user"></i>
+                <AppIcon name="user" />
               </div>
               <div class="user-details">
                 <div class="user-name">{{ user.name }}</div>
@@ -71,8 +71,8 @@
             <div class="email-info">
               <span class="email-address">{{ user.email }}</span>
               <div class="email-status">
-                <i v-if="user.email_verified_at" class="fas fa-check-circle text-success" title="Email vérifié"></i>
-                <i v-else class="fas fa-exclamation-triangle text-warning" title="Email non vérifié"></i>
+                <AppIcon name="circle-check" v-if="user.email_verified_at" title="Email vérifié" />
+                <AppIcon name="triangle-alert" v-else title="Email non vérifié" />
               </div>
             </div>
           </td>
@@ -98,7 +98,7 @@
           <!-- Statut -->
           <td class="user-status">
             <div class="status-indicator" :class="getStatusClass(user.status)">
-              <i :class="getStatusIcon(user.status)"></i>
+              <AppIcon :name="getStatusIcon(user.status)" />
               <span>{{ getStatusLabel(user.status) }}</span>
             </div>
           </td>
@@ -124,20 +124,20 @@
           <td class="actions-col">
             <div class="action-buttons">
               <button @click="$emit('view-user', user)" class="btn-icon" title="Voir les détails">
-                <i class="fas fa-eye"></i>
+                <AppIcon name="eye" />
               </button>
 
               <router-link :to="`/admin/users/${user.id}/edit`" class="btn-icon" title="Modifier">
-                <i class="fas fa-edit"></i>
+                <AppIcon name="pencil" />
               </router-link>
 
               <button @click="$emit('toggle-status', user)" class="btn-icon"
                 :title="user.status === 'active' ? 'Suspendre' : 'Activer'">
-                <i :class="user.status === 'active' ? 'fas fa-pause' : 'fas fa-play'"></i>
+                <AppIcon :name="user.status === 'active' ? 'pause' : 'play'" />
               </button>
 
               <button @click="$emit('delete-user', user)" class="btn-icon text-danger" title="Supprimer">
-                <i class="fas fa-trash"></i>
+                <AppIcon name="trash-2" />
               </button>
             </div>
           </td>
@@ -154,7 +154,7 @@
       <div class="pagination-controls">
         <button @click="$emit('page-change', currentPage - 1)" :disabled="currentPage === 1"
           class="btn btn-outline btn-sm">
-          <i class="fas fa-chevron-left"></i>
+          <AppIcon name="chevron-left" />
         </button>
 
         <div class="pagination-pages">
@@ -166,7 +166,7 @@
 
         <button @click="$emit('page-change', currentPage + 1)" :disabled="currentPage === totalPages"
           class="btn btn-outline btn-sm">
-          <i class="fas fa-chevron-right"></i>
+          <AppIcon name="chevron-right" />
         </button>
       </div>
     </div>
@@ -295,11 +295,11 @@ export default {
 
     getSortIcon(field) {
       if (this.sortField !== field) {
-        return 'fas fa-sort text-muted'
+        return 'arrow-up-down'
       }
       return this.sortDirection === 'asc'
-        ? 'fas fa-sort-up'
-        : 'fas fa-sort-down'
+        ? 'chevron-up'
+        : 'chevron-down'
     },
 
     formatDate(dateString) {
@@ -338,11 +338,11 @@ export default {
 
     getStatusIcon(status) {
       const icons = {
-        'active': 'fas fa-check-circle',
-        'inactive': 'fas fa-pause-circle',
-        'blocked': 'fas fa-ban'
+        'active': 'circle-check',
+        'inactive': 'circle-pause',
+        'blocked': 'ban'
       }
-      return icons[status] || 'fas fa-question-circle'
+      return icons[status] || 'circle-help'
     },
 
     getStatusLabel(status) {

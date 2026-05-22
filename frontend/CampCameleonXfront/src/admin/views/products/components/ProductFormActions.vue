@@ -7,7 +7,7 @@
         class="btn btn-outline btn-sm" 
         :disabled="saving"
       >
-        <i class="fas fa-undo"></i>
+        <AppIcon name="undo-2" />
         Réinitialiser
       </button>
     </div>
@@ -18,8 +18,8 @@
         :disabled="saving || !isFormValid"
         @click="submitForm"
       >
-        <i v-if="saving" class="fas fa-spinner fa-spin"></i>
-        <i v-else class="fas fa-check"></i>
+        <AppIcon name="loader-circle" :spin="true" v-if="saving" />
+        <AppIcon name="check" v-else />
         {{ isEditing ? 'Mettre à jour' : 'Créer' }}
       </button>
     </div>

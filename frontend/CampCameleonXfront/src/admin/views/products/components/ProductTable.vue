@@ -9,17 +9,17 @@
           <th class="image-col">Image</th>
           <th @click="$emit('sort', 'name')" class="sortable">
             Nom
-            <i class="fas fa-sort"></i>
+            <AppIcon name="arrow-up-down" />
           </th>
           <th>Catégorie</th>
           <th v-for="column in visibleColumns" :key="column" 
             @click="$emit('sort', column)" class="sortable">
             {{ getColumnLabel(column) }}
-            <i class="fas fa-sort"></i>
+            <AppIcon name="arrow-up-down" />
           </th>
           <th @click="$emit('sort', 'price')" class="sortable">
             Prix
-            <i class="fas fa-sort"></i>
+            <AppIcon name="arrow-up-down" />
           </th>
           <th>Statut</th>
           <th class="actions-col">Actions</th>
@@ -65,16 +65,16 @@
           <td class="actions-col">
             <div class="table-actions">
               <button @click="$emit('view', product)" class="btn-icon" title="Voir">
-                <i class="fas fa-eye"></i>
+                <AppIcon name="eye" />
               </button>
               <button @click="$emit('edit', product)" class="btn-icon" title="Modifier">
-                <i class="fas fa-edit"></i>
+                <AppIcon name="pencil" />
               </button>
               <button @click="$emit('duplicate', product)" class="btn-icon" title="Dupliquer">
-                <i class="fas fa-copy"></i>
+                <AppIcon name="copy" />
               </button>
               <button @click="$emit('delete', product)" class="btn-icon text-danger" title="Supprimer">
-                <i class="fas fa-trash"></i>
+                <AppIcon name="trash-2" />
               </button>
             </div>
           </td>

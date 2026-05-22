@@ -3,11 +3,11 @@
     <div class="modal-container large-modal" @click.stop>
       <div class="modal-header">
         <h3 class="modal-title">
-          <i :class="modalIcon"></i>
+          <AppIcon :name="modalIcon" />
           {{ isEditing ? 'Modifier' : 'Créer' }}
         </h3>
         <button @click="confirmClose" class="modal-close">
-          <i class="fas fa-times"></i>
+          <AppIcon name="x" />
         </button>
       </div>
 
@@ -19,7 +19,7 @@
             <div v-for="type in eventTypes" :key="type.value" @click="formData.type = type.value" class="type-option"
               :class="{ active: formData.type === type.value }">
               <div class="type-icon" :style="{ backgroundColor: type.color }">
-                <i :class="type.icon"></i>
+                <AppIcon :name="type.icon" />
               </div>
               <span class="type-label">{{ type.label }}</span>
             </div>
@@ -150,7 +150,7 @@
                 </div>
 
                 <div v-if="loadingAccommodations" class="loading-item">
-                  <i class="fas fa-spinner fa-spin"></i> Chargement des hébergements...
+                  <AppIcon name="loader-circle" :spin="true" /> Chargement des hébergements...
                 </div>
 
                 <div v-if="!loadingAccommodations && accommodations.length === 0" class="empty-item">
@@ -354,7 +354,7 @@
             Annuler
           </button>
           <button type="submit" class="btn btn-primary btn-sm" :disabled="isSubmitting">
-            <i class="fas fa-save"></i>
+            <AppIcon name="save" />
             {{ isSubmitting ? 'Sauvegarde...' : isEditing ? 'Modifier' : 'Créer' }}
           </button>
         </div>
@@ -437,25 +437,25 @@ export default {
         {
           value: 'reservation',
           label: 'Réservation Client',
-          icon: 'fas fa-bed',
+          icon: 'bed',
           color: '#28a745'
         },
         {
           value: 'activite',
           label: 'Activité Programmée',
-          icon: 'fas fa-hiking',
+          icon: 'footprints',
           color: '#ffc107'
         },
         {
           value: 'maintenance',
           label: 'Maintenance',
-          icon: 'fas fa-tools',
+          icon: 'wrench',
           color: '#dc3545'
         },
         {
           value: 'autre',
           label: 'Autre',
-          icon: 'fas fa-calendar',
+          icon: 'calendar',
           color: '#17a2b8'
         }
       ],
@@ -476,7 +476,7 @@ export default {
   computed: {
     modalIcon() {
       const type = this.eventTypes.find(t => t.value === this.formData.type)
-      return type ? type.icon : 'fas fa-calendar'
+      return type ? type.icon : 'calendar'
     },
 
     totalGuests() {

@@ -2,7 +2,7 @@
   <div class="users-page">
     <!-- Message de succès -->
     <div v-if="successMessage" class="alert alert-success">
-      <i class="fas fa-check-circle"></i>
+      <AppIcon name="circle-check" />
       {{ successMessage }}
       <button @click="successMessage = null" class="btn-close">&times;</button>
     </div>
@@ -11,24 +11,24 @@
     <div class="page-header">
       <div class="header-content">
         <h1 class="page-title">
-          <i class="fas fa-users"></i>
+          <AppIcon name="users" />
           Utilisateurs
         </h1>
       </div>
 
       <div class="header-actions">
         <router-link to="/admin/roles" class="btn btn-outline btn-sm">
-          <i class="fas fa-shield-alt"></i>
+          <AppIcon name="shield" />
           Gérer les rôles
         </router-link>
 
         <router-link to="/admin/permissions" class="btn btn-outline btn-sm">
-          <i class="fas fa-key"></i>
+          <AppIcon name="key" />
           Permissions
         </router-link>
 
         <router-link to="/admin/users/create" class="btn btn-primary btn-sm">
-          <i class="fas fa-plus"></i>
+          <AppIcon name="plus" />
           Nouvel utilisateur
         </router-link>
       </div>
@@ -67,7 +67,7 @@
             class="btn btn-outline btn-sm"
             :disabled="!bulkAction"
           >
-            <i class="fas fa-play"></i>
+            <AppIcon name="play" />
             Exécuter
           </button>
         </div>
@@ -76,7 +76,7 @@
       <!-- Slot results personnalisé -->
       <template #results="{ activeCount }">
         <span class="results-info">
-          <i class="fas fa-users"></i>
+          <AppIcon name="users" />
           {{ filteredUsers.length }} utilisateur(s)
           <span v-if="activeCount > 0" class="text-muted">
             · {{ activeCount }} filtre(s)
@@ -112,7 +112,7 @@
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>
-            <i class="fas fa-users-cog"></i>
+            <AppIcon name="settings-2" />
             Action en masse
           </h3>
           <button @click="closeBulkModal" class="btn-close">&times;</button>

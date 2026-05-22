@@ -4,7 +4,7 @@
     <div class="page-header">
       <div class="header-content">
         <h1 class="page-title">
-          <i class="fas fa-shield-alt"></i>
+          <AppIcon name="shield" />
           Gestion des rôles
         </h1>
         <p class="page-subtitle">
@@ -12,12 +12,12 @@
         </p>
         <div class="header-actions">
           <router-link to="/admin/permissions" class="btn btn-outline btn-sm">
-            <i class="fas fa-key"></i>
+            <AppIcon name="key" />
             Permissions
           </router-link>
 
           <button @click="openCreateModal" class="btn btn-primary btn-sm">
-            <i class="fas fa-plus"></i>
+            <AppIcon name="plus" />
             Nouveau rôle
           </button>
         </div>
@@ -26,13 +26,13 @@
 
     <!-- Messages de succès/erreur -->
     <div v-if="successMessage" class="alert alert-success">
-      <i class="fas fa-check-circle"></i>
+      <AppIcon name="circle-check" />
       {{ successMessage }}
       <button @click="successMessage = null" class="btn-close">&times;</button>
     </div>
 
     <div v-if="error" class="alert alert-error">
-      <i class="fas fa-exclamation-triangle"></i>
+      <AppIcon name="triangle-alert" />
       {{ error }}
       <button @click="error = null" class="btn-close">&times;</button>
     </div>
@@ -43,7 +43,7 @@
       <!-- Résultats personnalisés -->
       <template #results="{ activeCount }">
         <span class="results-info">
-          <i class="fas fa-shield-alt"></i>
+          <AppIcon name="shield" />
           {{ filteredRolesCount }} rôle(s)
           <span v-if="activeCount > 0" class="text-muted">
             · {{ activeCount }} filtre(s)
@@ -67,13 +67,13 @@
           </div>
           <div class="role-actions">
             <button @click="viewRole(role)" class="btn-icon" title="Voir">
-              <i class="fas fa-eye"></i>
+              <AppIcon name="eye" />
             </button>
             <button @click="editRole(role)" class="btn-icon" title="Modifier">
-              <i class="fas fa-edit"></i>
+              <AppIcon name="pencil" />
             </button>
             <button v-if="!role.is_system" @click="deleteRole(role)" class="btn-icon text-danger" title="Supprimer">
-              <i class="fas fa-trash"></i>
+              <AppIcon name="trash-2" />
             </button>
           </div>
         </div>
@@ -84,17 +84,17 @@
 
         <div class="role-stats">
           <div class="stat">
-            <i class="fas fa-users"></i>
+            <AppIcon name="users" />
             <span>{{ role.users_count || 0 }} utilisateurs</span>
           </div>
           <div class="stat">
-            <i class="fas fa-key"></i>
+            <AppIcon name="key" />
             <span>{{ role.permissions_count || 0 }} permissions</span>
           </div>
         </div>
 
         <div v-if="role.is_system" class="system-badge">
-          <i class="fas fa-lock"></i>
+          <AppIcon name="lock" />
           Rôle système
         </div>
       </div>
@@ -102,7 +102,7 @@
 
     <!-- Empty state -->
     <div v-else class="empty-state">
-      <i class="fas fa-shield-alt fa-3x"></i>
+      <AppIcon name="shield" />
       <h3>Aucun rôle trouvé</h3>
       <p v-if="hasActiveFilters">
         Aucun rôle ne correspond à vos critères de recherche.
@@ -111,7 +111,7 @@
         Créez votre premier rôle pour commencer.
       </p>
       <button @click="openCreateModal" class="btn btn-primary">
-        <i class="fas fa-plus"></i>
+        <AppIcon name="plus" />
         Créer un rôle
       </button>
     </div>
@@ -395,7 +395,7 @@ export default {
   font-size: 0.875rem;
 }
 
-.stat i {
+.stat .app-icon {
   color: #5e72e4;
 }
 
@@ -420,7 +420,7 @@ export default {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
-.empty-state i {
+.empty-state .app-icon {
   color: #8898aa;
   margin-bottom: 1rem;
 }

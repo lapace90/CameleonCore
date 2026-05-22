@@ -1,7 +1,7 @@
 <template>
   <div class="analytics-page content-wrapper">
     <div class="page-header">
-      <h2><i class="fas fa-chart-bar page-icon"></i> Analytics</h2>
+      <h2><AppIcon name="bar-chart-2" /> Analytics</h2>
       <p>Visualisez les statistiques clés et les tendances de votre site.</p>
       <div class="date-range">
         <label for="date-select">Trier par: </label>
@@ -17,7 +17,7 @@
       <div class="analytics-card">
         <h3>Trafic du site</h3>
         <div class="chart-placeholder">
-          <i class="fas fa-chart-area"></i>
+          <AppIcon name="area-chart" />
           <p>Graphique de trafic</p>
         </div>
       </div>
@@ -25,7 +25,7 @@
       <div class="analytics-card">
         <h3>Sources de trafic</h3>
         <div class="chart-placeholder">
-          <i class="fas fa-chart-pie"></i>
+          <AppIcon name="pie-chart" />
           <p>Répartition des sources</p>
         </div>
       </div>
@@ -33,7 +33,7 @@
       <div class="analytics-card">
         <h3>Conversions</h3>
         <div class="chart-placeholder">
-          <i class="fas fa-chart-line"></i>
+          <AppIcon name="trending-up" />
           <p>Taux de conversion</p>
         </div>
       </div>
@@ -41,7 +41,7 @@
       <div class="analytics-card">
         <h3>Géolocalisation</h3>
         <div class="chart-placeholder">
-          <i class="fas fa-globe"></i>
+          <AppIcon name="globe" />
           <p>Carte des visiteurs</p>
         </div>
       </div>

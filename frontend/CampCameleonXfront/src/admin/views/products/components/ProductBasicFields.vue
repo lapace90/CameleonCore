@@ -42,30 +42,30 @@
           <button v-for="c in filteredCategories" :key="c.id" type="button" class="badge"
             :class="{ 'badge-active': selectedSet.has(c.id) }" @click="toggleCategory(c.id)"
             :aria-pressed="selectedSet.has(c.id)">
-            <i class="fas fa-tag"></i> {{ c.name }}
+            <AppIcon name="tag" /> {{ c.name }}
           </button>
         </div>
         <!-- Actions -->
         <div class="category-actions">
           <router-link class="btn btn-primary btn-sm" :to="categoriesManageTo" target="_blank"
             title="Gérer les catégories">
-            <i class="fas fa-folder-tree"></i>
+            <AppIcon name="folder-tree" />
           </router-link>
 
           <button type="button" class="btn btn-light mx-2 btn-sm" @click="fetchCategories" :disabled="loadingCategories"
             title="Rafraîchir">
-            <i class="fas fa-rotate"></i>
+            <AppIcon name="rotate-cw" />
           </button>
 
           <button type="button" class="btn btn-light btn-sm" @click="clearCategories"
             :disabled="!selectedCategories.length" title="Vider">
-            <i class="fas fa-xmark"></i>
+            <AppIcon name="x" />
           </button>
         </div>
         <!-- Résumé sélection (tes pastilles existantes) -->
         <div v-if="selectedCategories.length" class="badges-container mt-2">
           <span v-for="c in selectedCategories" :key="c.id" class="badge">
-            <i class="fas fa-tag"></i> {{ c.name }}
+            <AppIcon name="tag" /> {{ c.name }}
           </span>
         </div>
 

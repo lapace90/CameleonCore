@@ -11,10 +11,10 @@
       <img :src="product.image" :alt="product.name" />
       <div class="image-overlay">
         <button @click="$emit('view', product)" class="overlay-btn" title="Voir">
-          <i class="fas fa-eye"></i>
+          <AppIcon name="eye" />
         </button>
         <button @click="$emit('edit', product)" class="overlay-btn" title="Modifier">
-          <i class="fas fa-edit"></i>
+          <AppIcon name="pencil" />
         </button>
       </div>
     </div>
@@ -37,7 +37,7 @@
 
       <div v-if="hasProductTags" class="product-tags">
         <span v-for="tag in limitedTags" :key="tag.id" class="tag">
-          <i v-if="tag.icon" :class="tag.icon"></i>
+          <AppIcon v-if="tag.icon" :name="tag.icon" />
           {{ getDisplayName(tag.name) }}
         </span>
       </div>
@@ -49,14 +49,14 @@
         <div class="product-price">{{ product.formatted_price }}</div>
         <div class="card-actions">
           <button @click="$emit('duplicate', product)" class="btn-icon" title="Dupliquer">
-            <i class="fas fa-copy"></i>
+            <AppIcon name="copy" />
           </button>
           <button @click="$emit('toggle-status', product)" class="btn-icon"
             :title="product.status ? 'Désactiver' : 'Activer'">
-            <i :class="product.status ? 'fas fa-pause' : 'fas fa-play'"></i>
+            <AppIcon :name="product.status ? 'pause' : 'play'" />
           </button>
           <button @click="$emit('delete', product)" class="btn-icon text-danger" title="Supprimer">
-            <i class="fas fa-trash"></i>
+            <AppIcon name="trash-2" />
           </button>
         </div>
       </div>
@@ -84,18 +84,29 @@ export default {
 
     getDisplayName(tagName) {
       const names = {
-        'vegetarian': 'Végé',
+        // Global
+        'budget': 'Pas cher',
+        'premium': 'Premium',
+        'popular': 'Populaire',
+        'new': 'Nouveau',
+        // Food
+        'vegetarian': 'Végétarien',
         'vegan': 'Végan',
         'spicy': 'Épicé',
         'gluten_free': 'Sans gluten',
         'lactose_free': 'Sans lactose',
+        // Activity
         'extreme': 'Extrême',
+        'easy': 'Facile',
+        'outdoor': 'Extérieur',
+        'water': 'Aquatique',
+        // Room
         'couple': 'Couple',
         'family': 'Famille',
-        'budget': 'Pas cher',
-        'premium': 'Premium'
+        'luxury': 'Luxe',
+        'ocean_view': 'Vue mer',
       }
-      return names[tagName] || tagName
+      return names[tagName] || tagName.replace(/[_-]/g, ' ').replace(/^\w/, c => c.toUpperCase())
     }
   },
   composants: {

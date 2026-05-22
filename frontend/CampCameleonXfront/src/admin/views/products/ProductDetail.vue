@@ -6,11 +6,11 @@
     <!-- Erreur -->
     <div v-else-if="error" class="error-state">
       <div class="error-icon">
-        <i class="fas fa-exclamation-triangle"></i>
+        <AppIcon name="triangle-alert" />
       </div>
       <h3>{{ error }}</h3>
       <router-link :to="backRoute" class="btn btn-primary btn-sm mt-6">
-        <i class="fas fa-arrow-left"></i>
+        <AppIcon name="arrow-left" />
         Retour à la liste
       </router-link>
     </div>
@@ -21,22 +21,22 @@
       <div class="detail-header">
         <div class="header-navigation">
           <router-link :to="backRoute" class="back-link">
-            <i class="fas fa-arrow-left"></i>
+            <AppIcon name="arrow-left" />
             Retour à {{ product.typeConfig.label }}
           </router-link>
         </div>
 
         <div class="header-actions">
           <button @click="duplicateProduct" class="btn btn-secondary btn-sm">
-            <i class="fas fa-copy"></i>
+            <AppIcon name="copy" />
             Dupliquer
           </button>
           <router-link :to="editRoute" class="btn btn-primary btn-sm">
-            <i class="fas fa-edit"></i>
+            <AppIcon name="pencil" />
             Modifier
           </router-link>
           <button @click="deleteProduct" class="btn btn-danger btn-sm">
-            <i class="fas fa-trash"></i>
+            <AppIcon name="trash-2" />
             Supprimer
           </button>
         </div>
@@ -46,7 +46,7 @@
       <div class="product-title-section">
         <div class="title-left">
           <div class="product-type-badge" :style="{ backgroundColor: product.typeConfig.color }">
-            <i :class="product.typeConfig.icon"></i>
+            <AppIcon :name="product.typeConfig.icon" />
             {{ product.typeConfig.singular }}
           </div>
           <h1 class="product-title">{{ product.name }}</h1>
@@ -55,11 +55,11 @@
         <div class="title-right">
           <div class="status-controls">
             <div class="status-indicator" :class="product.status_class">
-              <!-- <i class="fas fa-circle"></i> -->
+              <!-- <AppIcon name="circle" /> -->
               {{ product.status_label }}
             </div>
             <button @click="toggleStatus" class="btn btn-sm" :class="statusButtonClass">
-              <i :class="statusButtonIcon"></i>
+              <AppIcon :name="statusButtonIcon" />
               {{ statusButtonText }}
             </button>
           </div>
@@ -85,7 +85,7 @@
             <div class="metrics-grid">
               <div v-for="(stat, key) in product.statistics" :key="key" class="metric-item">
                 <div class="metric-icon">
-                  <i :class="getStatIcon(key)"></i>
+                  <AppIcon :name="getStatIcon(key)" />
                 </div>
                 <div class="metric-content">
                   <span class="metric-number">{{ formatStatValue(stat, key) }}</span>
@@ -216,7 +216,7 @@
         </div>
         <div class="actions-right">
           <router-link :to="editRoute" class="btn btn-primary btn-sm">
-            <i class="fas fa-edit"></i>
+            <AppIcon name="pencil" />
             Modifier
           </router-link>
         </div>
@@ -284,7 +284,7 @@ export default {
     },
 
     statusButtonIcon() {
-      return this.product?.status ? 'fas fa-pause' : 'fas fa-play'
+      return this.product?.status ? 'pause' : 'play'
     },
 
     statusButtonText() {

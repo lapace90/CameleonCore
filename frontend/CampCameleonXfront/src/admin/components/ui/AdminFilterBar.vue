@@ -4,7 +4,7 @@
       <!-- Recherche -->
       <div v-if="hasSearch" class="search-field">
         <div class="search-box">
-          <i class="fas fa-search search-icon"></i>
+          <AppIcon name="search" />
           <input
             :id="searchId"
             class="search-input"
@@ -67,7 +67,7 @@
           class="btn btn-outline btn-sm"
           @click="resetFilters"
         >
-          <i class="fas fa-times"></i>
+          <AppIcon name="x" />
           {{ resetLabel }}
         </button>
       </div>
@@ -76,7 +76,7 @@
       <div class="results-inline">
         <slot name="results" :active-count="activeFilterCount">
           <span class="results-info">
-            <i class="fas fa-filter"></i>
+            <AppIcon name="filter" />
             <span v-if="activeFilterCount > 0">
               {{ activeFilterCount }} filtre(s) actif(s)
             </span>

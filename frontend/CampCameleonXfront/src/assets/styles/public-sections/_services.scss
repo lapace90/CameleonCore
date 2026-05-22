@@ -136,7 +136,7 @@
         align-items: center;
         gap: 0.5rem;
 
-        i {
+        .app-icon {
           color: #ffd700;
         }
       }
@@ -197,7 +197,7 @@
           padding: 0.5rem 0;
           color: $text-secondary;
 
-          i {
+          .app-icon {
             color: $terracotta;
             font-size: $font-size-sm;
           }
@@ -219,7 +219,7 @@
           gap: 0.5rem;
           color: $text-secondary;
 
-          i {
+          .app-icon {
             color: $terracotta;
           }
         }
@@ -486,7 +486,7 @@
         padding: 0.75rem 0;
         color: $text-secondary;
 
-        i {
+        .app-icon {
           color: $terracotta;
           font-size: $font-size-sm;
         }
@@ -568,12 +568,12 @@
         background: rgba($terracotta, 0.1);
         color: $terracotta;
 
-        i {
+        .app-icon {
           transform: rotate(180deg);
         }
       }
 
-      i {
+      .app-icon {
         color: $terracotta;
         transition: transform $transition-base;
       }

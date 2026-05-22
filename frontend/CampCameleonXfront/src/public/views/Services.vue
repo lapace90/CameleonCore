@@ -33,7 +33,7 @@
             <div class="accommodation-image">
               <img :src="accommodation.image" :alt="accommodation.title" />
               <div class="accommodation-badge" v-if="accommodation.popular">
-                <i class="fas fa-star"></i>
+                <AppIcon name="star" />
                 <span>Populaire</span>
               </div>
               <div class="price-badge">
@@ -46,22 +46,22 @@
               <p>{{ accommodation.description }}</p>
               <ul class="accommodation-features">
                 <li v-for="feature in accommodation.features" :key="feature">
-                  <i class="fas fa-check"></i>
+                  <AppIcon name="check" />
                   {{ feature }}
                 </li>
               </ul>
               <div class="accommodation-specs">
                 <div class="spec">
-                  <i class="fas fa-users"></i>
+                  <AppIcon name="users" />
                   <span>{{ accommodation.capacity }} personnes</span>
                 </div>
                 <div class="spec">
-                  <i class="fas fa-bed"></i>
+                  <AppIcon name="bed" />
                   <span>{{ accommodation.beds }}</span>
                 </div>
               </div>
               <button class="btn btn-primary">
-                <i class="fas fa-calendar-plus"></i>
+                <AppIcon name="calendar-plus" />
                 Réserver
               </button>
             </div>
@@ -81,7 +81,7 @@
         <div class="services-grid">
           <div class="service-item" v-for="service in extraServices" :key="service.id">
             <div class="service-icon" :style="{ backgroundColor: service.color }">
-              <i :class="service.icon"></i>
+              <AppIcon :name="service.icon" />
             </div>
             <div class="service-content">
               <h4>{{ service.title }}</h4>
@@ -106,7 +106,7 @@
         <div class="amenities-grid">
           <div class="amenity-item" v-for="amenity in amenities" :key="amenity.id">
             <div class="amenity-icon">
-              <i :class="amenity.icon"></i>
+              <AppIcon :name="amenity.icon" />
             </div>
             <h5>{{ amenity.title }}</h5>
             <p>{{ amenity.description }}</p>
@@ -140,12 +140,12 @@
             </div>
             <ul class="pricing-features">
               <li v-for="feature in plan.features" :key="feature">
-                <i class="fas fa-check"></i>
+                <AppIcon name="check" />
                 {{ feature }}
               </li>
             </ul>
             <button class="btn" :class="plan.popular ? 'btn-primary' : 'btn-outline'">
-              <i class="fas fa-calendar-check"></i>
+              <AppIcon name="calendar-check" />
               Choisir ce forfait
             </button>
           </div>
@@ -165,7 +165,7 @@
           <div class="faq-item" v-for="faq in faqs" :key="faq.id">
             <button class="faq-question" @click="toggleFaq(faq.id)" :class="{ 'active': faq.open }">
               <span>{{ faq.question }}</span>
-              <i class="fas fa-chevron-down"></i>
+              <AppIcon name="chevron-down" />
             </button>
             <div class="faq-answer" v-show="faq.open">
               <p>{{ faq.answer }}</p>
@@ -249,21 +249,21 @@ export default {
     ])
 
     const extraServices = ref([
-      { id: 1, title: 'Transport 4x4', description: 'Transfert depuis Merzouga et excursions dans les dunes en véhicule tout-terrain.', icon: 'fas fa-car', color: '#CE5E1A', price: 'À partir de 25€/trajet' },
-      { id: 2, title: 'Guide Privé', description: 'Guide berbère dédié pour découvrir les secrets du désert et la culture locale.', icon: 'fas fa-user-tie', color: '#D6B190', price: '40€/demi-journée' },
-      { id: 3, title: 'Soirée Musicale', description: 'Concert privé de musique traditionnelle autour du feu avec musiciens locaux.', icon: 'fas fa-music', color: '#656C97', price: '60€/soirée' },
-      { id: 4, title: 'Atelier Artisanat', description: 'Initiation à la poterie, tapis berbère ou cuisine traditionnelle du désert.', icon: 'fas fa-palette', color: '#41241C', price: '20€/personne' },
-      { id: 5, title: 'Observation Étoiles', description: 'Soirée astronomie avec télescope et guide pour découvrir le ciel du Sahara.', icon: 'fas fa-star', color: '#2d8f63', price: '15€/personne' },
-      { id: 6, title: 'Massage Détente', description: "Massage relaxant aux huiles d'argan dans un cadre exceptionnel.", icon: 'fas fa-spa', color: '#8b6f47', price: '45€/séance' }
+      { id: 1, title: 'Transport 4x4', description: 'Transfert depuis Merzouga et excursions dans les dunes en véhicule tout-terrain.', icon: 'car', color: '#CE5E1A', price: 'À partir de 25€/trajet' },
+      { id: 2, title: 'Guide Privé', description: 'Guide berbère dédié pour découvrir les secrets du désert et la culture locale.', icon: 'user', color: '#D6B190', price: '40€/demi-journée' },
+      { id: 3, title: 'Soirée Musicale', description: 'Concert privé de musique traditionnelle autour du feu avec musiciens locaux.', icon: 'music', color: '#656C97', price: '60€/soirée' },
+      { id: 4, title: 'Atelier Artisanat', description: 'Initiation à la poterie, tapis berbère ou cuisine traditionnelle du désert.', icon: 'palette', color: '#41241C', price: '20€/personne' },
+      { id: 5, title: 'Observation Étoiles', description: 'Soirée astronomie avec télescope et guide pour découvrir le ciel du Sahara.', icon: 'star', color: '#2d8f63', price: '15€/personne' },
+      { id: 6, title: 'Massage Détente', description: "Massage relaxant aux huiles d'argan dans un cadre exceptionnel.", icon: 'flower-2', color: '#8b6f47', price: '45€/séance' }
     ])
 
     const amenities = ref([
-      { id: 1, title: 'Sanitaires Écologiques', description: "Toilettes sèches et douches solaires respectueuses de l'environnement", icon: 'fas fa-shower' },
-      { id: 2, title: 'Sécurité 24/7', description: "Surveillance discrète et assistance d'urgence jour et nuit", icon: 'fas fa-shield-alt' },
-      { id: 3, title: 'Parking Gardé', description: 'Stationnement sécurisé pour votre véhicule à Merzouga', icon: 'fas fa-parking' },
-      { id: 4, title: 'Transferts Inclus', description: 'Transport chameau/4x4 depuis le point de rendez-vous', icon: 'fas fa-route' },
-      { id: 5, title: 'WiFi Satellite', description: 'Connexion internet par satellite dans les zones communes', icon: 'fas fa-wifi' },
-      { id: 9, title: 'Premiers Secours', description: 'Trousse de secours et personnel formé aux urgences', icon: 'fas fa-first-aid' }
+      { id: 1, title: 'Sanitaires Écologiques', description: "Toilettes sèches et douches solaires respectueuses de l'environnement", icon: 'shower-head' },
+      { id: 2, title: 'Sécurité 24/7', description: "Surveillance discrète et assistance d'urgence jour et nuit", icon: 'shield' },
+      { id: 3, title: 'Parking Gardé', description: 'Stationnement sécurisé pour votre véhicule à Merzouga', icon: 'square-parking' },
+      { id: 4, title: 'Transferts Inclus', description: 'Transport chameau/4x4 depuis le point de rendez-vous', icon: 'route' },
+      { id: 5, title: 'WiFi Satellite', description: 'Connexion internet par satellite dans les zones communes', icon: 'wifi' },
+      { id: 9, title: 'Premiers Secours', description: 'Trousse de secours et personnel formé aux urgences', icon: 'heart-pulse' }
     ])
 
     const pricingPlans = ref([

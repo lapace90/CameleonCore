@@ -6,7 +6,7 @@
     <div class="page-header">
       <div class="header-left">
         <h1 class="page-title">
-          <i class="fas fa-tags"></i>
+          <AppIcon name="tags" />
           Gestion des Catégories
         </h1>
         <p class="page-subtitle">{{ totalCategories }} catégories organisées par type</p>
@@ -14,7 +14,7 @@
       <div class="header-actions">
         <!-- TODO: Réactiver quand CategoryModal sera créé -->
         <!-- <button @click="showCreateModal = true" class="btn btn-primary">
-          <i class="fas fa-plus"></i>
+          <AppIcon name="plus" />
           Nouvelle catégorie
         </button> -->
         <span class="text-muted">Gestion en lecture seule pour l'instant</span>
@@ -35,13 +35,13 @@
         <div class="type-header">
           <div class="type-info">
             <h3>
-              <i :class="getTypeIcon(typeName)"></i>
+              <AppIcon :name="getTypeIcon(typeName)" />
               {{ getTypeLabel(typeName) }}
             </h3> <span class="count">{{ typeCategories.length }} catégories</span>
           </div>
           <!-- TODO: Réactiver quand CategoryModal sera créé -->
           <!-- <button @click="createCategory(typeName)" class="btn btn-outline btn-sm">
-            <i class="fas fa-plus"></i>
+            <AppIcon name="plus" />
             Ajouter
           </button> -->
         </div>
@@ -54,10 +54,10 @@
                 <div class="category-actions">
                   <!-- TODO: Réactiver quand les modales seront créées -->
                   <!-- <button @click="editCategory(category)" class="btn-icon" title="Modifier">
-                    <i class="fas fa-edit"></i>
+                    <AppIcon name="pencil" />
                   </button>
                   <button @click="deleteCategory(category)" class="btn-icon btn-danger" title="Supprimer">
-                    <i class="fas fa-trash"></i>
+                    <AppIcon name="trash-2" />
                   </button> -->
                   <small class="text-muted">Actions à venir</small>
                 </div>
@@ -67,7 +67,7 @@
 
               <div class="category-stats">
                 <span class="stat-item">
-                  <i class="fas fa-box"></i>
+                  <AppIcon name="box" />
                   {{ getCategoryProductCount(category.id) }} produits
                 </span>
               </div>
@@ -211,13 +211,13 @@ export default {
 
     getTypeIcon(type) {
       const icons = {
-        'Activity': 'fas fa-hiking',
-        'Menu': 'fas fa-utensils',
-        'Dish': 'fas fa-bowl-food',
-        'Room': 'fas fa-campground',
-        'Ingredient': 'fas fa-carrot'
+        'Activity': 'footprints',
+        'Menu': 'utensils',
+        'Dish': 'utensils',
+        'Room': 'tent',
+        'Ingredient': 'carrot'
       }
-      return icons[type] || 'fas fa-tag'
+      return icons[type] || 'tag'
     },
 
     getCategoryProductCount(categoryId) {

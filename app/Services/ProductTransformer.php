@@ -187,7 +187,7 @@ class ProductTransformer
             'App\\Models\\Activity' => [
                 'label' => 'Activités',
                 'singular' => 'Activité',
-                'icon' => 'fas fa-hiking',
+                'icon' => 'footprints',
                 'color' => '#3b82f6',
                 'hasRelation' => null,
                 'fields' => ['guide', 'duration', 'meeting_point', 'max_people', 'difficulty_level']
@@ -195,7 +195,7 @@ class ProductTransformer
             'App\\Models\\Menu' => [
                 'label' => 'Menus',
                 'singular' => 'Menu',
-                'icon' => 'fas fa-utensils',
+                'icon' => 'utensils',
                 'color' => '#10b981',
                 'hasRelation' => 'dishes',
                 'fields' => []
@@ -203,7 +203,7 @@ class ProductTransformer
             'App\\Models\\Dish' => [
                 'label' => 'Plats',
                 'singular' => 'Plat',
-                'icon' => 'fas fa-drumstick-bite',
+                'icon' => 'utensils',
                 'color' => '#f97316',
                 'hasRelation' => 'ingredients',
                 'fields' => []
@@ -211,7 +211,7 @@ class ProductTransformer
             'App\\Models\\Ingredient' => [
                 'label' => 'Ingrédients',
                 'singular' => 'Ingrédient',
-                'icon' => 'fas fa-seedling',
+                'icon' => 'seedling',
                 'color' => '#22c55e',
                 'hasRelation' => 'dishes',
                 'fields' => ['stock', 'is_vegetarian', 'is_vegan', 'is_spicy', 'is_gluten_free', 'is_lactose_free', 'is_nut_free']
@@ -219,7 +219,7 @@ class ProductTransformer
             'App\\Models\\Room' => [
                 'label' => 'Hébergements',
                 'singular' => 'Hébergement',
-                'icon' => 'fas fa-bed',
+                'icon' => 'bed',
                 'color' => '#f59e0b',
                 'hasRelation' => null,
                 'fields' => ['capacity', 'availability']
@@ -229,7 +229,7 @@ class ProductTransformer
         return $configs[$type] ?? [
             'label' => 'Produit',
             'singular' => 'Produit',
-            'icon' => 'fas fa-box',
+            'icon' => 'box',
             'color' => '#6b7280',
             'hasRelation' => null,
             'fields' => []

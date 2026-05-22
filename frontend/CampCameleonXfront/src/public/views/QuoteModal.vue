@@ -5,11 +5,11 @@
                 <!-- Header -->
                 <div class="modal-header">
                     <h2 class="modal-title">
-                        <i class="fas fa-calculator"></i>
+                        <AppIcon name="calculator" />
                         Créer mon devis personnalisé
                     </h2>
                     <button @click="closeModal" class="btn-close" aria-label="Fermer">
-                        <i class="fas fa-times"></i>
+                        <AppIcon name="x" />
                     </button>
                 </div>
 
@@ -51,7 +51,7 @@
                                 <div class="selected-dates" v-if="datesOK">
                                     <div class="dates-display">
                                         <div class="date-item">
-                                            <i class="fas fa-calendar-plus"></i>
+                                            <AppIcon name="calendar-plus" />
                                             <div>
                                                 <label>Arrivée</label>
                                                 <span>{{ formatDate(selectedDates.start) }}</span>
@@ -59,11 +59,11 @@
                                         </div>
 
                                         <div class="date-separator">
-                                            <i class="fas fa-arrow-right"></i>
+                                            <AppIcon name="arrow-right" />
                                         </div>
 
                                         <div class="date-item">
-                                            <i class="fas fa-calendar-minus"></i>
+                                            <AppIcon name="calendar-minus" />
                                             <div>
                                                 <label>Départ</label>
                                                 <span>{{ formatDate(displayEndInclusive(selectedDates.endExclusive))
@@ -73,7 +73,7 @@
                                     </div>
 
                                     <div class="nights-display">
-                                        <i class="fas fa-moon"></i>
+                                        <AppIcon name="moon" />
                                         <span>{{ nights }} nuit{{ nights > 1 ? 's' : '' }}</span>
                                     </div>
                                 </div>
@@ -81,14 +81,14 @@
                                 <!-- Sélecteur d'invités amélioré -->
                                 <div class="guests-selector">
                                     <label class="guests-label">
-                                        <i class="fas fa-users"></i>
+                                        <AppIcon name="users" />
                                         Nombre d'invités
                                     </label>
 
                                     <div class="guests-controls">
                                         <button type="button" @click="decreaseGuests"
                                             :disabled="selectedDates.guests <= 1" class="btn-guest-control">
-                                            <i class="fas fa-minus"></i>
+                                            <AppIcon name="minus" />
                                         </button>
 
                                         <div class="guests-display">
@@ -99,7 +99,7 @@
 
                                         <button type="button" @click="increaseGuests"
                                             :disabled="selectedDates.guests >= 20" class="btn-guest-control">
-                                            <i class="fas fa-plus"></i>
+                                            <AppIcon name="plus" />
                                         </button>
                                     </div>
 
@@ -109,11 +109,11 @@
                                 <!-- Instructions -->
                                 <div class="step-instructions">
                                     <div class="instruction-item">
-                                        <i class="fas fa-click"></i>
+                                        <AppIcon name="mouse-pointer-click" />
                                         <span>Sélectionnez vos dates sur le calendrier</span>
                                     </div>
                                     <div class="instruction-item">
-                                        <i class="fas fa-info-circle"></i>
+                                        <AppIcon name="info" />
                                         <span>Minimum 1 nuit - Réservation à partir de demain</span>
                                     </div>
                                 </div>
@@ -145,8 +145,7 @@
                                     </p>
                                 </div>
                                 <div class="mini-check">
-                                    <i class="fas"
-                                        :class="selectedItems.activities.some(a => a.id === activity.id) ? 'fa-check' : 'fa-plus'"></i>
+                                    <AppIcon :name="selectedItems.activities.some(a => a.id === activity.id) ? 'check' : 'plus'" />
                                 </div>
                             </article>
                         </div>
@@ -176,8 +175,7 @@
                                     </p>
                                 </div>
                                 <div class="mini-check">
-                                    <i class="fas"
-                                        :class="selectedItems.menus.some(m => m.id === menu.id) ? 'fa-check' : 'fa-plus'"></i>
+                                    <AppIcon :name="selectedItems.menus.some(m => m.id === menu.id) ? 'check' : 'plus'" />
                                 </div>
                             </article>
                         </div>
@@ -202,7 +200,7 @@
                                         <!-- SEULE INFO PRODUCTABLE : Capacité -->
                                         <span v-if="room.productable_data?.capacity || room.productableData?.capacity"
                                             class="mini-pill">
-                                            <i class="fas fa-users"></i>
+                                            <AppIcon name="users" />
                                             {{ room.productable_data?.capacity || room.productableData?.capacity }}
                                             pers. max
                                         </span>
@@ -213,8 +211,7 @@
                                     </p>
                                 </div>
                                 <div class="mini-check">
-                                    <i class="fas"
-                                        :class="selectedItems.room?.id === room.id ? 'fa-check' : 'fa-plus'"></i>
+                                    <AppIcon :name="selectedItems.room?.id === room.id ? 'check' : 'plus'" />
                                 </div>
                             </article>
                         </div>
@@ -227,7 +224,7 @@
                         <div class="quote-summary">
                             <!-- ACTIVITÉS avec contrôles améliorés -->
                             <div v-if="pricing.lines.some(l => l.type === 'activity')" class="summary-section">
-                                <h4><i class="fas fa-hiking"></i> Activités</h4>
+                                <h4><AppIcon name="footprints" /> Activités</h4>
                                 <div v-for="l in pricing.lines.filter(l => l.type === 'activity')" :key="'a-' + l.id"
                                     class="summary-item enhanced">
                                     <div class="item-info">
@@ -253,7 +250,7 @@
 
                             <!-- MENUS avec contrôles améliorés -->
                             <div v-if="pricing.lines.some(l => l.type === 'menu')" class="summary-section">
-                                <h4><i class="fas fa-utensils"></i> Menus</h4>
+                                <h4><AppIcon name="utensils" /> Menus</h4>
                                 <div v-for="l in pricing.lines.filter(l => l.type === 'menu')" :key="'m-' + l.id"
                                     class="summary-item enhanced">
                                     <div class="item-info">
@@ -279,7 +276,7 @@
 
                             <!-- HÉBERGEMENT (pas de contrôle quantité) -->
                             <div v-if="selectedItems.room" class="summary-section">
-                                <h4><i class="fas fa-bed"></i> Hébergement</h4>
+                                <h4><AppIcon name="bed" /> Hébergement</h4>
                                 <div v-for="l in pricing.lines.filter(x => x.type === 'room')" :key="l.id"
                                     class="summary-item enhanced">
                                     <div class="item-info">
@@ -300,7 +297,7 @@
 
                             <!-- DÉTAILS DU SÉJOUR -->
                             <div class="summary-section">
-                                <h4><i class="fas fa-calendar"></i> Détails du séjour</h4>
+                                <h4><AppIcon name="calendar" /> Détails du séjour</h4>
                                 <div class="summary-item">
                                     <span>Du {{ formatDate(selectedDates.start) }} au {{
                                         formatDate(displayEndInclusive(selectedDates.endExclusive)) }}</span>
@@ -343,13 +340,13 @@
                 <div class="modal-footer">
                     <div class="footer-left">
                         <button v-if="currentStep > 1" @click="previousStep" class="btn btn-outline btn-sm">
-                            <i class="fas fa-arrow-left"></i> Précédent
+                            <AppIcon name="arrow-left" /> Précédent
                         </button>
                     </div>
                     <div class="footer-right">
                         <button v-if="currentStep < 5" @click="nextStep" class="btn btn-primary btn-sm"
                             :disabled="!canProceed">
-                            Suivant <i class="fas fa-arrow-right"></i>
+                            Suivant <AppIcon name="arrow-right" />
                         </button>
 
                         <!-- NOUVELLE SECTION: 3 actions pour l'étape 5 -->
@@ -357,7 +354,7 @@
                             <!-- Explication des options -->
                             <div class="actions-explanation">
                                 <p class="explanation-text">
-                                    <i class="fas fa-info-circle"></i>
+                                    <AppIcon name="info" />
                                     Choisissez comment finaliser votre demande :
                                 </p>
                             </div>
@@ -366,24 +363,24 @@
                                 <!-- Action 1: Réserver et payer -->
                                 <button @click="createReservationAndPay" class="btn btn-success btn-sm"
                                     :disabled="isSubmitting || !canSubmit">
-                                    <i v-if="isSubmitting === 'booking'" class="fas fa-spinner fa-spin"></i>
-                                    <i v-else class="fas fa-credit-card"></i>
+                                    <AppIcon name="loader-circle" :spin="true" v-if="isSubmitting === 'booking'" />
+                                    <AppIcon name="credit-card" v-else />
                                     {{ isSubmitting === 'booking' ? 'Traitement...' : 'Réserver & Payer' }}
                                 </button>
 
                                 <!-- Action 2: Sauvegarder et voir contacts -->
                                 <button @click="saveQuoteAndShowContacts" class="btn btn-primary btn-sm"
                                     :disabled="isSubmitting || !canSubmit">
-                                    <i v-if="isSubmitting === 'saving'" class="fas fa-spinner fa-spin"></i>
-                                    <i v-else class="fas fa-bookmark"></i>
+                                    <AppIcon name="loader-circle" :spin="true" v-if="isSubmitting === 'saving'" />
+                                    <AppIcon name="bookmark" v-else />
                                     {{ isSubmitting === 'saving' ? 'Sauvegarde...' : 'Sauvegarder le devis' }}
                                 </button>
 
                                 <!-- Action 3: Conseil personnalisé -->
                                 <button @click="requestAdvice" class="btn btn-outline btn-sm"
                                     :disabled="isSubmitting || !canSubmit">
-                                    <i v-if="isSubmitting === 'advice'" class="fas fa-spinner fa-spin"></i>
-                                    <i v-else class="fas fa-user-tie"></i>
+                                    <AppIcon name="loader-circle" :spin="true" v-if="isSubmitting === 'advice'" />
+                                    <AppIcon name="user" v-else />
                                     {{ isSubmitting === 'advice' ? 'Envoi...' : 'Conseil personnalisé' }}
                                 </button>
                             </div>
@@ -770,7 +767,7 @@ export default {
 
             } catch (e) {
                 console.error('❌ Erreur paiement:', e)
-                alert('<i class="fas fa-times-circle" style="padding: .5rem;"></i> ' + (e.message || 'Erreur inconnue'))
+                alert('<AppIcon name="circle-x" style="padding: .5rem;" /> ' + (e.message || 'Erreur inconnue'))
             } finally {
                 this.isSubmitting = false
             }
@@ -833,7 +830,7 @@ export default {
                 this.$emit('quote-saved', { quote: result.quote_request, type: 'email_validation_required' })
             } catch (e) {
                 console.error('❌ Erreur sauvegarde:', e)
-                alert('<i class="fas fa-times-circle" style="padding: .5rem;"></i> ' + (e.message || 'Erreur inconnue'))
+                alert('<AppIcon name="circle-x" style="padding: .5rem;" /> ' + (e.message || 'Erreur inconnue'))
             } finally {
                 this.isSubmitting = false
             }
@@ -861,7 +858,7 @@ export default {
                 })
             } catch (e) {
                 console.error('❌ Erreur conseil:', e)
-                alert('<i class="fas fa-times-circle" style="padding: .5rem;"></i> ' + (e.message || 'Erreur inconnue'))
+                alert('<AppIcon name="circle-x" style="padding: .5rem;" /> ' + (e.message || 'Erreur inconnue'))
             } finally {
                 this.isSubmitting = false
             }
@@ -939,7 +936,7 @@ $terracotta: #c17c4a;
     gap: 0.5rem;
     flex: 1;
 
-    i {
+    .app-icon {
         color: $terracotta;
         font-size: 1.1rem;
     }
@@ -974,7 +971,7 @@ $terracotta: #c17c4a;
     font-weight: 600;
     font-size: 0.9rem;
 
-    i {
+    .app-icon {
         font-size: 0.8rem;
     }
 }
@@ -996,7 +993,7 @@ $terracotta: #c17c4a;
     margin-bottom: 1rem;
     font-size: 0.9rem;
 
-    i {
+    .app-icon {
         color: $terracotta;
     }
 }
@@ -1077,7 +1074,7 @@ $terracotta: #c17c4a;
         margin-bottom: 0;
     }
 
-    i {
+    .app-icon {
         color: #0066cc;
         width: 16px;
         text-align: center;

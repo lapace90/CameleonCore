@@ -5,7 +5,7 @@
       <div class="header-left">
         <div class="product-type-info">
           <div class="type-icon" :style="{ backgroundColor: typeConfig.color }">
-            <i :class="typeConfig.icon"></i>
+            <AppIcon :name="typeConfig.icon" />
           </div>
           <div class="type-details">
             <h1 class="page-title">{{ typeConfig.label }}</h1>
@@ -14,11 +14,11 @@
       </div>
       <div class="header-actions">
         <button @click="exportProducts" class="btn btn-outline btn-sm">
-          <i class="fas fa-download"></i>
+          <AppIcon name="download" />
           Exporter
         </button>
         <router-link :to="createRoute" class="btn btn-primary btn-sm">
-          <i class="fas fa-plus"></i>
+          <AppIcon name="plus" />
           Nouveau {{ typeConfig.singular }}
         </router-link>
       </div>
@@ -36,11 +36,11 @@
         <div class="view-switcher">
           <button @click="viewMode = 'grid'" class="view-btn" :class="{ active: viewMode === 'grid' }"
             title="Vue grille">
-            <i class="fas fa-th"></i>
+            <AppIcon name="layout-grid" />
           </button>
           <button @click="viewMode = 'list'" class="view-btn" :class="{ active: viewMode === 'list' }"
             title="Vue liste">
-            <i class="fas fa-list"></i>
+            <AppIcon name="list" />
           </button>
         </div>
       </template>
@@ -49,11 +49,11 @@
       <template #footer="{ activeCount }">
         <div class="filters-footer-content">
           <span class="results-info">
-            <i class="fas fa-box"></i>
+            <AppIcon name="box" />
             {{ visibleProducts.length }} produit(s) affiché(s) sur {{ pagination.total }}
           </span>
           <span v-if="activeCount > 0" class="active-filters-info">
-            <i class="fas fa-filter"></i>
+            <AppIcon name="filter" />
             {{ activeCount }} filtre(s) actif(s)
           </span>
         </div>
@@ -67,7 +67,7 @@
     <!-- Message d'erreur -->
     <div v-if="error" class="error-message">
       <div class="alert alert-danger">
-        <i class="fas fa-exclamation-triangle"></i>
+        <AppIcon name="triangle-alert" />
         {{ error }}
         <button @click="error = null" class="btn-close">&times;</button>
       </div>
@@ -82,16 +82,16 @@
       <!-- Empty state -->
       <div v-else-if="visibleProducts.length === 0" class="empty-state">
         <div class="empty-icon">
-          <i :class="typeConfig.icon"></i>
+          <AppIcon :name="typeConfig.icon" />
         </div>
         <h3>Aucun {{ typeConfig.singular.toLowerCase() }} trouvé</h3>
         <p>{{ emptyStateMessage }}</p>
         <router-link v-if="pagination.total === 0" :to="createRoute" class="btn btn-primary">
-          <i class="fas fa-plus"></i>
+          <AppIcon name="plus" />
           Créer le premier {{ typeConfig.singular.toLowerCase() }}
         </router-link>
         <button v-else @click="resetFilters" class="btn btn-outline">
-          <i class="fas fa-times"></i>
+          <AppIcon name="x" />
           Réinitialiser les filtres
         </button>
       </div>

@@ -9,11 +9,11 @@
       <template v-else>
         <div class="modal-header">
           <h3>
-            <i class="fas fa-user" :style="{ color: headerColor }"></i>
+            <AppIcon name="user" :style="{ color: headerColor }" />
             {{ user.name }}
           </h3>
           <button @click="$emit('close')" class="btn-close">
-            <i class="fas fa-times"></i>
+            <AppIcon name="x" />
           </button>
         </div>
 
@@ -38,9 +38,9 @@
                   <span class="label">Statut :</span>
                   <span class="value">
                     <span class="badge" :class="statusBadgeClass">
-                      <i v-if="isActive" class="fas fa-check-circle"></i>
-                      <i v-else-if="isInactive" class="fas fa-ban"></i>
-                      <i v-else class="fas fa-clock"></i>
+                      <AppIcon name="circle-check" v-if="isActive" />
+                      <AppIcon name="ban" v-else-if="isInactive" />
+                      <AppIcon name="clock" v-else />
                       {{ statusLabel }}
                     </span>
                   </span>
@@ -63,7 +63,7 @@
             <!-- Statistiques rôles -->
             <div class="detail-section">
               <div class="stat-card">
-                <i class="fas fa-shield"></i>
+                <AppIcon name="shield" />
                 <div>
                   <span class="stat-label">Rôles ({{ totalRolesCount }})</span>
                   <div class="roles-list">
@@ -93,7 +93,7 @@
             </button>
 
             <router-link :to="`/admin/users/${user.id}`" class="btn btn-primary btn-sm" @click="$emit('close')">
-              <i class="fas fa-eye"></i>
+              <AppIcon name="eye" />
               Voir le détail complet
             </router-link>
           </div>
@@ -183,7 +183,7 @@ export default {
   border-radius: 8px;
 }
 
-.stat-card i {
+.stat-card .app-icon {
   font-size: 1.2rem;
   color: #6c757d;
   margin-top: 0.2rem;

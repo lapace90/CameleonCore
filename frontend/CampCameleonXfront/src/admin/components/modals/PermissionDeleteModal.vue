@@ -6,11 +6,11 @@
     <div class="modal-container">
       <div class="modal-header">
         <h3>
-          <i class="fas fa-trash"></i>
+          <AppIcon name="trash-2" />
           Supprimer la permission
         </h3>
         <button @click="$emit('close')" class="btn-close">
-          <i class="fas fa-times"></i>
+          <AppIcon name="x" />
         </button>
       </div>
 
@@ -26,7 +26,7 @@
         <!-- Vérification d'usage -->
         <div v-if="permission.roles_count > 0" class="alert alert-warning">
           <div class="warning-content">
-            <h6><i class="fas fa-exclamation-triangle"></i> Permission utilisée</h6>
+            <h6><AppIcon name="triangle-alert" /> Permission utilisée</h6>
             <p>
               Cette permission est actuellement utilisée par 
               <strong>{{ permission.roles_count }} rôle(s)</strong>.
@@ -35,7 +35,7 @@
               <strong>Vous ne pouvez pas la supprimer</strong> tant qu'elle est assignée.
             </p>
             <div class="alert alert-info">
-              <i class="fas fa-lightbulb"></i>
+              <AppIcon name="lightbulb" />
               Retirez d'abord cette permission des rôles concernés.
             </div>
           </div>
@@ -44,7 +44,7 @@
         <!-- Avertissement permission critique -->
         <div v-else-if="isCriticalPermission" class="alert alert-danger">
           <div class="warning-content">
-            <h6><i class="fas fa-shield-alt"></i> Permission critique</h6>
+            <h6><AppIcon name="shield" /> Permission critique</h6>
             <p>
               Cette permission est considérée comme critique pour la sécurité du système.
             </p>
@@ -57,12 +57,12 @@
         <!-- Confirmation de suppression -->
         <div v-else class="alert alert-info">
           <div class="confirmation-content">
-            <h6><i class="fas fa-question-circle"></i> Confirmer la suppression</h6>
+            <h6><AppIcon name="circle-help" /> Confirmer la suppression</h6>
             <p>
               Êtes-vous sûr de vouloir supprimer définitivement cette permission ?
             </p>
             <p class="text-danger">
-              <i class="fas fa-exclamation-triangle"></i>
+              <AppIcon name="triangle-alert" />
               <strong>Cette action est irréversible.</strong>
             </p>
           </div>
@@ -100,8 +100,8 @@
           class="btn btn-danger btn-sm"
           :disabled="loading || !isConfirmationValid"
         >
-          <i v-if="loading" class="fas fa-spinner fa-spin"></i>
-          <i v-else class="fas fa-trash"></i>
+          <AppIcon name="loader-circle" :spin="true" v-if="loading" />
+          <AppIcon name="trash-2" v-else />
           {{ loading ? 'Suppression...' : 'Supprimer définitivement' }}
         </button>
       </div>

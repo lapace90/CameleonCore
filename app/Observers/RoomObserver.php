@@ -87,17 +87,17 @@ class RoomObserver
     private function getIconForTag(string $tagName): string
     {
         $icons = [
-            'solo' => 'fas fa-user',
-            'couple' => 'fas fa-heart',
-            'family' => 'fas fa-users',
-            'group' => 'fas fa-user-friends',
-            'available' => 'fas fa-check-circle',
-            'unavailable' => 'fas fa-times-circle',
-            'luxury' => 'fas fa-crown',
-            'standard' => 'fas fa-bed',
-            'economic' => 'fas fa-dollar-sign'
+            'solo' => 'user',
+            'couple' => 'heart',
+            'family' => 'users',
+            'group' => 'users',
+            'available' => 'circle-check',
+            'unavailable' => 'circle-x',
+            'luxury' => 'crown',
+            'standard' => 'bed',
+            'economic' => 'dollar-sign'
         ];
 
-        return $icons[$tagName] ?? 'fas fa-home';
+        return $icons[$tagName] ?? 'home';
     }
 }

@@ -2,7 +2,7 @@
   <div class="stats-container">
     <div class="stat-item">
       <div class="stat-icon">
-        <i class="fas fa-boxes"></i>
+        <AppIcon name="boxes" />
       </div>
       <div class="stat-content">
         <span class="stat-number">{{ safeStats.total }}</span>
@@ -12,7 +12,7 @@
     
     <div class="stat-item">
       <div class="stat-icon success">
-        <i class="fas fa-check-circle"></i>
+        <AppIcon name="circle-check" />
       </div>
       <div class="stat-content">
         <span class="stat-number">{{ safeStats.active }}</span>
@@ -22,7 +22,7 @@
     
     <div class="stat-item">
       <div class="stat-icon warning">
-        <i class="fas fa-edit"></i>
+        <AppIcon name="pencil" />
       </div>
       <div class="stat-content">
         <span class="stat-number">{{ safeStats.draft }}</span>
@@ -32,7 +32,7 @@
     
     <div class="stat-item">
       <div class="stat-icon info">
-        <i class="fas fa-calculator"></i>
+        <AppIcon name="calculator" />
       </div>
       <div class="stat-content">
         <span class="stat-number">{{ formatPrice(safeStats.averagePrice) }}</span>

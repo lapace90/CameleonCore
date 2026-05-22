@@ -294,7 +294,7 @@ class RecalculateTagsCommand extends Command
                 [
                     'slug' => Str::slug($tagName),
                     'description' => "Tag auto-généré pour {$tagName}",
-                    'icon' => 'fas fa-tag'
+                    'icon' => 'tag'
                 ]
             );
         }

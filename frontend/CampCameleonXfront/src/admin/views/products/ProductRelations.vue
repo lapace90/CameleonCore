@@ -7,7 +7,7 @@
     <!-- Plats du menu (comme dans ProductDetails) -->
     <div v-if="menuDishes && menuDishes.length > 0" class="selection-area">
       <h4>
-        <i class="fas fa-utensils" style="color: #f97316; margin-right: 8px;"></i>
+        <AppIcon name="utensils" style="color: #f97316; margin-right: 8px;" />
         Plats du menu ({{ menuDishes.length }})
       </h4>
       <div class="current-relations">
@@ -17,7 +17,7 @@
             <span class="relation-price">{{ dish.formatted_price }}</span>
           </div>
           <button type="button" @click="removeDish(dish.id)" class="btn-remove" title="Retirer ce plat du menu">
-            <i class="fas fa-times"></i>
+            <AppIcon name="x" />
           </button>
         </div>
       </div>
@@ -26,7 +26,7 @@
     <!-- Bouton pour AJOUTER - TOUJOURS visible en édition -->
     <div v-if="editMode && config.hasRelation === 'dishes'" class="selection-area">
       <button type="button" @click="showAvailableDishes = !showAvailableDishes" class="btn btn-outline btn-sm">
-        <i class="fas fa-plus" style="margin-right: 6px;"></i>
+        <AppIcon name="plus" style="margin-right: 6px;" />
         {{ showAvailableDishes ? 'Masquer les plats disponibles' : 'Ajouter des plats' }}
       </button>
     </div>
@@ -34,11 +34,11 @@
     <!-- Ajouter des plats disponibles -->
     <div v-if="showAvailableDishes && config.hasRelation === 'dishes'" class="selection-area">
       <h4>
-        <i class="fas fa-search" style="color: #6b7280; margin-right: 8px;"></i>
+        <AppIcon name="search" style="color: #6b7280; margin-right: 8px;" />
         Plats disponibles
       </h4>
       <div class="search-box">
-        <i class="fas fa-search"></i>
+        <AppIcon name="search" />
         <input v-model="searchTerm" type="text" placeholder="Rechercher un plat par nom..." />
       </div>
       <div class="available-items">
@@ -49,7 +49,7 @@
             <span class="item-price">{{ dish.formatted_price }}</span>
           </div>
           <button type="button" class="btn-add btn-sm">
-            <i class="fas fa-plus"></i>
+            <AppIcon name="plus" />
           </button>
         </div>
         <div v-if="filteredAvailableDishes.length === 0" class="no-relations">
@@ -61,7 +61,7 @@
     <!-- Ingrédients du plat -->
     <div v-if="dishIngredients && dishIngredients.length > 0" class="selection-area">
       <h4>
-        <i class="fas fa-seedling" style="color: #22c55e; margin-right: 8px;"></i>
+        <AppIcon name="sprout" style="color: #22c55e; margin-right: 8px;" />
         Ingrédients du plat ({{ dishIngredients.length }})
       </h4>
       <div class="current-relations">
@@ -72,7 +72,7 @@
           </div>
           <button type="button" @click="removeIngredient(ingredient.id)" class="btn-remove"
             title="Retirer cet ingrédient du plat">
-            <i class="fas fa-times"></i>
+            <AppIcon name="x" />
           </button>
         </div>
       </div>
@@ -82,7 +82,7 @@
     <div v-if="editMode && config.hasRelation === 'ingredients'" class="selection-area">
       <button type="button" @click="showAvailableIngredients = !showAvailableIngredients"
         class="btn btn-outline btn-sm">
-        <i class="fas fa-plus" style="margin-right: 6px;"></i>
+        <AppIcon name="plus" style="margin-right: 6px;" />
         {{ showAvailableIngredients ? 'Masquer les ingrédients disponibles' : 'Ajouter des ingrédients' }}
       </button>
     </div>
@@ -90,11 +90,11 @@
     <!-- Ajouter des ingrédients disponibles -->
     <div v-if="showAvailableIngredients && config.hasRelation === 'ingredients'" class="selection-area">
       <h4>
-        <i class="fas fa-search" style="color: #6b7280; margin-right: 8px;"></i>
+        <AppIcon name="search" style="color: #6b7280; margin-right: 8px;" />
         Ingrédients disponibles
       </h4>
       <div class="search-box">
-        <i class="fas fa-search"></i>
+        <AppIcon name="search" />
         <input v-model="searchTerm" type="text" placeholder="Rechercher un ingrédient par nom..." />
       </div>
       <div class="available-items">
@@ -105,7 +105,7 @@
             <span class="item-stock">Stock: {{ ingredient.stock || 'N/A' }}</span>
           </div>
           <button class="btn-add">
-            <i class="fas fa-plus"></i>
+            <AppIcon name="plus" />
           </button>
         </div>
         <div v-if="filteredAvailableIngredients.length === 0" class="no-relations">

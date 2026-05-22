@@ -3,7 +3,7 @@
     <div class="form-container">
         <!-- Message de succès -->
         <div v-if="showSuccess" class="success-banner">
-            <i class="fas fa-check-circle"></i>
+            <AppIcon name="circle-check" />
             <div>
                 <strong>Merci pour votre avis !</strong>
                 <p>Votre témoignage a bien été envoyé et sera publié après validation.</p>
@@ -38,7 +38,7 @@
                 <div class="rating-stars">
                     <button v-for="star in 5" :key="star" type="button" @click="form.rating = star" class="star-button"
                         :class="{ 'active': star <= form.rating }">
-                        <i :class="star <= form.rating ? 'fas fa-star' : 'far fa-star'"></i>
+                        <AppIcon :name="star <= form.rating ? 'star' : 'star'" />
                     </button>
                 </div>
                 <span v-if="errors.rating" class="error-message">{{ errors.rating }}</span>
@@ -69,7 +69,7 @@
                 <label>Photos de votre séjour (optionnel, max 3)</label>
                 <div class="photos-upload-grid">
                     <ImageUpload v-for="i in 3" :key="`photo-${i}`" v-model="form.photos[i - 1]" variant="profile"
-                        shape="square" size="sm" :placeholder-text="`Photo ${i}`" placeholder-icon="fas fa-camera"
+                        shape="square" size="sm" :placeholder-text="`Photo ${i}`" placeholder-icon="camera"
                         :show-actions="false" :enable-editing="true" @upload-start="handleUploadStart"
                         @upload-success="handleUploadSuccess" @upload-error="handleUploadError" />
                 </div>
@@ -77,8 +77,8 @@
             </div>
 
             <button type="submit" class="btn-send" :disabled="submitting || uploading">
-                <i v-if="submitting" class="fas fa-spinner fa-spin"></i>
-                <i v-else class="fas fa-paper-plane"></i>
+                <AppIcon name="loader-circle" :spin="true" v-if="submitting" />
+                <AppIcon name="send" v-else />
                 {{ submitting ? 'Envoi en cours...' : 'Envoyer mon avis' }}
             </button>
         </form>

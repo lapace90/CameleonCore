@@ -88,17 +88,17 @@ class ActivityObserver
     private function getIconForTag(string $tagName): string
     {
         $icons = [
-            'extreme' => 'fas fa-mountain',
-            'easy' => 'fas fa-smile',
-            'medium' => 'fas fa-walking',
-            'hard' => 'fas fa-fire',
-            'outdoor' => 'fas fa-tree',
-            'indoor' => 'fas fa-home',
-            'water' => 'fas fa-water',
-            'climbing' => 'fas fa-mountain',
-            'hiking' => 'fas fa-hiking'
+            'extreme' => 'mountain',
+            'easy' => 'smile',
+            'medium' => 'footprints',
+            'hard' => 'flame',
+            'outdoor' => 'tree-pine',
+            'indoor' => 'home',
+            'water' => 'waves',
+            'climbing' => 'mountain',
+            'hiking' => 'footprints'
         ];
 
-        return $icons[$tagName] ?? 'fas fa-tag';
+        return $icons[$tagName] ?? 'tag';
     }
 }

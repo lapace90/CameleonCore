@@ -2,7 +2,7 @@
     <div class="permissions-page">
         <!-- Message de succès -->
         <div v-if="successMessage" class="alert alert-success">
-            <i class="fas fa-check-circle"></i>
+            <AppIcon name="circle-check" />
             {{ successMessage }}
             <button @click="successMessage = null" class="btn-close">&times;</button>
         </div>
@@ -11,7 +11,7 @@
         <div class="page-header">
             <div class="header-content">
                 <h1 class="page-title">
-                    <i class="fas fa-key"></i>
+                    <AppIcon name="key" />
                     Permissions
                 </h1>
                 <p class="page-subtitle">
@@ -19,11 +19,11 @@
                 </p>
                 <div class="header-actions">
                 <router-link to="/admin/roles" class="btn btn-outline btn-sm">
-                    <i class="fas fa-shield-alt"></i>
+                    <AppIcon name="shield" />
                     Gérer les rôles
                 </router-link>
                 <button @click="showCreateModal = true" class="btn btn-primary btn-sm">
-                    <i class="fas fa-plus"></i> Nouvelle permission
+                    <AppIcon name="plus" /> Nouvelle permission
                 </button>
                 </div>
             </div>
@@ -33,7 +33,7 @@
         <div class="stats-container" v-if="permissionsData.stats">
             <div class="stat-card">
                 <div class="stat-icon">
-                    <i class="fas fa-key"></i>
+                    <AppIcon name="key" />
                 </div>
                 <div class="stat-info">
                     <div class="stat-number">{{ permissionsData.stats.total_permissions }}</div>
@@ -43,7 +43,7 @@
 
             <div class="stat-card">
                 <div class="stat-icon info">
-                    <i class="fas fa-check-circle"></i>
+                    <AppIcon name="circle-check" />
                 </div>
                 <div class="stat-info">
                     <div class="stat-number">{{ permissionsData.stats.used_permissions }}</div>
@@ -53,7 +53,7 @@
 
             <div class="stat-card">
                 <div class="stat-icon warning">
-                    <i class="fas fa-exclamation-triangle"></i>
+                    <AppIcon name="triangle-alert" />
                 </div>
                 <div class="stat-info">
                     <div class="stat-number">{{ permissionsData.stats.critical_permissions }}</div>
@@ -63,7 +63,7 @@
 
             <div class="stat-card">
                 <div class="stat-icon success">
-                    <i class="fas fa-chart-pie"></i>
+                    <AppIcon name="pie-chart" />
                 </div>
                 <div class="stat-info">
                     <div class="stat-number">{{ permissionsData.stats.usage_percentage }}%</div>
@@ -79,7 +79,7 @@
 
         <!-- Error state -->
         <div v-else-if="error" class="text-center" style="padding: 3rem; color: #f5365c;">
-            <i class="fas fa-exclamation-triangle fa-2x"></i>
+            <AppIcon name="triangle-alert" />
             <p style="margin: 1rem 0;">{{ error }}</p>
             <button @click="loadPermissions" class="btn btn-primary btn-sm">
                 Réessayer
@@ -93,12 +93,11 @@
                 <div class="type-header" @click="toggleCategory(category.key)" style="cursor: pointer;">
                     <div class="type-info">
                         <h3>
-                            <i :class="category.icon" :style="`color: ${getCategoryColor(category.color)}`"></i>
+                            <AppIcon :name="category.icon" :style="`color: ${getCategoryColor(category.color)}`" />
                             {{ category.name }}
                             <!-- Icône accordéon -->
-                            <i class="fas fa-chevron-down ml-2"
-                                :class="{ 'fa-chevron-up': isCategoryExpanded(category.key), 'fa-chevron-down': !isCategoryExpanded(category.key) }"
-                                style="font-size: 0.8rem; color: #8898aa;"></i>
+                            <AppIcon name="chevron-down" :class="{ 'fa-chevron-up': isCategoryExpanded(category.key), 'fa-chevron-down': !isCategoryExpanded(category.key) }"
+                                style="font-size: 0.8rem; color: #8898aa;" />
                         </h3>
                         <p class="text-muted">{{ category.description }}</p>
                     </div>
@@ -124,15 +123,15 @@
                                 <div class="category-actions">
                                     <span v-if="permission.is_critical" class="btn-icon"
                                         style="background: #f5365c; color: white;" title="Permission critique">
-                                        <i class="fas fa-exclamation-triangle"></i>
+                                        <AppIcon name="triangle-alert" />
                                     </span>
                                     <span v-if="permission.is_system" class="btn-icon"
                                         style="background: #fb6340; color: white;" title="Permission système">
-                                        <i class="fas fa-shield-alt"></i>
+                                        <AppIcon name="shield" />
                                     </span>
                                     <span v-if="permission.requires_confirmation" class="btn-icon"
                                         style="background: #5e72e4; color: white;" title="Confirmation requise">
-                                        <i class="fas fa-lock"></i>
+                                        <AppIcon name="lock" />
                                     </span>
                                 </div>
                             </div>
@@ -152,11 +151,11 @@
                             <!-- Stats -->
                             <div class="category-stats">
                                 <div class="stat-item">
-                                    <i class="fas fa-users"></i>
+                                    <AppIcon name="users" />
                                     <span>{{ permission.users_count }} utilisateur(s)</span>
                                 </div>
                                 <div class="stat-item">
-                                    <i class="fas fa-shield-alt"></i>
+                                    <AppIcon name="shield" />
                                     <span>{{ permission.roles_count }} rôle(s)</span>
                                 </div>
                             </div>
@@ -173,14 +172,14 @@
                             <div class="text-center" style="margin-top: 1rem;">
 
                                 <button @click="viewPermissionDetails(permission)" class="btn btn-info btn-sm mx-1 ">
-                                    <i class="fas fa-eye"></i>
+                                    <AppIcon name="eye" />
                                 </button>
                                 <button @click="editPermission(permission)" class="btn btn-sm btn-primary mx-1">
-                                    <i class="fas fa-edit"></i>
+                                    <AppIcon name="pencil" />
                                 </button>
                                 <button @click="deletePermission(permission)" class="btn btn-sm btn-danger mx-1"
                                     :disabled="permission.roles_count > 0">
-                                    <i class="fas fa-trash"></i>
+                                    <AppIcon name="trash-2" />
                                 </button>
 
                             </div>

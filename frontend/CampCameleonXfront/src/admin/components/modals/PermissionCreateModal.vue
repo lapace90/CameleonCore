@@ -6,11 +6,11 @@
         <div class="modal-container">
             <div class="modal-header">
                 <h3>
-                    <i class="fas fa-plus"></i>
+                    <AppIcon name="plus" />
                     Créer une permission
                 </h3>
                 <button @click="$emit('close')" class="btn-close">
-                    <i class="fas fa-times"></i>
+                    <AppIcon name="x" />
                 </button>
             </div>
 
@@ -64,8 +64,8 @@
                         Annuler
                     </button>
                     <button type="submit" class="btn btn-primary btn-sm" :disabled="loading || !isFormValid">
-                        <i v-if="loading" class="fas fa-spinner fa-spin"></i>
-                        <i v-else class="fas fa-plus"></i>
+                        <AppIcon name="loader-circle" :spin="true" v-if="loading" />
+                        <AppIcon name="plus" v-else />
                         {{ loading ? 'Création...' : 'Créer' }}
                     </button>
                 </div>

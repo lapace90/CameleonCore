@@ -27,7 +27,7 @@
                                                 <h3>{{ activity.title }}</h3>
                                                 <p>{{ activity.description }}</p>
                                                 <div class="activity-badge">
-                                                    <i :class="activity.icon"></i>
+                                                    <AppIcon :name="activity.icon" />
                                                 </div>
                                             </div>
                                         </div>
@@ -38,10 +38,10 @@
 
                         <!-- Navigation -->
                         <button @click="prevSlide" class="carrousel-nav-btn prev" v-show="activities.length > 1">
-                            <i class="fas fa-chevron-left"></i>
+                            <AppIcon name="chevron-left" />
                         </button>
                         <button @click="nextSlide" class="carrousel-nav-btn next" v-show="activities.length > 1">
-                            <i class="fas fa-chevron-right"></i>
+                            <AppIcon name="chevron-right" />
                         </button>
                     </div>
 
@@ -67,7 +67,7 @@
                             <div class="card-image">
                                 <img :src="activity.image" :alt="activity.title" />
                                 <div class="card-badge">
-                                    <i :class="activity.icon"></i>
+                                    <AppIcon :name="activity.icon" />
                                 </div>
                             </div>
                             <div class="card-content">
@@ -79,7 +79,7 @@
                                     <!-- <h4>Inclus :</h4> -->
                                     <ul>
                                         <li v-for="feature in activity.features" :key="feature">
-                                            <i class="fas fa-check"></i>
+                                            <AppIcon name="check" />
                                             {{ feature }}
                                         </li>
                                     </ul>
@@ -87,18 +87,18 @@
 
                                 <div v-if="activity.duration || activity.difficulty" class="activity-meta">
                                     <span v-if="activity.duration" class="meta-item">
-                                        <i class="fas fa-clock"></i>
+                                        <AppIcon name="clock" />
                                         {{ activity.duration }}
                                     </span>
                                     <span v-if="activity.difficulty" class="meta-item">
-                                        <i class="fas fa-signal"></i>
+                                        <AppIcon name="signal" />
                                         {{ activity.difficulty }}
                                     </span>
                                 </div>
 
                                 <button class="cta-button" @click="openActivity(activity)">
                                     En savoir plus
-                                    <i class="fas fa-arrow-right"></i>
+                                    <AppIcon name="arrow-right" />
                                 </button>
                             </div>
                         </div>
@@ -138,13 +138,13 @@
                     <h4 class="cc-subtitle" v-if="metaForSelected.length">Détails</h4>
                     <ul class="cc-items" v-if="metaForSelected.length">
                         <li v-for="(row, idx) in metaForSelected" :key="idx">
-                            <i class="fas fa-check"></i> <strong>{{ row[0] }} :</strong> {{ row[1] }}
+                            <AppIcon name="check" /> <strong>{{ row[0] }} :</strong> {{ row[1] }}
                         </li>
                     </ul>
 
                     <div class="cc-actions">
                         <button class="btn btn-primary btn-sm">
-                            <i class="fas fa-calendar-check"></i> Réserver
+                            <AppIcon name="calendar-check" /> Réserver
                         </button>
                         <button class="btn btn-outline btn-sm" @click="closeModal">Fermer</button>
                     </div>
@@ -207,7 +207,7 @@ async function loadActivities() {
             shortTitle: a.name?.split(' ')?.[0] || a.name,
             description: a.description,
             image: a.image || desertImg,
-            icon: 'fas fa-hiking',
+            icon: 'footprints',
             duration: a?.productable_data?.duration
                 ? `${a.productable_data.duration} min`
                 : a?.productableDetail?.duration
@@ -234,7 +234,7 @@ const defaultActivities = [
         shortTitle: 'Caravane',
         description: 'Traversez les dunes dorées à dos de chameau au coucher du soleil',
         image: caravaneImg,
-        icon: 'fas fa-horse-head',
+        icon: 'horse',
         duration: '3-4 heures',
         difficulty: 'Facile',
         features: ['Guide expérimenté inclus', 'Thé traditionnel offert', 'Photos souvenirs', 'Transport aller-retour']
@@ -244,7 +244,7 @@ const defaultActivities = [
         shortTitle: 'Étoiles',
         description: 'Dormez sous un ciel parsemé d\'étoiles dans le silence du désert',
         image: dcImg,
-        icon: 'fas fa-star',
+        icon: 'star',
         duration: 'Une nuit',
         difficulty: 'Facile',
         features: ['Campement traditionnel', 'Repas berbère authentique', 'Feu de camp et musique', 'Literie fournie']
@@ -254,7 +254,7 @@ const defaultActivities = [
         shortTitle: 'Randonnée',
         description: 'Explorez les plus hautes dunes du Sahara avec nos guides experts',
         image: desertImg,
-        icon: 'fas fa-hiking',
+        icon: 'footprints',
         duration: '2-6 heures',
         difficulty: 'Modéré',
         features: ['Plusieurs circuits disponibles', 'Eau et collations incluses', 'Guide naturaliste', 'Équipement de sécurité']
@@ -264,7 +264,7 @@ const defaultActivities = [
         shortTitle: 'Musique',
         description: 'Soirées traditionnelles autour du feu avec musiciens locaux',
         image: caravaneImg,
-        icon: 'fas fa-music',
+        icon: 'music',
         duration: '2-3 heures',
         difficulty: 'Facile',
         features: ['Musiciens traditionnels', 'Danse participative', 'Instruments à essayer', 'Thé à la menthe offert']
@@ -274,7 +274,7 @@ const defaultActivities = [
         shortTitle: 'Cuisine',
         description: 'Savourez la cuisine du désert préparée au feu de bois',
         image: tableImg,
-        icon: 'fas fa-utensils',
+        icon: 'utensils',
         duration: '1-2 heures',
         difficulty: 'Facile',
         features: ['Ingrédients locaux frais', 'Recettes traditionnelles', 'Cuisson au feu de bois', 'Végétariens bienvenus']

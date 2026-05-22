@@ -5,18 +5,17 @@
         <div class="page-header">
             <div class="header-left">
                 <h1 class="page-title">
-                    <i class="fas fa-comments"></i>
+                    <AppIcon name="message-circle" />
                     Gestion des Avis
                 </h1>
                 <p class="page-subtitle">
                     {{ reviews.length }} avis • {{ pendingCount }} en attente
-                    <i v-if="isRefreshing" class="fas fa-sync fa-spin"
-                        style="margin-left: 8px; font-size: 0.9rem; color: #6c757d;"></i>
+                    <AppIcon name="rotate-cw" :spin="true" v-if="isRefreshing" style="margin-left: 8px; font-size: 0.9rem; color: #6c757d;" />
                 </p>
             </div>
             <div class="header-actions">
                 <button type="button" class="btn btn-outline btn-sm" @click="manualRefresh" :disabled="isRefreshing">
-                    <i class="fas fa-sync" :class="{ 'fa-spin': isRefreshing }"></i>
+                    <AppIcon name="rotate-cw" :spin="isRefreshing" />
                     Actualiser
                 </button>
             </div>
@@ -36,20 +35,20 @@
                 <div class="filter-search">
                     <input type="text" v-model="searchQuery" placeholder="Rechercher par nom ou email..."
                         class="search-input">
-                    <i class="fas fa-search"></i>
+                    <AppIcon name="search" />
                 </div>
             </div>
         </div>
 
         <!-- Messages -->
         <div v-if="successMessage" class="alert alert-success">
-            <i class="fas fa-check-circle"></i>
+            <AppIcon name="circle-check" />
             {{ successMessage }}
             <button @click="successMessage = null" class="btn-close">&times;</button>
         </div>
 
         <div v-if="error" class="alert alert-danger">
-            <i class="fas fa-exclamation-triangle"></i>
+            <AppIcon name="triangle-alert" />
             {{ error }}
             <button @click="error = null" class="btn-close">&times;</button>
         </div>
@@ -59,7 +58,7 @@
 
         <!-- Empty state -->
         <LoadingState v-else-if="filteredReviews.length === 0" state="empty" variant="card" empty-title="Aucun avis"
-            :empty-message="getEmptyStateMessage()" empty-icon="fas fa-comments" />
+            :empty-message="getEmptyStateMessage()" empty-icon="message-circle" />
 
         <!-- Liste des avis -->
         <div v-else>
@@ -70,15 +69,14 @@
                         <div class="review-info">
                             <h3 class="review-name">{{ review.client_name }}</h3>
                             <span v-if="review.location" class="review-location">
-                                <i class="fas fa-map-marker-alt"></i>
+                                <AppIcon name="map-pin" />
                                 {{ review.location }}
                             </span>
                         </div>
 
                         <div class="review-meta">
                             <div class="review-rating">
-                                <i v-for="n in 5" :key="n"
-                                    :class="n <= review.rating ? 'fas fa-star' : 'far fa-star'"></i>
+                                <AppIcon v-for="n in 5" :key="n" :name="n <= review.rating ? 'star' : 'star'" />
                             </div>
                             <span class="review-date">{{ formatDate(review.created_at) }}</span>
                         </div>
@@ -96,12 +94,12 @@
 
                             <span v-if="review.status === 'approved'"
                                 :class="review.is_published ? 'badge-published' : 'badge-hidden'">
-                                <i :class="review.is_published ? 'fas fa-eye' : 'fas fa-eye-slash'"></i>
+                                <AppIcon :name="review.is_published ? 'eye' : 'eye-off'" />
                                 {{ review.is_published ? 'Visible sur le site' : 'Caché du site' }}
                             </span>
 
                             <span v-if="review.featured" class="badge-featured">
-                                <i class="fas fa-star"></i> Mise en avant
+                                <AppIcon name="star" /> Mise en avant
                             </span>
                         </div>
 
@@ -116,11 +114,11 @@
                     <div class="review-actions">
                         <template v-if="review.status === 'pending'">
                             <button @click="approveReview(review.id)" class="btn btn-success btn-sm">
-                                <i class="fas fa-check"></i>
+                                <AppIcon name="check" />
                                 Approuver
                             </button>
                             <button @click="rejectReview(review.id)" class="btn btn-danger btn-sm">
-                                <i class="fas fa-times"></i>
+                                <AppIcon name="x" />
                                 Rejeter
                             </button>
                         </template>
@@ -129,31 +127,31 @@
                             <!-- Toggle publication -->
                             <button v-if="review.is_published" @click="unpublishReview(review.id)"
                                 class="btn btn-warning btn-sm">
-                                <i class="fas fa-eye-slash"></i>
+                                <AppIcon name="eye-off" />
                                 Cacher du site
                             </button>
                             <button v-else @click="republishReview(review.id)" class="btn btn-success btn-sm">
-                                <i class="fas fa-eye"></i>
+                                <AppIcon name="eye" />
                                 Afficher sur le site
                             </button>
 
                             <!-- Toggle featured (seulement si publié) -->
                             <button v-if="review.is_published" @click="toggleFeatured(review.id, !review.featured)"
                                 :class="review.featured ? 'btn btn-warning btn-sm' : 'btn btn-secondary btn-sm'">
-                                <i :class="review.featured ? 'fas fa-star-half-alt' : 'fas fa-star'"></i>
+                                <AppIcon :name="review.featured ? 'star-half' : 'star'" />
                                 {{ review.featured ? 'Retirer la vedette' : 'Mettre en vedette' }}
                             </button>
                         </template>
 
                         <template v-else-if="review.status === 'rejected'">
                             <button @click="approveReview(review.id)" class="btn btn-success btn-sm">
-                                <i class="fas fa-undo"></i>
+                                <AppIcon name="undo-2" />
                                 Réapprouver
                             </button>
                         </template>
 
                         <button @click="deleteReview(review.id)" class="btn btn-danger btn-sm">
-                            <i class="fas fa-trash"></i>
+                            <AppIcon name="trash-2" />
                         </button>
                     </div>
                 </div>
@@ -490,7 +488,7 @@ export default {
     font-size: 0.875rem;
 }
 
-.filter-search i {
+.filter-search .app-icon {
     position: absolute;
     right: 1rem;
     top: 50%;
@@ -522,7 +520,7 @@ export default {
     color: #6b7280;
 }
 
-.review-location i {
+.review-location .app-icon {
     margin-right: 0.25rem;
 }
 
@@ -535,7 +533,7 @@ export default {
     margin-bottom: 0.25rem;
 }
 
-.review-rating i {
+.review-rating .app-icon {
     font-size: 0.875rem;
 }
 

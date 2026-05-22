@@ -3,7 +3,7 @@
         <div class="modal-content" @click.stop>
             <div class="modal-header">
                 <h3>
-                    <i class="fas fa-users-cog"></i>
+                    <AppIcon name="settings-2" />
                     Action en masse
                 </h3>
                 <button @click="$emit('cancel')" class="btn-close">&times;</button>
@@ -29,7 +29,7 @@
 
                     <!-- Confirmation pour les actions destructives -->
                     <div v-if="isDestructiveAction" class="warning-message">
-                        <i class="fas fa-exclamation-triangle"></i>
+                        <AppIcon name="triangle-alert" />
                         <p>
                             <strong>Attention :</strong>
                             Cette action {{ isDestructiveAction === 'delete' ? 'supprimera définitivement' : 'modifiera'
@@ -50,7 +50,7 @@
                         <h4>Utilisateurs sélectionnés ({{ selectedCount }})</h4>
                         <div class="users-preview">
                             <div class="user-count">
-                                <i class="fas fa-users"></i>
+                                <AppIcon name="users" />
                                 {{ selectedCount }} utilisateur(s) {{ getPluralText() }}
                             </div>
                         </div>
@@ -58,13 +58,13 @@
 
                     <div class="form-actions">
                         <button @click="$emit('cancel')" class="btn btn-outline btn-sm">
-                            <i class="fas fa-times"></i>
+                            <AppIcon name="x" />
                             Annuler
                         </button>
 
                         <button @click="handleConfirm" class="btn btn-sm" :class="getConfirmButtonClass()"
                             :disabled="!canConfirm">
-                            <i :class="getActionIcon()"></i>
+                            <AppIcon :name="getActionIcon()" />
                             {{ getActionLabel() }}
                         </button>
                     </div>
@@ -151,12 +151,12 @@ export default {
 
         getActionIcon() {
             const icons = {
-                'activate': 'fas fa-check',
-                'deactivate': 'fas fa-ban',
-                'delete': 'fas fa-trash',
-                'assign-role': 'fas fa-user-tag'
+                'activate': 'check',
+                'deactivate': 'ban',
+                'delete': 'trash-2',
+                'assign-role': 'user'
             }
-            return icons[this.action] || 'fas fa-cog'
+            return icons[this.action] || 'settings'
         },
 
         getConfirmButtonClass() {

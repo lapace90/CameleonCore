@@ -23,7 +23,7 @@
                 <span class="per-person">/ pers</span>
               </div>
               <!-- <div class="menu-badge" v-if="menu.popular">
-                <i class="fas fa-star"></i>
+                <AppIcon name="star" />
                 <span>Populaire</span>
               </div> -->
             </div>
@@ -35,7 +35,7 @@
               <h3 class="menu-title">{{ menu.title }}</h3>
               <div class="menu-rating">
                 <div class="stars">
-                  <i v-for="n in 5" :key="n" :class="n <= menu.rating ? 'fas fa-star' : 'far fa-star'">
+                  <i v-for="n in 5" :key="n" :class="n <= menu.rating ? 'star' : 'star'">
                   </i>
                 </div>
                 <span class="rating-text">({{ menu.reviews }})</span>
@@ -49,7 +49,7 @@
               <h4>Inclus dans ce menu :</h4>
               <ul class="items-list">
                 <li v-for="item in menu.items" :key="item" class="menu-item">
-                  <i class="fas fa-utensils"></i>
+                  <AppIcon name="utensils" />
                   <span>{{ item }}</span>
                 </li>
               </ul>
@@ -59,7 +59,7 @@
             <div class="menu-options" v-if="menu.tags && menu.tags.length > 0">
               <div class="dietary-options">
                 <span v-for="tag in menu.tags" :key="tag.id" class="dietary-tag">
-                  <i v-if="tag.icon" :class="tag.icon"></i>
+                  <AppIcon v-if="tag.icon" :name="tag.icon" />
                   {{ getDisplayName(tag.name) }}
                 </span>
               </div>
@@ -68,8 +68,8 @@
             <!-- Bouton de sélection -->
             <div class="menu-action">
               <button class="select-btn" :class="{ selected: selectedMenu === menu.id }">
-                <i v-if="selectedMenu === menu.id" class="fas fa-check"></i>
-                <i v-else class="fas fa-plus"></i>
+                <AppIcon name="check" v-if="selectedMenu === menu.id" />
+                <AppIcon name="plus" v-else />
                 <span>{{ selectedMenu === menu.id ? 'Sélectionné' : 'En savoir plus' }}</span>
               </button>
             </div>
@@ -83,21 +83,21 @@
         <div class="info-cards">
           <div class="info-card">
             <div class="info-icon">
-              <i class="fas fa-fire"></i>
+              <AppIcon name="flame" />
             </div>
             <h4>Cuisine au feu de bois</h4>
             <p>Préparation traditionnelle qui rehausse les saveurs</p>
           </div>
           <div class="info-card">
             <div class="info-icon">
-              <i class="fas fa-leaf"></i>
+              <AppIcon name="leaf" />
             </div>
             <h4>Ingrédients locaux</h4>
             <p>Produits frais sourced directement des oasis environnantes</p>
           </div>
           <div class="info-card">
             <div class="info-icon">
-              <i class="fas fa-users"></i>
+              <AppIcon name="users" />
             </div>
             <h4>Service personnalisé</h4>
             <p>Adaptation possible selon vos préférences alimentaires</p>
@@ -135,13 +135,13 @@
           <h4 class="cc-subtitle">Plats inclus</h4>
           <ul class="cc-items">
             <li v-for="n in dishNames(fullById[selectedMenu])" :key="n">
-              <i class="fas fa-utensils"></i> {{ n }}
+              <AppIcon name="utensils" /> {{ n }}
             </li>
           </ul>
 
           <div class="cc-actions">
             <button class="btn btn-primary btn-sm">
-              <i class="fas fa-calendar-check "></i> Réserver
+              <AppIcon name="calendar-check" /> Réserver
             </button>
             <button class="btn btn-outline btn-sm" @click="selectedMenu = null">
               Fermer

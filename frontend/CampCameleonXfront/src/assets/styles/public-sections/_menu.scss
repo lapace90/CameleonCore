@@ -157,7 +157,7 @@
     backdrop-filter: blur(10px);
     font-family: $font-family-primary;
 
-    i {
+    .app-icon {
       color: #ffd700;
     }
   }
@@ -260,7 +260,7 @@
         color: $text-secondary;
         font-family: $font-family-primary;
 
-        i {
+        .app-icon {
           color: $terracotta;
           font-size: $font-size-sm;
           width: 16px;

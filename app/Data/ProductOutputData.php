@@ -160,35 +160,35 @@ class ProductOutputData extends Data
             'App\\Models\\Activity' => [
                 'label' => 'Activités',
                 'singular' => 'Activité',
-                'icon' => 'fas fa-hiking',
+                'icon' => 'footprints',
                 'color' => '#3b82f6',
                 'class' => 'App\\Models\\Activity'
             ],
             'App\\Models\\Dish' => [
                 'label' => 'Plats',
                 'singular' => 'Plat',
-                'icon' => 'fas fa-drumstick-bite',
+                'icon' => 'utensils',
                 'color' => '#f97316',
                 'class' => 'App\\Models\\Dish'
             ],
             'App\\Models\\Menu' => [
                 'label' => 'Menus',
                 'singular' => 'Menu',
-                'icon' => 'fas fa-utensils',
+                'icon' => 'utensils',
                 'color' => '#10b981',
                 'class' => 'App\\Models\\Menu'
             ],
             'App\\Models\\Ingredient' => [
                 'label' => 'Ingrédients',
                 'singular' => 'Ingrédient',
-                'icon' => 'fas fa-seedling',
+                'icon' => 'seedling',
                 'color' => '#22c55e',
                 'class' => 'App\\Models\\Ingredient'
             ],
             'App\\Models\\Room' => [
                 'label' => 'Hébergements',
                 'singular' => 'Hébergement',
-                'icon' => 'fas fa-bed',
+                'icon' => 'bed',
                 'color' => '#f59e0b',
                 'class' => 'App\\Models\\Room'
             ]

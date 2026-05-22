@@ -15,16 +15,16 @@
           </p>
           <div class="footer-social">
             <a href="https://facebook.com" target="_blank" rel="noopener" class="social-link" aria-label="Facebook">
-              <i class="fab fa-facebook-f"></i>
+              <SocialIcon name="facebook" />
             </a>
             <a href="https://instagram.com" target="_blank" rel="noopener" class="social-link" aria-label="Instagram">
-              <i class="fab fa-instagram"></i>
+              <SocialIcon name="instagram" />
             </a>
             <a href="https://twitter.com" target="_blank" rel="noopener" class="social-link" aria-label="Twitter">
-              <i class="fab fa-twitter"></i>
+              <SocialIcon name="twitter" />
             </a>
             <a href="https://youtube.com" target="_blank" rel="noopener" class="social-link" aria-label="YouTube">
-              <i class="fab fa-youtube"></i>
+              <SocialIcon name="youtube" />
             </a>
           </div>
         </div>
@@ -59,26 +59,26 @@
           <h4 class="footer-title">Contact</h4>
           <div class="contact-info">
             <div class="contact-item">
-              <i class="fas fa-map-marker-alt"></i>
+              <AppIcon name="map-pin" />
               <div>
                 <p>Désert de Merzouga</p>
                 <p>Erg Chebbi, Maroc</p>
               </div>
             </div>
             <div class="contact-item">
-              <i class="fas fa-phone"></i>
+              <AppIcon name="phone" />
               <div>
                 <p>+212 6 12 34 56 78</p>
               </div>
             </div>
             <div class="contact-item">
-              <i class="fas fa-envelope"></i>
+              <AppIcon name="mail" />
               <div>
                 <p>contact@campcameleonx.ma</p>
               </div>
             </div>
             <div class="contact-item">
-              <i class="fas fa-clock"></i>
+              <AppIcon name="clock" />
               <div>
                 <p>Lun - Dim: 24h/24</p>
               </div>
@@ -98,7 +98,7 @@
             <div class="input-group">
               <input type="email" v-model="email" placeholder="Votre adresse email" required class="newsletter-input">
               <button type="submit" class="newsletter-btn">
-                <i class="fas fa-paper-plane"></i>
+                <AppIcon name="send" />
                 S'abonner
               </button>
             </div>

@@ -4,13 +4,13 @@
     <div class="stats-container mx-4">
       <div class="stat-card" v-for="stat in stats" :key="stat.id">
           <div class="stat-icon" :style="{ backgroundColor: stat.color }">
-            <i :class="stat.icon"></i>
+            <AppIcon :name="stat.icon" />
           </div>
           <div class="stat-info">
             <h3 class="stat-number">{{ stat.value }}</h3>
             <div class="stat-change" :class="stat.changeType">
               <p class="stat-label">{{ stat.label }}</p>
-              <i :class="stat.changeIcon"></i>
+              <AppIcon :name="stat.changeIcon" />
               {{ stat.change }}
             </div>
           </div>
@@ -27,7 +27,7 @@
             <span class="chart-subtitle">Évolution des réservations</span>
           </div>
           <div class="chart-placeholder">
-            <i class="fas fa-chart-line chart-icon"></i>
+            <AppIcon name="trending-up" />
             <p>Graphique des réservations</p>
             <small>Intégration Chart.js à venir</small>
           </div>
@@ -39,7 +39,7 @@
             <span class="chart-subtitle">Services les plus demandés</span>
           </div>
           <div class="chart-placeholder">
-            <i class="fas fa-chart-pie chart-icon"></i>
+            <AppIcon name="pie-chart" />
             <p>Graphique circulaire</p>
             <small>Intégration Chart.js à venir</small>
           </div>
@@ -70,7 +70,7 @@
         <div class="activity-list">
           <div class="activity-item" v-for="activity in recentActivity" :key="activity.id">
             <div class="activity-icon" :style="{ backgroundColor: activity.color }">
-              <i :class="activity.icon"></i>
+              <AppIcon :name="activity.icon" />
             </div>
             <div class="activity-content">
               <p class="activity-text">{{ activity.text }}</p>
@@ -127,8 +127,8 @@ export default {
           value: '2,421',
           change: '+16%',
           changeType: 'positive',
-          changeIcon: 'fas fa-arrow-up',
-          icon: 'fas fa-calendar-check',
+          changeIcon: 'arrow-up',
+          icon: 'calendar-check',
           color: '#5e72e4'
         },
         {
@@ -137,8 +137,8 @@ export default {
           value: '€24,300',
           change: '+8%',
           changeType: 'positive',
-          changeIcon: 'fas fa-arrow-up',
-          icon: 'fas fa-euro-sign',
+          changeIcon: 'arrow-up',
+          icon: 'euro',
           color: '#2dce89'
         },
         {
@@ -147,8 +147,8 @@ export default {
           value: '1,893',
           change: '+12%',
           changeType: 'positive',
-          changeIcon: 'fas fa-arrow-up',
-          icon: 'fas fa-users',
+          changeIcon: 'arrow-up',
+          icon: 'users',
           color: '#11cdef'
         },
         {
@@ -157,8 +157,8 @@ export default {
           value: '87%',
           change: '-2%',
           changeType: 'negative',
-          changeIcon: 'fas fa-arrow-down',
-          icon: 'fas fa-chart-bar',
+          changeIcon: 'arrow-down',
+          icon: 'bar-chart-2',
           color: '#fb6340'
         }
       ],
@@ -167,28 +167,28 @@ export default {
           id: 1,
           text: 'Nouvelle réservation de Jean Dupont',
           time: 'Il y a 2 minutes',
-          icon: 'fas fa-calendar-plus',
+          icon: 'calendar-plus',
           color: '#5e72e4'
         },
         {
           id: 2,
           text: 'Paiement reçu - Réservation #1234',
           time: 'Il y a 15 minutes',
-          icon: 'fas fa-credit-card',
+          icon: 'credit-card',
           color: '#2dce89'
         },
         {
           id: 3,
           text: 'Nouvel utilisateur inscrit',
           time: 'Il y a 32 minutes',
-          icon: 'fas fa-user-plus',
+          icon: 'user-plus',
           color: '#11cdef'
         },
         {
           id: 4,
           text: 'Message de contact reçu',
           time: 'Il y a 1 heure',
-          icon: 'fas fa-envelope',
+          icon: 'mail',
           color: '#fb6340'
         }
       ]

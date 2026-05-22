@@ -3,7 +3,7 @@
     <!-- Message d'erreur -->
     <div v-if="error" class="error-message">
       <div class="alert alert-danger">
-        <i class="fas fa-exclamation-triangle"></i>
+        <AppIcon name="triangle-alert" />
         {{ error }}
         <button @click="clearMessages" class="btn-close">&times;</button>
       </div>
@@ -18,12 +18,12 @@
       <div class="form-header">
         <div class="header-navigation">
           <router-link to="/admin/users" class="back-link">
-            <i class="fas fa-arrow-left"></i>
+            <AppIcon name="arrow-left" />
             Retour aux utilisateurs
           </router-link>
           <div class="breadcrumb">
             <span>Utilisateurs</span>
-            <i class="fas fa-chevron-right"></i>
+            <AppIcon name="chevron-right" />
             <span>{{ isEditing ? user?.name : 'Nouvel utilisateur' }}</span>
           </div>
         </div>
@@ -32,7 +32,7 @@
       <!-- Titre -->
       <div class="page-title-section">
         <div class="product-type-badge" style="background-color: #059669;">
-          <i class="fas fa-user"></i>
+          <AppIcon name="user" />
           Utilisateur
         </div>
         <h1 class="page-title">
@@ -116,7 +116,7 @@
                         <input type="radio" :value="role.id" v-model="form.role_id" :id="`principal-${role.id}`"
                           name="principal_role" @change="onPrincipalRoleChange" />
                         <label :for="`principal-${role.id}`" class="radio-label">
-                          <i class="fas fa-crown"></i> Principal
+                          <AppIcon name="crown" /> Principal
                         </label>
                       </div>
                     </div>
@@ -126,27 +126,27 @@
                 <!-- Résumé automatique (seulement si des rôles sont sélectionnés) -->
                 <div v-if="selectedRoles.length > 0" class="roles-summary">
                   <div class="summary-header">
-                    <i class="fas fa-info-circle"></i>
+                    <AppIcon name="info" />
                     <strong>Configuration actuelle</strong>
                   </div>
 
                   <div class="role-hierarchy">
                     <!-- Rôle principal -->
                     <div v-if="form.role_id" class="principal-role">
-                      <i class="fas fa-crown text-warning"></i>
+                      <AppIcon name="crown" />
                       <span><strong>Principal :</strong> {{ user.role?.name || 'Rôle principal' }}</span>
                     </div>
 
                     <!-- Rôles additionnels -->
                     <div v-if="user.additional_roles && user.additional_roles.length > 0" class="additional-roles">
-                      <i class="fas fa-users text-info"></i>
+                      <AppIcon name="users" />
                       <span><strong>Additionnels :</strong>
                         {{user.additional_roles.map(role => role.name).join(', ')}}
                       </span>
                     </div>
                     <!-- Si aucun principal mais des rôles sélectionnés -->
                     <div v-if="selectedRoles.length > 1 && !form.role_id" class="needs-principal">
-                      <i class="fas fa-exclamation-triangle text-warning"></i>
+                      <AppIcon name="triangle-alert" />
                       <span><strong>Action requise :</strong> Choisissez le rôle principal avec les boutons radio
                         jaunes</span>
                     </div>
@@ -155,7 +155,7 @@
 
                 <!-- Message d'aide contextuelle selon la situation -->
                 <div v-if="selectedRoles.length === 0" class="help-message help-empty">
-                  <i class="fas fa-hand-pointer"></i>
+                  <AppIcon name="mouse-pointer" />
                   <span>Sélectionnez un ou plusieurs rôles pour cet utilisateur en cochant les cases</span>
                 </div>
 
@@ -164,7 +164,7 @@
 
               <!-- Info RBAC -->
               <div class="form-info">
-                <i class="fas fa-info-circle px-3" style="color: #0ea5e9;"></i>
+                <AppIcon name="info" style="color: #0ea5e9;" />
                 <strong>Architecture RBAC :</strong>
                 <p>Les permissions sont gérées via les rôles. Un utilisateur peut avoir un rôle principal et plusieurs
                   rôles additionnels.</p>
@@ -178,21 +178,21 @@
                 <label class="radio-item">
                   <input type="radio" v-model="form.status" value="active" />
                   <span class="radio-label">
-                    <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                    <AppIcon name="circle-check" style="color: #10b981;" />
                     Actif
                   </span>
                 </label>
                 <label class="radio-item ">
                   <input type="radio" v-model="form.status" value="suspended" />
                   <span class="radio-label">
-                    <i class="fas fa-pause-circle" style="color: #f59e0b;"></i>
+                    <AppIcon name="circle-pause" style="color: #f59e0b;" />
                     Suspendu
                   </span>
                 </label>
                 <label class="radio-item">
                   <input type="radio" v-model="form.status" value="blocked" />
                   <span class="radio-label">
-                    <i class="fas fa-ban" style="color: #ef4444;"></i>
+                    <AppIcon name="ban" style="color: #ef4444;" />
                     Bloqué
                   </span>
                 </label>
@@ -212,7 +212,7 @@
             <div class="form-actions">
               <div class="actions-left">
                 <button type="button" @click="resetForm" class="btn btn-outline btn-sm">
-                  <i class="fas fa-undo"></i>
+                  <AppIcon name="undo-2" />
                   Réinitialiser
                 </button>
               </div>
@@ -220,13 +220,13 @@
               <div class="actions-right">
                 <button v-if="isEditing" type="button" @click="handleDeleteUser" class="btn btn-danger btn-sm"
                   :disabled="saving">
-                  <i class="fas fa-trash"></i>
+                  <AppIcon name="trash-2" />
                   Supprimer
                 </button>
 
                 <button type="submit" class="btn btn-primary btn-sm" :disabled="saving || availableRoles.length === 0">
-                  <i v-if="saving" class="fas fa-spinner fa-spin"></i>
-                  <i v-else class="fas fa-check"></i>
+                  <AppIcon name="loader-circle" :spin="true" v-if="saving" />
+                  <AppIcon name="check" v-else />
                   {{ isEditing ? 'Mettre à jour' : 'Créer l\'utilisateur' }}
                 </button>
               </div>

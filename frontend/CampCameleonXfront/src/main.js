@@ -2,16 +2,20 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import router from './router'
 
-import '@fortawesome/fontawesome-free/css/all.css'
 import './assets/styles/shared.scss'
 import App from './App.vue'
 
 import 'driver.js/dist/driver.css'
 
+import AppIcon from '@/shared/components/ui/AppIcon.vue'
+import SocialIcon from '@/shared/components/ui/SocialIcon.vue'
+
 // ---------- APP + PINIA ----------
 const app = createApp(App)
 const pinia = createPinia()
 app.use(pinia)
+app.component('AppIcon', AppIcon)
+app.component('SocialIcon', SocialIcon)
 
 // ---------- INIT AUTH AVANT MOUNT ----------
 async function initializeAndMount() {

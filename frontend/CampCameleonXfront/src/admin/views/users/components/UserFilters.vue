@@ -3,7 +3,7 @@
     <div class="table-header">
       <div class="search-filter">
         <div class="search-box">
-          <i class="fas fa-search search-icon"></i>
+          <AppIcon name="search" />
           <input 
             :value="searchQuery"
             @input="$emit('update:searchQuery', $event.target.value)"
@@ -59,7 +59,7 @@
             class="btn btn-outline btn-sm" 
             :disabled="!bulkAction"
           >
-            <i class="fas fa-play"></i>
+            <AppIcon name="play" />
             Exécuter
           </button>
         </div>

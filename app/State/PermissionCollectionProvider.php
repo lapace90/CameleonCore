@@ -169,18 +169,18 @@ class PermissionCollectionProvider implements ProviderInterface
     private function getCategoryIcon(string $key): string
     {
         return match ($key) {
-            'system' => 'fas fa-cogs',
-            'users' => 'fas fa-users',
-            'accommodations' => 'fas fa-home',
-            'activities' => 'fas fa-mountain',
-            'bookings' => 'fas fa-calendar-check',
-            'reception' => 'fas fa-bell-concierge',
-            'customers' => 'fas fa-user-friends',
-            'restaurant' => 'fas fa-utensils',
-            'finance' => 'fas fa-coins',
-            'analytics' => 'fas fa-chart-line',
-            'communication' => 'fas fa-comments',
-            'other' => 'fas fa-ellipsis-h'
+            'system' => 'settings',
+            'users' => 'users',
+            'accommodations' => 'home',
+            'activities' => 'mountain',
+            'bookings' => 'calendar-check',
+            'reception' => 'bell',
+            'customers' => 'users',
+            'restaurant' => 'utensils',
+            'finance' => 'coins',
+            'analytics' => 'trending-up',
+            'communication' => 'message-circle',
+            'other' => 'ellipsis'
         };
     }
 

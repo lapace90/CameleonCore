@@ -5,12 +5,12 @@
       <img :src="displayUrl" :alt="alt" @error="handleImageError" />
       <div v-if="enableEditing" class="image-overlay">
         <button type="button" @click.stop="openFilePicker" class="overlay-btn edit-btn">
-          <i class="fas fa-edit"></i>
+          <AppIcon name="pencil" />
           <span v-if="variant === 'product'">Modifier</span>
           <span v-else>Changer</span>
         </button>
         <button v-if="allowRemove" type="button" @click.stop="removeImage" class="overlay-btn remove-btn">
-          <i class="fas fa-trash"></i>
+          <AppIcon name="trash-2" />
           <span v-if="variant === 'product'">Supprimer</span>
         </button>
       </div>
@@ -18,7 +18,7 @@
 
     <!-- Placeholder d'upload -->
     <div v-else class="upload-placeholder" @click="enableEditing && openFilePicker()">
-      <i :class="placeholderIcon"></i>
+      <AppIcon :name="placeholderIcon" />
       <div class="placeholder-content">
         <p class="placeholder-text">{{ placeholderText }}</p>
         <small v-if="enableEditing" class="placeholder-hint">{{ placeholderHint }}</small>
@@ -42,7 +42,7 @@
         @click="openFilePicker"
         :disabled="!enableEditing"
       >
-        <i class="fas fa-upload"></i>
+        <AppIcon name="upload" />
         {{ displayUrl ? 'Changer' : 'Ajouter' }}
       </button>
       
@@ -53,7 +53,7 @@
         @click="removeImage"
         :disabled="!enableEditing"
       >
-        <i class="fas fa-trash"></i>
+        <AppIcon name="trash-2" />
         Supprimer
       </button>
     </div>
@@ -64,7 +64,7 @@
     </div>
     
     <div v-if="error" class="upload-error">
-      <i class="fas fa-exclamation-triangle"></i>
+      <AppIcon name="triangle-alert" />
       {{ error }}
     </div>
 
@@ -134,7 +134,7 @@ export default {
     // Textes
     placeholderIcon: {
       type: String,
-      default: 'fas fa-cloud-upload-alt'
+      default: 'cloud-upload'
     },
     placeholderText: {
       type: String,
@@ -358,7 +358,7 @@ export default {
       color: #6b7280;
       padding: 2rem;
       
-      i {
+      .app-icon {
         font-size: 3rem;
         margin-bottom: 1rem;
       }
@@ -405,7 +405,7 @@ export default {
       text-align: center;
       min-height: 120px;
       
-      i {
+      .app-icon {
         font-size: 2rem;
         margin-bottom: 0.75rem;
       }
@@ -534,7 +534,7 @@ export default {
     font-size: 0.875rem;
     color: #ef4444;
     
-    i {
+    .app-icon {
       flex-shrink: 0;
     }
   }

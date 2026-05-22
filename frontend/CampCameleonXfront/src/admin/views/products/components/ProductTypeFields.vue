@@ -94,7 +94,7 @@
       <!-- Pour Menu - pas de champs spécifiques pour l'instant -->
       <template v-if="type === 'menu'">
         <div class="form-note">
-          <i class="fas fa-info-circle"></i>
+          <AppIcon name="info" />
           Les plats du menu peuvent être ajoutés via l'onglet Relations.
         </div>
       </template>

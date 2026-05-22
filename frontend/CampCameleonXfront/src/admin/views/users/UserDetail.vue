@@ -6,10 +6,10 @@
 
     <!-- Erreur -->
     <div v-else-if="error" class="error-state">
-      <i class="fas fa-exclamation-triangle"></i>
+      <AppIcon name="triangle-alert" />
       <h3>{{ error }}</h3>
       <button @click="fetchUser" class="btn btn-outline btn-sm">
-        <i class="fas fa-redo"></i>
+        <AppIcon name="rotate-cw" />
         Réessayer
       </button>
     </div>
@@ -20,25 +20,25 @@
       <div class="page-header">
         <div class="header-navigation">
           <router-link to="/admin/users" class="back-link">
-            <i class="fas fa-arrow-left"></i>
+            <AppIcon name="arrow-left" />
             Retour aux utilisateurs
           </router-link>
           <div class="breadcrumb">
             <span>Utilisateurs</span>
-            <i class="fas fa-chevron-right"></i>
+            <AppIcon name="chevron-right" />
             <span>{{ user.name }}</span>
           </div>
         </div>
 
         <div class="header-actions">
           <router-link :to="`/admin/users/${user.id}/edit`" class="btn btn-primary btn-sm">
-            <i class="fas fa-edit"></i>
+            <AppIcon name="pencil" />
             Modifier
           </router-link>
 
           <button @click="toggleUserStatus" class="btn btn-sm"
             :class="user.status === 'active' ? 'btn-warning' : 'btn-success'">
-            <i :class="user.status === 'active' ? 'fas fa-pause' : 'fas fa-play'"></i>
+            <AppIcon :name="user.status === 'active' ? 'pause' : 'play'" />
             {{ user.status === 'active' ? 'Suspendre' : 'Activer' }}
           </button>
         </div>
@@ -50,7 +50,7 @@
         <div class="user-title-header">
           <div class="user-avatar-large">
             <img v-if="user.avatar" :src="user.avatar" :alt="user.name" class="avatar-image" />
-            <i v-else class="fas fa-user default-avatar-icon"></i>
+            <AppIcon name="user" v-else />
           </div>
         </div>
         <div class="user-title-info mt-6">
@@ -65,26 +65,26 @@
 
         <div class="meta-inline m-3 " style="text-align: right;">
           <div class="status-badge mb-4" :class="getStatusClass(user.status)">
-            <i :class="getStatusIcon(user.status)" style="padding-right: 4px;"></i>
+            <AppIcon :name="getStatusIcon(user.status)" style="padding-right: 4px;" />
             <span>{{ getStatusLabel(user.status) }}</span>
           </div>
           <div class="meta-item">
-            <i class="fas fa-calendar-plus p-2"></i>
+            <AppIcon name="calendar-plus" />
             <span>Inscrit le {{ formatDate(user.created_at) }}</span>
           </div>
 
           <div v-if="user.last_login_at" class="meta-item">
-            <i class="fas fa-clock p-2"></i>
+            <AppIcon name="clock" />
             <span>Dernière connexion {{ getRelativeTime(user.last_login_at) }}</span>
           </div>
 
           <div v-if="user.email_verified_at" class="meta-item ">
-            <i class="fas fa-check-circle text-success p-2"></i>
+            <AppIcon name="circle-check" />
             <span>Email vérifié</span>
           </div>
 
           <div v-else class="meta-item">
-            <i class="fas fa-exclamation-triangle text-warning p-2"></i>
+            <AppIcon name="triangle-alert" />
             <span>Email non vérifié</span>
           </div>
 
@@ -99,7 +99,7 @@
           <div
             style="background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
             <h3 style="margin: 0 0 1rem 0; font-size: 1.25rem; font-weight: 600; color: #1f2937;">
-              <i class="fas fa-shield-alt"></i>
+              <AppIcon name="shield" />
               Rôles
             </h3>
 
@@ -108,7 +108,7 @@
               <div v-if="user.role"
                 style="margin-bottom: 1rem; padding: 1rem; background: #f0fdf4; border-radius: 8px; border: 1px solid #bbf7d0;">
                 <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-                  <i class="fas fa-crown" style="color: #d97706;"></i>
+                  <AppIcon name="crown" style="color: #d97706;" />
                   <span style="font-weight: 600;">{{ user.role.name }}</span>
                   <span class="badge badge-warning">Principal</span>
                 </div>
@@ -123,7 +123,7 @@
                 <div v-for="role in user.additional_roles" :key="role.id"
                   style="margin-bottom: 0.5rem; padding: 0.75rem; background: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0;">
                   <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <i class="fas fa-plus-circle" style="color: #6366f1;"></i>
+                    <AppIcon name="circle-plus" style="color: #6366f1;" />
                     <span style="font-weight: 500;">{{ role.name }}</span>
                   </div>
                   <div v-if="role.description" style="color: #6b7280; font-size: 0.875rem; margin-top: 0.25rem;">
@@ -134,7 +134,7 @@
             </div>
 
             <div v-else style="text-align: center; padding: 2rem; color: #6b7280;">
-              <i class="fas fa-shield-alt" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+              <AppIcon name="shield" style="font-size: 2rem; margin-bottom: 0.5rem;" />
               <p>Aucun rôle assigné</p>
             </div>
           </div>
@@ -143,7 +143,7 @@
           <div
             style="background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
             <h3 style="margin: 0 0 1rem 0; font-size: 1.25rem; font-weight: 600; color: #1f2937;">
-              <i class="fas fa-key"></i>
+              <AppIcon name="key" />
               Permissions
               <span style="color: #6b7280; font-size: 0.875rem;">({{ user.permissions_count || 0 }})</span>
             </h3>
@@ -158,15 +158,15 @@
                 style="margin-top: 1.5rem; padding: 1rem; background: #f0fdf4; border-radius: 8px; border: 1px solid #bbf7d0;">
                 <div style="display: flex; align-items: center; gap: 1rem;">
                   <div>
-                    <i class="fas fa-check" style="color: var(--success);"></i>
+                    <AppIcon name="check" style="color: var(--success);" />
                     <strong class="pl-2">Permissions : {{ user.permissions_count }}</strong>
                   </div>
                   <div>
-                    <i class="fas fa-layer-group" style="color: #0891b2;"></i>
+                    <AppIcon name="layers" style="color: #0891b2;" />
                     <strong class="px-2">Catégories : {{ Object.keys(groupedPermissions).length }}</strong>
                   </div>
                   <div>
-                    <i class="fas fa-users-cog" style="color: var(--terracotta);"></i>
+                    <AppIcon name="settings-2" style="color: var(--terracotta);" />
                     <strong class="px-2">Rôles : {{ (user.role ? 1 : 0) + (user.additional_roles?.length || 0)
                       }}</strong>
                   </div>
@@ -176,7 +176,7 @@
 
             <!-- Aucune permission -->
             <div v-else style="text-align: center; padding: 2rem; color: #6b7280;">
-              <i class="fas fa-key" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+              <AppIcon name="key" style="font-size: 2rem; margin-bottom: 0.5rem;" />
               <p>Aucune permission assignée</p>
               <small>Les permissions sont héritées des rôles assignés</small>
             </div>
@@ -188,7 +188,7 @@
           <div
             style="background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
             <h3 style="margin: 0 0 1rem 0; font-size: 1.25rem; font-weight: 600; color: #1f2937;">
-              <i class="fas fa-info-circle"></i>
+              <AppIcon name="info" />
               Informations générales
             </h3>
 
@@ -231,7 +231,7 @@
           <div
             style="background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
             <h3 style="margin: 0 0 1rem 0; font-size: 1.25rem; font-weight: 600; color: #1f2937;">
-              <i class="fas fa-lock"></i>
+              <AppIcon name="lock" />
               Sécurité
             </h3>
 
@@ -240,8 +240,7 @@
                 style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: #f9fafb; border-radius: 8px;">
                 <div
                   style="width: 40px; height: 40px; border-radius: 50%; background: #f3f4f6; display: flex; align-items: center; justify-content: center;">
-                  <i
-                    :class="user.email_verified_at ? 'fas fa-check-circle text-success' : 'fas fa-exclamation-triangle text-warning'"></i>
+                  <AppIcon :name="user.email_verified_at ? 'circle-check' : 'triangle-alert'" :class="user.email_verified_at ? 'text-success' : 'text-warning'" />
                 </div>
                 <div>
                   <span style="display: block; font-size: 1rem; font-weight: 600; color: #1f2937;">Vérification
@@ -256,8 +255,7 @@
                 style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: #f9fafb; border-radius: 8px;">
                 <div
                   style="width: 40px; height: 40px; border-radius: 50%; background: #f3f4f6; display: flex; align-items: center; justify-content: center;">
-                  <i
-                    :class="user.password_reset_required ? 'fas fa-exclamation-circle text-warning' : 'fas fa-key text-success'"></i>
+                  <AppIcon :name="user.password_reset_required ? 'circle-alert' : 'key'" :class="user.password_reset_required ? 'text-warning' : 'text-success'" />
                 </div>
                 <div>
                   <span style="display: block; font-size: 1rem; font-weight: 600; color: #1f2937;">Mot de passe</span>
@@ -270,12 +268,12 @@
 
             <div style="display: flex; gap: 0.5rem;">
               <button @click="resetPassword" class="btn btn-outline btn-sm">
-                <i class="fas fa-key"></i>
+                <AppIcon name="key" />
                 Forcer réinitialisation
               </button>
 
               <button v-if="!user.email_verified_at" @click="sendVerificationEmail" class="btn btn-outline btn-sm">
-                <i class="fas fa-envelope"></i>
+                <AppIcon name="mail" />
                 Renvoyer vérification
               </button>
             </div>
@@ -285,28 +283,28 @@
           <div
             style="background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
             <h3 style="margin: 0 0 1rem 0; font-size: 1.25rem; font-weight: 600; color: #1f2937;">
-              <i class="fas fa-bolt"></i>
+              <AppIcon name="zap" />
               Actions rapides
             </h3>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
               <router-link :to="`/admin/users/${user.id}/edit`" class="btn btn-primary btn-sm">
-                <i class="fas fa-edit"></i>
+                <AppIcon name="pencil" />
                 <span>Modifier</span>
               </router-link>
 
               <button @click="duplicateUser" class="btn btn-secondary btn-sm">
-                <i class="fas fa-copy"></i>
+                <AppIcon name="copy" />
                 <span>Dupliquer</span>
               </button>
 
               <button @click="exportUserData" class="btn btn-secondary btn-sm">
-                <i class="fas fa-download"></i>
+                <AppIcon name="download" />
                 <span>Exporter</span>
               </button>
 
               <button @click="viewUserActivity" class="btn btn-secondary btn-sm">
-                <i class="fas fa-history"></i>
+                <AppIcon name="history" />
                 <span>Activité</span>
               </button>
             </div>
@@ -508,11 +506,11 @@ export default {
 
     getStatusIcon(status) {
       const icons = {
-        'active': 'fas fa-check-circle',
-        'inactive': 'fas fa-pause-circle',
-        'blocked': 'fas fa-ban'
+        'active': 'circle-check',
+        'inactive': 'circle-pause',
+        'blocked': 'ban'
       }
-      return icons[status] || 'fas fa-question-circle'
+      return icons[status] || 'circle-help'
     },
 
     getStatusLabel(status) {

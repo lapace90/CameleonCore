@@ -4,11 +4,11 @@
     <div class="modal-container modal-lg">
       <div class="modal-header">
         <h3>
-          <i class="fas fa-plus-circle"></i>
+          <AppIcon name="circle-plus" />
           Créer un nouveau rôle
         </h3>
         <button @click="$emit('close')" class="btn-close">
-          <i class="fas fa-times"></i>
+          <AppIcon name="x" />
         </button>
       </div>
 
@@ -16,7 +16,7 @@
         <!-- Informations du rôle -->
         <div class="form-section">
           <h4>
-            <i class="fas fa-info-circle"></i>
+            <AppIcon name="info" />
             Informations générales
           </h4>
 
@@ -47,7 +47,7 @@
         <!-- Permissions -->
         <div class="form-section">
           <h4>
-            <i class="fas fa-key"></i>
+            <AppIcon name="key" />
             Permissions
             <span class="text-muted">({{ selectedPermissions.length }})</span>
           </h4>
@@ -58,10 +58,10 @@
 
           <!-- Erreur de chargement -->
           <div v-else-if="loadError" class="error-state">
-            <i class="fas fa-exclamation-triangle"></i>
+            <AppIcon name="triangle-alert" />
             <p>Impossible de charger les permissions</p>
             <button type="button" @click="loadPermissions" class="btn btn-outline btn-sm">
-              <i class="fas fa-redo"></i>
+              <AppIcon name="rotate-cw" />
               Réessayer
             </button>
           </div>
@@ -76,7 +76,7 @@
 
           <!-- Aucune permission -->
           <div v-else class="form-note">
-            <i class="fas fa-info-circle"></i>
+            <AppIcon name="info" />
             Aucune permission disponible.
           </div>
         </div>
@@ -87,8 +87,8 @@
             Annuler
           </button>
           <button type="submit" class="btn btn-primary btn-sm" :disabled="!isFormValid || submitting">
-            <i v-if="submitting" class="fas fa-spinner fa-spin"></i>
-            <i v-else class="fas fa-save"></i>
+            <AppIcon name="loader-circle" :spin="true" v-if="submitting" />
+            <AppIcon name="save" v-else />
             {{ submitting ? 'Création...' : 'Créer le rôle' }}
           </button>
         </div>

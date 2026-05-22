@@ -7,7 +7,7 @@ export const PRODUCT_CONFIGS = {
   ingredient: {
     label: 'Ingrédients',
     singular: 'Ingrédient',
-    icon: 'fas fa-seedling',
+    icon: 'sprout',
     color: '#22c55e',
     fields: ['stock', 'is_vegetarian', 'is_vegan', 'is_spicy', 'is_gluten_free', 'is_lactose_free', 'is_nut_free'],
     hasRelation: 'dishes'
@@ -15,7 +15,7 @@ export const PRODUCT_CONFIGS = {
   dish: {
     label: 'Plats',
     singular: 'Plat',
-    icon: 'fas fa-drumstick-bite',
+    icon: 'utensils',
     color: '#f97316',
     fields: ['is_vegetarian', 'is_vegan', 'is_spicy', 'is_gluten_free', 'is_lactose_free', 'is_nut_free'],
     hasRelation: 'ingredients'
@@ -23,7 +23,7 @@ export const PRODUCT_CONFIGS = {
   menu: {
     label: 'Menus',
     singular: 'Menu',
-    icon: 'fas fa-utensils',
+    icon: 'utensils',
     color: '#10b981',
     fields: [],
     hasRelation: 'dishes'
@@ -31,7 +31,7 @@ export const PRODUCT_CONFIGS = {
   room: {
     label: 'Hébergements',
     singular: 'Hébergement',
-    icon: 'fas fa-bed',
+    icon: 'bed',
     color: '#f59e0b',
     fields: ['capacity', 'availability'],
     hasRelation: false
@@ -39,7 +39,7 @@ export const PRODUCT_CONFIGS = {
   activity: {
     label: 'Activités',
     singular: 'Activité',
-    icon: 'fas fa-hiking',
+    icon: 'footprints',
     color: '#3b82f6',
     fields: ['guide', 'duration', 'meeting_point', 'max_people', 'difficulty_level'],
     hasRelation: false

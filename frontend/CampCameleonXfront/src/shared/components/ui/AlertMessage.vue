@@ -1,7 +1,7 @@
 <template>
   <transition name="alert" appear>
     <div v-if="visible" :class="alertClasses">
-      <i :class="iconClass"></i>
+      <AppIcon :name="iconClass" />
       <span class="alert-message">{{ message }}</span>
       <button v-if="dismissible" @click="dismiss" class="btn-close">&times;</button>
     </div>
@@ -48,10 +48,10 @@ export default {
     
     iconClass() {
       const icons = {
-        success: 'fas fa-check-circle',
-        danger: 'fas fa-exclamation-triangle',
-        warning: 'fas fa-exclamation-circle',
-        info: 'fas fa-info-circle'
+        success: 'circle-check',
+        danger: 'triangle-alert',
+        warning: 'circle-alert',
+        info: 'info'
       }
       return icons[this.type]
     }

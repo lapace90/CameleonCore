@@ -64,12 +64,12 @@
             <!-- Pas de v-permission, juste un v-if simple -->
             <button v-if="isReservation && p.status === 'confirmed'" class="btn btn-sm btn-success"
                 @click="handleCheckIn">
-                <i class="fas fa-door-open"></i> Check-in
+                <AppIcon name="door-open" /> Check-in
             </button>
 
             <button v-if="isReservation && p.status === 'checked_in'" class="btn btn-sm btn-info"
                 @click="handleCheckOut">
-                <i class="fas fa-door-closed"></i> Check-out
+                <AppIcon name="door-closed" /> Check-out
             </button>
 
             <button class="btn btn-sm" @click="$emit('update:modelValue', false)">Fermer</button>
@@ -151,7 +151,7 @@ export default {
                 this.$emit('refresh')
                 this.$emit('update:modelValue', false)
             } catch (error) {
-                alert('<i class="fas fa-times-circle" style="padding: .5rem;"></i> ' + (error.response?.data?.message || 'Erreur'))
+                alert('<AppIcon name="circle-x" style="padding: .5rem;" /> ' + (error.response?.data?.message || 'Erreur'))
             }
         },
         
@@ -162,7 +162,7 @@ export default {
                 this.$emit('refresh')
                 this.$emit('update:modelValue', false)
             } catch (error) {
-                alert('<i class="fas fa-times-circle" style="padding: .5rem;"></i> ' + (error.response?.data?.message || 'Erreur'))
+                alert('<AppIcon name="circle-x" style="padding: .5rem;" /> ' + (error.response?.data?.message || 'Erreur'))
             }
         }
     }

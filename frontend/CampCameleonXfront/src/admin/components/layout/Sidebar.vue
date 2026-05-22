@@ -19,7 +19,7 @@
         <!-- Agenda -->
         <li class="nav-item">
           <router-link to="/admin/agenda" class="nav-link">
-            <i class="fas fa-calendar"></i>
+            <AppIcon name="calendar" />
             <span>Agenda</span>
           </router-link>
         </li>
@@ -27,7 +27,7 @@
         <!-- Réservations -->
         <li class="nav-item">
           <router-link to="/admin/reservations" class="nav-link">
-            <i class="fas fa-calendar-check"></i>
+            <AppIcon name="calendar-check" />
             <span>Réservations</span>
           </router-link>
         </li>
@@ -35,7 +35,7 @@
         <!-- 💰 NOUVEAU : Facturation -->
         <li class="nav-item">
           <router-link to="/admin/invoices" class="nav-link">
-            <i class="fas fa-file-invoice-dollar"></i>
+            <AppIcon name="receipt" />
             <span>Facturation</span>
           </router-link>
         </li>
@@ -49,10 +49,10 @@
         <!-- Restauration avec sous-menu -->
         <li class="nav-item">
           <a @click="toggleSubmenu('restauration')" class="nav-link" style="cursor: pointer;">
-            <i class="fa-solid fa-utensils"></i>
+            <AppIcon name="utensils" />
             <span>Restauration</span>
-            <i class="fas fa-chevron-down" :class="{ rotated: openSubmenu === 'restauration' }"
-              style="margin-left: auto; font-size: 0.8rem;"></i>
+            <AppIcon name="chevron-down" :class="{ rotated: openSubmenu === 'restauration' }"
+              style="margin-left: auto; font-size: 0.8rem;" />
           </a>
           <ul v-show="openSubmenu === 'restauration'" style="list-style: none; padding-left: 2rem; margin: 0;">
             <li>
@@ -77,7 +77,7 @@
         <!-- Activités -->
         <li class="nav-item">
           <router-link to="/admin/products/activity" class="nav-link">
-            <i class="fa-solid fa-person-hiking"></i>
+            <AppIcon name="footprints" />
             <span>Activités</span>
           </router-link>
         </li>
@@ -85,7 +85,7 @@
         <!-- Chambres -->
         <li class="nav-item">
           <router-link to="/admin/products/room" class="nav-link">
-            <i class="fa-solid fa-bed"></i>
+            <AppIcon name="bed" />
             <span>Chambres</span>
           </router-link>
         </li>
@@ -93,7 +93,7 @@
         <!-- Catégories -->
         <li class="nav-item">
           <router-link to="/admin/categories" class="nav-link">
-            <i class="fas fa-tags"></i>
+            <AppIcon name="tags" />
             <span>Catégories</span>
           </router-link>
         </li>
@@ -107,7 +107,7 @@
         <!-- Users -->
         <li class="nav-item">
           <router-link to="/admin/users" class="nav-link">
-            <i class="fas fa-users"></i>
+            <AppIcon name="users" />
             <span>Utilisateurs</span>
           </router-link>
         </li>
@@ -115,7 +115,7 @@
         <!-- Reviews -->
         <li class="nav-item">
           <router-link to="/admin/reviews" class="nav-link">
-            <i class="fas fa-star"></i>
+            <AppIcon name="star" />
             <span>Avis Clients</span>
           </router-link>
         </li>
@@ -123,7 +123,7 @@
         <!-- Analytics -->
         <li class="nav-item">
           <router-link to="/admin/analytics" class="nav-link">
-            <i class="fas fa-chart-line"></i>
+            <AppIcon name="trending-up" />
             <span>Analytics</span>
           </router-link>
         </li>
@@ -131,7 +131,7 @@
         <!-- Settings -->
         <li class="nav-item">
           <router-link to="/admin/settings" class="nav-link">
-            <i class="fas fa-cog"></i>
+            <AppIcon name="settings" />
             <span>Paramètres</span>
           </router-link>
         </li>
@@ -139,7 +139,7 @@
         <!-- Back to site -->
         <li class="nav-item">
           <router-link to="/home" class="nav-link nav-link-external">
-            <i class="fas fa-external-link-alt"></i>
+            <AppIcon name="external-link" />
             <span>Voir le site</span>
           </router-link>
         </li>

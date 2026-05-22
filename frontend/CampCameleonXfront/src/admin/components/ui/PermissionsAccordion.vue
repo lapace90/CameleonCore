@@ -4,22 +4,22 @@
     <!-- Actions rapides (optionnelles) -->
     <div v-if="showActions" class="permission-actions">
       <button type="button" @click="expandAll" class="btn btn-outline btn-sm">
-        <i class="fas fa-expand-arrows-alt"></i>
+        <AppIcon name="move" />
         Tout développer
       </button>
       <button type="button" @click="collapseAll" class="btn btn-outline btn-sm">
-        <i class="fas fa-compress-arrows-alt"></i>
+        <AppIcon name="minimize-2" />
         Tout réduire
       </button>
       
       <!-- Actions supplémentaires selon le mode -->
       <template v-if="mode === 'editable'">
         <button type="button" @click="selectAll" class="btn btn-outline btn-sm">
-          <i class="fas fa-check-square"></i>
+          <AppIcon name="square-check" />
           Tout sélectionner
         </button>
         <button type="button" @click="clearAll" class="btn btn-outline btn-sm">
-          <i class="fas fa-square"></i>
+          <AppIcon name="square" />
           Tout désélectionner
         </button>
       </template>
@@ -29,15 +29,15 @@
       <!-- Statistiques -->
       <div class="stats">
         <span v-if="mode === 'editable'">
-          <i class="fas fa-check-circle"></i>
+          <AppIcon name="circle-check" />
           {{ selectedCount }}/{{ totalCount }} sélectionnées
         </span>
         <span v-else>
-          <i class="fas fa-layer-group"></i>
+          <AppIcon name="layers" />
           {{ Object.keys(groupedPermissions).length }} catégorie(s)
         </span>
         <span>
-          <i class="fas fa-shield-check"></i>
+          <AppIcon name="shield-check" />
           {{ totalCount }} permission(s)
         </span>
       </div>
@@ -51,8 +51,7 @@
         <!-- Header de la catégorie -->
         <div class="category-header" @click="toggleCategory(category)">
           <div class="category-left">
-            <i :class="getCategoryIcon(category)" 
-               :style="`color: ${getCategoryColor(category)};`"></i>
+            <AppIcon :name="getCategoryIcon(category)" :style="`color: ${getCategoryColor(category)};`" />
             <div class="category-info">
               <span class="category-title">{{ getCategoryName(category) }}</span>
               <span class="category-count">
@@ -82,8 +81,7 @@
             </span>
             
             <!-- Icône état -->
-            <i :class="isCategoryOpen(category) ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"
-               class="toggle-icon"></i>
+            <AppIcon :name="isCategoryOpen(category) ? 'chevron-up' : 'chevron-down'" class="toggle-icon" />
           </div>
         </div>
 
@@ -293,17 +291,17 @@ export default {
     // === Helpers d'affichage ===
     getCategoryIcon(category) {
       const icons = {
-        'users': 'fas fa-users',
-        'roles': 'fas fa-user-shield',
-        'permissions': 'fas fa-key',
-        'products': 'fas fa-box',
-        'reservations': 'fas fa-calendar-check',
-        'categories': 'fas fa-tags',
-        'dashboard': 'fas fa-tachometer-alt',
-        'settings': 'fas fa-cog',
-        'general': 'fas fa-shield-alt'
+        'users': 'users',
+        'roles': 'user-round-check',
+        'permissions': 'key',
+        'products': 'box',
+        'reservations': 'calendar-check',
+        'categories': 'tags',
+        'dashboard': 'gauge',
+        'settings': 'settings',
+        'general': 'shield'
       }
-      return icons[category] || 'fas fa-shield-alt'
+      return icons[category] || 'shield'
     },
 
     getCategoryColor(category) {

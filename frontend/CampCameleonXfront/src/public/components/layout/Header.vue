@@ -26,7 +26,7 @@
                 <!-- Icône admin à droite (desktop) -->
                 <!-- <div class="navbar-actions">
                     <router-link to="/admin" class="nav-link">
-                        <i class="fas fa-cog"></i>
+                        <AppIcon name="settings" />
                     </router-link>
                 </div> -->
 
@@ -51,33 +51,33 @@
                     <ul class="mobile-nav">
                         <li class="mobile-nav-item">
                             <router-link to="/" class="mobile-nav-link" @click="closeMobileMenu">
-                                <i class="fas fa-home"></i>
+                                <AppIcon name="home" />
                                 <span>ACCUEIL</span>
                             </router-link>
                         </li>
                         <li class="mobile-nav-item">
                             <router-link to="/about" class="mobile-nav-link" @click="closeMobileMenu">
-                                <i class="fas fa-info-circle"></i>
+                                <AppIcon name="info" />
                                 <span>À PROPOS</span>
                             </router-link>
                         </li>
 
                         <li class="mobile-nav-item">
                             <router-link to="/services" class="mobile-nav-link" @click="closeMobileMenu">
-                                <i class="fas fa-concierge-bell"></i>
+                                <AppIcon name="bell-ring" />
                                 <span>SERVICES</span>
                             </router-link>
                         </li>
                         <li class="mobile-nav-item">
                             <router-link to="/contact" class="mobile-nav-link" @click="closeMobileMenu">
-                                <i class="fas fa-envelope"></i>
+                                <AppIcon name="mail" />
                                 <span>CONTACTS</span>
 
                             </router-link>
                         </li>
                         <li class="mobile-nav-item"><a @click="goToDevis" style="cursor: pointer;"
                                 class="mobile-nav-link">
-                                <i class="fas fa-calendar-alt"></i>
+                                <AppIcon name="calendar-days" />
                                 <span>RÉSERVER</span>
                             </a></li>
                     </ul>
@@ -85,11 +85,11 @@
                     <!-- Actions mobiles -->
                     <div class="mobile-actions">
                         <router-link to="/admin" class="mobile-action-btn" @click="closeMobileMenu" >
-                            <i class="fas fa-cog"></i>
+                            <AppIcon name="settings" />
                             <span>Administration</span>
                         </router-link>
                         <!-- <button class="mobile-action-btn profile-mobile" @click="closeMobileMenu">
-                            <i class="fas fa-user"></i>
+                            <AppIcon name="user" />
                             <span>Mon Profil</span>
                         </button> -->
                     </div>
@@ -97,11 +97,11 @@
                     <!-- Contact mobile -->
                     <div class="mobile-contact">
                         <div class="contact-item">
-                            <i class="fas fa-phone"></i>
+                            <AppIcon name="phone" />
                             <span>+33 4 XX XX XX XX</span>
                         </div>
                         <div class="contact-item">
-                            <i class="fas fa-envelope"></i>
+                            <AppIcon name="mail" />
                             <span>contact@campcameleonx.com</span>
                         </div>
                     </div>

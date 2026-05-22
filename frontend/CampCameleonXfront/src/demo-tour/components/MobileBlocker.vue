@@ -3,13 +3,13 @@
     <div v-if="isMobile" class="mobile-blocker">
       <div class="mobile-blocker-content">
         <div class="mobile-blocker-icon">
-          <i class="fas fa-desktop"></i>
+          <AppIcon name="monitor" />
         </div>
         <h2>Interface Desktop requise</h2>
         <p>Le back-office nécessite un <strong>écran large</strong>.</p>
 
         <div class="credentials-box">
-          <h3><i class="fas fa-key"></i> Identifiants de test</h3>
+          <h3><AppIcon name="key" /> Identifiants de test</h3>
           <div class="cred-item" @click="copy('admin@campcanteloup.fr')">
             <span>👑 Propriétaire</span>
             <code>admin@campcanteloup.fr</code>
@@ -18,12 +18,12 @@
             <span>🛎️ Réceptionniste</span>
             <code>fatima@campcanteloup.ma</code>
           </div>
-          <p class="pwd-hint"><i class="fas fa-lock"></i> Mot de passe : <code>password</code></p>
+          <p class="pwd-hint"><AppIcon name="lock" /> Mot de passe : <code>password</code></p>
         </div>
 
-        <div v-if="copied" class="copy-toast"><i class="fas fa-check"></i> Copié !</div>
+        <div v-if="copied" class="copy-toast"><AppIcon name="check" /> Copié !</div>
 
-        <a href="/" class="btn-public"><i class="fas fa-home"></i> Voir le site public</a>
+        <a href="/" class="btn-public"><AppIcon name="home" /> Voir le site public</a>
       </div>
     </div>
   </Teleport>
@@ -100,7 +100,7 @@ export default {
   border-radius: 50%;
   box-shadow: 0 4px 20px rgba(0,0,0,0.1);
 }
-.mobile-blocker-icon i {
+.mobile-blocker-icon .app-icon {
   font-size: 1.75rem;
   color: #c65d3b;
 }
@@ -131,7 +131,7 @@ export default {
   color: #1a2332;
   margin-bottom: 0.75rem;
 }
-.credentials-box h3 i {
+.credentials-box h3 .app-icon {
   color: #c65d3b;
 }
 .cred-item {

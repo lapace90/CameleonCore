@@ -539,7 +539,7 @@ $permission-color: #dc2626;
       background: #f9fafb;
       border-radius: 6px;
 
-      i {
+      .app-icon {
         color: #6b7280;
       }
     }
@@ -703,7 +703,7 @@ $permission-color: #dc2626;
   align-items: center;
   gap: 0.5rem;
 
-  i {
+  .app-icon {
     color: #f59e0b;
   }
 }
@@ -742,7 +742,7 @@ $permission-color: #dc2626;
   font-size: 0.875rem;
 }
 
-.user-btn i {
+.user-btn .app-icon {
   font-size: 0.75rem;
   transition: transform 0.3s ease;
 }

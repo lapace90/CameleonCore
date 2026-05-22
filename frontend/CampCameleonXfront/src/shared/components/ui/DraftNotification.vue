@@ -4,7 +4,7 @@
     <div v-if="show" class="draft-notification" :class="variant">
       <div class="draft-notification-content">
         <div class="draft-icon">
-          <i :class="iconClass"></i>
+          <AppIcon :name="iconClass" />
         </div>
         
         <div class="draft-message">
@@ -23,7 +23,7 @@
           class="btn-draft btn-restore"
           type="button"
         >
-          <i class="fas fa-undo"></i>
+          <AppIcon name="undo-2" />
           Restaurer
         </button>
         
@@ -33,7 +33,7 @@
           class="btn-draft btn-discard"
           type="button"
         >
-          <i class="fas fa-trash"></i>
+          <AppIcon name="trash-2" />
           Ignorer
         </button>
 
@@ -43,7 +43,7 @@
           type="button"
           aria-label="Fermer"
         >
-          <i class="fas fa-times"></i>
+          <AppIcon name="x" />
         </button>
       </div>
     </div>
@@ -95,9 +95,9 @@ export default {
   computed: {
     iconClass() {
       const icons = {
-        info: 'fas fa-info-circle',
-        success: 'fas fa-check-circle',
-        warning: 'fas fa-exclamation-triangle'
+        info: 'info',
+        success: 'circle-check',
+        warning: 'triangle-alert'
       }
       return icons[this.variant]
     }

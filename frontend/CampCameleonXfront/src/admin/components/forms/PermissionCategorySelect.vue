@@ -2,7 +2,7 @@
 <template>
   <div class="permission-category-select">
     <label class="form-label">
-      <i class="fas fa-tags"></i>
+      <AppIcon name="tags" />
       Catégorie de permission
     </label>
 
@@ -20,7 +20,7 @@
         @click="selectCategory(category.key)"
         :title="category.description"
       >
-        <i :class="category.icon" :style="{ color: category.color }"></i>
+        <AppIcon :name="category.icon" :style="{ color: category.color }" />
         <span class="cat-name">{{ category.name }}</span>
         <span v-if="category.count" class="category-count">{{ category.count }}</span>
       </button>
@@ -29,7 +29,7 @@
     <!-- Catégorie sélectionnée -->
     <div v-if="selectedCategory" class="selected-category">
       <div class="selected-info">
-        <i :class="selectedCategory.icon" :style="{ color: selectedCategory.color }"></i>
+        <AppIcon :name="selectedCategory.icon" :style="{ color: selectedCategory.color }" />
         <div class="selected-details">
           <span class="selected-name">{{ selectedCategory.name }}</span>
           <small class="selected-description">{{ selectedCategory.description }}</small>
@@ -41,13 +41,13 @@
         @click="clearSelection"
         title="Aucune catégorie"
       >
-        <i class="fas fa-times"></i>
+        <AppIcon name="x" />
       </button>
     </div>
 
     <!-- Aperçu automatique si pas de sélection manuelle -->
     <div v-if="!modelValue && autoDetectedCategory" class="auto-preview">
-      <i class="fas fa-lightbulb text-info"></i>
+      <AppIcon name="lightbulb" />
       <span class="text-muted">
         Sera automatiquement classée dans : 
         <strong>{{ autoDetectedCategory.name }}</strong>
@@ -78,7 +78,7 @@ const availableCategories = [
     key: 'system',
     name: 'Administration Système',
     description: 'Permissions d\'administration système et maintenance',
-    icon: 'fas fa-cogs',
+    icon: 'settings-2',
     color: '#f5365c',
     count: null
   },
@@ -86,7 +86,7 @@ const availableCategories = [
     key: 'users',
     name: 'Gestion Utilisateurs',
     description: 'Gestion des utilisateurs, rôles et permissions',
-    icon: 'fas fa-users',
+    icon: 'users',
     color: '#5e72e4',
     count: null
   },
@@ -94,7 +94,7 @@ const availableCategories = [
     key: 'accommodations',
     name: 'Hébergements',
     description: 'Gestion des hébergements et disponibilités',
-    icon: 'fas fa-home',
+    icon: 'home',
     color: '#2dce89',
     count: null
   },
@@ -102,7 +102,7 @@ const availableCategories = [
     key: 'activities',
     name: 'Activités',
     description: 'Gestion des activités proposées',
-    icon: 'fas fa-mountain',
+    icon: 'mountain',
     color: '#fb6340',
     count: null
   },
@@ -110,7 +110,7 @@ const availableCategories = [
     key: 'bookings',
     name: 'Réservations',
     description: 'Système de réservations et planning',
-    icon: 'fas fa-calendar-check',
+    icon: 'calendar-check',
     color: '#11cdef',
     count: null
   },
@@ -118,7 +118,7 @@ const availableCategories = [
     key: 'reception',
     name: 'Réception',
     description: 'Accueil et gestion quotidienne',
-    icon: 'fas fa-bell-concierge',
+    icon: 'bell-ring',
     color: '#8965e0',
     count: null
   },
@@ -126,7 +126,7 @@ const availableCategories = [
     key: 'customers',
     name: 'Clients',
     description: 'Gestion de la clientèle',
-    icon: 'fas fa-user-friends',
+    icon: 'users',
     color: '#ffd600',
     count: null
   },
@@ -134,7 +134,7 @@ const availableCategories = [
     key: 'restaurant',
     name: 'Restaurant',
     description: 'Gestion du restaurant et des commandes',
-    icon: 'fas fa-utensils',
+    icon: 'utensils',
     color: '#2dce89',
     count: null
   },
@@ -142,7 +142,7 @@ const availableCategories = [
     key: 'finance',
     name: 'Finance',
     description: 'Gestion financière et comptabilité',
-    icon: 'fas fa-coins',
+    icon: 'coins',
     color: '#f56565',
     count: null
   },
@@ -150,7 +150,7 @@ const availableCategories = [
     key: 'analytics',
     name: 'Analyses',
     description: 'Tableaux de bord et rapports',
-    icon: 'fas fa-chart-line',
+    icon: 'trending-up',
     color: '#2196f3',
     count: null
   },
@@ -158,7 +158,7 @@ const availableCategories = [
     key: 'communication',
     name: 'Communication',
     description: 'Messagerie et notifications',
-    icon: 'fas fa-comments',
+    icon: 'message-circle',
     color: '#5603ad',
     count: null
   },
@@ -166,7 +166,7 @@ const availableCategories = [
     key: 'other',
     name: 'Autres',
     description: 'Permissions diverses',
-    icon: 'fas fa-ellipsis-h',
+    icon: 'ellipsis',
     color: '#8898aa',
     count: null
   }

@@ -13,7 +13,7 @@
       <div class="header-right">
         <!-- Search -->
         <div class="search-box">
-          <i class="fas fa-search"></i>
+          <AppIcon name="search" />
           <input 
             type="text" 
             placeholder="Rechercher..." 
@@ -25,7 +25,7 @@
         <!-- Notifications -->
         <div class="header-notification" ref="notificationContainer">
           <button class="notification-btn" @click="toggleNotifications">
-            <i class="fas fa-bell"></i>
+            <AppIcon name="bell" />
             <span class="notification-badge" v-if="notificationCount > 0">{{ notificationCount }}</span>
           </button>
 
@@ -53,22 +53,22 @@
               class="user-avatar"
             >
             <span class="user-name">{{ auth.user?.name || 'Admin' }}</span>
-            <i class="fas fa-chevron-down" :class="{ 'rotated': showUserMenu }"></i>
+            <AppIcon name="chevron-down" :class="{ 'rotated': showUserMenu }" />
           </button>
 
           <!-- Dropdown user menu -->
           <div class="user-dropdown" v-show="showUserMenu" @click.stop>
             <router-link to="/admin/profile" class="dropdown-item" @click="closeDropdowns">
-              <i class="fas fa-user"></i>
+              <AppIcon name="user" />
               <span>Mon profil</span>
             </router-link>
             <router-link to="/admin/settings" class="dropdown-item" @click="closeDropdowns">
-              <i class="fas fa-cog"></i>
+              <AppIcon name="settings" />
               <span>Paramètres</span>
             </router-link>
             <div class="dropdown-divider"></div>
             <button class="dropdown-item logout-btn" @click="handleLogout">
-              <i class="fas fa-sign-out-alt"></i>
+              <AppIcon name="log-out" />
               <span>Se déconnecter</span>
             </button>
           </div>
@@ -273,7 +273,7 @@ export default {
     display: flex;
     align-items: center;
 
-    i {
+    .app-icon {
       position: absolute;
       left: 0.75rem;
       color: #adb5bd;
@@ -374,7 +374,7 @@ export default {
         white-space: nowrap;
       }
 
-      i {
+      .app-icon {
         font-size: 0.75rem;
         color: #adb5bd;
         transition: transform 0.2s ease;
@@ -419,7 +419,7 @@ export default {
           color: #5e72e4;
         }
 
-        i {
+        .app-icon {
           font-size: 0.875rem;
           width: 16px;
         }

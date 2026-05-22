@@ -10,7 +10,7 @@
         <!-- Boutons de navigation -->
         <div class="calendar-navigation">
           <button @click="navigatePrev" class="nav-btn" title="Période précédente">
-            <i class="fas fa-chevron-left"></i>
+            <AppIcon name="chevron-left" />
           </button>
 
           <button @click="navigateToday" class="today-btn">
@@ -18,18 +18,18 @@
           </button>
 
           <button @click="navigateNext" class="nav-btn" title="Période suivante">
-            <i class="fas fa-chevron-right"></i>
+            <AppIcon name="chevron-right" />
           </button>
         </div>
         <div class="view-switcher">
           <button v-for="view in availableViews" :key="view.value" @click="changeView(view.value)" class="view-btn"
             :class="{ active: currentView === view.value }">
-            <i :class="view.icon"></i>
+            <AppIcon :name="view.icon" />
             {{ view.label }}
           </button>
         </div>
         <button @click="openCreateModal" class="btn-create">
-          <i class="fas fa-plus"></i>
+          <AppIcon name="plus" />
           Nouvel événement
         </button>
       </div>
@@ -39,7 +39,7 @@
     <div class="calendar-stats" v-if="showStats">
       <div class="stat-card">
         <div class="stat-icon reservations">
-          <i class="fas fa-calendar-alt"></i>
+          <AppIcon name="calendar-days" />
         </div>
         <div class="stat-content">
           <span class="stat-number">{{ stats.totalReservations }}</span>
@@ -49,7 +49,7 @@
 
       <div class="stat-card">
         <div class="stat-icon occupancy">
-          <i class="fas fa-users"></i>
+          <AppIcon name="users" />
         </div>
         <div class="stat-content">
           <span class="stat-number">{{ stats.currentGuests }}</span>
@@ -59,7 +59,7 @@
 
       <div class="stat-card">
         <div class="stat-icon info">
-          <i class="fas fa-sign-in-alt"></i>
+          <AppIcon name="log-in" />
         </div>
         <div class="stat-content">
           <span class="stat-number">{{ stats.checkinsToday }}</span>
@@ -69,7 +69,7 @@
 
       <div class="stat-card">
         <div class="stat-icon warning">
-          <i class="fas fa-sign-out-alt"></i>
+          <AppIcon name="log-out" />
         </div>
         <div class="stat-content">
           <span class="stat-number">{{ stats.checkoutsToday }}</span>
@@ -147,9 +147,9 @@ export default {
       currentMonthText: '',
 
       availableViews: [
-        { value: 'dayGridMonth', label: 'Mois', icon: 'fas fa-calendar' },
-        { value: 'timeGridWeek', label: 'Semaine', icon: 'fas fa-calendar-week' },
-        { value: 'timeGridDay', label: 'Jour', icon: 'fas fa-calendar-day' }
+        { value: 'dayGridMonth', label: 'Mois', icon: 'calendar' },
+        { value: 'timeGridWeek', label: 'Semaine', icon: 'calendar-range' },
+        { value: 'timeGridDay', label: 'Jour', icon: 'calendar-days' }
       ],
 
       stats: {

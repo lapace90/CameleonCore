@@ -4,14 +4,14 @@
     <div class="page-header">
       <div class="header-left">
         <h1 class="page-title">
-          <i class="fas fa-file-invoice"></i>
+          <AppIcon name="receipt" />
           Factures
         </h1>
         <p class="page-subtitle">Gestion des factures et paiements</p>
       </div>
       <div class="header-actions">
         <button type="button" class="btn btn-primary btn-sm" @click="refresh">
-          <i class="fas fa-sync"></i>
+          <AppIcon name="rotate-cw" />
           Actualiser
         </button>
       </div>
@@ -21,7 +21,7 @@
     <div v-if="stats" class="stats-grid">
       <div class="stat-card">
         <div class="stat-icon" style="background: var(--primary, #5e72e4);">
-          <i class="fas fa-file-invoice-dollar"></i>
+          <AppIcon name="receipt" />
         </div>
         <div class="stat-content">
           <div class="stat-label">Total Factures</div>
@@ -31,7 +31,7 @@
 
       <div class="stat-card">
         <div class="stat-icon" style="background: var(--success, #2dce89);">
-          <i class="fas fa-check-circle"></i>
+          <AppIcon name="circle-check" />
         </div>
         <div class="stat-content">
           <div class="stat-label">Payées</div>
@@ -41,7 +41,7 @@
 
       <div class="stat-card">
         <div class="stat-icon" style="background: var(--warning, #fb6340);">
-          <i class="fas fa-clock"></i>
+          <AppIcon name="clock" />
         </div>
         <div class="stat-content">
           <div class="stat-label">En attente</div>
@@ -51,7 +51,7 @@
 
       <div class="stat-card">
         <div class="stat-icon" style="background: var(--danger, #f5365c);">
-          <i class="fas fa-exclamation-circle"></i>
+          <AppIcon name="circle-alert" />
         </div>
         <div class="stat-content">
           <div class="stat-label">En retard</div>
@@ -67,7 +67,7 @@
       <!-- Slot results personnalisé -->
       <template #results="{ activeCount }">
         <span class="results-info">
-          <i class="fas fa-file-invoice"></i>
+          <AppIcon name="receipt" />
           {{ pagination.total }} facture(s)
           <span v-if="activeCount > 0" class="text-muted">
             · {{ activeCount }} filtre(s) actif(s)
@@ -84,7 +84,7 @@
       :empty-message="hasActiveFilters
         ? 'Aucune facture ne correspond à vos critères.'
         : 'Les factures apparaîtront automatiquement dès qu\'une réservation sera confirmée.'"
-      empty-icon="fas fa-file-invoice" />
+      empty-icon="receipt" />
 
     <!-- Liste des factures -->
     <div v-else class="card">
@@ -94,16 +94,16 @@
             <tr>
               <th @click="changeSort('invoice_number')" class="sortable">
                 Numéro
-                <i :class="getSortIcon('invoice_number')"></i>
+                <AppIcon :name="getSortIcon('invoice_number')" />
               </th>
               <th>Client</th>
               <th @click="changeSort('created_at')" class="sortable">
                 Date
-                <i :class="getSortIcon('created_at')"></i>
+                <AppIcon :name="getSortIcon('created_at')" />
               </th>
               <th @click="changeSort('amount')" class="sortable">
                 Montant
-                <i :class="getSortIcon('amount')"></i>
+                <AppIcon :name="getSortIcon('amount')" />
               </th>
               <th>Statut</th>
               <th class="actions-column">Actions</th>
@@ -136,18 +136,18 @@
               <td>
                 <div class="action-buttons">
                   <button type="button" class="btn-icon text-primary" title="Voir" @click="viewInvoice(invoice)">
-                    <i class="fas fa-eye"></i>
+                    <AppIcon name="eye" />
                   </button>
                   <button type="button" class="btn-icon text-success" title="Télécharger PDF"
                     @click="downloadPdf(invoice)">
-                    <i class="fas fa-download"></i>
+                    <AppIcon name="download" />
                   </button>
                   <button v-if="canMarkAsPaid(invoice)" type="button" class="btn-icon text-info" title="Marquer payée"
                     @click="markAsPaid(invoice)">
-                    <i class="fas fa-check-circle"></i>
+                    <AppIcon name="circle-check" />
                   </button>
                   <button type="button" class="btn-icon text-danger" title="Supprimer" @click="deleteInvoice(invoice)">
-                    <i class="fas fa-trash"></i>
+                    <AppIcon name="trash-2" />
                   </button>
                 </div>
               </td>
@@ -336,11 +336,11 @@ export default {
 
     getSortIcon(field) {
       if (this.sort.field !== field) {
-        return 'fas fa-sort text-muted'
+        return 'arrow-up-down'
       }
       return this.sort.direction === 'asc'
-        ? 'fas fa-sort-up'
-        : 'fas fa-sort-down'
+        ? 'chevron-up'
+        : 'chevron-down'
     },
 
     // Actions

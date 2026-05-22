@@ -8,17 +8,17 @@
           <img :src="displayUrl" :alt="'Image du produit'" @error="handleImageError" />
           <div class="image-overlay">
             <button type="button" @click="changeImage" class="overlay-btn">
-              <i class="fas fa-edit"></i>
+              <AppIcon name="pencil" />
             </button>
             <button type="button" @click="removeImage" class="overlay-btn">
-              <i class="fas fa-trash"></i>
+              <AppIcon name="trash-2" />
             </button>
           </div>
         </div>
 
         <!-- Placeholder d'upload -->
         <div v-else class="upload-placeholder" @click="selectImage">
-          <i class="fas fa-cloud-upload-alt"></i>
+          <AppIcon name="cloud-upload" />
           <p>Ajouter une image</p>
         </div>
 

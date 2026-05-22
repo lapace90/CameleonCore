@@ -5,11 +5,11 @@
         <div class="modal-content" @click.stop>
             <div class="modal-header">
                 <h3>
-                    <i class="fas fa-shield-alt"></i>
+                    <AppIcon name="shield" />
                     {{ role.name }}
                 </h3>
                 <button @click="$emit('close')" class="btn-close">
-                    <i class="fas fa-times"></i>
+                    <AppIcon name="x" />
                 </button>
             </div>
 
@@ -35,7 +35,7 @@
                                 <span class="label">Statut :</span>
                                 <span class="value">
                                     <span v-if="role.is_critical" class="badge badge-critical">
-                                        <i class="fas fa-shield-alt"></i> Critique
+                                        <AppIcon name="shield" /> Critique
                                     </span>
                                     <span v-else class="badge badge-normal">Normal</span>
                                 </span>
@@ -48,28 +48,28 @@
                         <h4>Statistiques</h4>
                         <div class="stats-grid">
                             <div class="stat-card">
-                                <i class="fas fa-key"></i>
+                                <AppIcon name="key" />
                                 <div>
                                     <span class="stat-number">{{ role.permissions_count }}</span>
                                     <span class="stat-label">Permissions</span>
                                 </div>
                             </div>
                             <div class="stat-card">
-                                <i class="fas fa-users"></i>
+                                <AppIcon name="users" />
                                 <div>
                                     <span class="stat-number">{{ role.total_users_count }}</span>
                                     <span class="stat-label">Utilisateurs</span>
                                 </div>
                             </div>
                             <div class="stat-card">
-                                <i class="fas fa-user-shield"></i>
+                                <AppIcon name="user-round-check" />
                                 <div>
                                     <span class="stat-number">{{ role.primary_users_count }}</span>
                                     <span class="stat-label">Rôle principal</span>
                                 </div>
                             </div>
                             <div class="stat-card">
-                                <i class="fas fa-user-plus"></i>
+                                <AppIcon name="user-plus" />
                                 <div>
                                     <span class="stat-number">{{ role.additional_users_count }}</span>
                                     <span class="stat-label">Rôle additionnel</span>
@@ -97,7 +97,7 @@
                             <h5>Rôle principal ({{ role.primary_users.length }})</h5>
                             <div class="users-list">
                                 <div v-for="user in role.primary_users" :key="`primary-${user.id}`" class="user-item">
-                                    <i class="fas fa-user-shield"></i>
+                                    <AppIcon name="user-round-check" />
                                     <div class="user-info">
                                         <span class="user-name">{{ user.name }}</span>
                                         <span class="user-email">{{ user.email }}</span>
@@ -110,7 +110,7 @@
                             <h5>Rôle additionnel ({{ role.users.length }})</h5>
                             <div class="users-list">
                                 <div v-for="user in role.users" :key="`additional-${user.id}`" class="user-item">
-                                    <i class="fas fa-user-plus"></i>
+                                    <AppIcon name="user-plus" />
                                     <div class="user-info">
                                         <span class="user-name">{{ user.name }}</span>
                                         <span class="user-email">{{ user.email }}</span>

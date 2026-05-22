@@ -8,7 +8,7 @@
         @click="openImageModal(photo)">
         <img :src="photo.url" :alt="photo.alt || 'Souvenir du désert'" />
         <div class="zoom-hint">
-          <i class="fas fa-search-plus"></i>
+          <AppIcon name="zoom-in" />
         </div>
       </div>
     </div>
@@ -26,7 +26,7 @@
 
         <button v-if="needsExpansion" @click="toggleText" class="read-more-btn">
           {{ isTextExpanded ? 'Lire moins' : 'Lire plus' }}
-          <i :class="isTextExpanded ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"></i>
+          <AppIcon :name="isTextExpanded ? 'chevron-up' : 'chevron-down'" />
         </button>
       </div>
 
@@ -44,7 +44,7 @@
         <div v-if="showImageModal" class="image-modal" @click="closeImageModal">
           <div class="modal-content" @click.stop>
             <button class="testimonial-close-btn" @click="closeImageModal">
-              <i class="fas fa-times"></i>
+              <AppIcon name="x" />
             </button>
             <img :src="selectedImage?.url" :alt="selectedImage?.alt" class="zoomed-image" />
             <p class="image-caption" v-if="selectedImage?.alt">{{ selectedImage.alt }}</p>

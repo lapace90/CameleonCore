@@ -4,20 +4,20 @@
     <div class="widget-header">
       <div class="header-left">
         <h4 class="widget-title">
-          <i class="fas fa-calendar-alt"></i>
+          <AppIcon name="calendar-days" />
           {{ title }}
         </h4>
         <span class="current-month">{{ currentMonthText }}</span>
       </div>
       <div class="header-actions">
         <button @click="goToPreviousMonth" class="nav-btn">
-          <i class="fas fa-chevron-left"></i>
+          <AppIcon name="chevron-left" />
         </button>
         <button @click="goToToday" class="today-btn" title="Aujourd'hui">
-          <i class="fas fa-dot-circle"></i>
+          <AppIcon name="circle-dot" />
         </button>
         <button @click="goToNextMonth" class="nav-btn">
-          <i class="fas fa-chevron-right"></i>
+          <AppIcon name="chevron-right" />
         </button>
       </div>
     </div>
@@ -30,11 +30,11 @@
     <!-- Actions rapides -->
     <div class="widget-actions" v-if="showActions">
       <button @click="handleQuickAdd" class="action-btn add-btn">
-        <i class="fas fa-plus"></i>
+        <AppIcon name="plus" />
         Ajouter
       </button>
       <router-link to="/admin/agenda" class="action-btn view-btn">
-        <i class="fas fa-external-link-alt"></i>
+        <AppIcon name="external-link" />
         Voir tout
       </router-link>
     </div>
@@ -42,7 +42,7 @@
     <!-- Mini événements à venir -->
     <div class="upcoming-events" v-if="showUpcoming">
       <h5 class="upcoming-title">
-        <i class="fas fa-clock"></i>
+        <AppIcon name="clock" />
         Prochains événements
       </h5>
       <div class="event-list">
@@ -55,7 +55,7 @@
         </div>
 
         <div v-if="!upcomingEvents.length" class="no-events">
-          <i class="fas fa-calendar-check"></i>
+          <AppIcon name="calendar-check" />
           <span>Aucun événement prévu</span>
         </div>
       </div>
@@ -574,7 +574,7 @@ export default {
   font-size: 0.8rem;
 }
 
-.no-events i {
+.no-events .app-icon {
   font-size: 1.5rem;
   opacity: 0.5;
 }

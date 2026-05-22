@@ -8,7 +8,7 @@
     <!-- Message d'erreur -->
     <div v-if="error" class="error-message">
       <div class="alert alert-danger">
-        <i class="fas fa-exclamation-triangle"></i>
+        <AppIcon name="triangle-alert" />
         {{ error }}
         <button @click="error = null" class="btn-close">&times;</button>
       </div>
@@ -23,7 +23,7 @@
       <div class="form-header">
         <div class="header-navigation">
           <router-link :to="backRoute" class="back-link">
-            <i class="fas fa-arrow-left"></i>
+            <AppIcon name="arrow-left" />
             Retour aux réservations
           </router-link>
         </div>
@@ -32,7 +32,7 @@
       <!-- Titre -->
       <div class="page-title-section">
         <div class="reservation-badge">
-          <i class="fas fa-calendar-check"></i>
+          <AppIcon name="calendar-check" />
           Réservation
         </div>
         <h1 class="page-title">
@@ -48,7 +48,7 @@
           <div class="form-section">
             <div class="section-header">
               <h3>
-                <i class="fas fa-user"></i>
+                <AppIcon name="user" />
                 Informations Client
               </h3>
               <p class="section-description">Sélectionnez un client existant ou créez-en un nouveau</p>
@@ -87,7 +87,7 @@
                 </div>
                 <div v-if="form.customer_id && selectedCustomer" class="selected-customer">
                   <div class="customer-card">
-                    <i class="fas fa-user-check"></i>
+                    <AppIcon name="user-check" />
                     <div>
                       <strong>{{ selectedCustomer.name }} {{ selectedCustomer.last_name }}</strong>
                       <div class="customer-details">
@@ -95,7 +95,7 @@
                       </div>
                     </div>
                     <button type="button" @click="clearCustomer" class="btn-clear btn-sm">
-                      <i class="fas fa-times"></i>
+                      <AppIcon name="x" />
                     </button>
                   </div>
                 </div>
@@ -144,7 +144,7 @@
             <div class="form-section">
               <div class="section-header">
                 <h3>
-                  <i class="fas fa-calendar-alt"></i>
+                  <AppIcon name="calendar-days" />
                   Dates et Détails de Séjour
                 </h3>
                 <p class="section-description">Définissez les dates et les détails de la réservation</p>
@@ -193,7 +193,7 @@
           <div class="form-section">
             <div class="section-header">
               <h3>
-                <i class="fas fa-bed"></i>
+                <AppIcon name="bed" />
                 Hébergements et Services
               </h3>
               <p class="section-description">Sélectionnez les hébergements et services pour cette réservation</p>
@@ -227,7 +227,7 @@
                 </div>
 
                 <div v-if="loadingAccommodations" class="loading-item">
-                  <i class="fas fa-spinner fa-spin"></i> Chargement des hébergements...
+                  <AppIcon name="loader-circle" :spin="true" /> Chargement des hébergements...
                 </div>
 
                 <div v-if="!loadingAccommodations && accommodations.length === 0" class="empty-item">
@@ -265,7 +265,7 @@
                 </div>
 
                 <div v-if="loadingServices" class="loading-item">
-                  <i class="fas fa-spinner fa-spin"></i> Chargement des activités...
+                  <AppIcon name="loader-circle" :spin="true" /> Chargement des activités...
                 </div>
 
                 <div v-if="!loadingServices && availableActivities.length === 0" class="empty-item">
@@ -296,7 +296,7 @@
                 </div>
 
                 <div v-if="loadingServices" class="loading-item">
-                  <i class="fas fa-spinner fa-spin"></i> Chargement des menus...
+                  <AppIcon name="loader-circle" :spin="true" /> Chargement des menus...
                 </div>
 
                 <div v-if="!loadingServices && availableMenus.length === 0" class="empty-item">
@@ -312,7 +312,7 @@
           <div class="form-section">
             <div class="section-header">
               <h3>
-                <i class="fas fa-credit-card"></i>
+                <AppIcon name="credit-card" />
                 Statuts et Paiement
               </h3>
               <p class="section-description">Gérez les statuts de réservation et de paiement</p>
@@ -372,11 +372,11 @@
                 <label>Statut de la facture</label>
                 <div class="invoice-status-badges">
                   <span v-if="form.has_invoice" class="badge badge-success">
-                    <i class="fas fa-file-invoice"></i>
+                    <AppIcon name="receipt" />
                     Facture émise
                   </span>
                   <span v-else class="badge badge-warning">
-                    <i class="fas fa-file-invoice"></i>
+                    <AppIcon name="receipt" />
                     Pas de facture
                   </span>
                 </div>
@@ -389,7 +389,7 @@
             <div class="form-section">
               <div class="section-header">
                 <h3>
-                  <i class="fas fa-sticky-note"></i>
+                  <AppIcon name="sticky-note" />
                   Notes Internes
                 </h3>
                 <p class="section-description">Notes visibles uniquement par l'équipe</p>
@@ -408,7 +408,7 @@
         <div class="form-actions">
           <div class="actions-left">
             <button type="button" @click="resetForm" class="btn btn-outline btn-sm" :disabled="saving">
-              <i class="fas fa-undo"></i>
+              <AppIcon name="undo-2" />
               Réinitialiser
             </button>
           </div>
@@ -417,8 +417,8 @@
               Annuler
             </router-link>
             <button type="submit" class="btn btn-primary btn-sm" :disabled="!isFormValid || saving">
-              <i v-if="saving" class="fas fa-spinner fa-spin"></i>
-              <i v-else class="fas fa-save"></i>
+              <AppIcon name="loader-circle" :spin="true" v-if="saving" />
+              <AppIcon name="save" v-else />
               {{ saving ? 'Enregistrement...' : (isEditing ? 'Modifier' : 'Créer') }}
             </button>
           </div>

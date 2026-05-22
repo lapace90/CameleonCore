@@ -2,7 +2,7 @@
   <div class="modal-overlay" v-if="show" @click="handleOverlayClick">
     <div class="confirm-modal" @click.stop>
       <div class="modal-icon" :class="iconClass">
-        <i :class="icon"></i>
+        <AppIcon :name="icon" />
       </div>
       
       <div class="modal-content">
@@ -19,11 +19,11 @@
       
       <div class="modal-actions">
         <button @click="handleCancel" class="btn btn-cancel">
-          <i class="fas fa-times"></i>
+          <AppIcon name="x" />
           {{ cancelText }}
         </button>
         <button @click="handleConfirm" class="btn btn-confirm" :class="confirmClass">
-          <i :class="confirmIcon"></i>
+          <AppIcon :name="confirmIcon" :spin="loading" />
           {{ confirmText }}
         </button>
       </div>
@@ -83,10 +83,10 @@ export default {
     
     icon() {
       const icons = {
-        info: 'fas fa-info-circle',
-        warning: 'fas fa-exclamation-triangle',
-        danger: 'fas fa-trash-alt',
-        success: 'fas fa-check-circle'
+        info: 'info',
+        warning: 'triangle-alert',
+        danger: 'trash-2',
+        success: 'circle-check'
       }
       return icons[this.type] || icons.danger
     },
@@ -102,13 +102,13 @@ export default {
     },
     
     confirmIcon() {
-      if (this.loading) return 'fas fa-spinner fa-spin'
+      if (this.loading) return 'loader-circle'
       
       const icons = {
-        info: 'fas fa-check',
-        warning: 'fas fa-exclamation',
-        danger: 'fas fa-trash',
-        success: 'fas fa-check'
+        info: 'check',
+        warning: 'circle-alert',
+        danger: 'trash-2',
+        success: 'check'
       }
       return icons[this.type] || icons.danger
     }

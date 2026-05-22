@@ -6,7 +6,7 @@
         <div class="demo-popup-header">
           <span class="demo-badge">Mode démo</span>
           <button @click="dismiss" class="close-btn" aria-label="Fermer">
-            <i class="fas fa-times"></i>
+            <AppIcon name="x" />
           </button>
         </div>
         <div class="demo-popup-content">
@@ -24,14 +24,14 @@
         <div class="demo-popup-header">
           <span class="demo-badge demo-badge-success">✓ Devis envoyé</span>
           <button @click="dismissMailhog" class="close-btn" aria-label="Fermer">
-            <i class="fas fa-times"></i>
+            <AppIcon name="x" />
           </button>
         </div>
         <div class="demo-popup-content">
           <p><strong>Un email de confirmation vous a été envoyé !</strong></p>
           <p class="demo-hint">En mode démo, les emails sont capturés par Mailhog.</p>
           <a :href="mailhogUrl" target="_blank" rel="noopener" class="demo-mailhog-btn">
-            <i class="fas fa-envelope-open-text"></i>
+            <AppIcon name="mail-open" />
             Consulter mes emails
           </a>
         </div>
@@ -45,7 +45,7 @@
         @click="startDemo" 
         class="demo-float-btn"
       >
-        <i class="fas fa-play-circle"></i>
+        <AppIcon name="circle-play" />
         <span>Tester la démo</span>
       </button>
     </transition>

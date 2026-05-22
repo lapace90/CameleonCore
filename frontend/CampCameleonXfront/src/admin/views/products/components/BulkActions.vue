@@ -1,28 +1,28 @@
 <template>
   <div class="bulk-actions">
     <div class="bulk-info">
-      <i class="fas fa-check-square"></i>
+      <AppIcon name="square-check" />
       <span>{{ selectedCount }} produit(s) sélectionné(s)</span>
     </div>
     <div class="bulk-buttons">
       <button @click="$emit('bulk-action', 'activate')" class="btn btn-success btn-sm">
-        <i class="fas fa-check"></i>
+        <AppIcon name="check" />
         Activer
       </button>
       <button @click="$emit('bulk-action', 'deactivate')" class="btn btn-warning btn-sm">
-        <i class="fas fa-pause"></i>
+        <AppIcon name="pause" />
         Désactiver
       </button>
       <button @click="$emit('bulk-action', 'draft')" class="btn btn-secondary btn-sm">
-        <i class="fas fa-edit"></i>
+        <AppIcon name="pencil" />
         Brouillon
       </button>
       <button @click="$emit('bulk-action', 'delete')" class="btn btn-danger btn-sm">
-        <i class="fas fa-trash"></i>
+        <AppIcon name="trash-2" />
         Supprimer
       </button>
       <button @click="$emit('clear-selection')" class="btn btn-outline btn-sm">
-        <i class="fas fa-times"></i>
+        <AppIcon name="x" />
         Annuler
       </button>
     </div>

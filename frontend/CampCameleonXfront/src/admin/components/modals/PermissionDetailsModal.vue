@@ -4,11 +4,11 @@
     <div class="modal-container" style="max-width: 700px;">
       <div class="modal-header">
         <h3>
-          <i class="fas fa-eye"></i>
+          <AppIcon name="eye" />
           Détails de la permission
         </h3>
         <button @click="$emit('close')" class="btn-close">
-          <i class="fas fa-times"></i>
+          <AppIcon name="x" />
         </button>
       </div>
 
@@ -22,7 +22,7 @@
                 {{ permission.action_label }}
               </span>
               <span v-if="permission.category" class="badge badge-secondary">
-                <i class="fas fa-tag"></i>
+                <AppIcon name="tag" />
                 {{ getCategoryDisplayName(permission.category) }}
               </span>
             </div>
@@ -31,15 +31,15 @@
           <!-- Indicateurs de statut -->
           <div class="permission-indicators">
             <span v-if="permission.is_critical" class="indicator critical" title="Permission critique">
-              <i class="fas fa-exclamation-triangle"></i>
+              <AppIcon name="triangle-alert" />
               Critique
             </span>
             <span v-if="permission.is_system" class="indicator system" title="Permission système">
-              <i class="fas fa-shield-alt"></i>
+              <AppIcon name="shield" />
               Système
             </span>
             <span v-if="permission.requires_confirmation" class="indicator confirmation" title="Confirmation requise">
-              <i class="fas fa-lock"></i>
+              <AppIcon name="lock" />
               Confirmation requise
             </span>
           </div>
@@ -47,18 +47,18 @@
 
         <!-- Code d'action -->
         <div class="detail-section">
-          <h5><i class="fas fa-code"></i> Code d'action</h5>
+          <h5><AppIcon name="code" /> Code d'action</h5>
           <div class="code-display">
             <code>{{ permission.action }}</code>
             <button @click="copyToClipboard(permission.action)" class="copy-btn" title="Copier">
-              <i class="fas fa-copy"></i>
+              <AppIcon name="copy" />
             </button>
           </div>
         </div>
 
         <!-- Statistiques d'usage -->
         <div class="detail-section">
-          <h5><i class="fas fa-chart-bar"></i> Statistiques d'usage</h5>
+          <h5><AppIcon name="bar-chart-2" /> Statistiques d'usage</h5>
           <div class="usage-stats">
             <div class="stat-group">
               <div class="stat-item">
@@ -80,7 +80,7 @@
 
         <!-- Rôles ayant cette permission -->
         <div v-if="permission.roles && permission.roles.length > 0" class="detail-section">
-          <h5><i class="fas fa-users-cog"></i> Rôles ayant cette permission</h5>
+          <h5><AppIcon name="settings-2" /> Rôles ayant cette permission</h5>
           <div class="roles-list">
             <div v-for="role in permission.roles" :key="role.id" class="role-item">
               <div class="role-info">
@@ -94,16 +94,16 @@
 
         <!-- Message si aucun rôle -->
         <div v-else class="detail-section">
-          <h5><i class="fas fa-users-cog"></i> Rôles ayant cette permission</h5>
+          <h5><AppIcon name="settings-2" /> Rôles ayant cette permission</h5>
           <div class="empty-state">
-            <i class="fas fa-info-circle"></i>
+            <AppIcon name="info" />
             <p>Cette permission n'est assignée à aucun rôle.</p>
           </div>
         </div>
 
         <!-- Informations techniques -->
         <div class="detail-section">
-          <h5><i class="fas fa-info-circle"></i> Informations techniques</h5>
+          <h5><AppIcon name="info" /> Informations techniques</h5>
           <div class="tech-info">
             <div class="info-row">
               <span class="info-label">ID :</span>

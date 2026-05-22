@@ -92,8 +92,8 @@
               </div>
 
               <button type="submit" class="btn-send" :disabled="submitting">
-                <i v-if="submitting" class="fas fa-spinner fa-spin"></i>
-                <i v-else class="fas fa-paper-plane"></i>
+                <AppIcon name="loader-circle" :spin="true" v-if="submitting" />
+                <AppIcon name="send" v-else />
                 {{ submitting ? 'Envoi en cours...' : 'Envoyer le message' }}
               </button>
             </form>
@@ -101,7 +101,7 @@
             <!-- Success Message -->
             <div v-if="showSuccess" class="success-message">
               <div class="success-content">
-                <i class="fas fa-check-circle"></i>
+                <AppIcon name="circle-check" />
                 <h3>Message envoyé avec succès !</h3>
                 <p>Nous avons bien reçu votre message et vous répondrons dans les plus brefs délais.</p>
               </div>
@@ -115,7 +115,7 @@
 
               <div class="contact-item">
                 <div class="contact-icon">
-                  <i class="fas fa-map-marker-alt"></i>
+                  <AppIcon name="map-pin" />
                 </div>
                 <div class="contact-details">
                   <h4>Adresse</h4>
@@ -125,7 +125,7 @@
 
               <div class="contact-item">
                 <div class="contact-icon">
-                  <i class="fas fa-phone"></i>
+                  <AppIcon name="phone" />
                 </div>
                 <div class="contact-details">
                   <h4>Téléphone</h4>
@@ -136,7 +136,7 @@
 
               <div class="contact-item">
                 <div class="contact-icon">
-                  <i class="fas fa-envelope"></i>
+                  <AppIcon name="mail" />
                 </div>
                 <div class="contact-details">
                   <h4>Email</h4>
@@ -147,7 +147,7 @@
 
               <div class="contact-item">
                 <div class="contact-icon">
-                  <i class="fas fa-clock"></i>
+                  <AppIcon name="clock" />
                 </div>
                 <div class="contact-details">
                   <h4>Saison & Horaires</h4>
@@ -164,12 +164,12 @@
             <!-- Emergency Contact -->
             <div class="emergency-card">
               <div class="emergency-header">
-                <i class="fas fa-moon"></i>
+                <AppIcon name="moon" />
                 <h4>Assistance 24h/24</h4>
               </div>
               <p>En cas d'urgence pendant votre séjour au désert :</p>
               <a href="tel:+212612345678" class="emergency-phone">
-                <i class="fas fa-phone"></i>
+                <AppIcon name="phone" />
                 +212 6 12 34 56 78
               </a>
               <br>
@@ -181,13 +181,13 @@
               <h4>Suivez nos aventures</h4>
               <div class="social-links">
                 <a href="#" class="social-link facebook">
-                  <i class="fab fa-facebook-f"></i>
+                  <SocialIcon name="facebook" />
                 </a>
                 <a href="#" class="social-link instagram">
-                  <i class="fab fa-instagram"></i>
+                  <SocialIcon name="instagram" />
                 </a>
                 <a href="#" class="social-link youtube">
-                  <i class="fab fa-youtube"></i>
+                  <SocialIcon name="youtube" />
                 </a>
               </div>
             </div>
@@ -206,7 +206,7 @@
 
         <div class="map-container">
           <div class="map-placeholder">
-            <i class="fas fa-map-marked-alt"></i>
+            <AppIcon name="map-pinned" />
             <h3>Localisation désert</h3>
             <p>Intégration carte interactive à venir</p>
             <div class="map-directions">

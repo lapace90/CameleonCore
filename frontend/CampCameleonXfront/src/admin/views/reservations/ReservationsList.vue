@@ -4,18 +4,18 @@
     <div class="page-header">
       <div class="header-left">
         <h1 class="page-title">
-          <i class="fas fa-calendar-check"></i>
+          <AppIcon name="calendar-check" />
           Réservations
         </h1>
         <p class="page-subtitle">Gestion des réservations et demandes client</p>
       </div>
       <div class="header-actions">
         <button type="button" class="btn btn-outline btn-sm" @click="refresh">
-          <i class="fas fa-sync"></i>
+          <AppIcon name="rotate-cw" />
           Actualiser
         </button>
         <button type="button" class="btn btn-primary btn-sm" @click="$router.push({ name: 'ReservationCreate' })">
-          <i class="fas fa-plus"></i>
+          <AppIcon name="plus" />
           Nouvelle Réservation
         </button>
       </div>
@@ -31,7 +31,7 @@
     >
       <template #results="{ activeCount }">
         <span class="results-info">
-          <i class="fas fa-calendar-check"></i>
+          <AppIcon name="calendar-check" />
           {{ pagination.total }} réservation(s)
           <span v-if="activeCount > 0" class="text-muted">
             · {{ activeCount }} filtre(s)
@@ -42,23 +42,23 @@
 
     <!-- Loading -->
     <div v-if="loading" class="state-card">
-      <i class="fas fa-spinner fa-spin"></i>
+      <AppIcon name="loader-circle" :spin="true" />
       <p>Chargement des réservations...</p>
     </div>
 
     <!-- Error -->
     <div v-else-if="error" class="state-card error">
-      <i class="fas fa-exclamation-triangle"></i>
+      <AppIcon name="triangle-alert" />
       <p>{{ error }}</p>
       <button type="button" class="btn btn-outline btn-sm" @click="fetchReservations">
-        <i class="fas fa-redo"></i>
+        <AppIcon name="rotate-cw" />
         Réessayer
       </button>
     </div>
 
     <!-- Empty -->
     <div v-else-if="reservations.length === 0" class="state-card empty">
-      <i class="fas fa-clipboard-list"></i>
+      <AppIcon name="clipboard-list" />
       <h3>Aucune réservation trouvée</h3>
       <p v-if="hasActiveFilters">
         Ajustez vos filtres pour élargir la recherche.
@@ -75,20 +75,20 @@
           <tr>
             <th @click="changeSort('created_at')" class="sortable">
               Réservation
-              <i :class="getSortIcon('created_at')"></i>
+              <AppIcon :name="getSortIcon('created_at')" />
             </th>
             <th>Client</th>
             <th class="sortable" @click="changeSort('checkin')">
               Séjour
-              <i :class="getSortIcon('checkin')"></i>
+              <AppIcon :name="getSortIcon('checkin')" />
             </th>
             <th class="sortable" @click="changeSort('status')">
               Statut
-              <i :class="getSortIcon('status')"></i>
+              <AppIcon :name="getSortIcon('status')" />
             </th>
             <th class="sortable" @click="changeSort('amount')">
               Montant
-              <i :class="getSortIcon('amount')"></i>
+              <AppIcon :name="getSortIcon('amount')" />
             </th>
             <th class="actions-col">Actions</th>
           </tr>
@@ -100,7 +100,7 @@
               <strong>#{{ reservation.id }}</strong><br>
               <small class="text-muted">{{ formatDate(reservation.created_at) }}</small><br>
               <small v-if="reservation.invoice_number" class="text-muted">
-                <i class="fas fa-file-invoice"></i> {{ reservation.invoice_number }}
+                <AppIcon name="receipt" /> {{ reservation.invoice_number }}
               </small>
             </td>
 
@@ -108,10 +108,10 @@
             <td>
               <strong>{{ getCustomerName(reservation) }}</strong><br>
               <small v-if="getCustomerEmail(reservation)" class="text-muted">
-                <i class="fas fa-envelope"  style="padding: .5rem;"> </i>{{ getCustomerEmail(reservation) }}
+                <i class="mail"  style="padding: .5rem;"> </i>{{ getCustomerEmail(reservation) }}
               </small><br>
               <small v-if="getCustomerPhone(reservation)" class="text-muted">
-                <i class="fas fa-phone"></i> {{ getCustomerPhone(reservation) }}
+                <AppIcon name="phone" /> {{ getCustomerPhone(reservation) }}
               </small>
             </td>
 
@@ -119,10 +119,10 @@
             <td>
               <strong>{{ formatDateRange(reservation.checkin, reservation.checkout) }}</strong><br>
               <small v-if="getNights(reservation)" class="text-muted">
-                <i class="fas fa-moon"></i> {{ getNights(reservation) }} nuit{{ getNights(reservation) > 1 ? 's' : '' }}
+                <AppIcon name="moon" /> {{ getNights(reservation) }} nuit{{ getNights(reservation) > 1 ? 's' : '' }}
               </small><br>
               <small class="text-muted">
-                <i class="fas fa-user-friends"></i> {{ getGuestsLabel(reservation) }}
+                <AppIcon name="users" /> {{ getGuestsLabel(reservation) }}
               </small>
             </td>
 
@@ -140,7 +140,7 @@
             <td>
               <span class="price-value">{{ formatAmount(reservation.amount) }}</span><br>
               <small class="text-muted">
-                <i class="fas fa-map-marker-alt"></i> {{ getBookingSourceLabel(reservation.booking_source) }}
+                <AppIcon name="map-pin" /> {{ getBookingSourceLabel(reservation.booking_source) }}
               </small>
             </td>
 
@@ -148,25 +148,25 @@
             <td class="actions-col">
               <div class="table-actions">
                 <button type="button" class="btn-icon" title="Voir" @click="viewReservation(reservation)">
-                  <i class="fas fa-eye"></i>
+                  <AppIcon name="eye" />
                 </button>
                 <button type="button" class="btn-icon" title="Modifier" @click="editReservation(reservation)">
-                  <i class="fas fa-edit"></i>
+                  <AppIcon name="pencil" />
                 </button>
                 <button type="button" class="btn-icon text-danger" title="Supprimer"
                   @click="deleteReservation(reservation)">
-                  <i class="fas fa-trash"></i>
+                  <AppIcon name="trash-2" />
                 </button>
 
                 <!-- Quick actions for check-in/check-out -->
                 <button v-if="reservation.status === 'confirmed' && canCheckIn" type="button"
                   class="btn-icon text-success" title="Check-in" @click.stop="quickCheckIn(reservation)">
-                  <i class="fas fa-door-open"></i>
+                  <AppIcon name="door-open" />
                 </button>
 
                 <button v-if="reservation.status === 'checked_in' && canCheckOut" type="button"
                   class="btn-icon text-info" title="Check-out" @click.stop="quickCheckOut(reservation)">
-                  <i class="fas fa-door-closed"></i>
+                  <AppIcon name="door-closed" />
                 </button>
 
               </div>
@@ -376,8 +376,8 @@ export default {
     },
 
     getSortIcon(field) {
-      if (this.sort.field !== field) return 'fas fa-sort'
-      return this.sort.direction === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'
+      if (this.sort.field !== field) return 'arrow-up-down'
+      return this.sort.direction === 'asc' ? 'chevron-up' : 'chevron-down'
     },
 
     viewReservation(reservation) {
@@ -521,7 +521,7 @@ export default {
   padding: 24px;
 }
 
-.page-title i {
+.page-title .app-icon {
   color: #2563eb;
 }
 
@@ -544,12 +544,12 @@ export default {
   box-shadow: 0 8px 32px rgba(15, 23, 42, 0.04);
 }
 
-.state-card i {
+.state-card .app-icon {
   font-size: 32px;
   color: #2563eb;
 }
 
-.state-card.error i {
+.state-card.error .app-icon {
   color: #dc2626;
 }
 

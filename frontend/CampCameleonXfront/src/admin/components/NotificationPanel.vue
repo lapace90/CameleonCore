@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="panel-header">
       <h3 class="panel-title">
-        <i class="fas fa-bell"></i>
+        <AppIcon name="bell" />
         Notifications 
         <span v-if="unreadCount > 0" class="badge badge-danger">{{ unreadCount }}</span>
       </h3>
@@ -21,12 +21,12 @@
     <!-- Liste des notifications -->
     <div class="notifications-list">
       <div v-if="isLoading" class="loading-state">
-        <i class="fas fa-spinner fa-spin"></i>
+        <AppIcon name="loader-circle" :spin="true" />
         Chargement...
       </div>
 
       <div v-else-if="notifications.length === 0" class="empty-state">
-        <i class="fas fa-check-circle text-success"></i>
+        <AppIcon name="circle-check" />
         <p>Aucune nouvelle notification</p>
       </div>
 
@@ -40,7 +40,7 @@
         >
           <!-- Icon selon le type -->
           <div class="notification-icon">
-            <i :class="getNotificationIcon(notification.type)" :style="{ color: getNotificationColor(notification.type) }"></i>
+            <AppIcon :name="getNotificationIcon(notification.type)" :style="{ color: getNotificationColor(notification.type) }" />
           </div>
 
           <!-- Contenu -->
@@ -242,17 +242,17 @@ export default {
 
     getNotificationIcon(type) {
       const icons = {
-        'new_reservation': 'fas fa-calendar-plus',
-        'reservation': 'fas fa-calendar-plus',
-        'new_review': 'fas fa-star', 
-        'review': 'fas fa-star', 
-        'payment': 'fas fa-credit-card',
-        'user': 'fas fa-user-plus',
-        'system': 'fas fa-cog',
-        'warning': 'fas fa-exclamation-triangle',
-        'success': 'fas fa-check-circle',
-        'info': 'fas fa-info-circle',
-        'default': 'fas fa-bell'
+        'new_reservation': 'calendar-plus',
+        'reservation': 'calendar-plus',
+        'new_review': 'star', 
+        'review': 'star', 
+        'payment': 'credit-card',
+        'user': 'user-plus',
+        'system': 'settings',
+        'warning': 'triangle-alert',
+        'success': 'circle-check',
+        'info': 'info',
+        'default': 'bell'
       }
       
       return icons[type] || icons.default

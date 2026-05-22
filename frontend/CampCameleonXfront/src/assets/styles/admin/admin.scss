@@ -60,7 +60,7 @@
   align-items: center;
 }
 
-.search-box i {
+.search-box .app-icon {
   position: absolute;
   left: 12px;
   color: #6c757d;
@@ -197,7 +197,7 @@
   align-items: center;
 }
 
-.notification-icon i {
+.notification-icon .app-icon {
   font-size: 1.1rem;
 }
 
@@ -268,7 +268,7 @@
   color: #007bff;
 }
 
-.dropdown-item i {
+.dropdown-item .app-icon {
   width: 16px;
   text-align: center;
 }

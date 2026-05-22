@@ -2,7 +2,7 @@
   <div class="users-stats">
     <div class="stat-card">
       <div class="stat-icon">
-        <i class="fas fa-users"></i>
+        <AppIcon name="users" />
       </div>
       <div class="stat-content">
         <div class="stat-number">{{ totalUsers }}</div>
@@ -12,7 +12,7 @@
     
     <div class="stat-card">
       <div class="stat-icon warning">
-        <i class="fas fa-user-check"></i>
+        <AppIcon name="user-check" />
       </div>
       <div class="stat-content">
         <div class="stat-number">{{ activeUsers }}</div>
@@ -22,7 +22,7 @@
     
     <div class="stat-card">
       <div class="stat-icon  success">
-        <i class="fas fa-crown"></i>
+        <AppIcon name="crown" />
       </div>
       <div class="stat-content">
         <div class="stat-number">{{ adminUsers }}</div>
@@ -32,7 +32,7 @@
     
     <div class="stat-card">
       <div class="stat-icon  info">
-        <i class="fas fa-user-plus"></i>
+        <AppIcon name="user-plus" />
       </div>
       <div class="stat-content">
         <div class="stat-number">{{ recentUsers }}</div>

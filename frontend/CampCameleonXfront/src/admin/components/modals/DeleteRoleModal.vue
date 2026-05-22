@@ -3,7 +3,7 @@
         <div class="modal-content modal-sm">
             <div class="modal-header">
                 <h3 class="text-danger">
-                    <i class="fas fa-exclamation-triangle"></i>
+                    <AppIcon name="triangle-alert" />
                     Supprimer le rôle
                 </h3>
                 <button @click="$emit('close')" class="btn-close">&times;</button>
@@ -16,7 +16,7 @@
                 </p>
 
                 <div class="warning-box">
-                    <i class="fas fa-info-circle"></i>
+                    <AppIcon name="info" />
                     Cette action est irréversible. Toutes les permissions associées seront détachées.
                 </div>
 
@@ -35,7 +35,7 @@
 
                 <!-- Message backend global -->
                 <div v-if="globalError" class="form-note error" style="margin-top: .75rem;">
-                    <i class="fas fa-exclamation-circle"></i>
+                    <AppIcon name="circle-alert" />
                     {{ globalError }}
                 </div>
             </div>
@@ -47,7 +47,7 @@
 
                 <button v-if="canDelete" @click="confirmDeletion" class="btn btn-danger btn-sm"
                     :disabled="!isConfirmationValid || deleting">
-                    <i v-if="deleting" class="fas fa-spinner fa-spin"></i>
+                    <AppIcon name="loader-circle" :spin="true" v-if="deleting" />
                     {{ deleting ? 'Suppression...' : 'Supprimer définitivement' }}
                 </button>
 

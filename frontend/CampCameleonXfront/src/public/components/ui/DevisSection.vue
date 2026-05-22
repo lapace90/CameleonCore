@@ -7,10 +7,10 @@
                 <div class="shape shape-2"></div>
                 <div class="shape shape-3"></div>
                 <div class="floating-icon icon-1">
-                    <i class="fas fa-compass"></i>
+                    <AppIcon name="compass" />
                 </div>
                 <div class="floating-icon icon-2">
-                    <i class="fas fa-map"></i>
+                    <AppIcon name="map" />
                 </div>
             </div>
 
@@ -26,8 +26,8 @@
                     <!-- Bouton CTA principal -->
                     <div class="cta-container">
                         <button @click="showQuote = true" class="quote-btn" :disabled="isLoading">
-                            <i v-if="isLoading" class="fas fa-spinner fa-spin"></i>
-                            <i v-else class="fas fa-calculator"></i>
+                            <AppIcon name="loader-circle" :spin="true" v-if="isLoading" />
+                            <AppIcon name="calculator" v-else />
                             <span>{{ isLoading ? 'Chargement...' : 'Créer mon devis maintenant !' }}</span>
                         </button>
                     </div>
@@ -44,19 +44,19 @@
                     <div class="features">
                         <div class="feature-item">
                             <div class="feature-icon">
-                                <i class="fas fa-magic"></i>
+                                <AppIcon name="wand-2" />
                             </div>
                             <span>Personnalisable</span>
                         </div>
                         <div class="feature-item">
                             <div class="feature-icon">
-                                <i class="fas fa-clock"></i>
+                                <AppIcon name="clock" />
                             </div>
                             <span>Instantané</span>
                         </div>
                         <div class="feature-item">
                             <div class="feature-icon">
-                                <i class="fas fa-shield-alt"></i>
+                                <AppIcon name="shield" />
                             </div>
                             <span>Sans engagement</span>
                         </div>

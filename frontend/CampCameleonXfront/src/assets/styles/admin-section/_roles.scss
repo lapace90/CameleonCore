@@ -53,7 +53,7 @@
         align-items: center;
         gap: 0.75rem;
 
-        i {
+        .app-icon {
           color: var(--primary-color);
           font-size: 1.75rem;
         }
@@ -155,7 +155,7 @@
     padding: 4rem 2rem;
     color: var(--text-medium);
 
-    i {
+    .app-icon {
       font-size: 2rem;
       margin-bottom: 1rem;
       color: var(--primary-color);
@@ -277,7 +277,7 @@
           font-size: 0.875rem;
           color: var(--text-medium);
 
-          i {
+          .app-icon {
             color: var(--text-light);
             width: 16px;
           }
@@ -377,7 +377,7 @@
       font-size: 0.875rem;
       color: var(--text-dark);
 
-      i {
+      .app-icon {
         width: 16px;
       }
     }
@@ -532,7 +532,7 @@
         align-items: center;
         gap: 0.75rem;
 
-        i {
+        .app-icon {
           color: var(--primary-color);
           font-size: 1.25rem;
         }
@@ -598,7 +598,7 @@
         background-color: var(--bg-light);
         border-radius: var(--radius-md);
 
-        i {
+        .app-icon {
           color: var(--primary-color);
           width: 20px;
         }

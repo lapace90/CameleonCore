@@ -45,13 +45,13 @@ export function getValidImageUrl(imageUrl) {
 
 export function getStatIcon(key) {
   const icons = {
-    views: 'fas fa-eye',
-    reservations_count: 'fas fa-shopping-cart',
-    total_revenue: 'fas fa-euro-sign',
-    monthly_revenue: 'fas fa-chart-line',
-    average_rating: 'fas fa-star'
+    views: 'eye',
+    reservations_count: 'shopping-cart',
+    total_revenue: 'euro',
+    monthly_revenue: 'trending-up',
+    average_rating: 'star'
   }
-  return icons[key] || 'fas fa-info'
+  return icons[key] || 'info'
 }
 
 export function getStatLabel(key) {

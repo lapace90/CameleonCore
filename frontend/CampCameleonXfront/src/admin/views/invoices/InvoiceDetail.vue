@@ -4,7 +4,7 @@
     <LoadingState v-if="loading" state="loading" variant="card" loading-text="Chargement de la facture..." />
 
     <LoadingState v-else-if="error" state="error" variant="card" error-title="Erreur de chargement"
-      :error-message="error" :show-action="true" action-label="Retour aux factures" action-icon="fas fa-arrow-left"
+      :error-message="error" :show-action="true" action-label="Retour aux factures" action-icon="arrow-left"
       @action="$router.push('/admin/invoices')" />
 
     <!-- Contenu principal -->
@@ -13,30 +13,30 @@
       <div class="detail-header">
         <div class="header-navigation">
           <router-link to="/admin/invoices" class="back-link">
-            <i class="fas fa-arrow-left"></i>
+            <AppIcon name="arrow-left" />
             Retour aux factures
           </router-link>
         </div>
 
         <div class="header-actions">
           <button v-if="canBePaid" @click="handleMarkAsPaid" class="btn btn-success btn-sm" :disabled="actionLoading">
-            <i class="fas fa-check-circle"></i>
+            <AppIcon name="circle-check" />
             Marquer payée
           </button>
 
           <button @click="handleSendEmail" class="btn btn-primary btn-sm"
             :disabled="actionLoading || !invoice.customer?.email">
-            <i class="fas fa-envelope"></i>
+            <AppIcon name="mail" />
             {{ invoice.sent_count > 0 ? 'Renvoyer' : 'Envoyer' }}
           </button>
 
           <button @click="handleDownloadPdf" class="btn btn-secondary btn-sm" :disabled="actionLoading">
-            <i class="fas fa-download"></i>
+            <AppIcon name="download" />
             Télécharger PDF
           </button>
 
           <button v-if="canBeCanceled" @click="handleCancel" class="btn btn-danger btn-sm" :disabled="actionLoading">
-            <i class="fas fa-ban"></i>
+            <AppIcon name="ban" />
             Annuler
           </button>
         </div>
@@ -153,7 +153,7 @@
         <div class="timeline">
           <div class="timeline-item">
             <div class="timeline-icon created">
-              <i class="fas fa-plus-circle"></i>
+              <AppIcon name="circle-plus" />
             </div>
             <div class="timeline-content">
               <div class="timeline-title">Facture créée</div>
@@ -163,7 +163,7 @@
 
           <div v-if="invoice.sent_at" class="timeline-item">
             <div class="timeline-icon sent">
-              <i class="fas fa-envelope"></i>
+              <AppIcon name="mail" />
             </div>
             <div class="timeline-content">
               <div class="timeline-title">
@@ -176,7 +176,7 @@
 
           <div v-if="invoice.payment_date" class="timeline-item">
             <div class="timeline-icon paid">
-              <i class="fas fa-check-circle"></i>
+              <AppIcon name="circle-check" />
             </div>
             <div class="timeline-content">
               <div class="timeline-title">Paiement reçu</div>
@@ -186,7 +186,7 @@
 
           <div v-if="invoice.status === 'canceled'" class="timeline-item">
             <div class="timeline-icon canceled">
-              <i class="fas fa-ban"></i>
+              <AppIcon name="ban" />
             </div>
             <div class="timeline-content">
               <div class="timeline-title">Facture annulée</div>

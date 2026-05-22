@@ -69,7 +69,7 @@
         <div class="values-grid">
           <div class="value-card" v-for="value in values" :key="value.id">
             <div class="value-icon" :style="{ background: value.gradient }">
-              <i :class="value.icon"></i>
+              <AppIcon :name="value.icon" />
             </div>
             <h3>{{ value.title }}</h3>
             <p>{{ value.description }}</p>
@@ -96,10 +96,10 @@
             <p>{{ member.description }}</p>
             <div class="member-social">
               <a href="#" class="social-link" v-if="member.instagram">
-                <i class="fab fa-instagram"></i>
+                <SocialIcon name="instagram" />
               </a>
               <a href="#" class="social-link" v-if="member.email">
-                <i class="fas fa-envelope"></i>
+                <AppIcon name="mail" />
               </a>
             </div>
           </div>
@@ -118,7 +118,7 @@
         <div class="experience-grid">
           <div class="experience-item" v-for="exp in experiences" :key="exp.id">
             <div class="exp-icon">
-              <i :class="exp.icon"></i>
+              <AppIcon :name="exp.icon" />
             </div>
             <h4>{{ exp.name }}</h4>
             <p>{{ exp.description }}</p>
@@ -139,28 +139,28 @@ export default {
           id: 1,
           title: 'Authenticité Berbère',
           description: 'Nous préservons et partageons les traditions millénaires du peuple berbère avec respect et fierté.',
-          icon: 'fas fa-star-and-crescent',
+          icon: 'moon',
           gradient: 'linear-gradient(135deg, #CE5E1A 0%, #D6B190 100%)'
         },
         {
           id: 2,
           title: 'Hospitalité Sacrée',
           description: 'Chaque invité est accueilli selon la tradition marocaine : comme un membre de la famille.',
-          icon: 'fas fa-heart',
+          icon: 'heart',
           gradient: 'linear-gradient(135deg, #656C97 0%, #8691b8 100%)'
         },
         {
           id: 3,
           title: 'Harmonie avec le Désert',
           description: 'Nous vivons en symbiose avec le Sahara, respectant ses cycles et sa beauté sauvage.',
-          icon: 'fas fa-leaf',
+          icon: 'leaf',
           gradient: 'linear-gradient(135deg, #D6B190 0%, #F3D8C7 100%)'
         },
         {
           id: 4,
           title: 'Artisanat Local',
           description: 'Nous soutenons les artisans locaux et intégrons leur savoir-faire dans chaque détail.',
-          icon: 'fas fa-palette',
+          icon: 'palette',
           gradient: 'linear-gradient(135deg, #CE5E1A 0%, #656C97 100%)'
         }
       ],
@@ -207,25 +207,25 @@ export default {
           id: 1,
           name: 'Tentes Royales',
           description: 'Hébergement dans des tentes berbères authentiques avec tout le confort moderne',
-          icon: 'fas fa-campground'
+          icon: 'tent'
         },
         {
           id: 2,
           name: 'Cuisine Traditionnelle',
           description: 'Dégustez les saveurs du Maroc préparées selon les recettes ancestrales',
-          icon: 'fas fa-utensils'
+          icon: 'utensils'
         },
         {
           id: 3,
           name: 'Randonnées Chamelières',
           description: 'Explorez le désert à dos de dromadaire comme les caravanes d\'autrefois',
-          icon: 'fas fa-route'
+          icon: 'route'
         },
         {
           id: 4,
           name: 'Musique Berbère',
           description: 'Soirées authentiques au rythme des instruments traditionnels sous les étoiles',
-          icon: 'fas fa-music'
+          icon: 'music'
         }
       ]
     }

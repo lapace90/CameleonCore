@@ -5,7 +5,7 @@
     <div class="form-header">
       <div class="header-navigation mb-4">
         <router-link to="/admin/dashboard" class="back-link">
-          <i class="fas fa-arrow-left"></i>
+          <AppIcon name="arrow-left" />
           Retour au tableau de bord
         </router-link>
 
@@ -15,13 +15,13 @@
     <!-- Titre + actions -->
     <div class="page-title-section">
       <div class="product-type-badge" style="background-color:#7c3aed;">
-        <i class="fas fa-user-circle"></i> Profil
+        <AppIcon name="user-round" /> Profil
       </div>
       <h1 class="page-title">Mon profil</h1>
 
       <div class="header-actions">
         <BaseButton v-if="!isEditing" variant="primary" @click="enableEditing">
-          <i class="fas fa-edit pr-1"></i> Modifier
+          <AppIcon name="pencil" /> Modifier
         </BaseButton>
 
         <div v-else class="edit-actions ">
@@ -31,7 +31,7 @@
           </BaseButton>
 
           <BaseButton variant="primary" :loading="saving" @click="saveProfile">
-            <i class="fas fa-save pr-1"></i> Enregistrer
+            <AppIcon name="save" /> Enregistrer
           </BaseButton>
         </div>
       </div>
@@ -39,12 +39,12 @@
 
     <!-- Messages -->
     <div v-if="successMessage" class="alert alert-success">
-      <i class="fas fa-check-circle"></i>
+      <AppIcon name="circle-check" />
       {{ successMessage }}
       <button @click="successMessage = ''" class="btn-close">&times;</button>
     </div>
     <div v-if="errorMessage" class="alert alert-danger">
-      <i class="fas fa-exclamation-triangle"></i>
+      <AppIcon name="triangle-alert" />
       {{ errorMessage }}
       <button @click="errorMessage = ''" class="btn-close">&times;</button>
     </div>
@@ -61,13 +61,13 @@
             <BaseCard title="Photo de profil">
               <template #actions>
                 <BaseButton v-if="isEditing" variant="outline" size="sm" @click="$refs.avatarUpload.openFilePicker()">
-                  <i class="fas fa-camera"></i> Changer
+                  <AppIcon name="camera" /> Changer
                 </BaseButton>
               </template>
 
               <div class="avatar-section">
                 <ImageUpload ref="avatarUpload" v-model="form.avatar" shape="circle" size="xl"
-                  :placeholder-text="form.name || 'Votre avatar'" placeholder-icon="fas fa-user" :allow-remove="true"
+                  :placeholder-text="form.name || 'Votre avatar'" placeholder-icon="user" :allow-remove="true"
                   :disabled="!isEditing" help="Formats acceptés: JPG/PNG/GIF (max 2MB)"
                   @upload-error="handleUploadError" />
               </div>
@@ -75,12 +75,12 @@
           </div>
 
           <!-- Infos complémentaires SOUS l'image -->
-          <BaseCard title="Informations complémentaires" icon="fas fa-info-circle">
+          <BaseCard title="Informations complémentaires" icon="info">
             <div class="form-grid">
               <div class="form-group form-full-width">
                 <label class="form-label">Adresse</label>
                 <BaseInput v-model="form.address" placeholder="Votre adresse" :disabled="!isEditing"
-                  icon="fas fa-map-marker-alt" />
+                  icon="map-pin" />
                 <label class="form-label">Ville</label>
                 <BaseInput v-model="form.city" placeholder="Votre ville" :disabled="!isEditing" />
                 <label class="form-label">Code postal</label>
@@ -93,7 +93,7 @@
         <!-- Colonne droite -->
         <section class="form-right">
           <div class="card-stack">
-            <BaseCard title="Informations personnelles" icon="fas fa-id-card">
+            <BaseCard title="Informations personnelles" icon="id-card">
               <div class="form-grid">
                 <div class="form-group form-full-width">
                   <label class="form-label">Nom complet *</label>
@@ -104,18 +104,18 @@
                 <div class="form-group form-full-width">
                   <label class="form-label">Email *</label>
                   <BaseInput v-model="form.email" type="email" placeholder="votre.email@exemple.com"
-                    :disabled="!isEditing" :error="errors.email" icon="fas fa-envelope" required />
+                    :disabled="!isEditing" :error="errors.email" icon="mail" required />
                 </div>
 
                 <div class="form-group form-full-width">
                   <label class="form-label">Téléphone</label>
                   <BaseInput v-model="form.phone" type="tel" placeholder="+33 6 XX XX XX XX" :disabled="!isEditing"
-                    :error="errors.phone" icon="fas fa-phone" />
+                    :error="errors.phone" icon="phone" />
                 </div>
               </div>
             </BaseCard>
 
-            <BaseCard title="Sécurité du compte" icon="fas fa-key">
+            <BaseCard title="Sécurité du compte" icon="key">
               <div class="form-grid">
                 <div class="form-group form-full-width">
                   <label class="form-label">Mot de passe actuel</label>
@@ -138,7 +138,7 @@
                 <div class="form-group form-full-width">
                   <BaseButton variant="warning" type="button" @click="changePassword" :loading="changingPassword"
                     :disabled="!isEditing || !passwordForm.current || !passwordForm.new || !passwordForm.confirm">
-                    <i class="fas fa-key"></i> Changer le mot de passe
+                    <AppIcon name="key" /> Changer le mot de passe
                   </BaseButton>
                 </div>
               </div>
@@ -147,10 +147,10 @@
             <div class="form-section">
               <div class="form-actions">
                 <BaseButton variant="outline" type="button" @click="cancelEditing" :disabled="saving">
-                  <i class="fas fa-undo"></i> Annuler les modifications
+                  <AppIcon name="undo-2" /> Annuler les modifications
                 </BaseButton>
                 <BaseButton variant="primary" type="submit" :loading="saving" :disabled="saving || !isEditing">
-                  <i class="fas fa-save"></i>
+                  <AppIcon name="save" />
                   {{ saving ? 'Enregistrement...' : 'Enregistrer' }}
                 </BaseButton>
               </div>

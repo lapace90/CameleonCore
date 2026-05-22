@@ -3,10 +3,10 @@
     <div v-if="show" class="email-modal-overlay" @click="closeModal">
       <div class="email-modal-box" @click.stop>
         <div class="email-modal-icon">
-          <i class="fas fa-envelope-circle-check"></i>
+          <AppIcon name="mail-check" />
         </div>
         
-        <h2><i class="fas fa-envelope"></i> Validation email requise</h2>
+        <h2><AppIcon name="mail" /> Validation email requise</h2>
         
         <p>Votre devis <strong>{{ quoteReference }}</strong> a été créé !</p>
         
@@ -26,12 +26,12 @@
         </div>
         
         <div class="email-modal-info">
-          <i class="fas fa-info-circle"></i>
+          <AppIcon name="info" />
           <span>Le lien est valable <strong>48h</strong>. Vérifiez vos spams !</span>
         </div>
         
         <button @click="closeModal" class="email-modal-btn">
-          <i class="fas fa-check"></i> J'ai compris
+          <AppIcon name="check" /> J'ai compris
         </button>
       </div>
     </div>

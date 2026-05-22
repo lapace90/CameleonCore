@@ -2,13 +2,13 @@
   <div class="reservation-timeline">
     <h3>Historique des Communications</h3>
     <div v-if="!hasItems" class="empty-state">
-      <i class="fas fa-envelope-open-text"></i>
+      <AppIcon name="mail-open" />
       <p>Aucune communication enregistrée pour le moment.</p>
     </div>
     <ul v-else class="timeline-list">
       <li v-for="(item, index) in normalizedItems" :key="index" class="timeline-item">
         <div class="timeline-marker" :class="`timeline-marker--${item.type}`">
-          <i :class="item.icon"></i>
+          <AppIcon :name="item.icon" />
         </div>
         <div class="timeline-content">
           <div class="timeline-header">
@@ -30,12 +30,12 @@
 
 <script>
 const ICONS_BY_TYPE = {
-  email: 'fas fa-envelope',
-  call: 'fas fa-phone-alt',
-  sms: 'fas fa-sms',
-  note: 'fas fa-sticky-note',
-  notification: 'fas fa-bell',
-  default: 'fas fa-comment-dots'
+  email: 'mail',
+  call: 'phone',
+  sms: 'message-square',
+  note: 'sticky-note',
+  notification: 'bell',
+  default: 'message-circle'
 }
 
 export default {
@@ -101,7 +101,7 @@ export default {
           return 'Email envoyé'
         case 'call':
           return 'Appel téléphonique'
-        case 'sms':
+        case 'message-square':
           return 'SMS envoyé'
         case 'note':
           return 'Note interne'
@@ -285,7 +285,7 @@ export default {
   color: var(--text-muted);
 }
 
-.empty-state i {
+.empty-state .app-icon {
   font-size: 2rem;
   margin-bottom: 0.5rem;
   color: var(--primary);

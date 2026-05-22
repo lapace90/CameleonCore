@@ -7,7 +7,7 @@
     <div class="pagination-controls">
       <button @click="goToPage(pagination.currentPage - 1)" 
         :disabled="pagination.currentPage === 1" class="btn btn-outline btn-sm">
-        <i class="fas fa-chevron-left"></i>
+        <AppIcon name="chevron-left" />
         Précédent
       </button>
 
@@ -22,7 +22,7 @@
       <button @click="goToPage(pagination.currentPage + 1)" 
         :disabled="pagination.currentPage === pagination.lastPage" class="btn btn-outline btn-sm">
         Suivant
-        <i class="fas fa-chevron-right"></i>
+        <AppIcon name="chevron-right" />
       </button>
     </div>
   </div>

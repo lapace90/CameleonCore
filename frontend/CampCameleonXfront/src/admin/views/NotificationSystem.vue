@@ -14,7 +14,7 @@
         >
           <!-- Icône -->
           <div class="notification-icon">
-            <i :class="getIcon(notification.type)"></i>
+            <AppIcon :name="getIcon(notification.type)" :spin="notification.type === 'loading'" />
           </div>
 
           <!-- Contenu -->
@@ -47,7 +47,7 @@
             class="notification-close"
             title="Fermer"
           >
-            <i class="fas fa-times"></i>
+            <AppIcon name="x" />
           </button>
 
           <!-- Barre de progression pour auto-dismiss -->
@@ -93,11 +93,11 @@ export default {
 
     const getIcon = (type) => {
       const icons = {
-        success: 'fas fa-check-circle',
-        error: 'fas fa-exclamation-circle',
-        warning: 'fas fa-exclamation-triangle',
-        info: 'fas fa-info-circle',
-        loading: 'fas fa-spinner fa-spin'
+        success: 'circle-check',
+        error: 'circle-alert',
+        warning: 'triangle-alert',
+        info: 'info',
+        loading: 'loader-circle'
       }
       return icons[type] || icons.info
     }

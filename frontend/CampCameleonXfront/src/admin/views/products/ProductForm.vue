@@ -3,7 +3,7 @@
     <!-- Message d'erreur -->
     <div v-if="error" class="error-message">
       <div class="alert alert-danger">
-        <i class="fas fa-exclamation-triangle"></i>
+        <AppIcon name="triangle-alert" />
         {{ error }}
         <button @click="error = null" class="btn-close">&times;</button>
       </div>
@@ -18,12 +18,12 @@
       <div class="form-header">
         <div class="header-navigation">
           <router-link :to="backRoute" class="back-link">
-            <i class="fas fa-arrow-left"></i>
+            <AppIcon name="arrow-left" />
             {{ isEditing ? 'Retour aux détails' : `Retour à ${typeConfig.label}` }}
           </router-link>
           <div class="breadcrumb">
             <span>{{ typeConfig.label }}</span>
-            <i class="fas fa-chevron-right"></i>
+            <AppIcon name="chevron-right" />
             <span>{{ isEditing ? product?.name : `Nouveau ${typeConfig.singular}` }}</span>
           </div>
         </div>
@@ -32,7 +32,7 @@
       <!-- Titre -->
       <div class="page-title-section">
         <div class="product-type-badge" :style="{ backgroundColor: typeConfig.color }">
-          <i :class="typeConfig.icon"></i>
+          <AppIcon :name="typeConfig.icon" />
           {{ typeConfig.singular }}
         </div>
         <h1 class="page-title">

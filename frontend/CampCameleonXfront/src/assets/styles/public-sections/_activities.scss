@@ -519,7 +519,7 @@
                     font-size: $font-size-base;
                     color: $coffee;
 
-                    i {
+                    .app-icon {
                         color: $terracotta;
                         font-size: $font-size-sm;
                     }
@@ -549,11 +549,11 @@
                 box-shadow: 0 8px 16px rgba($terracotta, 0.3); 
             }
 
-            i {
+            .app-icon {
                 transition: transform 0.3s ease;
             }
 
-            &:hover i {
+            &:hover .app-icon {
                 transform: translateX(3px);
             }
         }

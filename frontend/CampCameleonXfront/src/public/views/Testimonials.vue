@@ -10,7 +10,7 @@
           </p>
           <div class="stats-summary">
             <button @click="scrollToReviewForm" class="quick-review-btn">
-              <i class="fas fa-pen"></i>
+              <AppIcon name="pen" />
               Laisser un avis
             </button>
             <div class="stat">
@@ -59,7 +59,7 @@
         <!-- Bouton charger plus -->
         <div class="load-more-section" v-if="hasMoreTestimonials">
           <button @click="loadMore" class="load-more-btn">
-            <i class="fas fa-plus"></i>
+            <AppIcon name="plus" />
             Charger plus d'avis
           </button>
         </div>
@@ -73,14 +73,14 @@
           <h2>Partagez votre expérience</h2>
           <p>Vous avez séjourné chez nous ? Laissez-nous votre avis !</p>
           <button @click="showReviewForm = true" class="cta-btn">
-            <i class="fas fa-edit"></i>
+            <AppIcon name="pencil" />
             Laisser un avis
           </button>
         </div>
 
         <div v-else class="review-form-wrapper">
           <button @click="showReviewForm = false" class="close-form-btn">
-            <i class="fas fa-times"></i>
+            <AppIcon name="x" />
           </button>
           <ReviewForm @review-submitted="handleReviewSubmitted" @close="showReviewForm = false" />
         </div>
