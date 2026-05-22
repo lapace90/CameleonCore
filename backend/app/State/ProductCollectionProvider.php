@@ -22,15 +22,21 @@ class ProductCollectionProvider implements ProviderInterface
             'globalTags'
         ]);
 
+        // Restreindre aux productables actifs de l'instance
+        $allowedTypes = collect(config('instance.productables'))->map(
+            fn($type) => 'App\\Models\\' . ucfirst($type)
+        );
+        $query->whereIn('productable_type', $allowedTypes);
+
         // Appliquer les filtres
         $this->applyFilters($query);
-        
+
         // Pagination
         $perPage = (int) $this->request->query('per_page', 20);
         $page = (int) $this->request->query('page', 1);
-        
+
         $paginator = $query->paginate($perPage, ['*'], 'page', $page);
-        
+
         // Charger conditionnellement les tags spécifiques pour les modèles qui les supportent
         $collection = $paginator->getCollection();
 

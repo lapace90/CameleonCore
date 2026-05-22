@@ -3,140 +3,65 @@
     <!-- Brand -->
     <router-link to="/admin/dashboard" class="nav-link">
       <div class="sidebar-brand">
-        <h2>🦎 CampCameleonX</h2>
-        <span class="brand-subtitle">Admin Dashboard</span>
+        <h2>🦎 {{ instanceName }}</h2>
+        <span class="brand-subtitle">Administration</span>
       </div>
     </router-link>
 
     <!-- Navigation -->
     <nav class="sidebar-nav">
       <ul class="nav-list">
-        <!-- Divider -->
+        <!-- Sections dynamiques -->
+        <template v-for="section in menuSections" :key="section.label">
+          <!-- Divider -->
+          <li class="nav-divider">
+            <hr>
+            <span>{{ section.label }}</span>
+          </li>
+
+          <!-- Items de la section -->
+          <template v-for="item in section.items" :key="item.route">
+            <!-- Item avec sous-menu -->
+            <li v-if="item.children" class="nav-item">
+              <a @click="toggleSubmenu(item.key)" class="nav-link" style="cursor: pointer;">
+                <AppIcon :name="item.icon" />
+                <span>{{ item.label }}</span>
+                <AppIcon
+                  name="chevron-down"
+                  :class="{ rotated: openSubmenu === item.key }"
+                  style="margin-left: auto; font-size: 0.8rem;"
+                />
+              </a>
+              <ul v-show="openSubmenu === item.key" class="submenu">
+                <li v-for="child in item.children" :key="child.route">
+                  <router-link :to="child.route" class="nav-link submenu-link">
+                    {{ child.label }}
+                  </router-link>
+                </li>
+              </ul>
+            </li>
+
+            <!-- Item simple -->
+            <li v-else class="nav-item">
+              <router-link :to="item.route" class="nav-link">
+                <AppIcon :name="item.icon" />
+                <span>{{ item.label }}</span>
+              </router-link>
+            </li>
+          </template>
+        </template>
+
+        <!-- Toujours visible -->
         <li class="nav-divider">
           <hr>
-          <span>Gestion</span>
+          <span>Système</span>
         </li>
-        <!-- Agenda -->
-        <li class="nav-item">
-          <router-link to="/admin/agenda" class="nav-link">
-            <AppIcon name="calendar" />
-            <span>Agenda</span>
-          </router-link>
-        </li>
-
-        <!-- Réservations -->
-        <li class="nav-item">
-          <router-link to="/admin/reservations" class="nav-link">
-            <AppIcon name="calendar-check" />
-            <span>Réservations</span>
-          </router-link>
-        </li>
-
-        <!-- 💰 NOUVEAU : Facturation -->
-        <li class="nav-item">
-          <router-link to="/admin/invoices" class="nav-link">
-            <AppIcon name="receipt" />
-            <span>Facturation</span>
-          </router-link>
-        </li>
-
-        <!-- Divider -->
-        <li class="nav-divider">
-          <hr>
-          <span>Services</span>
-        </li>
-
-        <!-- Restauration avec sous-menu -->
-        <li class="nav-item">
-          <a @click="toggleSubmenu('restauration')" class="nav-link" style="cursor: pointer;">
-            <AppIcon name="utensils" />
-            <span>Restauration</span>
-            <AppIcon name="chevron-down" :class="{ rotated: openSubmenu === 'restauration' }"
-              style="margin-left: auto; font-size: 0.8rem;" />
-          </a>
-          <ul v-show="openSubmenu === 'restauration'" style="list-style: none; padding-left: 2rem; margin: 0;">
-            <li>
-              <router-link to="/admin/products/menu" class="nav-link"
-                style="padding-left: 2rem; font-size: 0.9rem;">Gérer les Menus</router-link>
-            </li>
-            <li>
-              <router-link to="/admin/products/dish" class="nav-link"
-                style="padding-left: 2rem; font-size: 0.9rem;">Gérer les Plats</router-link>
-            </li>
-            <li>
-              <router-link to="/admin/products/ingredient" class="nav-link"
-                style="padding-left: 2rem; font-size: 0.9rem;">Ingrédients</router-link>
-            </li>
-            <li>
-              <router-link to="/admin/products/stock" class="nav-link"
-                style="padding-left: 2rem; font-size: 0.9rem;">Stock et Courses</router-link>
-            </li>
-          </ul>
-        </li>
-
-        <!-- Activités -->
-        <li class="nav-item">
-          <router-link to="/admin/products/activity" class="nav-link">
-            <AppIcon name="footprints" />
-            <span>Activités</span>
-          </router-link>
-        </li>
-
-        <!-- Chambres -->
-        <li class="nav-item">
-          <router-link to="/admin/products/room" class="nav-link">
-            <AppIcon name="bed" />
-            <span>Chambres</span>
-          </router-link>
-        </li>
-
-        <!-- Catégories -->
-        <li class="nav-item">
-          <router-link to="/admin/categories" class="nav-link">
-            <AppIcon name="tags" />
-            <span>Catégories</span>
-          </router-link>
-        </li>
-
-        <!-- Divider -->
-        <li class="nav-divider">
-          <hr>
-          <span>Administration</span>
-        </li>
-
-        <!-- Users -->
-        <li class="nav-item">
-          <router-link to="/admin/users" class="nav-link">
-            <AppIcon name="users" />
-            <span>Utilisateurs</span>
-          </router-link>
-        </li>
-
-        <!-- Reviews -->
-        <li class="nav-item">
-          <router-link to="/admin/reviews" class="nav-link">
-            <AppIcon name="star" />
-            <span>Avis Clients</span>
-          </router-link>
-        </li>
-
-        <!-- Analytics -->
-        <li class="nav-item">
-          <router-link to="/admin/analytics" class="nav-link">
-            <AppIcon name="trending-up" />
-            <span>Analytics</span>
-          </router-link>
-        </li>
-
-        <!-- Settings -->
         <li class="nav-item">
           <router-link to="/admin/settings" class="nav-link">
             <AppIcon name="settings" />
             <span>Paramètres</span>
           </router-link>
         </li>
-
-        <!-- Back to site -->
         <li class="nav-item">
           <router-link to="/home" class="nav-link nav-link-external">
             <AppIcon name="external-link" />
@@ -146,11 +71,9 @@
       </ul>
     </nav>
 
-    <!-- User profile in sidebar -->
+    <!-- User profile -->
     <div class="sidebar-user">
-      <div class="user-avatar">
-        <!-- <img src="" alt="User"> -->
-      </div>
+      <div class="user-avatar"></div>
       <div class="user-info">
         <span class="user-name"></span>
         <span class="user-role"></span>
@@ -160,36 +83,138 @@
 </template>
 
 <script>
+import { useInstanceStore } from '@/shared/stores/instance'
+import { PRODUCT_CONFIGS } from '@/shared/configs/productConfigs'
+
 export default {
   name: 'AdminSidebar',
+
   data() {
     return {
       openSubmenu: null
     }
   },
+
+  computed: {
+    instance() {
+      return useInstanceStore()
+    },
+
+    instanceName() {
+      return this.instance.name || 'CameleonCore'
+    },
+
+    menuSections() {
+      const sections = []
+
+      // === GESTION ===
+      const gestion = []
+
+      if (this.instance.hasModule('calendar')) {
+        gestion.push({ label: 'Agenda', icon: 'calendar', route: '/admin/agenda' })
+      }
+      if (this.instance.hasModule('booking')) {
+        gestion.push({ label: 'Réservations', icon: 'calendar-check', route: '/admin/reservations' })
+      }
+      if (this.instance.hasModule('invoicing')) {
+        gestion.push({ label: 'Facturation', icon: 'receipt', route: '/admin/invoices' })
+      }
+
+      if (gestion.length) {
+        sections.push({ label: 'Gestion', items: gestion })
+      }
+
+      // === SERVICES (productables) ===
+      const services = this.buildProductableItems()
+      if (services.length) {
+        sections.push({ label: 'Services', items: services })
+      }
+
+      // Catégories (toujours si au moins un productable)
+      if (this.instance.productables.length) {
+        const lastSection = sections[sections.length - 1]
+        lastSection.items.push({ label: 'Catégories', icon: 'tags', route: '/admin/categories' })
+      }
+
+      // === ADMINISTRATION ===
+      const admin = []
+
+      if (this.instance.hasModule('rbac')) {
+        admin.push({ label: 'Utilisateurs', icon: 'users', route: '/admin/users' })
+      }
+      if (this.instance.hasModule('staff')) {
+        admin.push({ label: 'Planning Staff', icon: 'calendar-clock', route: '/admin/staff' })
+      }
+      if (this.instance.hasModule('reviews')) {
+        admin.push({ label: 'Avis Clients', icon: 'star', route: '/admin/reviews' })
+      }
+      if (this.instance.hasModule('analytics')) {
+        admin.push({ label: 'Analytics', icon: 'trending-up', route: '/admin/analytics' })
+      }
+
+      if (admin.length) {
+        sections.push({ label: 'Administration', items: admin })
+      }
+
+      return sections
+    }
+  },
+
   methods: {
     toggleSubmenu(menuName) {
       this.openSubmenu = this.openSubmenu === menuName ? null : menuName
+    },
+
+    buildProductableItems() {
+      const active = this.instance.productables
+      if (!active.length) return []
+
+      // Grouper restauration (menu, dish, ingredient) en sous-menu
+      const restauration = ['menu', 'dish', 'ingredient'].filter(t => active.includes(t))
+      const others = active.filter(t => !['menu', 'dish', 'ingredient'].includes(t))
+
+      const items = []
+
+      if (restauration.length) {
+        items.push({
+          label: 'Restauration',
+          icon: 'utensils',
+          key: 'restauration',
+          children: restauration.map(type => ({
+            label: PRODUCT_CONFIGS[type]?.label ?? type,
+            route: `/admin/products/${type}`
+          }))
+        })
+      }
+
+      // Les autres productables (room, activity) sont des liens directs
+      others.forEach(type => {
+        const config = PRODUCT_CONFIGS[type]
+        if (config) {
+          items.push({
+            label: config.label,
+            icon: config.icon,
+            route: `/admin/products/${type}`
+          })
+        }
+      })
+
+      return items
     }
   }
 }
 </script>
 
 <style scoped>
-.submenu-toggle {
-  justify-content: space-between;
-}
-
 .submenu {
   list-style: none;
   padding-left: 2rem;
+  margin: 0;
 }
 
 .submenu-link {
-  display: block;
-  padding: 0.5rem 1rem;
-  color: #9ca3af;
-  text-decoration: none;
+  padding-left: 2rem;
+  font-size: 0.9rem;
 }
 
 .rotated {

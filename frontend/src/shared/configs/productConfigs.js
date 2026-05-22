@@ -2,6 +2,7 @@
  * Configuration des types de produits - SOURCE UNIQUE
  * Remplace les duplications dans ProductForm.vue, ProductsApi.js, Breadcrumb.vue, ProductsShow.vue
  */
+import { useInstanceStore } from '@/shared/stores/instance'
 
 export const PRODUCT_CONFIGS = {
   ingredient: {
@@ -69,4 +70,18 @@ export function buildTypeConfigFromProductableType(productableType) {
     'App\\Models\\Room': PRODUCT_CONFIGS.room
   }
   return configs[productableType] || PRODUCT_CONFIGS.activity
+}
+
+/**
+ * Retourne uniquement les configs des productables actifs dans l'instance
+ */
+export function getActiveProductConfigs() {
+  const instance = useInstanceStore()
+  const active = {}
+  for (const type of instance.productables) {
+    if (PRODUCT_CONFIGS[type]) {
+      active[type] = PRODUCT_CONFIGS[type]
+    }
+  }
+  return active
 }
