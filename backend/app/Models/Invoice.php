@@ -90,6 +90,9 @@ class Invoice extends Model
         'pdf_path',
         'sent_at',
         'sent_count',
+        'type',
+        'linked_invoice_id',
+        'factpulse_reference',
     ];
 
     protected $casts = [
@@ -99,6 +102,9 @@ class Invoice extends Model
         'payment_date' => 'datetime',
         'sent_at' => 'datetime',
         'sent_count' => 'integer',
+        'type' => 'string',
+        'linked_invoice_id' => 'integer',
+        'factpulse_reference' => 'string',
     ];
 
     public const STATUS_UNPAID = 'pending';
@@ -111,14 +117,29 @@ class Invoice extends Model
     public const PAYMENT_METHOD_TRANSFER = 'transfer';
     public const PAYMENT_METHOD_CHECK = 'check';
 
+    public const TYPE_DEPOSIT = 'deposit';
+    public const TYPE_BALANCE = 'balance';
+    public const TYPE_COMPLETE = 'complete';
+
     // Relations
     public function customer()
     {
         return $this->belongsTo(Customer::class);
     }
+
     public function reservation()
     {
         return $this->belongsTo(Reservation::class);
+    }
+
+    public function linkedInvoice()
+    {
+        return $this->belongsTo(Invoice::class, 'linked_invoice_id');
+    }
+
+    public function linkedFrom()
+    {
+        return $this->hasOne(Invoice::class, 'linked_invoice_id');
     }
 
     // Scopes
@@ -219,6 +240,26 @@ class Invoice extends Model
             'reservation' => $this->reservation ? ['checkin' => $this->reservation->checkin?->format('d/m/Y'), 'checkout' => $this->reservation->checkout?->format('d/m/Y'), 'product' => $this->reservation->product?->name ?? 'N/A'] : null,
             'status' => ['code' => $this->status, 'label' => $this->status_label],
         ];
+    }
+
+    public function getTypeLabelAttribute()
+    {
+        return match ($this->type) {
+            self::TYPE_DEPOSIT => "Facture d'acompte",
+            self::TYPE_BALANCE => 'Facture de solde',
+            self::TYPE_COMPLETE => 'Facture',
+            default => 'Facture'
+        };
+    }
+
+    public function getIsDepositAttribute()
+    {
+        return $this->type === self::TYPE_DEPOSIT;
+    }
+
+    public function getIsBalanceAttribute()
+    {
+        return $this->type === self::TYPE_BALANCE;
     }
 
     // Méthodes métier
