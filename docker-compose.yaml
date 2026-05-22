@@ -6,13 +6,13 @@ networks:
 services:
   app:
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
     container_name: myBackendX
     ports:
       - 8000:8000
     volumes:
-      - .:/app
+      - ./backend:/app
     depends_on:
       db:
         condition: service_healthy
@@ -33,11 +33,11 @@ services:
   # 🕒 SERVICE SCHEDULER - Gestion automatique des tâches planifiées
   scheduler:
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
     container_name: mySchedulerX
     volumes:
-      - .:/app
+      - ./backend:/app
     depends_on:
       - db
       - app

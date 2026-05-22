@@ -29,24 +29,29 @@ jobs:
         coverage: xdebug
     
     - name: Install dependencies
+      working-directory: ./backend
       run: composer install --prefer-dist --no-progress
-    
+
     - name: Copy environment file
+      working-directory: ./backend
       run: cp .env.testing .env
-    
+
     - name: Generate key
+      working-directory: ./backend
       run: php artisan key:generate
-    
+
     - name: Run migrations
+      working-directory: ./backend
       run: php artisan migrate
-    
+
     - name: Run tests
+      working-directory: ./backend
       run: php artisan test --coverage --coverage-clover=coverage.xml
-    
+
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
       with:
-        file: ./coverage.xml
+        file: ./backend/coverage.xml
 
   frontend-tests:
     runs-on: ubuntu-latest

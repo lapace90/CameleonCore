@@ -5,14 +5,13 @@ FROM node:20-alpine AS build-stage
 WORKDIR /app
 
 # Install dependencies
-COPY CampCameleonXfront/package*.json ./
-# COPY vite.config.js ./
+COPY package*.json ./
 
 # Install dependencies
 RUN npm install
 
 # Copy all files
-COPY CampCameleonXfront/ ./
+COPY . ./
 
 # Build the application
 RUN npm run build
