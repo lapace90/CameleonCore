@@ -281,7 +281,7 @@
                 </div>
             </div>
             <div class="header-right">
-                <div class="invoice-title">FACTURE</div>
+                <div class="invoice-title">{{ strtoupper($invoice->type_label) }}</div>
                 <div class="invoice-number">{{ $invoice->invoice_number }}</div>
                 <div style="margin-top: 10px;">
                     @if($invoice->status === 'paid')
@@ -327,6 +327,18 @@
                     </p>
                     @endif
                 </div>
+
+                @if($invoice->type === 'deposit' || $invoice->type === 'balance')
+                <div style="margin-top: 10px; background: #e8f4fd; padding: 10px; border-radius: 5px; border-left: 4px solid #2196F3; font-size: 11px;">
+                    @if($invoice->type === 'deposit')
+                    <p><strong>Acompte de {{ config('instance.features.deposit_percentage', 30) }}%</strong></p>
+                    <p>Montant total de la prestation : {{ number_format($reservation->amount ?? 0, 2, ',', ' ') }} €</p>
+                    @else
+                    <p><strong>Solde restant dû</strong></p>
+                    <p>Réf. acompte : {{ $invoice->linkedInvoice->invoice_number ?? 'N/A' }}</p>
+                    @endif
+                </div>
+                @endif
             </div>
         </div>
 
@@ -380,8 +392,10 @@
         <!-- Footer -->
         <div class="footer">
             <p><strong>{{ $company['name'] }}</strong></p>
-            <p>SIRET : {{ $company['siret'] ?? 'XXX XXX XXX XXXXX' }} | TVA : {{ $company['tva'] ?? 'N/A' }}</p>
-            <p>{{ $company['email'] }} | {{ $company['phone'] }} | {{ $company['website'] }}</p>
+            @if($company['siret'])
+            <p>SIRET : {{ $company['siret'] }}</p>
+            @endif
+            <p>{{ $company['email'] }} | {{ $company['phone'] }}</p>
             <p style="margin-top: 15px; font-size: 9px;">
                 Merci de votre confiance ! Pour toute question, n'hésitez pas à nous contacter.
             </p>

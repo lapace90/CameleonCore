@@ -18,6 +18,8 @@ class ReservationObserver
 
     /**
      * Événement déclenché APRÈS la création d'une réservation
+     * si le feature deposit_payment est activé, on crée une facture d'acompte ; sinon, une facture complète
+     * 
      */
     public function created(Reservation $reservation): void
     {
@@ -28,45 +30,54 @@ class ReservationObserver
             'payment_status' => $reservation->payment_status
         ]);
 
-        // Vérifier qu'une facture n'existe pas déjà pour cette réservation
-        if (Invoice::existsForReservation($reservation->id)) {
-            Log::info('ℹ️ Une facture existe déjà pour cette réservation', [
-                'reservation_id' => $reservation->id
-            ]);
-            return;
-        }
-
-        // Créer la facture automatiquement
         try {
-            $invoice = $this->invoiceService->createFromReservation($reservation);
+            // Choisir le type de facture selon la config instance
+            if (config('instance.features.deposit_payment')) {
+                // Mode acompte : créer une facture d'acompte
+                $invoice = $this->invoiceService->createDepositInvoice($reservation);
 
-            Log::info('✅ Facture créée automatiquement depuis réservation', [
-                'reservation_id' => $reservation->id,
-                'invoice_id' => $invoice->id,
-                'invoice_number' => $invoice->invoice_number,
-                'amount' => $invoice->amount
-            ]);
+                Log::info('✅ Facture acompte créée automatiquement', [
+                    'reservation_id' => $reservation->id,
+                    'invoice_id' => $invoice->id,
+                    'invoice_number' => $invoice->invoice_number,
+                    'amount' => $invoice->amount
+                ]);
+            } else {
+                // Mode classique : facture complète
+                if (Invoice::existsForReservation($reservation->id)) {
+                    Log::info('ℹ️ Une facture existe déjà pour cette réservation', [
+                        'reservation_id' => $reservation->id
+                    ]);
+                    return;
+                }
 
-            // Optionnel : Envoyer l'email automatiquement si la réservation est confirmée
+                $invoice = $this->invoiceService->createFromReservation($reservation);
+
+                Log::info('✅ Facture complète créée automatiquement', [
+                    'reservation_id' => $reservation->id,
+                    'invoice_id' => $invoice->id,
+                    'invoice_number' => $invoice->invoice_number,
+                    'amount' => $invoice->amount
+                ]);
+            }
+
+            // Envoyer l'email si la réservation est confirmée/payée
             if ($reservation->status === 'confirmed' || $reservation->payment_status === 'paid') {
                 try {
                     $this->invoiceService->sendEmail($invoice);
-                    
+
                     Log::info('📧 Email facture envoyé automatiquement', [
                         'invoice_id' => $invoice->id,
                         'customer_email' => $invoice->customer->email ?? 'N/A'
                     ]);
                 } catch (\Throwable $e) {
-                    // Ne pas bloquer si l'envoi d'email échoue
                     Log::warning('⚠️ Erreur envoi email facture automatique', [
                         'invoice_id' => $invoice->id,
                         'error' => $e->getMessage()
                     ]);
                 }
             }
-
         } catch (\Throwable $e) {
-            // Ne pas bloquer la création de la réservation si la facture échoue
             Log::error('❌ Erreur création facture automatique', [
                 'reservation_id' => $reservation->id,
                 'error' => $e->getMessage(),
