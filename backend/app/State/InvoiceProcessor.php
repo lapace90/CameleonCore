@@ -26,7 +26,7 @@ class InvoiceProcessor implements ProcessorInterface
 
         if (!$currentUser) {
             throw new \Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException(
-                'Bearer', 
+                'Bearer',
                 'Token d\'authentification requis'
             );
         }
@@ -46,13 +46,17 @@ class InvoiceProcessor implements ProcessorInterface
                 // ===========================
                 // ACTIONS MÉTIER SPÉCIALES
                 // ===========================
-                
+
                 if (str_contains($path, '/mark-paid') && isset($uriVariables['id'])) {
                     return $this->markInvoiceAsPaid((int) $uriVariables['id'], $context);
                 }
 
                 if (str_contains($path, '/send-email') && isset($uriVariables['id'])) {
                     return $this->sendInvoiceByEmail((int) $uriVariables['id']);
+                }
+
+                if (str_contains($path, '/create-balance') && isset($uriVariables['id'])) {
+                    return $this->createBalanceFromDeposit((int) $uriVariables['id']);
                 }
 
                 // ===========================
@@ -89,7 +93,7 @@ class InvoiceProcessor implements ProcessorInterface
     private function createInvoice(array $context, $currentUser): Invoice
     {
         $payload = $this->getDataFromRequest($context);
-        
+
         Log::info('➕ Création nouvelle facture', [
             'customer_id' => $payload['customer_id'] ?? null,
             'reservation_id' => $payload['reservation_id'] ?? null,
@@ -295,7 +299,6 @@ class InvoiceProcessor implements ProcessorInterface
                 'sent_at' => $invoice->sent_at->toISOString(),
                 'sent_count' => $invoice->sent_count,
             ];
-
         } catch (\Throwable $e) {
             Log::error('Erreur envoi email facture', [
                 'invoice_id' => $invoice->id,
@@ -306,6 +309,30 @@ class InvoiceProcessor implements ProcessorInterface
                 'Erreur lors de l\'envoi de l\'email: ' . $e->getMessage()
             );
         }
+    }
+
+    // ===========================
+    // ACTION: CRÉER FACTURE DE SOLDE
+    // ===========================
+    private function createBalanceFromDeposit(int $depositInvoiceId): Invoice
+    {
+        $depositInvoice = Invoice::with(['reservation', 'linkedFrom'])->findOrFail($depositInvoiceId);
+
+        Log::info("🧾 Création facture de solde depuis acompte #{$depositInvoiceId}", [
+            'invoice_number' => $depositInvoice->invoice_number,
+            'type' => $depositInvoice->type
+        ]);
+
+        $invoiceService = app(\App\Services\InvoiceService::class);
+        $balanceInvoice = $invoiceService->createBalanceInvoice($depositInvoice);
+
+        Log::info("✅ Facture de solde créée", [
+            'balance_invoice_id' => $balanceInvoice->id,
+            'balance_invoice_number' => $balanceInvoice->invoice_number,
+            'amount' => $balanceInvoice->amount
+        ]);
+
+        return $balanceInvoice;
     }
 
     // ===========================
@@ -345,7 +372,7 @@ class InvoiceProcessor implements ProcessorInterface
         if (isset($payload['issue_date']) && isset($payload['due_date'])) {
             $issueDate = Carbon::parse($payload['issue_date']);
             $dueDate = Carbon::parse($payload['due_date']);
-            
+
             if ($dueDate->lessThan($issueDate)) {
                 $errors['due_date'] = 'La date d\'échéance doit être après la date d\'émission';
             }

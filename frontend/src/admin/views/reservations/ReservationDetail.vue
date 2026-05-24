@@ -134,6 +134,7 @@
         </ReservationInfoCard>
 
         <!-- Paiement -->
+        <!-- Paiement -->
         <ReservationInfoCard title="Paiement" icon="credit-card">
           <div class="info-item">
             <label>Montant:</label>
@@ -146,6 +147,34 @@
           <div class="info-item">
             <label>Statut:</label>
             <span>{{ getPaymentStatusLabel(reservation.payment_status) }}</span>
+          </div>
+
+          <!-- Facturation acompte/solde -->
+          <div v-if="reservation.deposit_invoice" class="deposit-info">
+            <div class="info-item">
+              <label>Acompte versé :</label>
+              <span class="amount">{{ formatCurrency(reservation.deposit_invoice.amount) }}</span>
+            </div>
+            <div class="info-item">
+              <label>Réf. acompte :</label>
+              <span>{{ reservation.deposit_invoice.invoice_number }}</span>
+            </div>
+            <div class="info-item">
+              <label>Solde restant :</label>
+              <span class="amount">{{ formatCurrency(reservation.amount - reservation.deposit_invoice.amount) }}</span>
+            </div>
+
+            <button v-if="!reservation.balance_invoice" class="btn btn-primary btn-sm btn-balance"
+              :disabled="creatingBalance" @click="createBalanceInvoice">
+              <AppIcon name="file-text" />
+              {{ creatingBalance ? 'Création...' : 'Créer facture de solde' }}
+            </button>
+
+            <div v-if="reservation.balance_invoice" class="info-item">
+              <label>Facture solde :</label>
+              <span>{{ reservation.balance_invoice.invoice_number }} — {{ reservation.balance_invoice.status_label
+                }}</span>
+            </div>
           </div>
         </ReservationInfoCard>
 
@@ -217,7 +246,8 @@ export default {
     return {
       reservation: null,
       loading: true,
-      error: null
+      error: null,
+      creatingBalance: false
     }
   },
 
@@ -280,6 +310,24 @@ export default {
         const msg = e?.response?.data?.message || e.message || 'Erreur check-out'
         if (code === 403) alert('❌ Action non autorisée (permissions)')
         else alert(`❌ ${msg}`)
+      }
+    },
+
+    async createBalanceInvoice() {
+      if (!this.reservation.deposit_invoice) return
+
+      if (!confirm('Créer la facture de solde pour cette réservation ?')) return
+
+      this.creatingBalance = true
+      try {
+        await AdminApi.createBalanceInvoice(this.reservation.deposit_invoice.id)
+        await this.fetchReservation() // recharger pour voir la facture de solde
+        alert('✅ Facture de solde créée avec succès')
+      } catch (e) {
+        console.error('❌ Erreur création facture de solde:', e)
+        alert(`❌ ${e.message || 'Erreur lors de la création de la facture de solde'}`)
+      } finally {
+        this.creatingBalance = false
       }
     },
 
@@ -491,6 +539,7 @@ export default {
   gap: 1rem;
   margin-bottom: 1.5rem;
 }
+
 /* Styles pour la liste des produits */
 .products-list {
   margin-top: 1rem;
@@ -560,5 +609,16 @@ export default {
   border-top: 1px dashed #e5e7eb;
   text-align: right;
   color: #111827;
+}
+
+.deposit-info {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.btn-balance {
+  margin-top: 0.75rem;
+  width: 100%;
 }
 </style>

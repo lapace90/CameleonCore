@@ -58,6 +58,12 @@ use Carbon\Carbon;
             middleware: ['auth:sanctum'],
             security: "is_granted('ROLE_ADMIN')"
         ),
+        new Post(
+            uriTemplate: '/admin/invoices/{id}/create-balance',
+            processor: InvoiceProcessor::class,
+            middleware: ['auth:sanctum'],
+            security: "is_granted('ROLE_ADMIN')"
+        ),
         new Get(
             uriTemplate: '/admin/invoices/{id}/pdf',
             provider: InvoiceProvider::class,
