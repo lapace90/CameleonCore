@@ -25,10 +25,11 @@ services:
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     command: >
-      sh -c "
-        php artisan --verbose migrate &&
-        php artisan serve --host=0.0.0.0 --port=8000
-      "
+        sh -c "
+          composer install --no-interaction &&
+          php artisan --verbose migrate &&
+          php artisan serve --host=0.0.0.0 --port=8000
+        "
 
   # 🕒 SERVICE SCHEDULER - Gestion automatique des tâches planifiées
   scheduler:
@@ -51,7 +52,8 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     command: >
       sh -c "
-        echo '🕒 Scheduler démarré - Vérification des tâches planifiées toutes les minutes' &&
+        composer install --no-interaction --quiet &&
+        echo '🕒 Scheduler démarré' &&
         while true; do
           php artisan schedule:run --verbose &&
           sleep 60
