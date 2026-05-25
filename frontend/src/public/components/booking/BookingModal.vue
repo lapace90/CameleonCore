@@ -17,46 +17,25 @@
         <div class="modal-body">
           <!-- Barre de progression dynamique -->
           <div class="progress-steps">
-            <div
-              v-for="(step, i) in steps"
-              :key="step.key"
-              class="step"
-              :class="{ active: currentStep === i + 1, completed: currentStep > i + 1 }"
-            >
+            <div v-for="(step, i) in steps" :key="step.key" class="step"
+              :class="{ active: currentStep === i + 1, completed: currentStep > i + 1 }">
               <div class="step-number">{{ i + 1 }}</div>
               <span>{{ step.label }}</span>
             </div>
           </div>
 
           <!-- Étape dates -->
-          <StepDates
-            v-if="currentStepKey === 'dates'"
-            v-model:dates="selectedDates"
-          />
+          <StepDates v-if="currentStepKey === 'dates'" v-model:dates="selectedDates" />
 
           <!-- Étapes produits (dynamiques) -->
-          <StepProducts
-            v-for="step in productSteps"
-            v-show="currentStepKey === step.key"
-            :key="step.key"
-            :product-type="step.key"
-            :products="allProducts"
-            :selection="getSelection(step.key)"
-            :guests="selectedDates.guests"
-            :loading="loading"
-            @update:selection="setSelection(step.key, $event)"
-          />
+          <StepProducts v-for="step in productSteps" v-show="currentStepKey === step.key" :key="step.key"
+            :product-type="step.key" :products="allProducts" :selection="getSelection(step.key)"
+            :guests="selectedDates.guests" :loading="loading" @update:selection="setSelection(step.key, $event)" />
 
           <!-- Étape récap -->
-          <StepRecap
-            v-if="currentStepKey === 'recap'"
-            :pricing="pricing"
-            :dates="selectedDates"
-            :contact="contactInfo"
-            :qty-overrides="qtyOverrides"
-            @update:contact="contactInfo = $event"
-            @update:qty-overrides="qtyOverrides = $event"
-          />
+          <StepRecap v-if="currentStepKey === 'recap'" :pricing="pricing" :dates="selectedDates" :contact="contactInfo"
+            :qty-overrides="qtyOverrides" @update:contact="contactInfo = $event"
+            @update:qty-overrides="qtyOverrides = $event" />
         </div>
 
         <!-- Footer -->
@@ -68,13 +47,10 @@
           </div>
           <div class="footer-right">
             <!-- Suivant -->
-            <button
-              v-if="currentStep < steps.length"
-              @click="nextStep"
-              class="btn btn-primary btn-sm"
-              :disabled="!canProceed"
-            >
-              Suivant <AppIcon name="arrow-right" />
+            <button v-if="currentStep < steps.length" @click="nextStep" class="btn btn-primary btn-sm"
+              :disabled="!canProceed">
+              Suivant
+              <AppIcon name="arrow-right" />
             </button>
 
             <!-- Actions finales (récap) -->
@@ -86,29 +62,20 @@
                 </p>
               </div>
               <div class="quote-actions">
-                <button
-                  @click="submitAndPay"
-                  class="btn btn-success btn-sm"
-                  :disabled="isSubmitting || !canSubmit"
-                >
-                  <AppIcon :name="isSubmitting === 'booking' ? 'loader-circle' : 'credit-card'" :spin="isSubmitting === 'booking'" />
+                <button @click="submitAndPay" class="btn btn-success btn-sm" :disabled="isSubmitting || !canSubmit">
+                  <AppIcon :name="isSubmitting === 'booking' ? 'loader-circle' : 'credit-card'"
+                    :spin="isSubmitting === 'booking'" />
                   {{ isSubmitting === 'booking' ? 'Traitement...' : 'Réserver & Payer' }}
                 </button>
-                <button
-                  @click="submitAndSave"
-                  class="btn btn-primary btn-sm"
-                  :disabled="isSubmitting || !canSubmit"
-                >
-                  <AppIcon :name="isSubmitting === 'saving' ? 'loader-circle' : 'bookmark'" :spin="isSubmitting === 'saving'" />
+                <button @click="submitAndSave" class="btn btn-primary btn-sm" :disabled="isSubmitting || !canSubmit">
+                  <AppIcon :name="isSubmitting === 'saving' ? 'loader-circle' : 'bookmark'"
+                    :spin="isSubmitting === 'saving'" />
                   {{ isSubmitting === 'saving' ? 'Sauvegarde...' : 'Sauvegarder le devis' }}
                 </button>
-                <button
-                  v-if="instance.hasModule('quote_builder')"
-                  @click="submitAdvice"
-                  class="btn btn-outline btn-sm"
-                  :disabled="isSubmitting || !canSubmit"
-                >
-                  <AppIcon :name="isSubmitting === 'advice' ? 'loader-circle' : 'user'" :spin="isSubmitting === 'advice'" />
+                <button v-if="instance.hasModule('quote_builder')" @click="submitAdvice" class="btn btn-outline btn-sm"
+                  :disabled="isSubmitting || !canSubmit">
+                  <AppIcon :name="isSubmitting === 'advice' ? 'loader-circle' : 'user'"
+                    :spin="isSubmitting === 'advice'" />
                   {{ isSubmitting === 'advice' ? 'Envoi...' : 'Conseil personnalisé' }}
                 </button>
               </div>
@@ -119,12 +86,8 @@
     </div>
   </transition>
 
-  <EmailValidationModal
-    :show="showEmailValidation"
-    :quote-reference="validationQuote.reference"
-    :email="validationQuote.email"
-    @close="showEmailValidation = false"
-  />
+  <EmailValidationModal :show="showEmailValidation" :quote-reference="validationQuote.reference"
+    :email="validationQuote.email" @close="showEmailValidation = false" />
 </template>
 
 <script>
@@ -230,10 +193,10 @@ export default {
 
       const endInclusive = this.selectedDates.endExclusive
         ? (() => {
-            const e = new Date(this.selectedDates.endExclusive)
-            e.setDate(e.getDate() - 1)
-            return e.toISOString().split('T')[0]
-          })()
+          const e = new Date(this.selectedDates.endExclusive)
+          e.setDate(e.getDate() - 1)
+          return e.toISOString().split('T')[0]
+        })()
         : ''
 
       return computeQuoteTotal({
@@ -261,8 +224,13 @@ export default {
     // ===========================
     canProceed() {
       switch (this.currentStepKey) {
-        case 'dates':
-          return this.selectedDates.start && this.selectedDates.endExclusive && this.selectedDates.guests >= 1
+        case 'dates': {
+          const instance = useInstanceStore()
+          if (instance.hasFeature('checkin_checkout')) {
+            return !!this.selectedDates.start && !!this.selectedDates.endExclusive && this.selectedDates.guests >= 1
+          }
+          return !!this.selectedDates.start && this.selectedDates.guests >= 1
+        }
         case 'room':
           return !!this.selections.room
         default:
@@ -374,6 +342,15 @@ export default {
         for (let i = 0; i < it.quantity; i++) product_ids.push(it.product_id)
       }
 
+      // Construire la date checkin avec heure si mode single
+      const instance = useInstanceStore()
+      let checkin = this.selectedDates.start
+      if (!instance.hasFeature('checkin_checkout') && checkin) {
+        const hour = this.selectedDates.hour || '12'
+        const minute = this.selectedDates.minute || '00'
+        checkin = `${checkin}T${hour}:${minute}:00`
+      }
+
       return {
         email: this.contactInfo.email,
         contact: {
@@ -383,8 +360,8 @@ export default {
           message: this.contactInfo.message
         },
         dates: {
-          checkin: this.selectedDates.start,
-          endExclusive: this.selectedDates.endExclusive,
+          checkin: checkin,
+          endExclusive: this.selectedDates.endExclusive || null,
           guests: this.selectedDates.guests
         },
         total_price: this.pricing.total,
