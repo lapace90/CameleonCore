@@ -37,12 +37,18 @@ class CalendarProvider implements ProviderInterface
             // 1️ RÉCUPÉRER LES RÉSERVATIONS
             $reservations = Reservation::query()
                 ->where(function ($q) use ($startBoundary, $endBoundary) {
-                    $q->whereBetween('checkin', [$startBoundary, $endBoundary])
-                        ->orWhereBetween('checkout', [$startBoundary, $endBoundary])
-                        ->orWhere(function ($sub) use ($startBoundary, $endBoundary) {
-                            $sub->where('checkin', '<=', $startBoundary)
-                                ->where('checkout', '>=', $endBoundary);
-                        });
+                    if (config('instance.features.checkin_checkout')) {
+                        // Mode séjour : chercher les ranges qui chevauchent la période
+                        $q->whereBetween('checkin', [$startBoundary, $endBoundary])
+                            ->orWhereBetween('checkout', [$startBoundary, $endBoundary])
+                            ->orWhere(function ($sub) use ($startBoundary, $endBoundary) {
+                                $sub->where('checkin', '<=', $startBoundary)
+                                    ->where('checkout', '>=', $endBoundary);
+                            });
+                    } else {
+                        // Mode prestation : chercher les dates simples dans la période
+                        $q->whereBetween('checkin', [$startBoundary, $endBoundary]);
+                    }
                 })
                 ->with(['customer', 'product'])
                 ->get();
@@ -55,11 +61,12 @@ class CalendarProvider implements ProviderInterface
 
             // 3️ MAPPER LES RÉSERVATIONS
             foreach ($reservations as $reservation) {
-                $allEvents[] = [
-                    'id' => 'reservation_' . $reservation->id, // Préfixe pour différencier
+                $isRangeMode = config('instance.features.checkin_checkout');
+
+                $eventData = [
+                    'id' => 'reservation_' . $reservation->id,
                     'title' => $this->makeReservationTitle($reservation),
                     'start' => $reservation->checkin->toIso8601String(),
-                    'end' => $reservation->checkout?->toIso8601String(),
                     'backgroundColor' => '#28a745',
                     'borderColor' => '#1e7e34',
                     'textColor' => '#ffffff',
@@ -73,9 +80,20 @@ class CalendarProvider implements ProviderInterface
                         'amount' => $reservation->amount,
                         'guests' => ($reservation->number_of_adults ?? 0) + ($reservation->number_of_children ?? 0),
                         'status' => $reservation->status,
-                        'comment' => $reservation->comment
+                        'comment' => $reservation->comment,
+                        'product_name' => $reservation->product->name ?? '',
                     ]
                 ];
+
+                if ($isRangeMode && $reservation->checkout) {
+                    // Hôtel : événement multi-jours
+                    $eventData['end'] = $reservation->checkout->toIso8601String();
+                } else {
+                    // Traiteur : événement ponctuel, pas de end
+                    $eventData['allDay'] = false;
+                }
+
+                $allEvents[] = $eventData;
             }
 
             // 4️ MAPPER LES ÉVÉNEMENTS GÉNÉRIQUES
@@ -109,7 +127,7 @@ class CalendarProvider implements ProviderInterface
     private function parseDate(?string $dateParam, Carbon $fallback): Carbon
     {
         if (empty($dateParam)) return $fallback;
-        
+
         try {
             return Carbon::parse($dateParam);
         } catch (\Exception $e) {
@@ -121,7 +139,20 @@ class CalendarProvider implements ProviderInterface
     {
         $customer = $reservation->customer->name ?? 'Client';
         $product = $reservation->product->name ?? '';
-        
+
+        // Mode prestation (traiteur, service) : nom + menu + convives
+        if (!config('instance.features.checkin_checkout')) {
+            $guests = ($reservation->number_of_adults ?? 0) + ($reservation->number_of_children ?? 0);
+            $parts = [$customer];
+            if ($product) $parts[] = $product;
+            if ($guests > 0) $parts[] = "{$guests} pers.";
+            if ($reservation->checkin) {
+                $parts[] = $reservation->checkin->format('H:i');
+            }
+            return implode(' • ', $parts);
+        }
+
+        // Mode séjour (hôtel) : nom + produit
         return $product ? "{$customer} - {$product}" : $customer;
     }
 }
