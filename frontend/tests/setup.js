@@ -27,7 +27,7 @@ const mockCalendarApi = {
   changeView: vi.fn(),
   refetchEvents: vi.fn(),
   getEvents: vi.fn(() => []),
-  getDate: vi.fn(() => new Date('2025-10-15')),  
+  getDate: vi.fn(() => new Date('2025-10-15')),
   render: vi.fn(),
   destroy: vi.fn(),
   prev: vi.fn(),
@@ -67,6 +67,47 @@ vi.mock('@/services/ProductsApi', () => ({
   default: {
     getProducts: vi.fn(() => Promise.resolve({ data: [] }))
   }
+}))
+
+// Mock du store instance
+vi.mock('@/shared/stores/instance', () => ({
+  useInstanceStore: vi.fn(() => ({
+    config: {
+      name: 'Test Instance',
+      type: 'hotel',
+      country: 'FR',
+      modules: {
+        booking: true, invoicing: true, calendar: true,
+        reviews: true, analytics: true, rbac: true,
+        staff: true, quote_builder: true,
+      },
+      productables: ['room', 'activity', 'menu', 'dish', 'ingredient'],
+      features: {
+        deposit_payment: true, deposit_percentage: 30,
+        seasonal_availability: true, e_invoicing: false,
+        guest_count: true, checkin_checkout: true,
+      },
+    },
+    name: 'Test Instance',
+    type: 'hotel',
+    country: 'FR',
+    modules: {
+      booking: true, invoicing: true, calendar: true,
+      reviews: true, analytics: true, rbac: true,
+      staff: true, quote_builder: true,
+    },
+    productables: ['room', 'activity', 'menu', 'dish', 'ingredient'],
+    features: {
+      deposit_payment: true, deposit_percentage: 30,
+      seasonal_availability: true, e_invoicing: false,
+      guest_count: true, checkin_checkout: true,
+    },
+    isReady: true,
+    hasModule: vi.fn((key) => true),
+    hasFeature: vi.fn((key) => true),
+    hasProductable: vi.fn((key) => true),
+    load: vi.fn(() => Promise.resolve()),
+  }))
 }))
 
 config.global.mocks = {
