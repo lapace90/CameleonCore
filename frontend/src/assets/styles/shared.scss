@@ -23,6 +23,9 @@
 // Utilitaires à la fin
 @use 'utilities' as *;
 
+// Surcharges de thème (toujours en dernier)
+@use 'theme-override' as *;
+
 // Import des polices Google Fonts
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
 
@@ -47,6 +50,12 @@
   --info: var(--slate-blue);
   --light: var(--cream);
   --dark: var(--coffee);
+
+  // Variantes couleurs
+  --primary-light: color-mix(in srgb, var(--primary) 85%, white);
+  --primary-dark: color-mix(in srgb, var(--primary) 85%, black);
+  --accent-light: color-mix(in srgb, var(--accent) 80%, white);
+  --accent-dark: color-mix(in srgb, var(--accent) 85%, black);
 
   // Couleurs de fond
   --bg-default: #faf9f7;

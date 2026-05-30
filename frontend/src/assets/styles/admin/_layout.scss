@@ -4,7 +4,7 @@
 // Sidebar Admin
 .admin-sidebar {
   width: $sidebar-width;
-  background: $coffee;
+  background: var(--dark);
   min-height: 100vh;
   position: fixed;
   left: 0;
@@ -144,7 +144,7 @@
 .admin-layout {
   display: flex;
   min-height: 100vh;
-  background-color: $bg-default;
+  background-color: var(--bg-default);
   flex-direction: column;
   margin-left: var(--sidebar-width);
 
@@ -218,7 +218,7 @@
     flex: 1;
 
     .page-title {
-      color: $cream;
+      color: var(--light);
       font-size: $font-size-3xl;
       font-weight: $font-weight-semibold;
       margin: 0 0 0.25rem 0;
@@ -234,18 +234,18 @@
       font-size: $font-size-sm;
 
       .breadcrumb-item {
-        color: $text-secondary;
+        color: var(--text-secondary);
         text-decoration: none;
         position: relative;
 
         &:not(:last-child)::after {
           content: '/';
           // margin-left: 0.5rem;
-          color: $border-color;
+          color: var(--border-color);
         }
 
         &.active {
-          color: $primary;
+          color: var(--primary);
         }
       }
     }
@@ -273,22 +273,22 @@
     i {
       position: absolute;
       left: 1rem;
-      color: $text-secondary;
+      color: var(--text-secondary);
     }
 
     input {
       padding: 0.5rem 1rem 0.5rem 2.5rem;
-      border: 1px solid $border-color;
+      border: 1px solid var(--border-color);
       border-radius: $border-radius;
-      background-color: $bg-light;
+      background-color: var(--light);
       width: 250px;
       transition: all $transition-base;
 
       &:focus {
         outline: none;
-        border-color: $primary;
+        border-color: var(--primary);
         background-color: white;
-        box-shadow: 0 0 0 0.2rem rgba($primary, 0.25);
+        box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--primary) 25%, transparent);
       }
     }
   }
@@ -307,7 +307,7 @@
 // Footer Admin - Reste en bas grâce au flexbox parent
 .admin-footer {
   background-color: white;
-  border-top: 1px solid $border-color;
+  border-top: 1px solid var(--border-color);
   padding: 1rem 2rem;
   box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.05);
   flex-shrink: 0; // Empêche le footer de se compresser
@@ -330,11 +330,11 @@
   }
 
   .footer-left .copyright {
-    color: $text-secondary;
+    color: var(--text-secondary);
     font-size: $font-size-sm;
 
     strong {
-      color: $text-primary;
+      color: var(--text-primary);
       font-weight: $font-weight-semibold;
     }
   }
@@ -355,24 +355,24 @@
     gap: 1.5rem;
 
     .footer-link {
-      color: $text-secondary;
+      color: var(--text-secondary);
       text-decoration: none;
       font-size: $font-size-sm;
       transition: color $transition-base;
 
       &:hover {
-        color: $primary;
+        color: var(--primary);
       }
     }
   }
 
   .version-badge {
-    background-color: $bg-light;
-    color: $primary;
+    background-color: var(--light);
+    color: var(--primary);
     padding: 0.25rem 0.5rem;
     border-radius: $border-radius-sm;
     font-size: $font-size-xs;
     font-weight: $font-weight-medium;
-    border: 1px solid $border-color;
+    border: 1px solid var(--border-color);
   }
 }

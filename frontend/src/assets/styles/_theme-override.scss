@@ -1,0 +1,22 @@
+// ========================================
+// THEME OVERRIDE - Surcharges de thème
+// ========================================
+// Ce fichier permet de personnaliser les CSS custom properties
+// sans modifier les sources (variables.scss ou le :root de shared.scss).
+//
+// Exemples d'utilisation :
+//
+// :root {
+//   --accent: #d45b00;          // Remplace la couleur d'accent (terracotta)
+//   --primary: #5a6080;         // Remplace la couleur primaire (slate-blue)
+//   --light: #f0ddd0;           // Remplace la couleur claire (cream)
+//   --dark: #2e1a14;            // Remplace la couleur foncée (coffee)
+//   --secondary: #c9a070;       // Remplace la couleur secondaire (sand)
+// }
+//
+// .dark-mode {
+//   --bg-default: #1a1a1a;
+//   --bg-white: #2a2a2a;
+//   --text-primary: #f3d8c7;
+//   --border-color: #444;
+// }

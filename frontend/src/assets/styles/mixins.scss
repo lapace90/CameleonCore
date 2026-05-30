@@ -4,7 +4,6 @@
 
 // Import des modules Sass modernes
 @use "sass:map";
-@use "sass:color";
 @use 'variables' as *;
 
 // Mixin pour les variants de boutons
@@ -12,20 +11,20 @@
   background-color: $color;
   border-color: $color;
   color: white;
- 
+
   &:hover:not(:disabled) {
-    background-color: color.scale($color, $lightness: -8%);
-    border-color: color.scale($color, $lightness: -8%);
+    background-color: color-mix(in srgb, $color 92%, black);
+    border-color: color-mix(in srgb, $color 92%, black);
     transform: translateY(-1px);
   }
- 
+
   &:focus {
-    box-shadow: 0 0 0 0.2rem rgba($color, 0.25);
+    box-shadow: 0 0 0 0.2rem color-mix(in srgb, $color 25%, transparent);
   }
-  
+
   &:active {
-    background-color: color.scale($color, $lightness: -12%);
-    border-color: color.scale($color, $lightness: -12%);
+    background-color: color-mix(in srgb, $color 88%, black);
+    border-color: color-mix(in srgb, $color 88%, black);
   }
 }
 
@@ -33,10 +32,10 @@
 @mixin card-variant($bg-color, $text-color: inherit) {
   background-color: $bg-color;
   color: $text-color;
- 
+
   .card-header {
-    background-color: color.scale($bg-color, $lightness: -3%);
-    border-bottom-color: color.scale($bg-color, $lightness: -10%);
+    background-color: color-mix(in srgb, $bg-color 97%, black);
+    border-bottom-color: color-mix(in srgb, $bg-color 90%, black);
   }
 }
 
@@ -82,7 +81,7 @@
 // Mixin pour les overlay
 @mixin overlay($opacity: 0.5) {
   position: relative;
- 
+
   &::before {
     content: '';
     position: absolute;
@@ -97,7 +96,7 @@
 
 // Nouveaux mixins utiles pour le design desert
 @mixin desert-text-shadow {
-  text-shadow: 0 2px 10px rgba($coffee, 0.5);
+  text-shadow: 0 2px 10px color-mix(in srgb, var(--dark) 50%, transparent);
 }
 
 @mixin organic-border-radius($size: $border-radius-xl) {
@@ -106,20 +105,20 @@
 
 @mixin hover-lift($distance: 5px) {
   transition: transform $transition-base;
-  
+
   &:hover {
     transform: translateY(-#{$distance});
   }
 }
 
 // Mixin pour les gradients de fond avec overlay
-@mixin hero-background($image-url, $overlay-color: $coffee, $overlay-opacity: 0.3) {
-  background: 
+@mixin hero-background($image-url, $overlay-color: var(--dark)) {
+  background:
     linear-gradient(
       135deg,
-      rgba($overlay-color, $overlay-opacity) 0%,
-      rgba($terracotta, $overlay-opacity * 0.7) 50%,
-      rgba($overlay-color, $overlay-opacity * 1.2) 100%
+      color-mix(in srgb, #{$overlay-color} 30%, transparent) 0%,
+      color-mix(in srgb, var(--accent) 21%, transparent) 50%,
+      color-mix(in srgb, #{$overlay-color} 36%, transparent) 100%
     ),
     url($image-url) center/cover;
 }
@@ -129,7 +128,7 @@
   opacity: 0;
   transform: translateY(30px);
   transition: opacity 0.6s ease, transform 0.6s ease;
-  
+
   &.visible {
     opacity: 1;
     transform: translateY(0);

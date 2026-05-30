@@ -21,7 +21,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: radial-gradient(ellipse at center, transparent 0%, rgba($coffee, 0.2) 100%);
+    background: radial-gradient(ellipse at center, transparent 0%, color-mix(in srgb, var(--dark) 20%, transparent) 100%);
   }
 
   .hero-content {
@@ -54,7 +54,7 @@
 
   h2 {
     font-size: clamp($font-size-3xl, 4vw, $font-size-4xl);
-    color: $text-primary;
+    color: var(--text-primary);
     margin-bottom: 1rem;
     font-family: $font-family-display;
     font-weight: 400;
@@ -62,7 +62,7 @@
 
   p {
     font-size: $font-size-lg;
-    color: $text-secondary;
+    color: var(--text-secondary);
     font-family: $font-family-primary;
     max-width: 600px;
     margin: 0 auto;
@@ -74,7 +74,7 @@
 // ========================================
 .accommodation-section {
   padding: 6rem 0;
-  background: linear-gradient(135deg, $bg-secondary 0%, $bg-warm 100%);
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, $bg-warm 100%);
   width: 100%;
 
   .accommodation-grid {
@@ -92,7 +92,7 @@
     background: rgba(white, 0.95);
     border-radius: $border-radius-2xl;
     overflow: hidden;
-    box-shadow: $shadow-soft;
+    box-shadow: var(--shadow);
     transition: all $transition-base;
     border: 2px solid transparent;
     display: flex;
@@ -101,11 +101,11 @@
     &:hover {
       transform: translateY(-8px);
       box-shadow: $shadow-strong;
-      border-color: rgba($terracotta, 0.3);
+      border-color: color-mix(in srgb, var(--accent) 30%, transparent);
     }
 
     &.popular {
-      border-color: $terracotta;
+      border-color: var(--accent);
       position: relative;
     }
 
@@ -146,7 +146,7 @@
         top: 1rem;
         right: 1rem;
         background: rgba(white, 0.95);
-        color: $text-primary;
+        color: var(--text-primary);
         padding: 0.75rem 1rem;
         border-radius: $border-radius-lg;
         text-align: center;
@@ -156,12 +156,12 @@
           display: block;
           font-size: $font-size-xl;
           font-weight: $font-weight-bold;
-          color: $terracotta;
+          color: var(--accent);
         }
 
         .per-person {
           font-size: $font-size-sm;
-          color: $text-secondary;
+          color: var(--text-secondary);
         }
       }
     }
@@ -174,13 +174,13 @@
 
       h3 {
         font-size: $font-size-2xl;
-        color: $text-primary;
+        color: var(--text-primary);
         margin-bottom: 1rem;
         font-family: $font-family-display;
       }
 
       p {
-        color: $text-secondary;
+        color: var(--text-secondary);
         margin-bottom: 1.5rem;
         line-height: $line-height-relaxed;
       }
@@ -195,10 +195,10 @@
           align-items: center;
           gap: 0.75rem;
           padding: 0.5rem 0;
-          color: $text-secondary;
+          color: var(--text-secondary);
 
           .app-icon {
-            color: $terracotta;
+            color: var(--accent);
             font-size: $font-size-sm;
           }
         }
@@ -209,7 +209,7 @@
         gap: 2rem;
         margin-bottom: 2rem;
         padding: 1rem;
-        background: rgba($sand, 0.1);
+        background: color-mix(in srgb, var(--secondary) 10%, transparent);
         border-radius: $border-radius;
         overflow: hidden;
 
@@ -217,10 +217,10 @@
           display: flex;
           align-items: center;
           gap: 0.5rem;
-          color: $text-secondary;
+          color: var(--text-secondary);
 
           .app-icon {
-            color: $terracotta;
+            color: var(--accent);
           }
         }
       }
@@ -238,7 +238,7 @@
 
         &:hover {
           transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba($terracotta, 0.3);
+          box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 30%, transparent);
         }
       }
     }
@@ -254,7 +254,7 @@
 // ========================================
 .additional-services {
   padding: 6rem 0;
-  background: $bg-default;
+  background: var(--bg-default);
 
   .services-grid {
     display: grid;
@@ -273,12 +273,12 @@
     display: flex;
     gap: 1.5rem;
     transition: all $transition-base;
-    border: 1px solid rgba($terracotta, 0.1);
+    border: 1px solid color-mix(in srgb, var(--accent) 10%, transparent);
 
     &:hover {
       background: white;
       transform: translateY(-3px);
-      box-shadow: $shadow-medium;
+      box-shadow: var(--shadow-lg);
     }
 
     .service-icon {
@@ -295,20 +295,20 @@
 
     .service-content {
       h4 {
-        color: $text-primary;
+        color: var(--text-primary);
         margin-bottom: 0.5rem;
         font-family: $font-family-primary;
       }
 
       p {
-        color: $text-secondary;
+        color: var(--text-secondary);
         margin-bottom: 1rem;
         font-size: $font-size-sm;
       }
 
       .service-price {
         font-weight: $font-weight-semibold;
-        color: $terracotta;
+        color: var(--accent);
       }
     }
   }
@@ -326,7 +326,7 @@
 // ========================================
 .amenities-section {
   padding: 6rem 0;
-  background: linear-gradient(135deg, $bg-warm 0%, $bg-secondary 100%);
+  background: linear-gradient(135deg, $bg-warm 0%, var(--bg-secondary) 100%);
 
   .amenities-grid {
     display: grid;
@@ -348,13 +348,13 @@
       border-radius: $border-radius-xl;
       text-align: center;
       transition: all $transition-base;
-      border: 1px solid rgba($terracotta, 0.1);
+      border: 1px solid color-mix(in srgb, var(--accent) 10%, transparent);
 
       &:hover {
         background: rgba(white, 0.95);
         transform: translateY(-3px);
-        box-shadow: $shadow-medium;
-        border-color: rgba($terracotta, 0.3);
+        box-shadow: var(--shadow-lg);
+        border-color: color-mix(in srgb, var(--accent) 30%, transparent);
       }
 
       .amenity-icon {
@@ -371,7 +371,7 @@
       }
 
       h5 {
-        color: $text-primary;
+        color: var(--text-primary);
         margin-bottom: 0.75rem;
         font-family: $font-family-primary;
         font-size: $font-size-base;
@@ -379,7 +379,7 @@
       }
 
       p {
-        color: $text-secondary;
+        color: var(--text-secondary);
         font-size: $font-size-sm;
         line-height: $line-height-relaxed;
         margin: 0;
@@ -393,7 +393,7 @@
 // ========================================
 .pricing-section {
   padding: 6rem 0;
-  background: $bg-default;
+  background: var(--bg-default);
 
   .pricing-grid {
     display: grid;
@@ -413,7 +413,7 @@
     border-radius: $border-radius-2xl;
     padding: 2rem;
     text-align: center;
-    box-shadow: $shadow-soft;
+    box-shadow: var(--shadow);
     transition: all $transition-base;
     border: 2px solid transparent;
     position: relative;
@@ -426,7 +426,7 @@
     }
 
     &.popular {
-      border-color: $terracotta;
+      border-color: var(--accent);
       transform: scale(1.05);
 
       .pricing-badge {
@@ -444,7 +444,7 @@
     }
 
     .pricing-header h3 {
-      color: $text-primary;
+      color: var(--text-primary);
       font-size: $font-size-2xl;
       margin-bottom: 1rem;
       font-family: $font-family-display;
@@ -456,12 +456,12 @@
       .price {
         font-size: $font-size-5xl;
         font-weight: $font-weight-bold;
-        color: $terracotta;
+        color: var(--accent);
         font-family: $font-family-display;
       }
 
       .price-unit {
-        color: $text-secondary;
+        color: var(--text-secondary);
         font-size: $font-size-base;
       }
     }
@@ -484,10 +484,10 @@
         align-items: center;
         gap: 0.75rem;
         padding: 0.75rem 0;
-        color: $text-secondary;
+        color: var(--text-secondary);
 
         .app-icon {
-          color: $terracotta;
+          color: var(--accent);
           font-size: $font-size-sm;
         }
       }
@@ -508,17 +508,17 @@
 
         &:hover {
           transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba($terracotta, 0.3);
+          box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 30%, transparent);
         }
       }
 
       &.btn-outline {
         background: transparent;
-        border: 2px solid $terracotta;
-        color: $terracotta;
+        border: 2px solid var(--accent);
+        color: var(--accent);
 
         &:hover {
-          background: $terracotta;
+          background: var(--accent);
           color: white;
         }
       }
@@ -531,7 +531,7 @@
 // ========================================
 .faq-section {
   padding: 6rem 0;
-  background: linear-gradient(135deg, $bg-secondary 0%, $bg-warm 100%);
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, $bg-warm 100%);
 
   .faq-list {
     max-width: 800px;
@@ -543,7 +543,7 @@
     margin-bottom: 1rem;
     border-radius: $border-radius-lg;
     overflow: hidden;
-    border: 1px solid rgba($terracotta, 0.1);
+    border: 1px solid color-mix(in srgb, var(--accent) 10%, transparent);
 
     .faq-question {
       width: 100%;
@@ -557,16 +557,16 @@
       align-items: center;
       font-size: $font-size-lg;
       font-weight: $font-weight-semibold;
-      color: $text-primary;
+      color: var(--text-primary);
       transition: all $transition-base;
 
       &:hover {
-        background: rgba($sand, 0.1);
+        background: color-mix(in srgb, var(--secondary) 10%, transparent);
       }
 
       &.active {
-        background: rgba($terracotta, 0.1);
-        color: $terracotta;
+        background: color-mix(in srgb, var(--accent) 10%, transparent);
+        color: var(--accent);
 
         .app-icon {
           transform: rotate(180deg);
@@ -574,14 +574,14 @@
       }
 
       .app-icon {
-        color: $terracotta;
+        color: var(--accent);
         transition: transform $transition-base;
       }
     }
 
     .faq-answer {
       padding: 0 2rem 1.5rem;
-      color: $text-secondary;
+      color: var(--text-secondary);
       line-height: $line-height-relaxed;
     }
   }

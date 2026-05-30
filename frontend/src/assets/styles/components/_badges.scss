@@ -47,67 +47,67 @@
 // ========================================
 
 .badge-vegetarian {
-  background-color: rgba($success, 0.1);
-  color: $success;
-  border-color: rgba($success, 0.2);
+  background-color: color-mix(in srgb, var(--success) 10%, transparent);
+  color: var(--success);
+  border-color: color-mix(in srgb, var(--success) 20%, transparent);
 
   &:hover {
-    background-color: rgba($success, 0.15);
+    background-color: color-mix(in srgb, var(--success) 15%, transparent);
     transform: translateY(-1px);
   }
 }
 
 .badge-vegan {
-  background-color: rgba($primary, 0.1);
-  color: $primary;
-  border-color: rgba($primary, 0.2);
+  background-color: color-mix(in srgb, var(--primary) 10%, transparent);
+  color: var(--primary);
+  border-color: color-mix(in srgb, var(--primary) 20%, transparent);
 
   &:hover {
-    background-color: rgba($primary, 0.15);
+    background-color: color-mix(in srgb, var(--primary) 15%, transparent);
     transform: translateY(-1px);
   }
 }
 
 .badge-spicy {
-  background-color: rgba($terracotta, 0.1);
-  color: $terracotta;
-  border-color: rgba($terracotta, 0.2);
+  background-color: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 20%, transparent);
 
   &:hover {
-    background-color: rgba($terracotta, 0.15);
+    background-color: color-mix(in srgb, var(--accent) 15%, transparent);
     transform: translateY(-1px);
   }
 }
 
 .badge-gluten-free {
-  background-color: rgba($warning, 0.1);
-  color: $warning;
-  border-color: rgba($warning, 0.2);
+  background-color: color-mix(in srgb, var(--warning) 10%, transparent);
+  color: var(--warning);
+  border-color: color-mix(in srgb, var(--warning) 20%, transparent);
 
   &:hover {
-    background-color: rgba($warning, 0.15);
+    background-color: color-mix(in srgb, var(--warning) 15%, transparent);
     transform: translateY(-1px);
   }
 }
 
 .badge-lactose-free {
-  background-color: rgba($sand, 0.15);
-  color: $coffee;
-  border-color: rgba($sand, 0.3);
+  background-color: color-mix(in srgb, var(--secondary) 15%, transparent);
+  color: var(--dark);
+  border-color: color-mix(in srgb, var(--secondary) 30%, transparent);
 
   &:hover {
-    background-color: rgba($sand, 0.25);
+    background-color: color-mix(in srgb, var(--secondary) 25%, transparent);
     transform: translateY(-1px);
   }
 }
 
 .badge-nut-free {
-  background-color: rgba($coffee, 0.1);
-  color: $coffee;
-  border-color: rgba($coffee, 0.2);
+  background-color: color-mix(in srgb, var(--dark) 10%, transparent);
+  color: var(--dark);
+  border-color: color-mix(in srgb, var(--dark) 20%, transparent);
 
   &:hover {
-    background-color: rgba($coffee, 0.15);
+    background-color: color-mix(in srgb, var(--dark) 15%, transparent);
     transform: translateY(-1px);
   }
 }
@@ -133,23 +133,23 @@
 }
 
 .badge-active {
-  background-color: rgba($success, 0.1);
-  color: $success;
+  background-color: color-mix(in srgb, var(--success) 10%, transparent);
+  color: var(--success);
 }
 
 .badge-inactive {
-  background-color: rgba($text-secondary, 0.1);
-  color: $text-secondary;
+  background-color: color-mix(in srgb, var(--text-secondary) 10%, transparent);
+  color: var(--text-secondary);
 }
 
 .badge-draft {
-  background-color: rgba($warning, 0.1);
-  color: $warning;
+  background-color: color-mix(in srgb, var(--warning) 10%, transparent);
+  color: var(--warning);
 }
 
 .badge-sold-out {
-  background-color: rgba($danger, 0.1);
-  color: $danger;
+  background-color: color-mix(in srgb, var(--danger) 10%, transparent);
+  color: var(--danger);
 }
 
 // ========================================
@@ -185,14 +185,14 @@
 
   &:hover {
     transform: translateY(-1px);
-    box-shadow: $shadow-soft;
+    box-shadow: var(--shadow);
   }
 
   // Badge sélectionné (dans les sélecteurs)
   .badge.badge-selected,
   .badges-container .badge-active {
-    background-color: $primary;
-    border-color: $primary;
+    background-color: var(--primary);
+    border-color: var(--primary);
     color: white;
   }
 }
@@ -250,7 +250,7 @@
 
 /* Sécurité si la clé est vide/inconnue */
 .type-default {
-  background-color: $primary-dark;
+  background-color: var(--primary-dark);
 }
 
 // ========================================

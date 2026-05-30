@@ -1,5 +1,4 @@
 @use '../variables' as *;
-@use '../mixins' as *;
 
 .btn {
   display: inline-flex;
@@ -49,38 +48,137 @@
 
   // Variants
   &.btn-primary {
-    @include button-variant($primary);
-    box-shadow: 0 2px 4px rgba($primary, 0.2);
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: white;
+    box-shadow: 0 2px 4px color-mix(in srgb, var(--primary) 20%, transparent);
 
     &:hover:not(:disabled) {
-      box-shadow: $shadow-medium;
+      background-color: color-mix(in srgb, var(--primary) 92%, black);
+      border-color: color-mix(in srgb, var(--primary) 92%, black);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    &:focus {
+      box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--primary) 25%, transparent);
+    }
+
+    &:active {
+      background-color: color-mix(in srgb, var(--primary) 88%, black);
+      border-color: color-mix(in srgb, var(--primary) 88%, black);
     }
   }
 
   &.btn-secondary {
-    @include button-variant($secondary);
+    background-color: var(--secondary);
+    border-color: var(--secondary);
+    color: white;
+
+    &:hover:not(:disabled) {
+      background-color: color-mix(in srgb, var(--secondary) 92%, black);
+      border-color: color-mix(in srgb, var(--secondary) 92%, black);
+      transform: translateY(-1px);
+    }
+
+    &:focus {
+      box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--secondary) 25%, transparent);
+    }
+
+    &:active {
+      background-color: color-mix(in srgb, var(--secondary) 88%, black);
+      border-color: color-mix(in srgb, var(--secondary) 88%, black);
+    }
   }
 
   &.btn-success {
-    @include button-variant($success);
+    background-color: var(--success);
+    border-color: var(--success);
+    color: white;
+
+    &:hover:not(:disabled) {
+      background-color: color-mix(in srgb, var(--success) 92%, black);
+      border-color: color-mix(in srgb, var(--success) 92%, black);
+      transform: translateY(-1px);
+    }
+
+    &:focus {
+      box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--success) 25%, transparent);
+    }
+
+    &:active {
+      background-color: color-mix(in srgb, var(--success) 88%, black);
+      border-color: color-mix(in srgb, var(--success) 88%, black);
+    }
   }
 
   &.btn-warning {
-    @include button-variant($warning);
+    background-color: var(--warning);
+    border-color: var(--warning);
+    color: white;
+
+    &:hover:not(:disabled) {
+      background-color: color-mix(in srgb, var(--warning) 92%, black);
+      border-color: color-mix(in srgb, var(--warning) 92%, black);
+      transform: translateY(-1px);
+    }
+
+    &:focus {
+      box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--warning) 25%, transparent);
+    }
+
+    &:active {
+      background-color: color-mix(in srgb, var(--warning) 88%, black);
+      border-color: color-mix(in srgb, var(--warning) 88%, black);
+    }
   }
 
   &.btn-danger {
-    @include button-variant($danger);
+    background-color: var(--danger);
+    border-color: var(--danger);
+    color: white;
+
+    &:hover:not(:disabled) {
+      background-color: color-mix(in srgb, var(--danger) 92%, black);
+      border-color: color-mix(in srgb, var(--danger) 92%, black);
+      transform: translateY(-1px);
+    }
+
+    &:focus {
+      box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--danger) 25%, transparent);
+    }
+
+    &:active {
+      background-color: color-mix(in srgb, var(--danger) 88%, black);
+      border-color: color-mix(in srgb, var(--danger) 88%, black);
+    }
   }
 
   &.btn-info {
-    @include button-variant($info);
+    background-color: var(--info);
+    border-color: var(--info);
+    color: white;
+
+    &:hover:not(:disabled) {
+      background-color: color-mix(in srgb, var(--info) 92%, black);
+      border-color: color-mix(in srgb, var(--info) 92%, black);
+      transform: translateY(-1px);
+    }
+
+    &:focus {
+      box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--info) 25%, transparent);
+    }
+
+    &:active {
+      background-color: color-mix(in srgb, var(--info) 88%, black);
+      border-color: color-mix(in srgb, var(--info) 88%, black);
+    }
   }
 
   &.btn-cancel {
     background-color: transparent;
-    border-color: $border-color;
-    color: $text-secondary;
+    border-color: var(--border-color);
+    color: var(--text-secondary);
 
     &:hover:not(:disabled) {
       background: #e5e7eb;
@@ -90,11 +188,11 @@
 
   &.btn-outline {
     background-color: transparent;
-    border-color: $primary;
-    color: $primary;
+    border-color: var(--primary);
+    color: var(--primary);
 
     &:hover:not(:disabled) {
-      background-color: $primary;
+      background-color: var(--primary);
       color: white;
       transform: translateY(-1px);
     }
@@ -103,16 +201,16 @@
   &.btn-ghost {
     background-color: transparent;
     border-color: transparent;
-    color: $primary;
+    color: var(--primary);
 
     &.btn-light {
-      background-color: $bg-light;
-      border-color: $border-color;
-      color: $text-primary;
+      background-color: var(--light);
+      border-color: var(--border-color);
+      color: var(--text-primary);
 
       &:hover:not(:disabled) {
-        background-color: $cream;
-        border-color: $sand;
+        background-color: color-mix(in srgb, var(--light) 90%, black);
+        border-color: var(--secondary);
       }
     }
   }
@@ -141,16 +239,16 @@
   border-radius: $border-radius;
   cursor: pointer;
   transition: all $transition-base;
-  color: $text-secondary;
+  color: var(--text-secondary);
 
   &:hover {
     background: #f3f4f6;
-    color: $text-primary;
+    color: var(--text-primary);
   }
 
   &.text-danger:hover {
-    background: rgba($danger, 0.1);
-    color: $danger;
+    background: color-mix(in srgb, var(--danger) 10%, transparent);
+    color: var(--danger);
   }
 }
 
@@ -181,5 +279,5 @@
   display: block;
   max-width: fit-content;
   float: inline-end;
-  background: $success;
+  background: var(--success);
 }

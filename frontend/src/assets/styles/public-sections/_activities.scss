@@ -22,14 +22,14 @@
         right: 0;
         bottom: 0;
         background:
-            radial-gradient(circle at 20% 20%, rgba($sand, 0.08) 0%, transparent 50%),
-            radial-gradient(circle at 80% 80%, rgba($terracotta, 0.06) 0%, transparent 50%);
+            radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--secondary) 8%, transparent) 0%, transparent 50%),
+            radial-gradient(circle at 80% 80%, color-mix(in srgb, var(--accent) 6%, transparent) 0%, transparent 50%);
         pointer-events: none;
     }
 }
 
 // ====================
-// CONTENEUR ACTIVITÉS 
+// CONTENEUR ACTIVITÉS
 // ====================
 .activities-content {
     max-width: 100%;
@@ -42,7 +42,7 @@
 }
 
 // ==================
-// HEADER DE SECTION 
+// HEADER DE SECTION
 // ==================
 .section-header {
     text-align: center;
@@ -55,7 +55,7 @@
         line-height: 1.2;
         margin-bottom: 1rem;
         font-family: $font-family-primary;
-        color: $bg-default;
+        color: var(--bg-default);
         max-width: 100%;
         word-wrap: break-word;
         overflow-wrap: break-word;
@@ -81,7 +81,7 @@
     .title-subtitle {
         font-size: 2rem;
         font-weight: 300;
-        color: $bg-default;
+        color: var(--bg-default);
         font-family: $font-family-primary;
         max-width: 100%;
         word-wrap: break-word;
@@ -115,8 +115,8 @@
 .main-carousel {
     position: relative;
     border-radius: $border-radius-2xl;
-    background: $coffee;
-    box-shadow: 0 10px 30px rgba($coffee, 0.4);
+    background: var(--dark);
+    box-shadow: 0 10px 30px color-mix(in srgb, var(--dark) 40%, transparent);
 
     .carousel-wrapper {
         width: 100%;
@@ -160,7 +160,7 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: linear-gradient(transparent 0%, transparent 10%, rgba($coffee, 0.7) 25%);
+            background: linear-gradient(transparent 0%, transparent 10%, color-mix(in srgb, var(--dark) 70%, transparent) 25%);
             color: white;
             padding: 1rem 3rem 0.8rem;
             opacity: 0.9;
@@ -179,7 +179,7 @@
                     font-size: 1.8rem;
                     margin-bottom: 0.5rem;
                     font-family: $font-family-display;
-                    color: $sand;
+                    color: var(--secondary);
                     font-weight: 400;
 
                     // 📱 RESPONSIVE MOBILE
@@ -223,7 +223,7 @@
                     justify-content: center;
                     font-size: $font-size-base;
                     color: white;
-                    box-shadow: 0 4px 12px rgba($terracotta, 0.4);
+                    box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 40%, transparent);
 
                     @media (max-width: 768px) {
                         width: 35px;
@@ -243,7 +243,7 @@
 }
 
 // =============================
-// BOUTONS NAVIGATION CARROUSEL 
+// BOUTONS NAVIGATION CARROUSEL
 // =============================
 .carrousel-nav-btn {
     position: absolute;
@@ -251,8 +251,8 @@
     transform: translateY(-50%);
     width: 60px;
     height: 60px;
-    background: rgba($sand, 0.2);
-    border: 2px solid rgba($sand, 0.4);
+    background: color-mix(in srgb, var(--secondary) 20%, transparent);
+    border: 2px solid color-mix(in srgb, var(--secondary) 40%, transparent);
     border-radius: 50%;
     color: white;
     font-size: $font-size-xl;
@@ -262,8 +262,8 @@
     backdrop-filter: blur(10px);
 
     &:hover {
-        background: rgba($terracotta, 0.8);
-        border-color: $terracotta;
+        background: color-mix(in srgb, var(--accent) 80%, transparent);
+        border-color: var(--accent);
         transform: translateY(-50%) scale(1.1);
     }
 
@@ -311,8 +311,8 @@
     .dot {
         position: relative;
         padding: 0.5rem 1rem;
-        background: rgba($coffee, 0.6);
-        border: 1px solid rgba($sand, 0.3);
+        background: color-mix(in srgb, var(--dark) 60%, transparent);
+        border: 1px solid color-mix(in srgb, var(--secondary) 30%, transparent);
         border-radius: $border-radius-lg;
         color: rgba(white, 0.7);
         cursor: pointer;
@@ -321,14 +321,14 @@
         font-size: $font-size-sm;
 
         &.active {
-            background: rgba($terracotta, 0.8);
-            border-color: $terracotta;
+            background: color-mix(in srgb, var(--accent) 80%, transparent);
+            border-color: var(--accent);
             color: white;
             transform: translateY(-2px);
         }
 
         &:hover:not(.active) {
-            background: rgba($sand, 0.3);
+            background: color-mix(in srgb, var(--secondary) 30%, transparent);
             color: white;
         }
 
@@ -342,7 +342,7 @@
     @media (max-width: 768px) {
         gap: 0.75rem;
         padding: 1.5rem 0;
-        background: rgba($coffee, 0.5);
+        background: color-mix(in srgb, var(--dark) 50%, transparent);
         backdrop-filter: blur(10px);
         margin-top: 0;
         margin-bottom: 0;
@@ -356,7 +356,7 @@
             color: transparent;
             font-size: 0;
             backdrop-filter: none;
-            
+
             // Nouvelle taille mobile
             width: 10px;
             height: 10px;
@@ -368,7 +368,7 @@
             }
 
             &.active {
-                background: $sand;
+                background: var(--secondary);
                 width: 30px;
                 border-radius: 5px;
                 transform: translateY(0);
@@ -429,25 +429,25 @@
         gap: 1.5rem;
         width: 95%;
         margin: 0;
-        
+
     }
 }
 
 .activity-card-detailed {
-    background: rgba(white, 0.95);             
-    border-radius: $border-radius-2xl;          
+    background: rgba(white, 0.95);
+    border-radius: $border-radius-2xl;
     overflow: hidden;
-    box-shadow: $shadow-soft;                   
+    box-shadow: var(--shadow);
     transition: all $transition-base;
-    border: 2px solid transparent;             
+    border: 2px solid transparent;
     display: flex;
     flex-direction: column;
 
     &:hover {
         background: rgba(white, 0.95);
-        transform: translateY(-8px);            
+        transform: translateY(-8px);
         box-shadow: $shadow-strong;
-        border-color: rgba($terracotta, 0.2);   
+        border-color: color-mix(in srgb, var(--accent) 20%, transparent);
     }
 
     .card-image {
@@ -465,7 +465,7 @@
         .card-badge {
             position: absolute;
             top: 1rem;
-            right: 1rem;            
+            right: 1rem;
             width: 50px;
             height: 50px;
             background: $gradient-warm;
@@ -475,7 +475,7 @@
             justify-content: center;
             color: white;
             font-size: $font-size-lg;
-            box-shadow: 0 4px 12px rgba($terracotta, 0.4);
+            box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 40%, transparent);
         }
 
         &:hover img {
@@ -490,18 +490,18 @@
         flex-direction: column;
 
         h3 {
-            font-size: $font-size-2xl;        
+            font-size: $font-size-2xl;
             margin-bottom: 1rem;
-            color: $terracotta;
+            color: var(--accent);
             font-family: $font-family-display;
             font-weight: 600;
         }
 
         > p {
-            font-size: $font-size-base;        
+            font-size: $font-size-base;
             line-height: $line-height-relaxed;
             margin-bottom: 1.5rem;
-            color: $coffee;
+            color: var(--dark);
         }
 
         .activity-features {
@@ -517,10 +517,10 @@
                     gap: 0.5rem;
                     margin-bottom: 0.5rem;
                     font-size: $font-size-base;
-                    color: $coffee;
+                    color: var(--dark);
 
                     .app-icon {
-                        color: $terracotta;
+                        color: var(--accent);
                         font-size: $font-size-sm;
                     }
                 }
@@ -529,7 +529,7 @@
 
         .cta-button {
             width: 100%;
-            margin-top: auto;                
+            margin-top: auto;
             padding: 1rem 1.5rem;
             background: $gradient-warm;
             border: none;
@@ -546,7 +546,7 @@
 
             &:hover {
                 transform: translateY(-2px);
-                box-shadow: 0 8px 16px rgba($terracotta, 0.3); 
+                box-shadow: 0 8px 16px color-mix(in srgb, var(--accent) 30%, transparent);
             }
 
             .app-icon {
@@ -577,21 +577,21 @@
     .stat-item {
         text-align: center;
         padding: 1.5rem;
-        background: rgba($sand, 0.1);
+        background: color-mix(in srgb, var(--secondary) 10%, transparent);
         border-radius: $border-radius-xl;
         backdrop-filter: blur(10px);
-        border: 1px solid rgba($sand, 0.2);
+        border: 1px solid color-mix(in srgb, var(--secondary) 20%, transparent);
         transition: all 0.3s ease;
 
         &:hover {
-            background: rgba($sand, 0.2);
+            background: color-mix(in srgb, var(--secondary) 20%, transparent);
             transform: translateY(-3px);
         }
 
         .stat-number {
             font-size: $font-size-3xl;
             font-weight: $font-weight-bold;
-            color: $sand;
+            color: var(--secondary);
             margin-bottom: 0.5rem;
             font-family: $font-family-display;
         }
@@ -638,7 +638,7 @@
 }
 
 // =================================
-// RÈGLES ANTI-DÉBORDEMENT GLOBALES 
+// RÈGLES ANTI-DÉBORDEMENT GLOBALES
 // =================================
 .activities-section *,
 .section-header *,

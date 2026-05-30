@@ -15,7 +15,7 @@
 // ========================================
 .about-section {
   padding: 8rem 0;
-  background: $bg-secondary; 
+  background: var(--bg-secondary);
 
   .about-content {
     display: grid;
@@ -44,7 +44,7 @@
     font-size: clamp($font-size-4xl, 4vw, $font-size-5xl);
     font-weight: $font-weight-light;
     line-height: $line-height-tight;
-    color: $text-primary;
+    color: var(--text-primary);
     margin-bottom: 1.5rem;
     font-family: $font-family-display;
 
@@ -73,7 +73,7 @@
   .about-subtitle {
     font-size: $font-size-xl;
     font-weight: $font-weight-semibold;
-    color: $text-primary;
+    color: var(--text-primary);
     margin-bottom: 2rem;
     line-height: $line-height-normal;
     font-family: $font-family-primary;
@@ -82,7 +82,7 @@
   .about-description {
     font-size: $font-size-lg;
     line-height: $line-height-relaxed;
-    color: $text-secondary;
+    color: var(--text-secondary);
     font-family: $font-family-primary;
     margin-bottom: 2rem;
   }
@@ -208,7 +208,7 @@
       right: -30px;
       width: 150px;
       height: 200px;
-      background: $primary-light;
+      background: var(--primary-light);
       border-radius: 50%;
       opacity: 0.3;
       z-index: -1;
@@ -239,7 +239,7 @@
 
   .star-accent {
     font-size: 3rem;
-    color: $terracotta;
+    color: var(--accent);
     animation: starTwinkle 2s ease-in-out infinite;
   }
 }
@@ -276,7 +276,7 @@
 }
 
 .testimonial-card {
-  background: rgba($coffee, 0.8);
+  background: color-mix(in srgb, var(--dark) 80%, transparent);
   border-radius: $border-radius-2xl;
   padding: 2.5rem;
   margin-bottom: 2rem;
@@ -284,7 +284,7 @@
   gap: 2rem;
   align-items: flex-start;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba($terracotta, 0.2);
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
 
   @include media-breakpoint-down(md) {
     flex-direction: column;
@@ -302,7 +302,7 @@
       background: white;
       padding: 10px 10px 40px 10px;
       border-radius: $border-radius-sm;
-      box-shadow: $shadow-medium;
+      box-shadow: var(--shadow-lg);
       transform: rotate(-5deg);
       transition: transform $transition-base;
 
@@ -339,7 +339,7 @@
     .client-name {
       font-size: $font-size-xl;
       font-weight: $font-weight-semibold;
-      color: $sand;
+      color: var(--secondary);
       margin-bottom: 1rem;
       font-family: $font-family-display;
     }
@@ -378,4 +378,3 @@
     padding: 4rem 0;
   }
 }
-

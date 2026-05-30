@@ -49,12 +49,12 @@
     }
 
     &.active .step-number {
-      background: $terracotta;
+      background: var(--accent);
       color: #fff;
     }
 
     &.completed .step-number {
-      background: $primary;
+      background: var(--primary);
       color: #fff;
     }
 
@@ -85,7 +85,7 @@
 }
 
 .step-title {
-  color: $terracotta;
+  color: var(--accent);
   font-size: 1.3rem;
   font-weight: 600;
   margin-bottom: 1.5rem;
@@ -210,8 +210,8 @@
   }
 
   &.selected {
-    border-color: $terracotta;
-    background: rgba(193, 124, 74, 0.05);
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 5%, transparent);
   }
 }
 
@@ -247,7 +247,7 @@
 .mini-price {
   font-weight: 700;
   font-size: 0.9rem;
-  color: $terracotta;
+  color: var(--accent);
 }
 
 // ===== MESSAGES D'AIDE =====
@@ -290,7 +290,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: $terracotta;
+  color: var(--accent);
   font-weight: 500;
 }
 
@@ -383,7 +383,7 @@
   }
 
   h4 {
-    color: $terracotta;
+    color: var(--accent);
     font-size: 1.1rem;
     margin-bottom: 0.75rem;
     font-weight: 600;
@@ -412,7 +412,7 @@
   }
 
   span:last-child {
-    color: $terracotta;
+    color: var(--accent);
     font-weight: 600;
   }
 
@@ -477,9 +477,9 @@
   transition: all 0.15s ease;
 
   &:focus {
-    border-color: $terracotta;
+    border-color: var(--accent);
     outline: none;
-    box-shadow: 0 0 0 2px rgba(193, 124, 74, 0.2);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 20%, transparent);
   }
 }
 
@@ -492,7 +492,7 @@
 // ===== TOTAUX =====
 .item-total {
   text-align: right;
-  color: $terracotta;
+  color: var(--accent);
   font-weight: bold;
 }
 
@@ -509,9 +509,9 @@
   text-align: center;
   margin-bottom: 0.5rem;
   padding: 0.75rem;
-  background: rgba(193, 124, 74, 0.1);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
   border-radius: 8px;
-  border-left: 4px solid $terracotta;
+  border-left: 4px solid var(--accent);
 
   .explanation-text {
     color: #666;
@@ -519,7 +519,7 @@
     margin: 0;
 
     i {
-      color: $terracotta;
+      color: var(--accent);
       margin-right: 0.5rem;
     }
   }
@@ -543,11 +543,11 @@
 
     &.btn-outline {
       background: transparent;
-      border: 2px solid $terracotta;
-      color: $terracotta;
+      border: 2px solid var(--accent);
+      color: var(--accent);
 
       &:hover {
-        background: $terracotta;
+        background: var(--accent);
         color: white;
       }
     }
@@ -568,7 +568,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: $terracotta;
+  color: var(--accent);
   font-weight: 500;
 }
 

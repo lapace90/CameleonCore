@@ -1,12 +1,11 @@
-@use 'sass:color';
 @use '@/assets/styles/variables' as *;
 
 .devis-section {
     padding: 6rem 0;
     background: linear-gradient(135deg,
-            $cream 0%,
-            color.mix($cream, $sand, 80%) 50%,
-            $sand 100%);
+            var(--light) 0%,
+            color-mix(in srgb, var(--light) 80%, var(--secondary)) 50%,
+            var(--secondary) 100%);
     position: relative;
     overflow: hidden;
 
@@ -18,8 +17,8 @@
         right: 0;
         bottom: 0;
         background:
-            radial-gradient(circle at 10% 90%, rgba($terracotta, 0.08) 0%, transparent 50%),
-            radial-gradient(circle at 90% 10%, rgba($coffee, 0.05) 0%, transparent 50%);
+            radial-gradient(circle at 10% 90%, color-mix(in srgb, var(--accent) 8%, transparent) 0%, transparent 50%),
+            radial-gradient(circle at 90% 10%, color-mix(in srgb, var(--dark) 5%, transparent) 0%, transparent 50%);
         pointer-events: none;
     }
 
@@ -55,7 +54,7 @@
         &.shape-2 {
             width: 150px;
             height: 150px;
-            background: linear-gradient(135deg, $sand 0%, $cream 100%);
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--light) 100%);
             top: 60%;
             right: 8%;
             animation: float-slow 6s ease-in-out infinite reverse;
@@ -64,7 +63,7 @@
         &.shape-3 {
             width: 120px;
             height: 120px;
-            background: linear-gradient(135deg, $terracotta 0%, $coffee 100%);
+            background: linear-gradient(135deg, var(--accent) 0%, var(--dark) 100%);
             bottom: 15%;
             left: 10%;
             animation: float-slow 7s ease-in-out infinite 2s;
@@ -75,15 +74,15 @@
         position: absolute;
         width: 40px;
         height: 40px;
-        background: rgba($sand, 0.2);
+        background: color-mix(in srgb, var(--secondary) 20%, transparent);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: $terracotta;
+        color: var(--accent);
         font-size: 1.2rem;
         backdrop-filter: blur(10px);
-        border: 1px solid rgba($terracotta, 0.3);
+        border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
 
         &.icon-1 {
             top: 20%;
@@ -124,7 +123,7 @@
         .title {
             font-size: clamp($font-size-3xl, 5vw, $font-size-6xl);
             font-weight: 300;
-            color: $text-primary;
+            color: var(--text-primary);
             margin-bottom: 1rem;
             font-family: $font-family-primary;
             line-height: $line-height-tight;
@@ -133,7 +132,7 @@
         .subtitle {
             font-size: clamp($font-size-2xl, 4vw, $font-size-5xl);
             font-weight: 400;
-            color: $terracotta;
+            color: var(--accent);
             font-family: $font-family-display;
             margin-bottom: 2rem;
         }
@@ -156,7 +155,7 @@
             display: inline-flex;
             align-items: center;
             gap: 1rem;
-            box-shadow: 0 8px 24px rgba($terracotta, 0.3);
+            box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 30%, transparent);
             position: relative;
             overflow: hidden;
 
@@ -176,7 +175,7 @@
 
             &:hover:not(:disabled) {
                 transform: translateY(-4px) scale(1.05);
-                box-shadow: 0 16px 40px rgba($terracotta, 0.4);
+                box-shadow: 0 16px 40px color-mix(in srgb, var(--accent) 40%, transparent);
 
                 &::before {
                     left: 100%;
@@ -212,7 +211,7 @@
 
         p {
             font-size: $font-size-xl;
-            color: $text-secondary;
+            color: var(--text-secondary);
             line-height: $line-height-relaxed;
             font-family: $font-family-primary;
             max-width: 600px;
@@ -226,7 +225,7 @@
 
     .features {
         display: grid;
-        grid-template-columns: repeat(3, 1fr); 
+        grid-template-columns: repeat(3, 1fr);
         gap: 2rem;
         justify-content: center;
         max-width: 900px;
@@ -249,16 +248,16 @@
             z-index: 2;
             transition: all $transition-base;
             min-height: 80px;
-            box-shadow: 0 4px 12px rgba($coffee, 0.1);
+            box-shadow: 0 4px 12px color-mix(in srgb, var(--dark) 10%, transparent);
 
             &:hover {
                 background: rgba(white, 0.9);
                 transform: translateY(-3px);
-                box-shadow: 0 8px 20px rgba($coffee, 0.15);
+                box-shadow: 0 8px 20px color-mix(in srgb, var(--dark) 15%, transparent);
             }
 
             .feature-icon {
-                width: 2.5rem; 
+                width: 2.5rem;
                 height: 2.5rem;
                 background: $gradient-warm;
                 border-radius: 50%;
@@ -271,7 +270,7 @@
             }
 
             span {
-                color: $text-primary;
+                color: var(--text-primary);
                 font-weight: $font-weight-semibold;
                 font-family: $font-family-primary;
             }

@@ -1,4 +1,3 @@
-@use "sass:color";
 @use 'variables' as *;
 @use 'mixins' as *;
 
@@ -39,35 +38,35 @@
 
 // Couleurs de texte
 .text-primary {
-  color: $primary !important;
+  color: var(--primary) !important;
 }
 
 .text-secondary {
-  color: $secondary !important;
+  color: var(--secondary) !important;
 }
 
 .text-success {
-  color: $success !important;
+  color: var(--success) !important;
 }
 
 .text-warning {
-  color: $warning !important;
+  color: var(--warning) !important;
 }
 
 .text-danger {
-  color: $danger !important;
+  color: var(--danger) !important;
 }
 
 .text-info {
-  color: $info !important;
+  color: var(--info) !important;
 }
 
 .text-light {
-  color: $light !important;
+  color: var(--light) !important;
 }
 
 .text-dark {
-  color: $dark !important;
+  color: var(--dark) !important;
 }
 
 .text-white {
@@ -75,40 +74,40 @@
 }
 
 .text-muted {
-  color: $text-secondary !important;
+  color: var(--text-secondary) !important;
 }
 
 // Couleurs de fond
 .bg-primary {
-  background-color: $primary !important;
+  background-color: var(--primary) !important;
 }
 
 .bg-secondary {
-  background-color: $secondary !important;
+  background-color: var(--secondary) !important;
 }
 
 .bg-success {
-  background-color: $success !important;
+  background-color: var(--success) !important;
 }
 
 .bg-warning {
-  background-color: $warning !important;
+  background-color: var(--warning) !important;
 }
 
 .bg-danger {
-  background-color: $danger !important;
+  background-color: var(--danger) !important;
 }
 
 .bg-info {
-  background-color: $info !important;
+  background-color: var(--info) !important;
 }
 
 .bg-light {
-  background-color: $light !important;
+  background-color: var(--light) !important;
 }
 
 .bg-dark {
-  background-color: $dark !important;
+  background-color: var(--dark) !important;
 }
 
 .bg-white {
@@ -121,10 +120,10 @@
 
 // Gradients
 $gradient-secondary: $gradient-warm;
-$gradient-success: linear-gradient(135deg, $success 0%, color.scale($success, $lightness: 15%) 100%);
+$gradient-success: linear-gradient(135deg, var(--success) 0%, color-mix(in srgb, var(--success) 85%, white) 100%);
 $gradient-info: $gradient-primary;
-$gradient-warning: linear-gradient(135deg, $warning 0%, color.scale($warning, $lightness: 15%) 100%);
-$gradient-danger: linear-gradient(135deg, $danger 0%, color.scale($danger, $lightness: 15%) 100%);
+$gradient-warning: linear-gradient(135deg, var(--warning) 0%, color-mix(in srgb, var(--warning) 85%, white) 100%);
+$gradient-danger: linear-gradient(135deg, var(--danger) 0%, color-mix(in srgb, var(--danger) 85%, white) 100%);
 
 // Typographie
 .font-weight-light {
@@ -315,15 +314,15 @@ $gradient-danger: linear-gradient(135deg, $danger 0%, color.scale($danger, $ligh
 }
 
 .shadow-sm {
-  box-shadow: $shadow-soft !important;
+  box-shadow: var(--shadow) !important;
 }
 
 .shadow {
-  box-shadow: $shadow-soft !important;
+  box-shadow: var(--shadow) !important;
 }
 
 .shadow-lg {
-  box-shadow: $shadow-medium !important;
+  box-shadow: var(--shadow-lg) !important;
 }
 
 // Border radius
