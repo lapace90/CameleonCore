@@ -1,113 +1,128 @@
-# CampCameleonX 
+# CameleonCore
 
-> **Application web de gestion d'un établissement touristique**  
-> Plateforme complète pour la réservation d'activités, d'hébergements et de restauration
+> Plateforme SaaS modulaire et configurable pour la gestion d'activités
+> Un seul codebase, des instances personnalisées par client
 
-![Laravel](https://img.shields.io/badge/Laravel-v12-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)
-![Vue.js](https://img.shields.io/badge/Vue.js-v3-4FC08D?style=for-the-badge&logo=vue.js&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-v17-336791?style=for-the-badge&logo=postgresql&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)
-![API Platform](https://img.shields.io/badge/API_Platform-v4-67CDF0?style=for-the-badge)
-
----
+Laravel Vue.js PostgreSQL Docker API Platform
 
 ## Vue d'ensemble
 
-**CampCameleonX** est une application web complète de gestion pour une maison d'hôtes située dans le désert marocain. Elle permet aux visiteurs de découvrir et réserver des activités, hébergements et services de restauration, tout en offrant aux gestionnaires un back-office puissant pour administrer l'établissement.
+CameleonCore est une plateforme web modulaire capable de s'adapter à différents types d'activités — hôtellerie, restauration, traiteur, services à domicile — via un système de configuration par instance.
 
-### Contexte
+Chaque déploiement est une instance configurée avec ses propres modules, productables, features et thème visuel. Un seul codebase, une commande de setup, un client opérationnel.
 
-Projet développé dans le cadre du Titre Professionnel Concepteur Développeur d'Applications (CDA), cette application répond aux besoins réels d'un établissement touristique avec une approche moderne et scalable.
+### Origine
 
-### Objectifs principaux
+Le projet est l'évolution de [CampCameleonX](https://campcameleonx.ipace.dev), une plateforme de gestion hôtelière développée comme projet CDA (Bac+3). L'architecture et le code ont été refactorisés pour devenir une base SaaS réutilisable.
 
-- **Digitaliser** la gestion complète de l'établissement
-- **Automatiser** les processus de réservation et facturation
-- **Optimiser** l'expérience utilisateur avec une interface immersive
-- **Centraliser** la gestion des activités, hébergements et restauration
+## Architecture
 
----
+### Principe
 
-## Fonctionnalités
+Chaque instance est définie par un fichier `config/instance.php` qui lit les variables d'environnement :
 
-### Site Public
-
-- **Page d'accueil immersive** avec hero section évoquant le désert
-- **Catalogue complet** : activités, hébergements, menus avec système de filtres
-- **Devis personnalisé** multi-étapes avec calendrier interactif
-- **Réservation en ligne** avec paiement sécurisé via Stripe
-- **Espace client** pour suivre ses réservations
-- **Design responsive** mobile-first
-
-### Back-office Administration
-
-- **Dashboard** avec statistiques en temps réel et widgets personnalisables
-- **Gestion RBAC** : 6 rôles prédéfinis, 50+ permissions granulaires
-- **Calendrier FullCalendar** avec drag & drop pour la planification
-- **Gestion complète du catalogue** : CRUD pour tous les types de produits
-- **Facturation automatisée** avec système de relances
-- **Notifications temps réel** avec cache optimisé (TTL 7 jours)
-- **Statistiques et analytics** pour le suivi de performance
-
-### Fonctionnalités Techniques Avancées
-
-- **Architecture API-first** avec API Platform pour Laravel
-- **Relations polymorphes** intelligentes (Product → Activity/Room/Menu/Dish)
-- **Système de cache** multi-niveaux avec ETag
-- **Tâches planifiées** via conteneur Docker dédié
-- **Documentation API** automatique (OpenAPI/Swagger)
-- **Conformité RGPD** avec gestion des consentements
-
----
-
-## Architecture Technique
-
-### Stack Technologique
-
-#### Backend
-- **Laravel 12** - Framework PHP moderne
-- **API Platform 4** - API REST auto-documentée
-- **PostgreSQL 17** - Base de données relationnelle
-- **Laravel Sanctum** - Authentification SPA
-- **Eloquent ORM** - Mapping objet-relationnel
-
-#### Frontend
-- **Vue.js 3** - Framework JavaScript réactif
-- **Vite** - Build tool ultra-rapide
-- **Pinia** - Gestion d'état centralisée
-- **FullCalendar.js** - Calendrier interactif
-- **SCSS modulaire** - Styles organisés et maintenables
-
-#### Infrastructure
-- **Docker Compose** - Orchestration de conteneurs
-- **4 conteneurs** : Backend, Frontend, PostgreSQL, Scheduler
-- **Nginx** - Serveur web pour le frontend
-- **GitHub Actions** - CI/CD automatisé
-
-### Architecture des Conteneurs
-
-```yaml
-Services:
-  ├── myBackendCore    (Laravel API - Port 8000)
-  ├── myFrontendCore   (Vue.js SPA - Port 5173)
-  ├── myPostgresCore   (PostgreSQL - Port 5433)
-  ├── mySchedulerCore  (Tâches CRON isolées)
-  ├── myPgAdminCore    (Administration BDD - Port 5050)
-  └── myMailhogCore    (Capture emails dev - Port 8025)
+```
+Type d'activité → Modules activés → Productables disponibles → Features spécifiques
 ```
 
-### Pattern Polymorphe
+Le code reste identique entre les instances. Seule la configuration change.
 
-```php
-Product (abstraction commune)
-    ├── Activity    (activités désert)
-    ├── Room        (hébergements)
-    ├── Menu        (formules repas)
-    ├── Dish        (plats individuels)
-    └── Ingredient  (composants)
+### Configuration par instance
+
+```
+Instance traiteur          Instance hôtel
+─────────────────          ──────────────────
+Modules :                  Modules :
+  ✓ Booking                  ✓ Booking
+  ✓ Invoicing                ✓ Invoicing
+  ✓ Calendar                 ✓ Calendar
+  ✗ RBAC                     ✓ RBAC
+  ✗ Staff                    ✓ Staff
+  ✗ Reviews                  ✓ Reviews
+  ✗ Analytics                ✓ Analytics
+  ✗ Quote Builder            ✓ Quote Builder
+
+Productables :             Productables :
+  menu, dish                 room, activity, menu,
+                             dish, ingredient
+
+Features :                 Features :
+  ✓ Acompte (30%)            ✓ Acompte (30%)
+  ✓ Convives                 ✓ Check-in/out
+  ✗ Check-in/out             ✓ Convives
 ```
 
----
+### Modules disponibles
+
+| Module | Description |
+|--------|-------------|
+| **Booking** | Réservations avec parcours adaptatif (simplifié ou devis multi-produits) |
+| **Invoicing** | Facturation avec système acompte/solde, PDF automatisés |
+| **Calendar** | Agenda des réservations (wrapper CameleonCalendar) |
+| **RBAC** | Rôles et permissions (50+), désactivable pour les solo operators |
+| **Staff** | Planning du personnel, assignation aux réservations |
+| **Reviews** | Gestion des avis clients avec modération |
+| **Analytics** | Dashboard statistiques adapté aux productables actifs |
+| **Quote Builder** | Devis interactif multi-produits |
+
+### Système de Productables
+
+Architecture polymorphe : `Product → productable_type` (Activity, Room, Menu, Dish, Ingredient).
+
+Chaque instance active uniquement les types pertinents. L'API, le backoffice et le frontend filtrent automatiquement selon la configuration.
+
+## Stack technique
+
+| Composant | Technologie |
+|-----------|-------------|
+| Backend | Laravel 12, API Platform 4, PHP 8.4 |
+| Frontend | Vue.js 3 (Composition + Options API), Pinia |
+| Base de données | PostgreSQL 17 |
+| Paiement | Stripe (Checkout Sessions) |
+| Facturation | DomPDF (acompte / solde / complète) |
+| Calendrier | FullCalendar via wrapper CameleonCalendar |
+| Conteneurisation | Docker Compose |
+| Tests | Pest/PHPUnit (backend), Vitest (frontend) |
+| Serveur | VPS OVH, Debian, Nginx |
+
+## Structure du projet
+
+```
+CameleonCore/
+├── backend/                 # Laravel 12 + API Platform 4
+│   ├── app/
+│   │   ├── Console/         # Commande instance:setup
+│   │   ├── Http/            # Controllers, Middleware
+│   │   ├── Models/          # Eloquent (polymorphe)
+│   │   ├── Observers/       # Auto-création factures
+│   │   ├── Services/        # InvoiceService, FactPulseService
+│   │   └── State/           # Providers/Processors API Platform
+│   ├── config/
+│   │   └── instance.php     # Configuration par instance
+│   └── tests/
+│       ├── Feature/         # Tests API + instance config
+│       └── Traits/          # ConfiguresInstance trait
+├── frontend/                # Vue.js 3 SPA
+│   ├── src/
+│   │   ├── admin/           # Backoffice (sidebar dynamique)
+│   │   ├── public/          # Site client + BookingModal modulaire
+│   │   │   └── components/
+│   │   │       └── booking/
+│   │   │           ├── BookingModal.vue      # Orchestrateur
+│   │   │           └── steps/
+│   │   │               ├── StepDates.vue     # Dates + convives/heure
+│   │   │               ├── StepProducts.vue  # Sélection par type
+│   │   │               └── StepRecap.vue     # Récap + acompte
+│   │   └── shared/
+│   │       ├── components/
+│   │       │   └── calendar/
+│   │       │       └── CameleonCalendar.vue  # Wrapper FullCalendar
+│   │       └── stores/
+│   │           └── instance.js               # Config runtime
+│   └── tests/
+├── docker-compose.yaml
+└── .env.example
+```
 
 ## Installation
 
@@ -115,190 +130,127 @@ Product (abstraction commune)
 
 - Docker & Docker Compose
 - Git
-- Node.js 20+ (pour le développement frontend)
-- PHP 8.4+ (pour le développement backend local)
 
-### Installation rapide
+### Nouvelle instance
 
-1. **Cloner le repository**
 ```bash
-git clone https://github.com/lapace90/campcameleonx.git
-cd campcameleonx
+# 1. Cloner
+git clone https://github.com/lapace90/CameleonCore.git
+cd CameleonCore
+
+# 2. Copier l'environnement
+cp backend/.env.example .env
+
+# 3. Lancer les services
+docker compose up -d db mailhog app scheduler pgadmin
+
+# 4. Configuration interactive
+docker exec -it myBackendCore php artisan instance:setup
 ```
 
-2. **Configuration environnement**
-```bash
-cp .env.example .env
-# Éditer .env avec vos paramètres (DB, Stripe, Mail...)
-```
+La commande `instance:setup` :
+- Collecte les informations (nom, type, modules, features)
+- Propose des defaults intelligents selon le type d'activité
+- Génère le `.env` complet
+- Crée la base de données
+- Lance les migrations
+- Crée le compte administrateur
+- Génère la clé d'application
 
-3. **Lancer l'infrastructure Docker**
-```bash
-docker compose up -d --build
-```
-
-4. **Initialiser la base de données**
-```bash
-docker compose exec app php artisan migrate --seed
-```
-
-5. **Accéder à l'application**
-- Frontend : http://localhost:5173
-- API : http://localhost:8000
-- Documentation API : http://localhost:8000/api/docs
-
-### Mode développement
-
-Pour le hot-reload en développement :
+### Développement frontend
 
 ```bash
-# Backend uniquement en Docker
-docker compose up -d app db scheduler
-
-# Frontend en local avec hot-reload
-cd frontend/CampCameleonXfront
+cd frontend
 npm install
 npm run dev
+# → http://localhost:5173
 ```
 
----
+### Services Docker
 
-## API Documentation
+| Service | Port | Description |
+|---------|------|-------------|
+| `myBackendCore` | 8000 | API Laravel |
+| `myPostgresCore` | 5433 | PostgreSQL 17 |
+| `myPgAdminCore` | 5050 | Interface BDD |
+| `myMailhogCore` | 8025 | Capture emails (dev) |
+| `mySchedulerCore` | — | Tâches CRON |
 
-L'API est auto-documentée grâce à API Platform :
+## API
 
-- **OpenAPI/Swagger** : `/api/docs`
-- **JSON-LD/Hydra** : `/api/contexts`
-- **Formats supportés** : JSON, JSON-LD
-- **Authentification** : Bearer token (Laravel Sanctum)
+### Endpoint de configuration publique
 
----
+```
+GET /api/config/public
+```
+
+Retourne la configuration de l'instance (modules, productables, features) sans authentification. Utilisé par le frontend au démarrage.
+
+### Documentation
+
+- OpenAPI/Swagger : `/api/docs`
+- Authentification : Bearer token (Laravel Sanctum)
+
+## Facturation
+
+Système de facturation adaptatif :
+
+- **Facture complète** — paiement intégral
+- **Facture d'acompte** — pourcentage configurable, générée automatiquement au paiement Stripe
+- **Facture de solde** — créée depuis le backoffice, liée à l'acompte
+
+Les templates PDF s'adaptent au type de facture et aux informations de l'instance.
+
+## Theming
+
+Chaque instance personnalise son apparence via `_theme-override.scss` :
+
+```scss
+:root {
+  --primary: #2c5f2d;
+  --accent: #d4a373;
+  --dark: #1a1a2e;
+  --light: #f5f0eb;
+}
+```
+
+Le système CSS utilise exclusivement des custom properties — un seul fichier à modifier par client.
 
 ## Tests
 
-### Tests automatisés
-
-- **Backend** : 51 tests Pest/PHPUnit (164 assertions)
-- **Frontend** : Tests composants avec Vitest
-- **E2E** : Tests de parcours avec Playwright
-
-### Lancer les tests
-
 ```bash
-# Tests backend
-docker compose exec app php artisan test
+# Backend
+docker exec -it myBackendCore php artisan test
 
-# Tests frontend
-cd frontend/CampCameleonXfront
-npm run test
-
-# Tests E2E
-npm run test:e2e
+# Frontend
+cd frontend && npx vitest run
 ```
 
-### Couverture de code
+Le trait `ConfiguresInstance` permet de simuler différentes configurations d'instance dans les tests :
 
-- Authentification et autorisation (RBAC)
-- CRUD des entités principales
-- Processus de réservation complet
-- Paiements Stripe
-- Tâches planifiées
+```php
+$this->withTraiteurInstance();   // Config traiteur
+$this->withFullInstance();       // Config hôtel complète
+$this->withModule('rbac', false); // Toggle un module
+```
+
+## Roadmap
+
+- [x] Phase 1 — Infrastructure modulaire (config, store, sidebar dynamique, productables filtrés)
+- [x] Phase 2 — Facturation acompte/solde
+- [x] Phase 3 — Parcours réservation modulaire (BookingModal adaptatif)
+- [ ] Phase 4 — Theming par instance
+- [x] Phase 5 — Commande `instance:setup` + tests
+- [ ] Phase 6 — Module Staff (planning du personnel)
+- [ ] Phase 7 — CameleonCalendar (remplacement FullCalendar)
+- [ ] Phase 8 — Template repository (distribution)
+
+## Démo
+
+La version d'origine (CampCameleonX) est accessible en démo :
+
+🌐 [campcameleonx.ipace.dev](https://campcameleonx.ipace.dev)
 
 ---
 
-## Déploiement
-
-### Déploiement sur serveur
-
-1. **Préparer le serveur**
-```bash
-# SSH vers le serveur
-ssh user@server
-
-# Cloner le projet
-git clone https://github.com/yourusername/campcameleonx.git
-cd campcameleonx
-```
-
-2. **Configuration production**
-```bash
-# Créer le fichier .env de production
-nano .env
-# Configurer toutes les variables (DB, Stripe, URLs...)
-```
-
-3. **Lancer les services**
-```bash
-docker compose up -d --build
-docker compose exec app php artisan migrate --force
-docker compose exec app php artisan optimize
-```
-
-4. **Vérifier le scheduler**
-```bash
-docker compose exec app php artisan schedule:list
-docker compose logs -f scheduler
-```
-
-### Monitoring
-
-```bash
-# État des services
-docker compose ps
-
-# Logs temps réel
-docker compose logs -f app       # API
-docker compose logs -f frontend  # Nginx
-docker compose logs -f db        # PostgreSQL
-docker compose logs -f scheduler # Tâches CRON
-```
-
----
-
-## Sécurité
-
-- **Authentification** : Laravel Sanctum avec tokens SPA
-- **Autorisation** : RBAC avec 50+ permissions granulaires
-- **Protection** : CSRF, XSS, SQL injection
-- **HTTPS** : SSL/TLS en production
-- **RGPD** : Conformité avec gestion des consentements
-- **Paiements** : Intégration Stripe sécurisée (PCI-DSS)
-
----
-
-## Contribution
-
-Les contributions sont les bienvenues ! Voici comment participer :
-
-1. Fork le projet
-2. Créer une branche (`git checkout -b feature/AmazingFeature`)
-3. Commit les changements (`git commit -m 'Add: nouvelle fonctionnalité'`)
-4. Push vers la branche (`git push origin feature/AmazingFeature`)
-5. Ouvrir une Pull Request
-
-### Conventions de code
-
-- **Backend** : PSR-12 pour PHP
-- **Frontend** : ESLint + Prettier pour JavaScript/Vue
-- **Commits** : Convention Conventional Commits
-- **Documentation** : Commentaires en français, code en anglais
-
----
-
-## Équipe
-
-**Développement** : Ilaria Pace  
-**Formation** : Titre Professionnel CDA  
-**Période** : Novembre 2024 - Octobre 2025
-
----
-
-<div align="center">
-### Démo en ligne
-
-🌐 **[campcameleonx.ipace.dev](https://campcameleonx.ipace.dev)**
-  <br>
-  <strong>CampCameleonX - L'expérience du désert marocain à portée de clic</strong>
-  <br>
-  <sub>Développé pour le Titre Professionnel CDA</sub>
-</div>
+Développé par **Ilaria Pace** — [ipace.dev](https://ipace.dev)
