@@ -1,10 +1,10 @@
 {
-  "name": "campcameleonx-frontend",
+  "name": "cameleoncore-frontend",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Interface moderne pour CampCameleonX - Dashboard admin et site public",
-  "author": "CampCameleonX Team",
+  "description": "Interface Vue.js 3 pour CameleonCore - Backoffice et site public modulaires",
+  "author": "Ilaria Pace",
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
@@ -88,11 +88,11 @@
   "keywords": [
     "vue3",
     "vite",
-    "camping",
+    "saas",
     "dashboard",
     "admin",
     "pinia",
     "sass",
-    "responsive"
+    "multiinstance"
   ]
 }

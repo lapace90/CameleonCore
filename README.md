@@ -239,7 +239,7 @@ $this->withModule('rbac', false); // Toggle un module
 - [x] Phase 1 — Infrastructure modulaire (config, store, sidebar dynamique, productables filtrés)
 - [x] Phase 2 — Facturation acompte/solde
 - [x] Phase 3 — Parcours réservation modulaire (BookingModal adaptatif)
-- [ ] Phase 4 — Theming par instance
+- [x] Phase 4 — Theming par instance
 - [x] Phase 5 — Commande `instance:setup` + tests
 - [ ] Phase 6 — Module Staff (planning du personnel)
 - [ ] Phase 7 — CameleonCalendar (remplacement FullCalendar)
